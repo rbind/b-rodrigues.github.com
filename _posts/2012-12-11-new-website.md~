@@ -1,0 +1,8 @@
+---
+layout: post
+title: "New website!"
+description: ""
+category: 
+tags: []
+---
+{% include JB/setup %}
