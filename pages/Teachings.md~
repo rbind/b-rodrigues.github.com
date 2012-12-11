@@ -1,0 +1,7 @@
+---
+layout: page
+title: "Testpage"
+description: ""
+group: "navigation"
+---
+{% include JB/setup %}
