@@ -14,9 +14,9 @@ tagline: PhD Candidate at BÉTA, University of Strasbourg
 author :
   name : Bruno Rodrigues
   email : brodrigues@unistra.fr
-  github : username
-  twitter : username
-  feedburner : feedname
+  github : brodrigues@unistra.fr
+#   twitter : brodrigues
+
 
 # The production_url is only used when full-domain names are needed
 # such as sitemap.txt 
