@@ -7,7 +7,7 @@ tagline: PhD Candidate at BÉTA, University of Strasbourg
 
 <div style="text-align:center;">
   <a href="http://www.kubuntu.org/news/12.04-release">
-    <img src="/assets/images/profile.png" width="80" height="80"/></a>
+    <img src="/assets/images/profile.png" width="600" height="800"/></a>
 </div>
 
 Welcome to my page.
