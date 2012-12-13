@@ -6,7 +6,7 @@ tagline: PhD Candidate at BÉTA, University of Strasbourg
 {% include JB/setup %}
 
 <div style="float: left;margin: 0px 80px 50px 0px">
-    <img src="/assets/images/profile.png" width="160" height="230"/>
+    <img src="/assets/images/profile.png" width="150" height="282"/>
 </div>
 
 Welcome to my page.
