@@ -16,7 +16,7 @@ description: ""
 
 <body>
 
-<p>This document details section <em>12.4.5. Unobserved Heterogeneity Example</em> from Camoron and Trivedi's book - MICROECONOMETRICS: Methods and Applications. The original source code giving the results from table 12.2 are available from the authors&#39; site <a href="http://cameron.econ.ucdavis.edu/mmabook/mmaprograms.html">here</a> and written for Stata. This is an attempt to translate the code to R. I'd like to thanks Reddit user <a href="http://www.reddit.com/user/anonemouse2010">anonemouse2010</a> for his advice which helped me writing the function.</p>
+<p>This document details section <em>12.4.5. Unobserved Heterogeneity Example</em> from Cameron and Trivedi's book - MICROECONOMETRICS: Methods and Applications. The original source code giving the results from table 12.2 are available from the authors&#39; site <a href="http://cameron.econ.ucdavis.edu/mmabook/mmaprograms.html">here</a> and written for Stata. This is an attempt to translate the code to R. I'd like to thanks Reddit user <a href="http://www.reddit.com/user/anonemouse2010">anonemouse2010</a> for his advice which helped me write the function.</p>
 
 <p>Consult the original source code if you want to read the authors&#39; comments. If you want the R source code without all the commentaries, grab it <a href='/assets/code/simulated_max_lik.R'>here</a>. This is not guaranteed to work, nor to be correct. It could set your pet on fire and/or eat your first born. Use at your own risk. I may, or may not, expand this example. Corrections, constructive criticism are welcome.</p>
 
