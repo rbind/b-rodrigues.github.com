@@ -36,7 +36,11 @@ simreps &lt;- 10000
 
 <h3>Simulation</h3>
 
-<p>In the code below, the likelihood (12.25) on page 397 is programmed using the function <code>sapply</code>.</p>
+<p>In the code below, the following likelihood function:
+
+$$\log{\hat{L}_N(\theta)} = \dfrac{1}{N} \sum_{i=1}^N\log{\big( \dfrac{1}{S}\sum_{s=1}^S \dfrac{1}{\sqrt{2\pi}} \exp \{ -(-y_i-\theta-u_i^s)^2/2 \}\big)}$$
+
+which can be found on page 397 is programmed using the function <code>sapply</code>.</p>
 
 <pre><code class="r">denssim &lt;- function(theta) {
     loglik &lt;- mean(sapply(y, function(y) log(mean((1/sqrt(2 * pi)) * exp(-(y - theta + log(-log(runif(simreps))))^2/2)))))

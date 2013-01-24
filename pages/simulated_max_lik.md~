@@ -16,7 +16,7 @@ description: ""
 
 <body>
 
-<p>This document details section <em>12.4.5. Unobserved Heterogeneity Example</em> from Camoron and Trivedi's book - MICROECONOMETRICS: Methods and Applications. The original source code giving the results from table 12.2 are available from the authors&#39; site <a href="http://cameron.econ.ucdavis.edu/mmabook/mmaprograms.html">here</a> and written for Stata. This is an attempt to translate the code to R. I'd like to thanks Reddit user <a href="http://www.reddit.com/user/anonemouse2010">anonemouse2010</a> for his advice which helped me writing the function.</p>
+<p>This document details section <em>12.4.5. Unobserved Heterogeneity Example</em> from Cameron and Trivedi's book - MICROECONOMETRICS: Methods and Applications. The original source code giving the results from table 12.2 are available from the authors&#39; site <a href="http://cameron.econ.ucdavis.edu/mmabook/mmaprograms.html">here</a> and written for Stata. This is an attempt to translate the code to R. I'd like to thanks Reddit user <a href="http://www.reddit.com/user/anonemouse2010">anonemouse2010</a> for his advice which helped me write the function.</p>
 
 <p>Consult the original source code if you want to read the authors&#39; comments. If you want the R source code without all the commentaries, grab it <a href='/assets/code/simulated_max_lik.R'>here</a>. This is not guaranteed to work, nor to be correct. It could set your pet on fire and/or eat your first born. Use at your own risk. I may, or may not, expand this example. Corrections, constructive criticism are welcome.</p>
 
@@ -36,7 +36,11 @@ simreps &lt;- 10000
 
 <h3>Simulation</h3>
 
-<p>In the code below, the likelihood (12.25) on page 397 is programmed using the function <code>sapply</code>.</p>
+<p>In the code below, the following likelihood function:
+
+$$\log{\hat{L}_N(\theta)} = \dfrac{1}{N} \sum_{i=1}^N\log{\big( \dfrac{1}{S}\sum_{s=1}^S \dfrac{1}{\sqrt{2\pi}} \exp \{ -(-y_i-\theta-u_i^s)^2/2 \}\big)}$$
+
+which can be found on page 397 is programmed using the function <code>sapply</code>.</p>
 
 <pre><code class="r">denssim &lt;- function(theta) {
     loglik &lt;- mean(sapply(y, function(y) log(mean((1/sqrt(2 * pi)) * exp(-(y - theta + log(-log(runif(simreps))))^2/2)))))
