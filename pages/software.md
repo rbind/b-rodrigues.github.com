@@ -42,7 +42,7 @@ This is a list of software I use for my Research, or software I advise to my stu
     <img src="/assets/images/Gummi-logo.png" width="80" height="80"/></a>
 </div>
 
-*    To edit tex documents, you'll need an editor. I recommend Gummi, it's lightweight and has a very useful live-preview feature. It is only available for Linux distributions for now. Gummi is available on the repositories. 
+*    To edit tex documents, you'll need an editor. I recommend Gummi, it's lightweight and has a very useful live-preview feature. It is only available for Linux distributions for now. Gummi is available on the repositories. My editor of choice however is Kate with Vi input enabled. Vi is an old editor and is not recommended for beginners, but once mastered you'll never look back again.
 
 <div style="text-align:center;">
   <a href="http://pandas.pydata.org/">
