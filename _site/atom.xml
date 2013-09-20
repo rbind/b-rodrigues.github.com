@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+ 
+ <title>Bruno Rodrigues</title>
+ <link href="http://b-rodrigues.github.com/atom.xml" rel="self"/>
+ <link href="http://b-rodrigues.github.com"/>
+ <updated>2013-09-20T22:28:40+02:00</updated>
+ <id>http://b-rodrigues.github.com</id>
+ <author>
+   <name>Bruno Rodrigues</name>
+   <email>brodrigues@unistra.fr</email>
+ </author>
+
+ 
+ <entry>
+   <title>Method of Simulated Moments with R</title>
+   <link href="http://b-rodrigues.github.com/2013/01/29/method-of-simulated-moments-with-r"/>
+   <updated>2013-01-29T00:00:00+01:00</updated>
+   <id>http://b-rodrigues.github.com/2013/01/29/method-of-simulated-moments-with-r</id>
+   <content type="html">&lt;p&gt;Second update on my research, details &lt;a href='/pages/Research.html'&gt;here&lt;/a&gt;.&lt;/p&gt;</content>
+ </entry>
+ 
+ <entry>
+   <title>Simulated Maximum Likelihood with R</title>
+   <link href="http://b-rodrigues.github.com/2013/01/16/simulated-maximum-likelihood-with-r"/>
+   <updated>2013-01-16T00:00:00+01:00</updated>
+   <id>http://b-rodrigues.github.com/2013/01/16/simulated-maximum-likelihood-with-r</id>
+   <content type="html">&lt;p&gt;First update on my research, details &lt;a href='/pages/Research.html'&gt;here&lt;/a&gt;.&lt;/p&gt;</content>
+ </entry>
+ 
+ <entry>
+   <title>New website!</title>
+   <link href="http://b-rodrigues.github.com/2012/12/11/new-website"/>
+   <updated>2012-12-11T00:00:00+01:00</updated>
+   <id>http://b-rodrigues.github.com/2012/12/11/new-website</id>
+   <content type="html">&lt;p&gt;This is my new website! It&amp;#8217;s built using jekyll-bootstrap and hosted on Github.&lt;/p&gt;</content>
+ </entry>
+ 
+ 
+</feed>

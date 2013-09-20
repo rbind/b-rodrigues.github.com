@@ -1,0 +1,287 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>
+      
+        Simulated Maximum Likelihood - 
+      
+      Bruno Rodrigues
+    </title>
+    <meta name="description" content="">
+    <meta name="author" content="Bruno Rodrigues">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+
+    <script src="/assets/themes/hooligan/js/jquery.min.js"></script>
+    <script src="/assets/themes/hooligan/bootstrap/js/bootstrap.min.js"></script>
+
+    <link href="/assets/themes/hooligan/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/assets/themes/hooligan/bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet">    
+    <link rel="stylesheet" type="text/css" href="/assets/themes/hooligan/css-social-buttons/css/zocial.stripped.css" />
+    <link href="/assets/themes/hooligan/css/pygments.css" rel="stylesheet" type="text/css" media="all">
+    <link href="/assets/themes/hooligan/css/darkstrap.css" rel="stylesheet" type="text/css" media="all">    
+    <link href="/assets/themes/hooligan/css/style.css?body=1" rel="stylesheet" type="text/css" media="all">
+
+    
+    <!-- fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container">
+          <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>      
+
+
+          <a class="brand" href="/">Bruno Rodrigues</a>
+
+
+          <div class="nav-collapse">
+            <ul class="nav">
+              
+              
+              
+
+
+  
+    
+      
+    
+  
+    
+      
+      	
+      	<li><a href="/categories.html">Categories</a></li>
+      	
+      
+    
+  
+    
+      
+    
+  
+    
+      
+      	
+      	<li><a href="/archive.html">Archive</a></li>
+      	
+      
+    
+  
+    
+      
+    
+  
+    
+      
+      	
+      	<li><a href="/pages.html">Pages</a></li>
+      	
+      
+    
+  
+    
+      
+      	
+      	<li><a href="/pages/Teachings.html">Teachings</a></li>
+      	
+      
+    
+  
+    
+      
+    
+  
+    
+      
+    
+  
+    
+      
+      	
+      	<li><a href="/pages/aboutme.html">About me</a></li>
+      	
+      
+    
+  
+    
+      
+    
+  
+    
+      
+      	
+      	<li><a href="/pages/software.html">Software</a></li>
+      	
+      
+    
+  
+    
+      
+      	
+      	<li><a href="/pages/Research.html">Research</a></li>
+      	
+      
+    
+  
+    
+      
+    
+  
+
+
+
+            </ul>
+            <ul class="nav pull-right social visible-desktop">
+              <li class="divider-vertical"></li>
+              
+                <li>
+                  <a href="mailto:brodrigues@unistra.fr" class="zocial gmail icon" target="_blank">
+                    <span class="hidden-desktop">Github</a>
+                  </a>
+                </li>
+              
+                  
+                                        
+                         
+                                  
+              
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="content">
+        
+<div class="page-header-wrapper">
+	<div class="page-header">
+  		<h1>Simulated Maximum Likelihood </h1>
+  	</div>
+</div>
+
+<div class="row">
+  <div class="span12">
+    <head>
+<meta content='text/html; charset=utf-8' http-equiv='Content-Type' />
+
+<!-- MathJax scripts -->
+<script src='https://c328740.ssl.cf1.rackcdn.com/mathjax/2.0-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' type='text/javascript'>
+</script>
+
+</head><body>
+
+<p>This document details section <em>12.4.5. Unobserved Heterogeneity Example</em> from Cameron and Trivedi's book - MICROECONOMETRICS: Methods and Applications. The original source code giving the results from table 12.2 are available from the authors&#39; site <a href='http://cameron.econ.ucdavis.edu/mmabook/mmaprograms.html'>here</a> and written for Stata. This is an attempt to translate the code to R. I'd like to thanks Reddit user <a href='http://www.reddit.com/user/anonemouse2010'>anonemouse2010</a> for his advice which helped me write the function.</p>
+
+<p>Consult the original source code if you want to read the authors&#39; comments. If you want the R source code without all the commentaries, grab it <a href='/assets/code/simulated_max_lik.R'>here</a>. This is not guaranteed to work, nor to be correct. It could set your pet on fire and/or eat your first born. Use at your own risk. I may, or may not, expand this example. Corrections, constructive criticism are welcome.</p>
+
+<p>The model is \( y=\theta+u+\varepsilon \) where \( \theta \) is a scalar parameter equal to 1. \( u \) is extreme value type 1 (Gumbel distribution), \( \varepsilon \leadsto \mathbb{N}(0,1) \). For more details, consult the book.</p>
+
+<h3>Import the data</h3>
+
+<p>You can consult the original source code to see how the authors simulated the data. To get the same results, and verify that I didn&#39;t make mistakes I prefer importing their data directly from their website.</p>
+
+<pre><code class='r'>data &lt;- read.table(&quot;http://cameron.econ.ucdavis.edu/mmabook/mma12p2mslmsm.asc&quot;)
+u &lt;- data[, 1]
+e &lt;- data[, 2]
+y &lt;- data[, 3]
+numobs &lt;- length(u)
+simreps &lt;- 10000
+</code></pre>
+
+<h3>Simulation</h3>
+
+<p>In the code below, the following likelihood function:
+
+$$\log{\hat{L}_N(\theta)} = \dfrac{1}{N} \sum_{i=1}^N\log{\big( \dfrac{1}{S}\sum_{s=1}^S \dfrac{1}{\sqrt{2\pi}} \exp \{ -(-y_i-\theta-u_i^s)^2/2 \}\big)}$$
+
+which can be found on page 397 is programmed using the function <code>sapply</code>.</p>
+
+<pre><code class='r'>denssim &lt;- function(theta) {
+    loglik &lt;- mean(sapply(y, function(y) log(mean((1/sqrt(2 * pi)) * exp(-(y - theta + log(-log(runif(simreps))))^2/2)))))
+    return(-loglik)
+}
+</code></pre>
+
+<p>This likelihood is then maximized:</p>
+
+<pre><code class='r'>system.time(res &lt;- optim(0.1, denssim, method = &quot;BFGS&quot;, control = list(maxit = simreps)))
+</code></pre>
+
+<pre><code>##    user  system elapsed 
+##   21.98    0.08   22.09
+</code></pre>
+
+<p>Convergence is achieved pretty rapidly, to </p>
+
+<pre><code>## [1] 1.101
+</code></pre>
+
+<p>which is close to the true value of the parameter 1 (which was used to generate the data). </p>
+
+<p>Let&#39;s try again with another parameter value, for example \( \theta=2.5 \). We have to generate y again:</p>
+
+<pre><code class='r'>y2 &lt;- 2.5 + u + e
+</code></pre>
+
+<p>and slightly modify the likelihood:</p>
+
+<pre><code class='r'>denssim2 &lt;- function(theta) {
+    loglik &lt;- mean(sapply(y2, function(y2) log(mean((1/sqrt(2 * pi)) * exp(-(y2 - 
+        theta + log(-log(runif(simreps))))^2/2)))))
+    return(-loglik)
+}
+</code></pre>
+
+<p>which can then be maximized:</p>
+
+<pre><code class='r'>system.time(res2 &lt;- optim(0.1, denssim2, method = &quot;BFGS&quot;, control = list(maxit = simreps)))
+</code></pre>
+
+<pre><code>##    user  system elapsed 
+##   12.56    0.00   12.57
+</code></pre>
+
+<p>The value that maximizes the likelihood is: </p>
+
+<pre><code>## [1] 2.713
+</code></pre>
+
+<p>which is close to the true value of the parameter 2.5 (which was used to generate the data). </p>
+
+</body>
+  </div>
+</div>
+
+
+      </div>
+
+      <footer>
+        <p>&copy; Bruno Rodrigues 2012 
+          with help from <a href="http://jekyllbootstrap.com" target="_blank" title="The Definitive Jekyll Blogging Framework">Jekyll Bootstrap</a>
+          and <a href="http://github.com/dhulihan/hooligan" target="_blank">The Hooligan Theme</a>
+        </p>
+      </footer>
+    </div> <!-- /container -->
+    
+  </body>
+</html>
+
