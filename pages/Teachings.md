@@ -12,6 +12,16 @@ group: "navigation"
 
 Licence Économie-Gestion 2ème année: 
 
+Chers étudiants, sur cette page, vous trouerez les énoncés des différents TDs 
+au format pdf ainsi que des ressources supplémentaires comme des tables de 
+probabilités, des exercices supplémentaires, des annales… Cette page sera mise 
+à jour régulièrement. Aussi, je vous conseille de consulter assez régulièrement 
+mon profil [identi.ca](https://identi.ca/brodrigues) sur lequel je signalerai 
+des éventuels changements de salles, l'annulation d'un TD, la disponibilité de 
+nouveaux fichiers… Toutefois, je passerai aussi **toujours** par la scolarité, 
+et c'est ce qui sera affiché sur le tableau d'affichage qui fera foi! Le profil 
+identi.ca est juste un moyen plus rapide de pouvoir communiquer avec vous. 
+
 [Annale 2012-2013](https://copy.com/Xp6QoRQuVpIr)
 
 [Table de probabilités de la loi de Poisson](https://copy.com/njihd0Vbe9ps)
