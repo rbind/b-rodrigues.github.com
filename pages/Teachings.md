@@ -12,7 +12,7 @@ group: "navigation"
 
 Licence Économie-Gestion 2ème année: 
 
-Chers étudiants, sur cette page, vous trouerez les énoncés des différents TDs 
+Chers étudiants, sur cette page, vous trouverez les énoncés des différents TDs 
 au format pdf ainsi que des ressources supplémentaires comme des tables de 
 probabilités, des exercices supplémentaires, des annales… Cette page sera mise 
 à jour régulièrement. Aussi, je vous conseille de consulter assez régulièrement 
