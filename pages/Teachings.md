@@ -28,9 +28,7 @@ identi.ca est juste un moyen plus rapide de pouvoir communiquer avec vous.
 
 [Table de probabilités des lois usuelles](https://copy.com/dePKCc86f9lE)
 
-[Énoncé TD1](https://copy.com/kdPclhtkF3cW)
-
-[Courbe de Lorenz](https://copy.com/Wa909qGrdIM1)
+[Énoncé TD1](https://copy.com/kdPclhtkF3cW) Corrigé de l'exo 3, question 2 et 3: [télécharger ici.](https://copy.com/Wa909qGrdIM1)
 
 ###2012-2013:
 Licence Économie-Gestion 2ème année: [ressources supplémentaires (S3)](http://minus.com/mbzoVJWhT5fT3s "Aller sur minus.com") et [exercices supplémentaires (S4)](http://minus.com/mKIzjdMTFOWiB "Aller sur minus.com")
