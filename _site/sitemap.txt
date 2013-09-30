@@ -1,18 +1,18 @@
 
-http://b-rodrigues.github.com/tags.html
+http://b-rodrigues.github.com/sitemap.txt
+http://b-rodrigues.github.com/archive.html
+http://b-rodrigues.github.com/atom.xml
+http://b-rodrigues.github.com/pages.html
 http://b-rodrigues.github.com/categories.html
 http://b-rodrigues.github.com/index.html
-http://b-rodrigues.github.com/archive.html
-http://b-rodrigues.github.com/sitemap.txt
-http://b-rodrigues.github.com/pages.html
-http://b-rodrigues.github.com/pages/Teachings.html
-http://b-rodrigues.github.com/pages/simulated_moments.html
-http://b-rodrigues.github.com/pages/testpage.html
-http://b-rodrigues.github.com/pages/aboutme.html
-http://b-rodrigues.github.com/pages/simulated_max_lik.html
+http://b-rodrigues.github.com/tags.html
 http://b-rodrigues.github.com/pages/software.html
+http://b-rodrigues.github.com/pages/simulated_max_lik.html
+http://b-rodrigues.github.com/pages/testpage.html
+http://b-rodrigues.github.com/pages/simulated_moments.html
 http://b-rodrigues.github.com/pages/Research.html
-http://b-rodrigues.github.com/atom.xml
+http://b-rodrigues.github.com/pages/aboutme.html
+http://b-rodrigues.github.com/pages/Teachings.html
 
 http://b-rodrigues.github.com/2013/01/29/method-of-simulated-moments-with-r
 http://b-rodrigues.github.com/2013/01/16/simulated-maximum-likelihood-with-r
