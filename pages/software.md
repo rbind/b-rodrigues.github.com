@@ -6,7 +6,13 @@ group: "navigation"
 ---
 {% include JB/setup %}
 
-This is a list of software I use for my Research, or software I advise to my students. I only use Free Software. To know more about Free Software, consult [the FSF site](http://www.fsf.org/) and [the Wikipedia page about free software](http://en.wikipedia.org/wiki/Free_software).
+This is a list of software I use for my Research, or software I advise to my students. I only use Free Software. 
+Free here is not about price, but about freedom. Think of free as in free speech. The reasons I chose to use free software are both 
+practical and philosophical. Free software gives me infinite flexibility: I can install it on any machine I own without having to worry
+about licenses or worry that the software may become deprecated some day. As for the philosophical reasons, I think that free software is in line
+with the way science should be done: sharing knowledge, helping each other and disapprove of unethical behaviour.
+To know more about Free Software, consult [the FSF site](http://www.fsf.org/) and [the Wikipedia page about free software](http://en.wikipedia.org/wiki/Free_software).
+
 
 
 <div style="text-align:center;">
