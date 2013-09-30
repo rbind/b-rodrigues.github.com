@@ -27,8 +27,7 @@ switch to it. For now, it's been a pleasant ride.
 *    For my statistical needs I use the R programming language. It is a very 
 extensive and powerful programming language used worldwide by both researchers 
 and firms and is rapidly taking the place of other statistical software packages 
-like SAS. You can install it on any linux distributions via their 
-respective package managers. For Windows and OSX versions, you can get R for 
+like SAS. You can install it on any linux distribution via its package managers. For Windows and OSX versions, you can get R for 
 free on the project's page.
 
 <div style="text-align:center;">
