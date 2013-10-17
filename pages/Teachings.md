@@ -22,7 +22,9 @@ nouveaux fichiers… Toutefois, je passerai aussi **toujours** par la scolarité
 et c'est ce qui sera affiché sur le tableau d'affichage qui fera foi! Le profil 
 identi.ca est juste un moyen plus rapide de pouvoir communiquer avec vous. 
 
-[Énoncé TD2](https://copy.com/RNEqiiglYfn7)
+[Énoncé TD3](https://copy.com/hvzycgl0XVDE)
+
+[Énoncé TD2](https://copy.com/RnO2NSsLqFWY)
 
 [Énoncé TD1](https://copy.com/kdPclhtkF3cW) Corrigé de l'exo 3, question 2 et 3: [télécharger ici.](https://copy.com/Wa909qGrdIM1)
 
