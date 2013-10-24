@@ -6,9 +6,9 @@ group: "navigation"
 ---
 {% include JB/setup %}
 
-###2013-2014:
+##2013-2014:
 
-####M1 et M2 APE
+###M1 et M2 APE
 
 Ateliers Git et LaTeX:
     
@@ -35,11 +35,11 @@ et faire les premiers exercices. Les instructions seront mises en ligne durant c
 donc les vacances pour vous préparer). Les exercices seront corrigés et vos questions traitées le 5. Le 
 7 novembre, on verra ensemble ces deux logiciels plus en profondeur.
 
-Si vous avez des questions sur LaTeX, contactez Thomas: t.coudert@unistra.fr
-et sur git, contactez moi: brodrigues@unistra.fr
+Si vous avez des questions sur LaTeX, contactez <a href="mailto:t.coudert@unistra.fr">Thomas</a>
+et sur git, contactez <a href="mailto:brodrigues@unistra.fr">moi</a>. 
 
 
-####S3
+###S3
 
 Licence Économie-Gestion 2ème année: 
 
@@ -65,5 +65,5 @@ identi.ca est juste un moyen plus rapide de pouvoir communiquer avec vous.
 
 [Table de probabilités des lois usuelles](https://copy.com/dePKCc86f9lE)
 
-###2012-2013:
+##2012-2013:
 Licence Économie-Gestion 2ème année: [ressources supplémentaires (S3)](http://minus.com/mbzoVJWhT5fT3s "Aller sur minus.com") et [exercices supplémentaires (S4)](http://minus.com/mKIzjdMTFOWiB "Aller sur minus.com")
