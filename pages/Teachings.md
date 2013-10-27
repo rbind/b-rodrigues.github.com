@@ -33,14 +33,15 @@ travail en équipe. Couplé avec LaTeX, ces deux outils vous permettront de réd
 ou un rapport de manière beaucoup plus efficace.
 
 Pour le premier atelier du 5 novembre, il faudrait déjà avoir installé les logiciels sur vos ordinateurs 
-et faire les premiers exercices. Les instructions seront mises en ligne durant ce week-end (vous aurez
-donc les vacances pour vous préparer). Les exercices seront corrigés et vos questions traitées le 5. Le 
-7 novembre, on verra ensemble ces deux logiciels plus en profondeur.
+et faire les premiers exercices. Les instructions sont téléchargeables dès 
+maientant; les consignes [ici](https://copy.com/TyMMvLGAeFxy) et 
+les documents nécessaires [ici](https://copy.com/kXluDzIHoc7v). Les exercices 
+seront corrigés et vos questions traitées le 5. Le 7 novembre, on verra ensemble 
+ces deux logiciels plus en profondeur.
 
 Si vous avez des questions sur LaTeX, contactez <a href="mailto:t.coudert@unistra.fr">Thomas</a>
 et sur git, contactez <a href="mailto:brodrigues@unistra.fr">moi</a>. 
-Vous pouvez télécharger les consignes [ici](https://copy.com/TyMMvLGAeFxy) et 
-les documents nécessaires [ici](https://copy.com/kXluDzIHoc7v).
+
 
 ###S3
 
