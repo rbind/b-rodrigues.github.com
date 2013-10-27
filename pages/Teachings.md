@@ -37,7 +37,8 @@ donc les vacances pour vous préparer). Les exercices seront corrigés et vos qu
 
 Si vous avez des questions sur LaTeX, contactez <a href="mailto:t.coudert@unistra.fr">Thomas</a>
 et sur git, contactez <a href="mailto:brodrigues@unistra.fr">moi</a>. 
-
+Vous pouvez télécharger les consignes [ici](https://copy.com/TyMMvLGAeFxy) et 
+les documents nécessaires [ici](https://copy.com/kXluDzIHoc7v).
 
 ###S3
 
