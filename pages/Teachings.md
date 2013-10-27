@@ -10,6 +10,8 @@ group: "navigation"
 
 ###M1 et M2 APE
 
+Les fichiers à télécharger sont disponibles! Lisez la suite!
+
 Ateliers Git et LaTeX:
     
 Vous trouverez ici des informations sur les ateliers git et LaTeX. Les ateliers auront
