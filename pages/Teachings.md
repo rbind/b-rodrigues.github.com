@@ -34,7 +34,7 @@ ou un rapport de manière beaucoup plus efficace.
 
 Pour le premier atelier du 5 novembre, il faudrait déjà avoir installé les logiciels sur vos ordinateurs 
 et faire les premiers exercices. Les instructions sont téléchargeables dès 
-maientant; les consignes [ici](https://copy.com/TyMMvLGAeFxy) et 
+maintenant; les consignes [ici](https://copy.com/TyMMvLGAeFxy) et 
 les documents nécessaires [ici](https://copy.com/kXluDzIHoc7v). Les exercices 
 seront corrigés et vos questions traitées le 5. Le 7 novembre, on verra ensemble 
 ces deux logiciels plus en profondeur.
