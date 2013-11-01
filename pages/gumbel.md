@@ -15,7 +15,7 @@ GeoGebra, IPython with Numpy, Scipy, Matplotlib, Pandas... as well as TeX Live
 so you can start writing your papers immediately!
 
 You can download it here: [torrent 
-file](/assets/files/Gumbel_Linux.x86_64-0.0.13.iso.torrent) or [direct 
+file](/assets/files/gumbel.torrent) or [direct 
 download](http://susestudio.com/a/USzD7U/gumbel-linux/download/iso)
 
 ##FAQ
