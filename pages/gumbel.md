@@ -14,9 +14,9 @@ interface, the Octave programming language with the QtOctave interface, Gretl,
 GeoGebra, IPython with Numpy, Scipy, Matplotlib, Pandas... as well as TeX Live 
 so you can start writing your papers immediately!
 
-You can download it here: [torrent 
-file](https://copy.com/UVVEbIkxJUUh) or [direct 
-download](http://susestudio.com/a/USzD7U/gumbel-linux/download/iso)
+You can download it here: or [direct 
+download](http://susestudio.com/a/USzD7U/gumbel-linux/download/iso) (requires 
+Suse Studio account, more download options are coming).
 
 ##FAQ
 
