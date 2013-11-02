@@ -18,8 +18,6 @@ You can download it here: [direct
 download](http://susestudio.com/a/USzD7U/gumbel-linux) (requires 
 Suse Studio account, more download options are coming).
 
-Md5 Sum: 4a097f8ee2185f7e13f2412c5b1a5a5c
-
 ##FAQ
 
 ###Do we really need another linux distribution?
