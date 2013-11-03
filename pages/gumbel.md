@@ -16,7 +16,9 @@ so you can start writing your papers immediately!
 
 You can download it here: [direct 
 download](http://susestudio.com/a/USzD7U/gumbel-linux) (requires 
-Suse Studio account, more download options are coming).
+Suse Studio account) and 
+[here (mega.co.nz)](https://mega.co.nz/#!Jk5WFZJL!fZRFmEhNPsA5miivmk-pOxG-
+odZnrRsgYw85MK05Ovk )
 
 ##FAQ
 
