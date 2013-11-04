@@ -38,6 +38,8 @@ studio](http://susestudio.com).
 Pandas, Matplotlib, Statsmodels, Sympy...
 - R and Rstudio
 - Octave with QtOctave
+- Different compilers (for C, C++, Fortran) and development libraries
+- Vim and Emacs
 - Gretl
 - Libreoffice
 - Complete Latex environment: a lot of useful packages are pre-installed, as 
