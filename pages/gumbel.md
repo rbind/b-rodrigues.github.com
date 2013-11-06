@@ -37,9 +37,10 @@ studio](http://susestudio.com).
 - Complete Python environment for scientific computing: IPython, Scipy, Numpy, 
 Pandas, Matplotlib, Statsmodels, Sympy...
 - R and Rstudio
-- Octave with QtOctave
+- Octave and QtOctave
 - Different compilers (for C, C++, Fortran) and development libraries
 - Vim and Emacs
+- Git and Qgit
 - Gretl
 - Libreoffice
 - Complete Latex environment: a lot of useful packages are pre-installed, as 
@@ -52,6 +53,13 @@ And of course a lot of different software for daily tasks:
 - Video player: VLC
 - E-mail client and organizer: Kontact
 - Pdf reader, unarchiver, CD and DVD authoring tool, etc...
+
+###What is Gumbel's release cycle?
+I will upload a new version of Gumbel some two or three weeks after a new OpenSuse 
+version is available. There could be some minor release in-between, though. Consider 
+the current version as a pre-release; the next version of OpenSuse, 13.1 will be available
+mid-November and I'm planning to release a new Gumbel release end November, with
+some new packages.
 
 ###Can I install Gumbel Linux on my computer?
 Yes you can, simply select *Live Installer* from the menu:
