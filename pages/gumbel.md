@@ -57,7 +57,7 @@ And of course a lot of different software for daily tasks:
 ###What is Gumbel's release cycle?
 I will upload a new version of Gumbel some two or three weeks after a new OpenSuse 
 version is available. There could be some minor release in-between, though. Consider 
-the current version as a pre-release; the next version of OpenSuse, 13.1 will be available
+the current version as a pre-release; the next version of OpenSuse, 13.1, will be available
 mid-November and I'm planning to release a new Gumbel release end November, with
 some new packages.
 
