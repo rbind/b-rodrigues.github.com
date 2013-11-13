@@ -57,6 +57,8 @@ nouveaux fichiers… Toutefois, je passerai aussi **toujours** par la scolarité
 et c'est ce qui sera affiché sur le tableau d'affichage qui fera foi! Le profil 
 identi.ca est juste un moyen plus rapide de pouvoir communiquer avec vous. 
 
+[Énoncé TD4](https://copy.com/TPIu7cM2fng7)
+
 [Énoncé TD3](https://copy.com/hvzycgl0XVDE)
 
 [Énoncé TD2](https://copy.com/RnO2NSsLqFWY)

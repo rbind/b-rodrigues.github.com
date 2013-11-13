@@ -4,13 +4,37 @@
  <title>Bruno Rodrigues</title>
  <link href="http://b-rodrigues.github.com/atom.xml" rel="self"/>
  <link href="http://b-rodrigues.github.com"/>
- <updated>2013-11-01T23:47:17+01:00</updated>
+ <updated>2013-11-07T11:52:49+01:00</updated>
  <id>http://b-rodrigues.github.com</id>
  <author>
    <name>Bruno Rodrigues</name>
    <email>brodrigues@unistra.fr</email>
  </author>
 
+ 
+ <entry>
+   <title>Gmm with R - Estimating the returns to schooling</title>
+   <link href="http://b-rodrigues.github.com/2013/11/07/gmm-with-rmd"/>
+   <updated>2013-11-07T00:00:00+01:00</updated>
+   <id>http://b-rodrigues.github.com/2013/11/07/gmm-with-rmd</id>
+   <content type="html">
+&lt;p&gt;In this post, I will explain how you can use the R &lt;code&gt;gmm&lt;/code&gt; package to estimate a simple linear model. For my research, I have to estimate euler equations using the Generalized Method of Moments. I contacted Pierre Chaussé, the creator of the &lt;code&gt;gmm&lt;/code&gt; library for help, since I was having some difficulties. I am very grateful for his help (without him, I’d still probably be trying to estimate my model!).&lt;/p&gt;
+
+&lt;h3 id=&quot;theoretical_background&quot;&gt;Theoretical background&lt;/h3&gt;
+
+&lt;p&gt;I will not dwell in the theory too much, because you can find everything you need &lt;a href=&quot;https://en.wikipedia.org/wiki/Generalized_method_of_moments&quot;&gt;here&lt;/a&gt;. The model to be estimated can be found in Marno Verbeek’s &lt;em&gt;A guide to modern Econometrics&lt;/em&gt; on page 137. You can download the data from the book’s companion page &lt;a href=&quot;http://www.econ.kuleuven.ac.be/gme/&quot;&gt;here&lt;/a&gt; under the section &lt;em&gt;Data sets&lt;/em&gt; and then look for &lt;em&gt;Chapter 5: Endogeneity, instrumental variables and GMM returns to schooling&lt;/em&gt;. Unfortunately the data set is not available in the &lt;code&gt;.csv&lt;/code&gt; format, but R can read STATA data sets (using the &lt;code&gt;foreign&lt;/code&gt; library), so you can get the &lt;code&gt;.dta&lt;/code&gt; file.&lt;/p&gt;
+
+&lt;p&gt;The linear model to be estimated is the following:&lt;/p&gt;
+
+&lt;p&gt;[ \log(wage) = \beta_1 + \beta_2 * schooling + \beta_3 * exper + \beta_4 * exper^2 + \beta_5 * black + \beta_6 * smsa + \beta_7 * south &lt;br /&gt;]&lt;/p&gt;
+
+&lt;p&gt;If every right hand side variables are exogeneous, the parameters of this model can be estimated using ordinary least squares. This translates to the following &lt;em&gt;moment condition&lt;/em&gt;:&lt;/p&gt;
+
+&lt;p&gt;[ E[X * \varepsilon] = 0 ]&lt;/p&gt;
+
+&lt;p&gt;where ( X ) is the matrix of variables.&lt;/p&gt;
+</content>
+ </entry>
  
  <entry>
    <title>Method of Simulated Moments with R</title>
