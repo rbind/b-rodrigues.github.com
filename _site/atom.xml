@@ -4,7 +4,7 @@
  <title>Bruno Rodrigues</title>
  <link href="http://b-rodrigues.github.com/atom.xml" rel="self"/>
  <link href="http://b-rodrigues.github.com"/>
- <updated>2013-11-24T01:53:24+01:00</updated>
+ <updated>2013-11-24T02:01:56+01:00</updated>
  <id>http://b-rodrigues.github.com</id>
  <author>
    <name>Bruno Rodrigues</name>
@@ -114,16 +114,14 @@ $$
 }
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;To use the &lt;code&gt;gmm()&lt;/code&gt; function to estimate our model, we need to specify some initial values to get the maximization routine going. One neat trick is simply to give to use the coefficients of a linear regression; I found it to work well in a lot of situations:&lt;/p&gt;
+&lt;p&gt;To use the &lt;code&gt;gmm()&lt;/code&gt; function to estimate our model, we need to specify some initial values to get the maximization routine going. One neat trick is simply to use the coefficients of a linear regression; I found it to work well in a lot of situations:&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class='r'&gt;init &amp;lt;- (lm(y ~ age + age2 + dkids + dykids + head + male + married + rr + rr2))$coefficients
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;And finally, we have everything to use &lt;code&gt;gmm()&lt;/code&gt;:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class='r'&gt;my_gmm &amp;lt;- gmm(moments, x = dat, t0 = init, type = &amp;quot;iterative&amp;quot;, crit = 1e-25, 
-    wmatrix = &amp;quot;optimal&amp;quot;, method = &amp;quot;Nelder-Mead&amp;quot;, control = list(reltol = 1e-25, 
-        maxit = 20000))
+&lt;pre&gt;&lt;code class='r'&gt;my_gmm &amp;lt;- gmm(moments, x = dat, t0 = init, type = &amp;quot;iterative&amp;quot;, crit = 1e-25, wmatrix = &amp;quot;optimal&amp;quot;, method = &amp;quot;Nelder-Mead&amp;quot;, control = list(reltol = 1e-25, maxit = 20000))
 
 summary(my_gmm)
 &lt;/code&gt;&lt;/pre&gt;
@@ -163,9 +161,11 @@ summary(my_gmm)
 ## Gradian eval. =  NA
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;Please, notice the options &lt;code&gt;crit=1e-25,method=&amp;quot;Nelder-Mead&amp;quot;,control=list(reltol=1e-25,maxit=20000)&lt;/code&gt;: these options wean that the Nelder-Mead algorithm is used, and to specify further options to the Nelder-Mead algorithm, the &lt;code&gt;control&lt;/code&gt; option is used. This is very important, as Pierre Chaussé explained to me: non-linear optimization is an art, and most of the time the default options won&amp;#39;t cut it and will give you false results. To add insult to injury, the Generalized Method of Moments itself is very capricious and you will also have to play around with different initial values to get good results.  &lt;/p&gt;
+&lt;p&gt;Please, notice the options &lt;code&gt;crit=1e-25,method=&amp;quot;Nelder-Mead&amp;quot;,control=list(reltol=1e-25,maxit=20000)&lt;/code&gt;: these options mean that the Nelder-Mead algorithm is used, and to specify further options to the Nelder-Mead algorithm, the &lt;code&gt;control&lt;/code&gt; option is used. This is very important, as Pierre Chaussé explained to me: non-linear optimization is an art, and most of the time the default options won&amp;#39;t cut it and will give you false results. To add insult to injury, the Generalized Method of Moments itself is very capricious and you will also have to play around with different initial values to get good results.  &lt;/p&gt;
 
 &lt;p&gt;Here, the results are quite satisfactory, and the J-Test does not reject the moment condition!&lt;/p&gt;
+
+&lt;p&gt;Should you notice any error whatsoever, do not hesitate to tell me.&lt;/p&gt;
 
 &lt;/body&gt;</content>
  </entry>
