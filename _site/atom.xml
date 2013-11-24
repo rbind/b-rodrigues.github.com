@@ -4,7 +4,7 @@
  <title>Bruno Rodrigues</title>
  <link href="http://b-rodrigues.github.com/atom.xml" rel="self"/>
  <link href="http://b-rodrigues.github.com"/>
- <updated>2013-11-07T11:52:49+01:00</updated>
+ <updated>2013-11-24T01:53:24+01:00</updated>
  <id>http://b-rodrigues.github.com</id>
  <author>
    <name>Bruno Rodrigues</name>
@@ -13,27 +13,161 @@
 
  
  <entry>
-   <title>Gmm with R - Estimating the returns to schooling</title>
+   <title>Nonlinear Gmm with R - Example with a logistic regression</title>
    <link href="http://b-rodrigues.github.com/2013/11/07/gmm-with-rmd"/>
    <updated>2013-11-07T00:00:00+01:00</updated>
    <id>http://b-rodrigues.github.com/2013/11/07/gmm-with-rmd</id>
-   <content type="html">
-&lt;p&gt;In this post, I will explain how you can use the R &lt;code&gt;gmm&lt;/code&gt; package to estimate a simple linear model. For my research, I have to estimate euler equations using the Generalized Method of Moments. I contacted Pierre Chaussé, the creator of the &lt;code&gt;gmm&lt;/code&gt; library for help, since I was having some difficulties. I am very grateful for his help (without him, I’d still probably be trying to estimate my model!).&lt;/p&gt;
+   <content type="html">&lt;head&gt;
+&lt;meta content='text/html; charset=utf-8' http-equiv='Content-Type' /&gt;
 
-&lt;h3 id=&quot;theoretical_background&quot;&gt;Theoretical background&lt;/h3&gt;
+&lt;!-- MathJax scripts --&gt;
+&lt;script src='https://c328740.ssl.cf1.rackcdn.com/mathjax/2.0-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' type='text/javascript'&gt;&lt;![CDATA[
+]]&gt;&lt;/script&gt;
 
-&lt;p&gt;I will not dwell in the theory too much, because you can find everything you need &lt;a href=&quot;https://en.wikipedia.org/wiki/Generalized_method_of_moments&quot;&gt;here&lt;/a&gt;. The model to be estimated can be found in Marno Verbeek’s &lt;em&gt;A guide to modern Econometrics&lt;/em&gt; on page 137. You can download the data from the book’s companion page &lt;a href=&quot;http://www.econ.kuleuven.ac.be/gme/&quot;&gt;here&lt;/a&gt; under the section &lt;em&gt;Data sets&lt;/em&gt; and then look for &lt;em&gt;Chapter 5: Endogeneity, instrumental variables and GMM returns to schooling&lt;/em&gt;. Unfortunately the data set is not available in the &lt;code&gt;.csv&lt;/code&gt; format, but R can read STATA data sets (using the &lt;code&gt;foreign&lt;/code&gt; library), so you can get the &lt;code&gt;.dta&lt;/code&gt; file.&lt;/p&gt;
+&lt;/head&gt;&lt;body&gt;
+&lt;p&gt;In this post, I will explain how you can use the R &lt;code&gt;gmm&lt;/code&gt; package to estimate an non-linear model, and more specifically a logit model. For my research, I have to estimate euler equations using the Generalized Method of Moments. I contacted Pierre Chaussé, the creator of the &lt;code&gt;gmm&lt;/code&gt; library for help, since I was having some difficulties. I am very grateful for his help (without him, I&amp;#39;d still probably be trying to estimate my model!).&lt;/p&gt;
 
-&lt;p&gt;The linear model to be estimated is the following:&lt;/p&gt;
+&lt;h3&gt;Theoretical background and data set&lt;/h3&gt;
 
-&lt;p&gt;[ \log(wage) = \beta_1 + \beta_2 * schooling + \beta_3 * exper + \beta_4 * exper^2 + \beta_5 * black + \beta_6 * smsa + \beta_7 * south &lt;br /&gt;]&lt;/p&gt;
+&lt;p&gt;I will not dwell in the theory too much, because you can find everything you need &lt;a href='https://en.wikipedia.org/wiki/Generalized_method_of_moments'&gt;here&lt;/a&gt;. As an example, I&amp;#39;ll use data from Marno Verbeek&amp;#39;s &lt;em&gt;A guide to modern Econometrics&lt;/em&gt; on page 197. You can download the data from the book&amp;#39;s companion page &lt;a href='http://www.econ.kuleuven.ac.be/gme/'&gt;here&lt;/a&gt; under the section &lt;em&gt;Data sets&lt;/em&gt; or from the &lt;code&gt;Ecdat&lt;/code&gt; package in R. I use the data set from Gretl though, as the dummy variables are numeric (instead of class &lt;code&gt;factor&lt;/code&gt;) which makes life easier when writing your own functions. You can get the data set &lt;a href='/assets/files/benefits.R'&gt;here&lt;/a&gt;. &lt;/p&gt;
 
-&lt;p&gt;If every right hand side variables are exogeneous, the parameters of this model can be estimated using ordinary least squares. This translates to the following &lt;em&gt;moment condition&lt;/em&gt;:&lt;/p&gt;
+&lt;h3&gt;Implementation in R&lt;/h3&gt;
 
-&lt;p&gt;[ E[X * \varepsilon] = 0 ]&lt;/p&gt;
+&lt;p&gt;I don&amp;#39;t estimate the exact same model, but only use a subset of the variables available in the data set. Keep in mind that this post is just for illustration purposes.&lt;/p&gt;
 
-&lt;p&gt;where ( X ) is the matrix of variables.&lt;/p&gt;
-</content>
+&lt;p&gt;First load the &lt;code&gt;gmm&lt;/code&gt; package and load the data set:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class='r'&gt;require(&amp;quot;gmm&amp;quot;)
+data &amp;lt;- read.table(&amp;quot;/home/cbrunos/Copy/Documents/Work/github_page/b-rodrigues.github.com/assets/files/benefits.R&amp;quot;, header = T)
+
+attach(data)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;We can then estimate a logit model with the &lt;code&gt;glm()&lt;/code&gt; function:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class='r'&gt;native &amp;lt;- glm(y ~ age + age2 + dkids + dykids + head + male + married + rr +  rr2, family = binomial(link = &amp;quot;logit&amp;quot;), na.action = na.pass)
+
+summary(native)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;## 
+## Call:
+## glm(formula = y ~ age + age2 + dkids + dykids + head + male + 
+##     married + rr + rr2, family = binomial(link = &amp;quot;logit&amp;quot;), na.action = na.pass)
+## 
+## Deviance Residuals: 
+##    Min      1Q  Median      3Q     Max  
+## -1.889  -1.379   0.788   0.896   1.237  
+## 
+## Coefficients:
+##             Estimate Std. Error z value Pr(&amp;gt;|z|)   
+## (Intercept) -1.00534    0.56330   -1.78   0.0743 . 
+## age          0.04909    0.02300    2.13   0.0328 * 
+## age2        -0.00308    0.00293   -1.05   0.2924   
+## dkids       -0.10922    0.08374   -1.30   0.1921   
+## dykids       0.20355    0.09490    2.14   0.0320 * 
+## head        -0.21534    0.07941   -2.71   0.0067 **
+## male        -0.05988    0.08456   -0.71   0.4788   
+## married      0.23354    0.07656    3.05   0.0023 **
+## rr           3.48590    1.81789    1.92   0.0552 . 
+## rr2         -5.00129    2.27591   -2.20   0.0280 * 
+## ---
+## Signif. codes:  0 &amp;#39;***&amp;#39; 0.001 &amp;#39;**&amp;#39; 0.01 &amp;#39;*&amp;#39; 0.05 &amp;#39;.&amp;#39; 0.1 &amp;#39; &amp;#39; 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 6086.1  on 4876  degrees of freedom
+## Residual deviance: 5983.9  on 4867  degrees of freedom
+## AIC: 6004
+## 
+## Number of Fisher Scoring iterations: 4
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now comes the interesting part: how can you estimate such a non-linear model with the &lt;code&gt;gmm()&lt;/code&gt; function from the &lt;code&gt;gmm&lt;/code&gt; package? &lt;/p&gt;
+
+&lt;p&gt;For every estimation with the Generalized method of moments, you will need valid moment conditions. It turns out that in the case of the logit model, this moment condition is quite simple:&lt;/p&gt;
+
+$$ 
+E[X' * (Y-\Lambda(X'\theta))] = 0
+$$
+
+&lt;p&gt;where \( \Lambda \) is the logistic function. Let&amp;#39;s translate this condition into code. First, we need the logistic function:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class='r'&gt;logistic &amp;lt;- function(theta, data) {
+    return(1/(1 + exp(-data %*% theta)))
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;and let&amp;#39;s also define a new data frame, to make our life easier with the moment conditions:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class='r'&gt;dat &amp;lt;- data.matrix(cbind(y, 1, age, age2, dkids, dykids, head, male, married, 
+    rr, rr2))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;and now the moment condition itself:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class='r'&gt;moments &amp;lt;- function(theta, data) {
+    y &amp;lt;- as.numeric(data[, 1])
+    x &amp;lt;- data.matrix(data[, 2:11])
+    m &amp;lt;- x * as.vector((y - logistic(theta, x)))
+    return(cbind(m))
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;To use the &lt;code&gt;gmm()&lt;/code&gt; function to estimate our model, we need to specify some initial values to get the maximization routine going. One neat trick is simply to give to use the coefficients of a linear regression; I found it to work well in a lot of situations:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class='r'&gt;init &amp;lt;- (lm(y ~ age + age2 + dkids + dykids + head + male + married + rr + rr2))$coefficients
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;And finally, we have everything to use &lt;code&gt;gmm()&lt;/code&gt;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class='r'&gt;my_gmm &amp;lt;- gmm(moments, x = dat, t0 = init, type = &amp;quot;iterative&amp;quot;, crit = 1e-25, 
+    wmatrix = &amp;quot;optimal&amp;quot;, method = &amp;quot;Nelder-Mead&amp;quot;, control = list(reltol = 1e-25, 
+        maxit = 20000))
+
+summary(my_gmm)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;## 
+## Call:
+## gmm(g = moments, x = dat, t0 = init, type = &amp;quot;iterative&amp;quot;, wmatrix = &amp;quot;optimal&amp;quot;, 
+##     crit = 1e-25, method = &amp;quot;Nelder-Mead&amp;quot;, control = list(reltol = 1e-25, 
+##         maxit = 20000))
+## 
+## 
+## Method:  iterative 
+## 
+## Kernel:  Quadratic Spectral
+## 
+## Coefficients:
+##              Estimate    Std. Error  t value     Pr(&amp;gt;|t|)  
+## (Intercept)  -0.9090571   0.5751429  -1.5805761   0.1139750
+## age           0.0394254   0.0231964   1.6996369   0.0891992
+## age2         -0.0018805   0.0029500  -0.6374640   0.5238227
+## dkids        -0.0994031   0.0842057  -1.1804799   0.2378094
+## dykids        0.1923245   0.0950495   2.0234150   0.0430304
+## head         -0.2067669   0.0801624  -2.5793498   0.0098987
+## male         -0.0617586   0.0846334  -0.7297189   0.4655620
+## married       0.2358055   0.0764071   3.0861736   0.0020275
+## rr            3.7895781   1.8332559   2.0671300   0.0387219
+## rr2          -5.2849002   2.2976075  -2.3001753   0.0214383
+## 
+## J-Test: degrees of freedom is 0 
+##                 J-test               P-value            
+## Test E(g)=0:    0.00099718345776501  *******            
+## 
+## #############
+## Information related to the numerical optimization
+## Convergence code =  10 
+## Function eval. =  17767 
+## Gradian eval. =  NA
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Please, notice the options &lt;code&gt;crit=1e-25,method=&amp;quot;Nelder-Mead&amp;quot;,control=list(reltol=1e-25,maxit=20000)&lt;/code&gt;: these options wean that the Nelder-Mead algorithm is used, and to specify further options to the Nelder-Mead algorithm, the &lt;code&gt;control&lt;/code&gt; option is used. This is very important, as Pierre Chaussé explained to me: non-linear optimization is an art, and most of the time the default options won&amp;#39;t cut it and will give you false results. To add insult to injury, the Generalized Method of Moments itself is very capricious and you will also have to play around with different initial values to get good results.  &lt;/p&gt;
+
+&lt;p&gt;Here, the results are quite satisfactory, and the J-Test does not reject the moment condition!&lt;/p&gt;
+
+&lt;/body&gt;</content>
  </entry>
  
  <entry>
