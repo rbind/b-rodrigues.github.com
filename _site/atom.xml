@@ -4,7 +4,7 @@
  <title>Bruno Rodrigues</title>
  <link href="http://b-rodrigues.github.com/atom.xml" rel="self"/>
  <link href="http://b-rodrigues.github.com"/>
- <updated>2013-11-24T10:57:21+01:00</updated>
+ <updated>2013-11-24T20:30:39+01:00</updated>
  <id>http://b-rodrigues.github.com</id>
  <author>
    <name>Bruno Rodrigues</name>
@@ -27,9 +27,13 @@
 &lt;/head&gt;&lt;body&gt;
 &lt;p&gt;In this post, I will explain how you can use the R &lt;code&gt;gmm&lt;/code&gt; package to estimate an non-linear model, and more specifically a logit model. For my research, I have to estimate euler equations using the Generalized Method of Moments. I contacted Pierre Chaussé, the creator of the &lt;code&gt;gmm&lt;/code&gt; library for help, since I was having some difficulties. I am very grateful for his help (without him, I&amp;#39;d still probably be trying to estimate my model!).&lt;/p&gt;
 
-&lt;h3&gt;Theoretical background and data set&lt;/h3&gt;
+&lt;h3&gt;Theoretical background, motivation and data set&lt;/h3&gt;
 
-&lt;p&gt;I will not dwell in the theory too much, because you can find everything you need &lt;a href='https://en.wikipedia.org/wiki/Generalized_method_of_moments'&gt;here&lt;/a&gt;. As an example, I&amp;#39;ll use data from Marno Verbeek&amp;#39;s &lt;em&gt;A guide to modern Econometrics&lt;/em&gt; on page 197. You can download the data from the book&amp;#39;s companion page &lt;a href='http://www.econ.kuleuven.ac.be/gme/'&gt;here&lt;/a&gt; under the section &lt;em&gt;Data sets&lt;/em&gt; or from the &lt;code&gt;Ecdat&lt;/code&gt; package in R. I use the data set from Gretl though, as the dummy variables are numeric (instead of class &lt;code&gt;factor&lt;/code&gt;) which makes life easier when writing your own functions. You can get the data set &lt;a href='/assets/files/benefits.R'&gt;here&lt;/a&gt;. &lt;/p&gt;
+&lt;p&gt;I will not dwell in the theory too much, because you can find everything you need &lt;a href='https://en.wikipedia.org/wiki/Generalized_method_of_moments'&gt;here&lt;/a&gt;. I think it's more interesting to try to understand why someone would use the Generalized Method of Moments instead of maximization of the log-likelihood? Well, in some cases, getting the log-likelihood can be quite complicated, as can be the case for arbitrary, non-linear models (for example if you want to estimate the parameters of a very non-linear utility function). Also, moment conditions can sometimes be readily available, so using GMM instead of MLE is trivial. And finally, GMM is... well, a very general method: every popular estimator can be obtained as a special case of the GMM estimator, which makes it quite useful.&lt;/p&gt;
+
+&lt;p&gt;Another question that I think is important to answer is: why this post? Well, because that's exactly the kind of post I would have loved to have found 2 months ago, when I was beginning to work with the GMM. Most posts I found presented the &lt;code&gt;gmm&lt;/code&gt; package with very simple and trivial examples, which weren't very helpful. The example presented below is not very complicated per se, but much more closer to a real-world problem than most stuff that is out there. At least, I hope you will it useful!&lt;/p&gt;
+
+&lt;p&gt;For illustration purposes, I&amp;#39;ll use data from Marno Verbeek&amp;#39;s &lt;em&gt;A guide to modern Econometrics&lt;/em&gt; on page 197. You can download the data from the book&amp;#39;s companion page &lt;a href='http://www.econ.kuleuven.ac.be/gme/'&gt;here&lt;/a&gt; under the section &lt;em&gt;Data sets&lt;/em&gt; or from the &lt;code&gt;Ecdat&lt;/code&gt; package in R. I use the data set from Gretl though, as the dummy variables are numeric (instead of class &lt;code&gt;factor&lt;/code&gt;) which makes life easier when writing your own functions. You can get the data set &lt;a href='/assets/files/benefits.R'&gt;here&lt;/a&gt;. &lt;/p&gt;
 
 &lt;h3&gt;Implementation in R&lt;/h3&gt;
 
@@ -38,7 +42,7 @@
 &lt;p&gt;First load the &lt;code&gt;gmm&lt;/code&gt; package and load the data set:&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class='r'&gt;require(&amp;quot;gmm&amp;quot;)
-data &amp;lt;- read.table(&amp;quot;/home/cbrunos/Copy/Documents/Work/github_page/b-rodrigues.github.com/assets/files/benefits.R&amp;quot;, header = T)
+data &amp;lt;- read.table(&amp;quot;path/to/data/benefits.R&amp;quot;, header = T)
 
 attach(data)
 &lt;/code&gt;&lt;/pre&gt;
@@ -85,20 +89,20 @@ summary(native)
 
 &lt;p&gt;Now comes the interesting part: how can you estimate such a non-linear model with the &lt;code&gt;gmm()&lt;/code&gt; function from the &lt;code&gt;gmm&lt;/code&gt; package? &lt;/p&gt;
 
-&lt;p&gt;For every estimation with the Generalized method of moments, you will need valid moment conditions. It turns out that in the case of the logit model, this moment condition is quite simple:&lt;/p&gt;
+&lt;p&gt;For every estimation with the Generalized Method of Moments, you will need valid moment conditions. It turns out that in the case of the logit model, this moment condition is quite simple:&lt;/p&gt;
 
 $$ 
 E[X' * (Y-\Lambda(X'\theta))] = 0
 $$
 
-&lt;p&gt;where \( \Lambda \) is the logistic function. Let&amp;#39;s translate this condition into code. First, we need the logistic function:&lt;/p&gt;
+&lt;p&gt;where \( \Lambda() \) is the logistic function. Let&amp;#39;s translate this condition into code. First, we need the logistic function:&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class='r'&gt;logistic &amp;lt;- function(theta, data) {
     return(1/(1 + exp(-data %*% theta)))
 }
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;and let&amp;#39;s also define a new data frame, to make our life easier with the moment conditions:&lt;/p&gt;
+&lt;p&gt;and let&amp;#39;s also define a new data frame, to make our life easier with the moment conditions (don't forget to add a column of ones to the matrix, hence the &lt;code&gt;1&lt;/code&gt; after &lt;code&gt;y&lt;/code&gt;):&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class='r'&gt;dat &amp;lt;- data.matrix(cbind(y, 1, age, age2, dkids, dykids, head, male, married, 
     rr, rr2))
@@ -113,6 +117,8 @@ $$
     return(cbind(m))
 }
 &lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The moment condition(s) are given by a function which returns a matrix with as many columns as moment conditions (same number of columns as parameters for just-identified models).&lt;/p&gt;
 
 &lt;p&gt;To use the &lt;code&gt;gmm()&lt;/code&gt; function to estimate our model, we need to specify some initial values to get the maximization routine going. One neat trick is simply to use the coefficients of a linear regression; I found it to work well in a lot of situations:&lt;/p&gt;
 
@@ -161,9 +167,8 @@ summary(my_gmm)
 ## Gradian eval. =  NA
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;Please, notice the options &lt;code&gt;crit=1e-25,method=&amp;quot;Nelder-Mead&amp;quot;,control=list(reltol=1e-25,maxit=20000)&lt;/code&gt;: these options mean that the Nelder-Mead algorithm is used, and to specify further options to the Nelder-Mead algorithm, the &lt;code&gt;control&lt;/code&gt; option is used. This is very important, as Pierre Chaussé explained to me: non-linear optimization is an art, and most of the time the default options won&amp;#39;t cut it and will give you false results. To add insult to injury, the Generalized Method of Moments itself is very capricious and you will also have to play around with different initial values to get good results.  &lt;/p&gt;
+&lt;p&gt;Please, notice the options &lt;code&gt;crit=1e-25,method=&amp;quot;Nelder-Mead&amp;quot;,control=list(reltol=1e-25,maxit=20000)&lt;/code&gt;: these options mean that the Nelder-Mead algorithm is used, and to specify further options to the Nelder-Mead algorithm, the &lt;code&gt;control&lt;/code&gt; option is used. This is very important, as Pierre Chaussé explained to me: non-linear optimization is an art, and most of the time the default options won&amp;#39;t cut it and will give you false results. To add insult to injury, the Generalized Method of Moments itself is very capricious and you will also have to play around with different initial values to get good results. As you can see, the Convergence code equals 10, which is a code specific to the Nelder-Mead method which indicates «degeneracy of the Nelder–Mead simplex.» . I'm not sure if this is a bad thing though, but other method can give you better results. I'd suggest you try always different maximization routines with different starting values to see if your estimations are robust. Here, the results are very similar to what we obtained with the built-in function &lt;code&gt;glm()&lt;/code&gt; so we can stop here.&lt;/p&gt;
 
-&lt;p&gt;Here, the results are quite satisfactory, and the J-Test does not reject the moment condition!&lt;/p&gt;
 
 &lt;p&gt;Should you notice any error whatsoever, do not hesitate to tell me.&lt;/p&gt;
 
