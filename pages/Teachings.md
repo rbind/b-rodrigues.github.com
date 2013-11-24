@@ -8,6 +8,36 @@ group: "navigation"
 
 ##2013-2014:
 
+###S3
+
+Licence Économie-Gestion 2ème année: 
+
+Chers étudiants, sur cette page, vous trouverez les énoncés des différents TDs 
+au format pdf ainsi que des ressources supplémentaires comme des tables de 
+probabilités, des exercices supplémentaires, des annales… Cette page sera mise 
+à jour régulièrement. Aussi, je vous conseille de consulter assez régulièrement 
+mon profil [identi.ca](https://identi.ca/brodrigues) sur lequel je signalerai 
+des éventuels changements de salles, l'annulation d'un TD, la disponibilité de 
+nouveaux fichiers… Toutefois, je passerai aussi **toujours** par la scolarité, 
+et c'est ce qui sera affiché sur le tableau d'affichage qui fera foi! Le profil 
+identi.ca est juste un moyen plus rapide de pouvoir communiquer avec vous. 
+
+[Énoncé TD5](https://copy.com/PYdr0jJpyxkM)
+
+[Énoncé TD4](https://copy.com/TPIu7cM2fng7)
+
+[Énoncé TD3](https://copy.com/hvzycgl0XVDE)
+
+[Énoncé TD2](https://copy.com/RnO2NSsLqFWY)
+
+[Énoncé TD1](https://copy.com/kdPclhtkF3cW) Corrigé de l'exo 3, question 2 et 3: [télécharger ici.](https://copy.com/Wa909qGrdIM1)
+
+[Annale 2012-2013](https://copy.com/Xp6QoRQuVpIr)
+
+[Table de probabilités de la loi de Poisson](https://copy.com/njihd0Vbe9ps)
+
+[Table de probabilités des lois usuelles](https://copy.com/dePKCc86f9lE)
+
 ###M1 et M2 APE
 
 Les fichiers à télécharger sont disponibles! Lisez la suite!
@@ -42,34 +72,6 @@ ces deux logiciels plus en profondeur.
 Si vous avez des questions sur LaTeX, contactez <a href="mailto:t.coudert@unistra.fr">Thomas</a>
 et sur git, contactez <a href="mailto:brodrigues@unistra.fr">moi</a>. 
 
-
-###S3
-
-Licence Économie-Gestion 2ème année: 
-
-Chers étudiants, sur cette page, vous trouverez les énoncés des différents TDs 
-au format pdf ainsi que des ressources supplémentaires comme des tables de 
-probabilités, des exercices supplémentaires, des annales… Cette page sera mise 
-à jour régulièrement. Aussi, je vous conseille de consulter assez régulièrement 
-mon profil [identi.ca](https://identi.ca/brodrigues) sur lequel je signalerai 
-des éventuels changements de salles, l'annulation d'un TD, la disponibilité de 
-nouveaux fichiers… Toutefois, je passerai aussi **toujours** par la scolarité, 
-et c'est ce qui sera affiché sur le tableau d'affichage qui fera foi! Le profil 
-identi.ca est juste un moyen plus rapide de pouvoir communiquer avec vous. 
-
-[Énoncé TD4](https://copy.com/TPIu7cM2fng7)
-
-[Énoncé TD3](https://copy.com/hvzycgl0XVDE)
-
-[Énoncé TD2](https://copy.com/RnO2NSsLqFWY)
-
-[Énoncé TD1](https://copy.com/kdPclhtkF3cW) Corrigé de l'exo 3, question 2 et 3: [télécharger ici.](https://copy.com/Wa909qGrdIM1)
-
-[Annale 2012-2013](https://copy.com/Xp6QoRQuVpIr)
-
-[Table de probabilités de la loi de Poisson](https://copy.com/njihd0Vbe9ps)
-
-[Table de probabilités des lois usuelles](https://copy.com/dePKCc86f9lE)
 
 ##2012-2013:
 Licence Économie-Gestion 2ème année: [ressources supplémentaires (S3)](http://minus.com/mbzoVJWhT5fT3s "Aller sur minus.com") et [exercices supplémentaires (S4)](http://minus.com/mKIzjdMTFOWiB "Aller sur minus.com")
