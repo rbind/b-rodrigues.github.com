@@ -4,7 +4,7 @@
  <title>Bruno Rodrigues</title>
  <link href="http://b-rodrigues.github.com/atom.xml" rel="self"/>
  <link href="http://b-rodrigues.github.com"/>
- <updated>2013-11-24T02:08:35+01:00</updated>
+ <updated>2013-11-24T02:22:16+01:00</updated>
  <id>http://b-rodrigues.github.com</id>
  <author>
    <name>Bruno Rodrigues</name>
@@ -21,8 +21,8 @@
 &lt;meta content='text/html; charset=utf-8' http-equiv='Content-Type' /&gt;
 
 &lt;!-- MathJax scripts --&gt;
-&lt;script src='https://c328740.ssl.cf1.rackcdn.com/mathjax/2.0-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' type='text/javascript'&gt;&lt;![CDATA[
-]]&gt;&lt;/script&gt;
+&lt;script src='https://c328740.ssl.cf1.rackcdn.com/mathjax/2.0-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' type='text/javascript'&gt;
+&lt;/script&gt;
 
 &lt;/head&gt;&lt;body&gt;
 &lt;p&gt;In this post, I will explain how you can use the R &lt;code&gt;gmm&lt;/code&gt; package to estimate an non-linear model, and more specifically a logit model. For my research, I have to estimate euler equations using the Generalized Method of Moments. I contacted Pierre Chaussé, the creator of the &lt;code&gt;gmm&lt;/code&gt; library for help, since I was having some difficulties. I am very grateful for his help (without him, I&amp;#39;d still probably be trying to estimate my model!).&lt;/p&gt;
@@ -175,9 +175,7 @@ summary(my_gmm)
    <link href="http://b-rodrigues.github.com/2013/01/29/method-of-simulated-moments-with-r"/>
    <updated>2013-01-29T00:00:00+01:00</updated>
    <id>http://b-rodrigues.github.com/2013/01/29/method-of-simulated-moments-with-r</id>
-   <content type="html">
-&lt;p&gt;Second update on my research, details &lt;a href=&quot;/pages/Research.html&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-</content>
+   <content type="html">&lt;p&gt;Second update on my research, details &lt;a href='/pages/Research.html'&gt;here&lt;/a&gt;.&lt;/p&gt;</content>
  </entry>
  
  <entry>
@@ -185,9 +183,7 @@ summary(my_gmm)
    <link href="http://b-rodrigues.github.com/2013/01/16/simulated-maximum-likelihood-with-r"/>
    <updated>2013-01-16T00:00:00+01:00</updated>
    <id>http://b-rodrigues.github.com/2013/01/16/simulated-maximum-likelihood-with-r</id>
-   <content type="html">
-&lt;p&gt;First update on my research, details &lt;a href=&quot;/pages/Research.html&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-</content>
+   <content type="html">&lt;p&gt;First update on my research, details &lt;a href='/pages/Research.html'&gt;here&lt;/a&gt;.&lt;/p&gt;</content>
  </entry>
  
  <entry>
@@ -195,9 +191,7 @@ summary(my_gmm)
    <link href="http://b-rodrigues.github.com/2012/12/11/new-website"/>
    <updated>2012-12-11T00:00:00+01:00</updated>
    <id>http://b-rodrigues.github.com/2012/12/11/new-website</id>
-   <content type="html">
-&lt;p&gt;This is my new website! It’s built using jekyll-bootstrap and hosted on Github.&lt;/p&gt;
-</content>
+   <content type="html">&lt;p&gt;This is my new website! It&amp;#8217;s built using jekyll-bootstrap and hosted on Github.&lt;/p&gt;</content>
  </entry>
  
  
