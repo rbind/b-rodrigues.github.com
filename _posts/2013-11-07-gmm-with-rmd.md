@@ -2,7 +2,7 @@
 layout: post
 title: "Nonlinear Gmm with R - Example with a logistic regression"
 description: ""
-tags: [tutorial]
+tags: [tutorial, R]
 ---
 {% include JB/setup %}
 
