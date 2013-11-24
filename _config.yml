@@ -10,7 +10,7 @@ pygments: true
 # so be sure to set them if your theme uses them.
 #
 title : Econometrics and Free Software
-tagline: PhD Candidate at BÉTA, University of Strasbourg
+tagline: Also home to the Gumbel Linux distribution
 author :
   name : Bruno Rodrigues
   email : brodrigues@unistra.fr
