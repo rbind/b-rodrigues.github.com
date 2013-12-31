@@ -15,6 +15,7 @@ http://b-rodrigues.github.com/tags.html
 http://b-rodrigues.github.com/sitemap.txt
 http://b-rodrigues.github.com/atom.xml
 
+http://b-rodrigues.github.com/2013/12/31/r-cas
 http://b-rodrigues.github.com/2013/11/07/gmm-with-rmd
 http://b-rodrigues.github.com/2013/01/29/method-of-simulated-moments-with-r
 http://b-rodrigues.github.com/2013/01/16/simulated-maximum-likelihood-with-r
