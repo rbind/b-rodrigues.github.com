@@ -16,6 +16,8 @@ Chers étudiants, vous trouverez la totalité des TDS sur ce [lien](https://copy
 
 Chers étudiants, vous trouverez la totalité des TDs sur ce [lien](https://copy.com/IpGSIxL7uaKj).
 
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 ###S3
 
 Licence Économie-Gestion 2ème année: 
