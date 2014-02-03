@@ -8,7 +8,7 @@ group: "navigation"
 
 ##2013-2014:
 
-###L2S4
+###L2 S4
 
 Chers étudiants, vous trouverez la totalité des TDS sur ce [lien](https://copy.com/DrQekw2znrDq) (le dossier sera mis à jour continuellement).
 
