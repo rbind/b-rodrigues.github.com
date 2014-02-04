@@ -12,6 +12,8 @@ group: "navigation"
 
 Chers étudiants, vous trouverez la totalité des TDS sur ce [lien](https://copy.com/DrQekw2znrDq) (le dossier sera mis à jour continuellement).
 
+En outre, je vous conseille l'application suivante pour Android: [Statisical Toolbox](https://play.google.com/store/apps/details?id=dk.evolve.android.sta&hl=en). Cette application permet de trouver les valeur des tables de probabilité pour les lois usuelles.
+
 ###L1 S2
 
 Chers étudiants, vous trouverez la totalité des TDs sur ce [lien](https://copy.com/IpGSIxL7uaKj).
