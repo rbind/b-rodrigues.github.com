@@ -18,7 +18,7 @@ En outre, je vous conseille l'application suivante pour Android: [Statisical Too
 
 Chers étudiants, vous trouverez la totalité des TDs sur ce [lien](https://copy.com/IpGSIxL7uaKj).
 
-Vous pouvez aussi télécharger des exercices supplémentaires sur la combinatoire sur ce [lien](https://copy.com/bcTfsjZMoz0r).
+Vous pouvez aussi télécharger des exercices supplémentaires sur la combinatoire pour la séance de révision sur ce [lien](https://copy.com/bcTfsjZMoz0r).
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
