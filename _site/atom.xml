@@ -4,13 +4,107 @@
  <title>Econometrics and Free Software</title>
  <link href="http://b-rodrigues.github.com/atom.xml" rel="self"/>
  <link href="http://b-rodrigues.github.com"/>
- <updated>2014-01-27T18:30:55+01:00</updated>
+ <updated>2014-04-23T21:31:01+02:00</updated>
  <id>http://b-rodrigues.github.com</id>
  <author>
    <name>Bruno Rodrigues</name>
    <email>brodrigues@unistra.fr</email>
  </author>
 
+ 
+ <entry>
+   <title>Object Oriented Programming with R: An example with a Cournot duopoly</title>
+   <link href="http://b-rodrigues.github.com/2014/04/23/r-s4-rootfinding"/>
+   <updated>2014-04-23T00:00:00+02:00</updated>
+   <id>http://b-rodrigues.github.com/2014/04/23/r-s4-rootfinding</id>
+   <content type="html">&lt;head&gt;
+&lt;meta content=&#39;text/html; charset=utf-8&#39; http-equiv=&#39;Content-Type&#39; /&gt;
+
+&lt;!-- MathJax scripts --&gt;
+&lt;script src=&#39;https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML&#39; type=&#39;text/javascript&#39;&gt;&lt;![CDATA[
+]]&gt;&lt;/script&gt;
+&lt;/head&gt;&lt;body&gt;
+&lt;p&gt;I started reading &lt;em&gt;Applied Computational Economics &amp;amp; Finance&lt;/em&gt; by Mario J. Miranda and Paul L. Fackler. It is a very interesting book that I recommend to every of my colleagues. The only issue I have with this book, is that the programming language they use is Matlab, which is proprietary. While there is a free as in freedom implementation of the Matlab language, namely Octave, I still prefer using R. In this post, I will illustrate one example the authors present in the book with R, using the package &lt;code&gt;rootSolve&lt;/code&gt;. &lt;code&gt;rootSolve&lt;/code&gt; implements Newtonian algorithms to find roots of functions; to specify the functions for which I want the roots, I use R&amp;#39;s Object-Oriented Programming (OOP) capabilities to build a model that returns two functions.&lt;/p&gt;
+
+&lt;h3&gt;Theoretical background&lt;/h3&gt;
+
+&lt;p&gt;The example is taken from Miranda&amp;#39;s and Fackler&amp;#39;s book, on page 35. The authors present a Cournot duopoly model. In a Cournot duopoly model, two firms compete against each other by quantities. Both produce a certain quantity of an homogenous good, and take the quantity produce by their rival as given. &lt;/p&gt;
+
+&lt;p&gt;The inverse demand of the good is :&lt;/p&gt;
+
+&lt;img alt=&#39;P(q) = q^{-\dfrac{1}{\eta}&#39; src=&#39;http://latex.codecogs.com/png.latex?P(q) = q^{-\dfrac{1}{\eta}&#39; /&gt;
+
+&lt;p&gt;the cost function for firm i is:&lt;/p&gt;
+
+&lt;img alt=&#39;C_i(q_i) = P(q_1+q_2)*q_i - C_i(q_i)}&#39; src=&#39;http://latex.codecogs.com/png.latex?C_i(q_i) = P(q_1+q_2)*q_i - C_i(q_i)&#39; /&gt;
+
+
+&lt;p&gt;and the profit for firm i:&lt;/p&gt;
+
+&lt;img alt=&#39;\pi_i(q1,q2) = P(q_1+q_2)q_i - C_i(q_i)&#39; src=&#39;http://latex.codecogs.com/png.latex?\pi_i(q1,q2) = P(q_1+q_2)q_i - C_i(q_i)&#39; /&gt;
+
+&lt;p&gt;The optimality condition for firm i is thus:&lt;/p&gt;
+
+&lt;img alt=&#39;\dfrac{\partial \pi_i}{\partial q_i} = (q1+q2)^{-\dfrac{1}{\eta}} - \dfrac{1}{\eta} (q_1+q_2)^{\dfrac{-1}{\eta-1}}q_i - c_iq_i=0.&#39; src=&#39;http://latex.codecogs.com/png.latex?\dfrac{\partial \pi_i}{\partial q_i} = (q1+q2)^{-\dfrac{1}{\eta}} - \dfrac{1}{\eta} (q_1+q_2)^{\dfrac{-1}{\eta-1}}q_i - c_iq_i=0.&#39; /&gt;
+
+
+&lt;h3&gt;Implementation in R&lt;/h3&gt;
+
+&lt;p&gt;If we want to find the optimal quantities &lt;img alt=&#39;\inline q_1&#39; src=&#39;http://latex.codecogs.com/png.latex?\inline q_1&#39; /&gt;  and  &lt;img alt=&#39;\inline q_2&#39; src=&#39;http://latex.codecogs.com/png.latex?\inline q_2&#39; /&gt; we need to program the optimality condition and we could also use the jacobian of the optimality condition. The jacobian is generally useful to speed up the root finding routines. This is were OOP is useful. Firt let&amp;#39;s create a new class, called &lt;em&gt;Model&lt;/em&gt;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#39;r&#39;&gt;setClass(Class = &amp;quot;Model&amp;quot;, slots = list(OptimCond = &amp;quot;function&amp;quot;, JacobiOptimCond = &amp;quot;function&amp;quot;))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This new class has two &lt;em&gt;slots&lt;/em&gt;, which here are functions (in general &lt;em&gt;slots&lt;/em&gt; are properties of your class); we need the model to return the optimality condition and the jacobian of the optimality condition.&lt;/p&gt;
+
+&lt;p&gt;Now we can create a function which will return these two function for certain values of the parameters, &lt;em&gt;c&lt;/em&gt; and  &lt;img alt=&#39;\inline \eta&#39; src=&#39;http://latex.codecogs.com/png.latex?\inline \eta&#39; /&gt; of the model:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#39;r&#39;&gt;my_mod &amp;lt;- function(eta, c) {
+    e = -1/eta
+
+    OptimCond &amp;lt;- function(q) {
+        return(sum(q)^e + e * sum(q)^(e - 1) * q - diag(c) %*% q)
+    }
+
+    JacobiOptimCond &amp;lt;- function(q) {
+        return((e * sum(q)^e) * array(1, c(2, 2)) + (e * sum(q)^(e - 1)) * diag(1, 
+            2) + (e - 1) * e * sum(q)^(e - 2) * q * c(1, 1) - diag(c))
+    }
+
+    return(new(&amp;quot;Model&amp;quot;, OptimCond = OptimCond, JacobiOptimCond = JacobiOptimCond))
+
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The function &lt;code&gt;my_mod&lt;/code&gt; takes two parameters, &lt;code&gt;eta&lt;/code&gt; and &lt;code&gt;c&lt;/code&gt; and returns two functions, the optimality condition and the jacobian of the optimality condition. Both are now accessible via &lt;code&gt;my_mod(eta=1.6,c = c(0.6,0.8))@OptimCond&lt;/code&gt; and &lt;code&gt;my_mod(eta=1.6,c = c(0.6,0.8))@JacobiOptimCond&lt;/code&gt; respectively (and by specifying values for &lt;code&gt;eta&lt;/code&gt; and &lt;code&gt;c&lt;/code&gt;).&lt;/p&gt;
+
+&lt;p&gt;Now, we can use the &lt;code&gt;rootSolve&lt;/code&gt; package to get the optimal values  &lt;img alt=&#39;\inline q_1&#39; src=&#39;http://latex.codecogs.com/png.latex?\inline q_1&#39; /&gt;  and  &lt;img alt=&#39;\inline q_2&#39; src=&#39;http://latex.codecogs.com/png.latex?\inline q_2&#39; /&gt; :&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#39;r&#39;&gt;library(&amp;quot;rootSolve&amp;quot;)
+
+multiroot(f = my_mod(eta = 1.6, c = c(0.6, 0.8))@OptimCond, start = c(1, 1), 
+    maxiter = 100, jacfunc = my_mod(eta = 1.6, c = c(0.6, 0.8))@JacobiOptimCond)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;## $root
+## [1] 0.8396 0.6888
+## 
+## $f.root
+##            [,1]
+## [1,] -2.220e-09
+## [2,]  9.928e-09
+## 
+## $iter
+## [1] 4
+## 
+## $estim.precis
+## [1] 6.074e-09
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;After 4 iterations, we get that  &lt;img alt=&#39;\inline q_1&#39; src=&#39;http://latex.codecogs.com/png.latex?\inline q_1&#39; /&gt;  and  &lt;img alt=&#39;\inline q_2&#39; src=&#39;http://latex.codecogs.com/png.latex?\inline q_2&#39; /&gt; are equal to 0.84 and 0.69 respectively, which are the same values as in the book!&lt;/p&gt;
+
+&lt;/body&gt;</content>
+ </entry>
  
  <entry>
    <title>Using R as a Computer Algebra System with Ryacas</title>
