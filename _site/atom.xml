@@ -4,7 +4,7 @@
  <title>Econometrics and Free Software</title>
  <link href="http://b-rodrigues.github.com/atom.xml" rel="self"/>
  <link href="http://b-rodrigues.github.com"/>
- <updated>2014-04-23T21:31:01+02:00</updated>
+ <updated>2014-04-25T11:26:24+02:00</updated>
  <id>http://b-rodrigues.github.com</id>
  <author>
    <name>Bruno Rodrigues</name>
@@ -24,7 +24,7 @@
 &lt;script src=&#39;https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML&#39; type=&#39;text/javascript&#39;&gt;&lt;![CDATA[
 ]]&gt;&lt;/script&gt;
 &lt;/head&gt;&lt;body&gt;
-&lt;p&gt;I started reading &lt;em&gt;Applied Computational Economics &amp;amp; Finance&lt;/em&gt; by Mario J. Miranda and Paul L. Fackler. It is a very interesting book that I recommend to every of my colleagues. The only issue I have with this book, is that the programming language they use is Matlab, which is proprietary. While there is a free as in freedom implementation of the Matlab language, namely Octave, I still prefer using R. In this post, I will illustrate one example the authors present in the book with R, using the package &lt;code&gt;rootSolve&lt;/code&gt;. &lt;code&gt;rootSolve&lt;/code&gt; implements Newtonian algorithms to find roots of functions; to specify the functions for which I want the roots, I use R&amp;#39;s Object-Oriented Programming (OOP) capabilities to build a model that returns two functions.&lt;/p&gt;
+&lt;p&gt;I started reading &lt;em&gt;Applied Computational Economics &amp;amp; Finance&lt;/em&gt; by Mario J. Miranda and Paul L. Fackler. It is a very interesting book that I recommend to every one of my colleagues. The only issue I have with this book, is that the programming language they use is Matlab, which is proprietary. While there is a free as in freedom implementation of the Matlab language, namely Octave, I still prefer using R. In this post, I will illustrate one example the authors present in the book with R, using the package &lt;code&gt;rootSolve&lt;/code&gt;. &lt;code&gt;rootSolve&lt;/code&gt; implements Newtonian algorithms to find roots of functions; to specify the functions for which I want the roots, I use R&amp;#39;s Object-Oriented Programming (OOP) capabilities to build a model that returns two functions. This is optional, but I found that it was a good example to illustrate OOP, even though simpler solutions exist, one of which was proposed by reddit user TheDrownedKraken (whom I thank) and will be presented at the end of the article.&lt;/p&gt;
 
 &lt;h3&gt;Theoretical background&lt;/h3&gt;
 
@@ -57,7 +57,7 @@
 
 &lt;p&gt;This new class has two &lt;em&gt;slots&lt;/em&gt;, which here are functions (in general &lt;em&gt;slots&lt;/em&gt; are properties of your class); we need the model to return the optimality condition and the jacobian of the optimality condition.&lt;/p&gt;
 
-&lt;p&gt;Now we can create a function which will return these two function for certain values of the parameters, &lt;em&gt;c&lt;/em&gt; and  &lt;img alt=&#39;\inline \eta&#39; src=&#39;http://latex.codecogs.com/png.latex?\inline \eta&#39; /&gt; of the model:&lt;/p&gt;
+&lt;p&gt;Now we can create a function which will return these two functions for certain values of the parameters, &lt;em&gt;c&lt;/em&gt; and  &lt;img alt=&#39;\inline \eta&#39; src=&#39;http://latex.codecogs.com/png.latex?\inline \eta&#39; /&gt; of the model:&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#39;r&#39;&gt;my_mod &amp;lt;- function(eta, c) {
     e = -1/eta
@@ -102,6 +102,47 @@ multiroot(f = my_mod(eta = 1.6, c = c(0.6, 0.8))@OptimCond, start = c(1, 1),
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;After 4 iterations, we get that  &lt;img alt=&#39;\inline q_1&#39; src=&#39;http://latex.codecogs.com/png.latex?\inline q_1&#39; /&gt;  and  &lt;img alt=&#39;\inline q_2&#39; src=&#39;http://latex.codecogs.com/png.latex?\inline q_2&#39; /&gt; are equal to 0.84 and 0.69 respectively, which are the same values as in the book!&lt;/p&gt;
+
+&lt;h3&gt;Suggestion by Reddit user, TheDrownedKraken&lt;/h3&gt;
+
+&lt;p&gt;I posted this article on rstats subbreddit on &lt;a href=&#39;http://www.reddit.com&#39;&gt;www.reddit.com&lt;/a&gt;. I got a very useful comment by reddit member TheDrownedKraken which suggested the following approach, which doesn&amp;#39;t need a new class to be build. I thank him for this. Here is his suggestion:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#39;r&#39;&gt;generator &amp;lt;- function(eta, a) {
+    e = -1/eta
+
+    OptimCond &amp;lt;- function(q) {
+        return(sum(q)^e + e * sum(q)^(e - 1) * q - diag(a) %*% q)
+    }
+
+    JacobiOptimCond &amp;lt;- function(q) {
+        return((e * sum(q)^e) * array(1, c(2, 2)) + (e * sum(q)^(e - 1)) * diag(1, 
+            2) + (e - 1) * e * sum(q)^(e - 2) * q * c(1, 1) - diag(a))
+    }
+
+    return(list(OptimCond = OptimCond, JacobiOptimCond = JacobiOptimCond))
+
+}
+
+f.s &amp;lt;- generator(eta = 1.6, a = c(0.6, 0.8))
+
+multiroot(f = f.s$OptimCond, start = c(1, 1), maxiter = 100, jacfunc = f.s$JacobiOptimCond)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;## $root
+## [1] 0.8396 0.6888
+## 
+## $f.root
+##            [,1]
+## [1,] -2.220e-09
+## [2,]  9.928e-09
+## 
+## $iter
+## [1] 4
+## 
+## $estim.precis
+## [1] 6.074e-09
+&lt;/code&gt;&lt;/pre&gt;
+
 
 &lt;/body&gt;</content>
  </entry>

@@ -17,7 +17,7 @@ tags: [tutorial, R]
 </head>
 
 <body>
-<p>I started reading <em>Applied Computational Economics &amp; Finance</em> by Mario J. Miranda and Paul L. Fackler. It is a very interesting book that I recommend to every one of my colleagues. The only issue I have with this book, is that the programming language they use is Matlab, which is proprietary. While there is a free as in freedom implementation of the Matlab language, namely Octave, I still prefer using R. In this post, I will illustrate one example the authors present in the book with R, using the package <code>rootSolve</code>. <code>rootSolve</code> implements Newtonian algorithms to find roots of functions; to specify the functions for which I want the roots, I use R&#39;s Object-Oriented Programming (OOP) capabilities to build a model that returns two functions.</p>
+<p>I started reading <em>Applied Computational Economics &amp; Finance</em> by Mario J. Miranda and Paul L. Fackler. It is a very interesting book that I recommend to every one of my colleagues. The only issue I have with this book, is that the programming language they use is Matlab, which is proprietary. While there is a free as in freedom implementation of the Matlab language, namely Octave, I still prefer using R. In this post, I will illustrate one example the authors present in the book with R, using the package <code>rootSolve</code>. <code>rootSolve</code> implements Newtonian algorithms to find roots of functions; to specify the functions for which I want the roots, I use R&#39;s Object-Oriented Programming (OOP) capabilities to build a model that returns two functions. This is optional, but I found that it was a good example to illustrate OOP, even though simpler solutions exist, one of which was proposed by reddit user TheDrownedKraken (whom I thank) and will be presented at the end of the article.</p>
 
 <h3>Theoretical background</h3>
 
@@ -95,6 +95,47 @@ multiroot(f = my_mod(eta = 1.6, c = c(0.6, 0.8))@OptimCond, start = c(1, 1),
 </code></pre>
 
 <p>After 4 iterations, we get that  <img src="http://latex.codecogs.com/png.latex?\inline q_1" alt="\inline q_1" />  and  <img src="http://latex.codecogs.com/png.latex?\inline q_2" alt="\inline q_2" /> are equal to 0.84 and 0.69 respectively, which are the same values as in the book!</p>
+
+<h3>Suggestion by Reddit user, TheDrownedKraken</h3>
+
+<p>I posted this article on rstats subbreddit on <a href="http://www.reddit.com">www.reddit.com</a>. I got a very useful comment by reddit member TheDrownedKraken which suggested the following approach, which doesn&#39;t need a new class to be build. I thank him for this. Here is his suggestion:</p>
+
+<pre><code class="r">generator &lt;- function(eta, a) {
+    e = -1/eta
+
+    OptimCond &lt;- function(q) {
+        return(sum(q)^e + e * sum(q)^(e - 1) * q - diag(a) %*% q)
+    }
+
+    JacobiOptimCond &lt;- function(q) {
+        return((e * sum(q)^e) * array(1, c(2, 2)) + (e * sum(q)^(e - 1)) * diag(1, 
+            2) + (e - 1) * e * sum(q)^(e - 2) * q * c(1, 1) - diag(a))
+    }
+
+    return(list(OptimCond = OptimCond, JacobiOptimCond = JacobiOptimCond))
+
+}
+
+f.s &lt;- generator(eta = 1.6, a = c(0.6, 0.8))
+
+multiroot(f = f.s$OptimCond, start = c(1, 1), maxiter = 100, jacfunc = f.s$JacobiOptimCond)
+</code></pre>
+
+<pre><code>## $root
+## [1] 0.8396 0.6888
+## 
+## $f.root
+##            [,1]
+## [1,] -2.220e-09
+## [2,]  9.928e-09
+## 
+## $iter
+## [1] 4
+## 
+## $estim.precis
+## [1] 6.074e-09
+</code></pre>
+
 
 </body>
 
