@@ -64,52 +64,8 @@
     
       
       	
-      	<li><a href="/archive.html">Archive</a></li>
-      	
-      
-    
-  
-    
-      
-      	
-      	<li><a href="/pages/gumbel.html">Gumbel Linux</a></li>
-      	
-      
-    
-  
-    
-      
-      	
       	<li><a href="/pages/Research.html">Research</a></li>
       	
-      
-    
-  
-    
-      
-    
-  
-    
-      
-      	
-      	<li><a href="/pages/aboutme.html">About me</a></li>
-      	
-      
-    
-  
-    
-      
-    
-  
-    
-      
-      	
-      	<li><a href="/pages/software.html">Software</a></li>
-      	
-      
-    
-  
-    
       
     
   
@@ -124,8 +80,20 @@
     
       
       	
-      	<li><a href="/pages.html">Pages</a></li>
+      	<li><a href="/pages/aboutme.html">About me</a></li>
       	
+      
+    
+  
+    
+      
+      	
+      	<li><a href="/archive.html">Archive</a></li>
+      	
+      
+    
+  
+    
       
     
   
@@ -139,6 +107,10 @@
   
     
       
+      	
+      	<li><a href="/pages/gumbel.html">Gumbel Linux</a></li>
+      	
+      
     
   
     
@@ -146,6 +118,34 @@
     
   
     
+      
+    
+  
+    
+      
+      	
+      	<li><a href="/pages.html">Pages</a></li>
+      	
+      
+    
+  
+    
+      
+    
+  
+    
+      
+    
+  
+    
+      
+    
+  
+    
+      
+      	
+      	<li><a href="/pages/software.html">Software</a></li>
+      	
       
     
   
@@ -192,24 +192,27 @@
 
 <div class="row">
   <div class="span12">
-    <head>
-<meta content='text/html; charset=utf-8' http-equiv='Content-Type' />
+    
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
 <!-- MathJax scripts -->
-<script src='https://c328740.ssl.cf1.rackcdn.com/mathjax/2.0-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' type='text/javascript'><![CDATA[
-]]></script>
+<script type="text/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/2.0-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
 
-</head><body>
+</head>
+
+<body>
 
 <p>This document details section <em>12.4.5. Unobserved Heterogeneity 
 Example</em> from Cameron and Trivedi's book - MICROECONOMETRICS: Methods and 
 Applications. The original source code giving the results from table 12.2 are 
-available from the authors&#39; site <a href='http://cameron.econ.ucdavis.edu/mmabook/mmaprograms.html'>here</a> and 
+available from the authors&#39; site <a href="http://cameron.econ.ucdavis.edu/mmabook/mmaprograms.html">here</a> and 
 written for Stata. This is an attempt to translate the code to R. I'd like to 
-thank Reddit user <a href='http://www.reddit.com/user/anonemouse2010'>anonemouse2010</a> for his 
+thank Reddit user <a href="http://www.reddit.com/user/anonemouse2010">anonemouse2010</a> for his 
 advice which helped me write the function.</p>
 
-<p>Consult the original source code if you want to read the authors&#39; comments. If you want the R source code without all the commentaries, grab it <a href='/assets/code/simulated_max_lik.R'>here</a>. This is not guaranteed to work, nor to be correct. It could set your pet on fire and/or eat your first born. Use at your own risk. I may, or may not, expand this example. Corrections, constructive criticism are welcome.</p>
+<p>Consult the original source code if you want to read the authors&#39; comments. If you want the R source code without all the commentaries, grab it <a href="/assets/code/simulated_max_lik.R">here</a>. This is not guaranteed to work, nor to be correct. It could set your pet on fire and/or eat your first born. Use at your own risk. I may, or may not, expand this example. Corrections, constructive criticism are welcome.</p>
 
 <p>The model is \( y=\theta+u+\varepsilon \) where \( \theta \) is a scalar parameter equal to 1. \( u \) is extreme value type 1 (Gumbel distribution), \( \varepsilon \leadsto \mathbb{N}(0,1) \). For more details, consult the book.</p>
 
@@ -217,7 +220,7 @@ advice which helped me write the function.</p>
 
 <p>You can consult the original source code to see how the authors simulated the data. To get the same results, and verify that I didn&#39;t make mistakes I prefer importing their data directly from their website.</p>
 
-<pre><code class='r'>data &lt;- read.table(&quot;http://cameron.econ.ucdavis.edu/mmabook/mma12p2mslmsm.asc&quot;)
+<pre><code class="r">data &lt;- read.table(&quot;http://cameron.econ.ucdavis.edu/mmabook/mma12p2mslmsm.asc&quot;)
 u &lt;- data[, 1]
 e &lt;- data[, 2]
 y &lt;- data[, 3]
@@ -233,7 +236,7 @@ $$\log{\hat{L}_N(\theta)} = \dfrac{1}{N} \sum_{i=1}^N\log{\big( \dfrac{1}{S}\sum
 
 which can be found on page 397 is programmed using the function <code>sapply</code>.</p>
 
-<pre><code class='r'>denssim &lt;- function(theta) {
+<pre><code class="r">denssim &lt;- function(theta) {
     loglik &lt;- mean(sapply(y, function(y) log(mean((1/sqrt(2 * pi)) * exp(-(y - theta + log(-log(runif(simreps))))^2/2)))))
     return(-loglik)
 }
@@ -241,7 +244,7 @@ which can be found on page 397 is programmed using the function <code>sapply</co
 
 <p>This likelihood is then maximized:</p>
 
-<pre><code class='r'>system.time(res &lt;- optim(0.1, denssim, method = &quot;BFGS&quot;, control = list(maxit = simreps)))
+<pre><code class="r">system.time(res &lt;- optim(0.1, denssim, method = &quot;BFGS&quot;, control = list(maxit = simreps)))
 </code></pre>
 
 <pre><code>##    user  system elapsed 
@@ -257,12 +260,12 @@ which can be found on page 397 is programmed using the function <code>sapply</co
 
 <p>Let&#39;s try again with another parameter value, for example \( \theta=2.5 \). We have to generate y again:</p>
 
-<pre><code class='r'>y2 &lt;- 2.5 + u + e
+<pre><code class="r">y2 &lt;- 2.5 + u + e
 </code></pre>
 
 <p>and slightly modify the likelihood:</p>
 
-<pre><code class='r'>denssim2 &lt;- function(theta) {
+<pre><code class="r">denssim2 &lt;- function(theta) {
     loglik &lt;- mean(sapply(y2, function(y2) log(mean((1/sqrt(2 * pi)) * exp(-(y2 - 
         theta + log(-log(runif(simreps))))^2/2)))))
     return(-loglik)
@@ -271,7 +274,7 @@ which can be found on page 397 is programmed using the function <code>sapply</co
 
 <p>which can then be maximized:</p>
 
-<pre><code class='r'>system.time(res2 &lt;- optim(0.1, denssim2, method = &quot;BFGS&quot;, control = list(maxit = simreps)))
+<pre><code class="r">system.time(res2 &lt;- optim(0.1, denssim2, method = &quot;BFGS&quot;, control = list(maxit = simreps)))
 </code></pre>
 
 <pre><code>##    user  system elapsed 
@@ -286,6 +289,7 @@ which can be found on page 397 is programmed using the function <code>sapply</co
 <p>which is close to the true value of the parameter 2.5 (which was used to generate the data). </p>
 
 </body>
+
   </div>
 </div>
 

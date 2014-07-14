@@ -64,52 +64,8 @@
     
       
       	
-      	<li><a href="/archive.html">Archive</a></li>
-      	
-      
-    
-  
-    
-      
-      	
-      	<li><a href="/pages/gumbel.html">Gumbel Linux</a></li>
-      	
-      
-    
-  
-    
-      
-      	
       	<li><a href="/pages/Research.html">Research</a></li>
       	
-      
-    
-  
-    
-      
-    
-  
-    
-      
-      	
-      	<li><a href="/pages/aboutme.html">About me</a></li>
-      	
-      
-    
-  
-    
-      
-    
-  
-    
-      
-      	
-      	<li><a href="/pages/software.html">Software</a></li>
-      	
-      
-    
-  
-    
       
     
   
@@ -124,8 +80,20 @@
     
       
       	
-      	<li><a href="/pages.html">Pages</a></li>
+      	<li><a href="/pages/aboutme.html">About me</a></li>
       	
+      
+    
+  
+    
+      
+      	
+      	<li><a href="/archive.html">Archive</a></li>
+      	
+      
+    
+  
+    
       
     
   
@@ -139,6 +107,10 @@
   
     
       
+      	
+      	<li><a href="/pages/gumbel.html">Gumbel Linux</a></li>
+      	
+      
     
   
     
@@ -146,6 +118,34 @@
     
   
     
+      
+    
+  
+    
+      
+      	
+      	<li><a href="/pages.html">Pages</a></li>
+      	
+      
+    
+  
+    
+      
+    
+  
+    
+      
+    
+  
+    
+      
+    
+  
+    
+      
+      	
+      	<li><a href="/pages/software.html">Software</a></li>
+      	
       
     
   
@@ -193,23 +193,26 @@
 
 <div class="row">
   <div class="span8">
-    <head>
-<meta content='text/html; charset=utf-8' http-equiv='Content-Type' />
+    
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
 <!-- MathJax scripts -->
-<script src='https://c328740.ssl.cf1.rackcdn.com/mathjax/2.0-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' type='text/javascript'><![CDATA[
-]]></script>
+<script type="text/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/2.0-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
 
-</head><body>
+</head>
+
+<body>
 <p>In this post, I will explain how you can use the R <code>gmm</code> package to estimate a non-linear model, and more specifically a logit model. For my research, I have to estimate Euler equations using the Generalized Method of Moments. I contacted Pierre Chaussé, the creator of the <code>gmm</code> library for help, since I was having some difficulties. I am very grateful for his help (without him, I&#39;d still probably be trying to estimate my model!).</p>
 
 <h3>Theoretical background, motivation and data set</h3>
 
-<p>I will not dwell in the theory too much, because you can find everything you need <a href='https://en.wikipedia.org/wiki/Generalized_method_of_moments'>here</a>. I think it's more interesting to try to understand why someone would use the Generalized Method of Moments instead of maximization of the log-likelihood. Well, in some cases, getting the log-likelihood can be quite complicated, as can be the case for arbitrary, non-linear models (for example if you want to estimate the parameters of a very non-linear utility function). Also, moment conditions can sometimes be readily available, so using GMM instead of MLE is trivial. And finally, GMM is... well, a very general method: every popular estimator can be obtained as a special case of the GMM estimator, which makes it quite useful.</p>
+<p>I will not dwell in the theory too much, because you can find everything you need <a href="https://en.wikipedia.org/wiki/Generalized_method_of_moments">here</a>. I think it's more interesting to try to understand why someone would use the Generalized Method of Moments instead of maximization of the log-likelihood. Well, in some cases, getting the log-likelihood can be quite complicated, as can be the case for arbitrary, non-linear models (for example if you want to estimate the parameters of a very non-linear utility function). Also, moment conditions can sometimes be readily available, so using GMM instead of MLE is trivial. And finally, GMM is... well, a very general method: every popular estimator can be obtained as a special case of the GMM estimator, which makes it quite useful.</p>
 
 <p>Another question that I think is important to answer is: why this post? Well, because that's exactly the kind of post I would have loved to have found 2 months ago, when I was beginning to work with the GMM. Most posts I found presented the <code>gmm</code> package with very simple and trivial examples, which weren't very helpful. The example presented below is not very complicated per se, but much more closer to a real-world problem than most stuff that is out there. At least, I hope you will find it useful!</p>
 
-<p>For illustration purposes, I&#39;ll use data from Marno Verbeek&#39;s <em>A guide to modern Econometrics</em>, used in the illustration on page 197. You can download the data from the book&#39;s companion page <a href='http://www.econ.kuleuven.ac.be/gme/'>here</a> under the section <em>Data sets</em> or from the <code>Ecdat</code> package in R. I use the data set from Gretl though, as the dummy variables are numeric (instead of class <code>factor</code>) which makes life easier when writing your own functions. You can get the data set <a href='/assets/files/benefits.R'>here</a>. </p>
+<p>For illustration purposes, I&#39;ll use data from Marno Verbeek&#39;s <em>A guide to modern Econometrics</em>, used in the illustration on page 197. You can download the data from the book&#39;s companion page <a href="http://www.econ.kuleuven.ac.be/gme/">here</a> under the section <em>Data sets</em> or from the <code>Ecdat</code> package in R. I use the data set from Gretl though, as the dummy variables are numeric (instead of class <code>factor</code>) which makes life easier when writing your own functions. You can get the data set <a href="/assets/files/benefits.R">here</a>. </p>
 
 <h3>Implementation in R</h3>
 
@@ -217,7 +220,7 @@
 
 <p>First load the <code>gmm</code> package and load the data set:</p>
 
-<pre><code class='r'>require(&quot;gmm&quot;)
+<pre><code class="r">require(&quot;gmm&quot;)
 data &lt;- read.table(&quot;path/to/data/benefits.R&quot;, header = T)
 
 attach(data)
@@ -225,7 +228,7 @@ attach(data)
 
 <p>We can then estimate a logit model with the <code>glm()</code> function:</p>
 
-<pre><code class='r'>native &lt;- glm(y ~ age + age2 + dkids + dykids + head + male + married + rr +  rr2, family = binomial(link = &quot;logit&quot;), na.action = na.pass)
+<pre><code class="r">native &lt;- glm(y ~ age + age2 + dkids + dykids + head + male + married + rr +  rr2, family = binomial(link = &quot;logit&quot;), na.action = na.pass)
 
 summary(native)
 </code></pre>
@@ -273,20 +276,20 @@ $$
 
 <p>where \( \Lambda() \) is the logistic function. Let&#39;s translate this condition into code. First, we need the logistic function:</p>
 
-<pre><code class='r'>logistic &lt;- function(theta, data) {
+<pre><code class="r">logistic &lt;- function(theta, data) {
     return(1/(1 + exp(-data %*% theta)))
 }
 </code></pre>
 
 <p>and let&#39;s also define a new data frame, to make our life easier with the moment conditions (don't forget to add a column of ones to the matrix, hence the <code>1</code> after <code>y</code>):</p>
 
-<pre><code class='r'>dat &lt;- data.matrix(cbind(y, 1, age, age2, dkids, dykids, head, male, married, 
+<pre><code class="r">dat &lt;- data.matrix(cbind(y, 1, age, age2, dkids, dykids, head, male, married, 
     rr, rr2))
 </code></pre>
 
 <p>and now the moment condition itself:</p>
 
-<pre><code class='r'>moments &lt;- function(theta, data) {
+<pre><code class="r">moments &lt;- function(theta, data) {
     y &lt;- as.numeric(data[, 1])
     x &lt;- data.matrix(data[, 2:11])
     m &lt;- x * as.vector((y - logistic(theta, x)))
@@ -298,12 +301,12 @@ $$
 
 <p>To use the <code>gmm()</code> function to estimate our model, we need to specify some initial values to get the maximization routine going. One neat trick is simply to use the coefficients of a linear regression; I found it to work well in a lot of situations:</p>
 
-<pre><code class='r'>init &lt;- (lm(y ~ age + age2 + dkids + dykids + head + male + married + rr + rr2))$coefficients
+<pre><code class="r">init &lt;- (lm(y ~ age + age2 + dkids + dykids + head + male + married + rr + rr2))$coefficients
 </code></pre>
 
 <p>And finally, we have everything to use <code>gmm()</code>:</p>
 
-<pre><code class='r'>my_gmm &lt;- gmm(moments, x = dat, t0 = init, type = &quot;iterative&quot;, crit = 1e-25, wmatrix = &quot;optimal&quot;, method = &quot;Nelder-Mead&quot;, control = list(reltol = 1e-25, maxit = 20000))
+<pre><code class="r">my_gmm &lt;- gmm(moments, x = dat, t0 = init, type = &quot;iterative&quot;, crit = 1e-25, wmatrix = &quot;optimal&quot;, method = &quot;Nelder-Mead&quot;, control = list(reltol = 1e-25, maxit = 20000))
 
 summary(my_gmm)
 </code></pre>
@@ -349,6 +352,8 @@ summary(my_gmm)
 <p>Should you notice any error whatsoever, do not hesitate to tell me.</p>
 
 </body>
+
+
     <hr>
     <div class="pagination btn-group">
       

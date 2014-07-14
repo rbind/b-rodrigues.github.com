@@ -4,7 +4,7 @@
  <title>Econometrics and Free Software</title>
  <link href="http://b-rodrigues.github.com/atom.xml" rel="self"/>
  <link href="http://b-rodrigues.github.com"/>
- <updated>2014-04-25T11:26:24+02:00</updated>
+ <updated>2014-07-14T16:27:25+02:00</updated>
  <id>http://b-rodrigues.github.com</id>
  <author>
    <name>Bruno Rodrigues</name>
@@ -17,13 +17,16 @@
    <link href="http://b-rodrigues.github.com/2014/04/23/r-s4-rootfinding"/>
    <updated>2014-04-23T00:00:00+02:00</updated>
    <id>http://b-rodrigues.github.com/2014/04/23/r-s4-rootfinding</id>
-   <content type="html">&lt;head&gt;
-&lt;meta content=&#39;text/html; charset=utf-8&#39; http-equiv=&#39;Content-Type&#39; /&gt;
+   <content type="html">
+&lt;head&gt;
+&lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=utf-8&quot; /&gt;
 
 &lt;!-- MathJax scripts --&gt;
-&lt;script src=&#39;https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML&#39; type=&#39;text/javascript&#39;&gt;&lt;![CDATA[
-]]&gt;&lt;/script&gt;
-&lt;/head&gt;&lt;body&gt;
+&lt;script type=&quot;text/javascript&quot; src=&quot;https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML&quot;&gt;
+&lt;/script&gt;
+&lt;/head&gt;
+
+&lt;body&gt;
 &lt;p&gt;I started reading &lt;em&gt;Applied Computational Economics &amp;amp; Finance&lt;/em&gt; by Mario J. Miranda and Paul L. Fackler. It is a very interesting book that I recommend to every one of my colleagues. The only issue I have with this book, is that the programming language they use is Matlab, which is proprietary. While there is a free as in freedom implementation of the Matlab language, namely Octave, I still prefer using R. In this post, I will illustrate one example the authors present in the book with R, using the package &lt;code&gt;rootSolve&lt;/code&gt;. &lt;code&gt;rootSolve&lt;/code&gt; implements Newtonian algorithms to find roots of functions; to specify the functions for which I want the roots, I use R&amp;#39;s Object-Oriented Programming (OOP) capabilities to build a model that returns two functions. This is optional, but I found that it was a good example to illustrate OOP, even though simpler solutions exist, one of which was proposed by reddit user TheDrownedKraken (whom I thank) and will be presented at the end of the article.&lt;/p&gt;
 
 &lt;h3&gt;Theoretical background&lt;/h3&gt;
@@ -32,34 +35,34 @@
 
 &lt;p&gt;The inverse demand of the good is :&lt;/p&gt;
 
-&lt;img alt=&#39;P(q) = q^{-\dfrac{1}{\eta}&#39; src=&#39;http://latex.codecogs.com/png.latex?P(q) = q^{-\dfrac{1}{\eta}&#39; /&gt;
+&lt;img src=&quot;http://latex.codecogs.com/png.latex?P(q) = q^{-\dfrac{1}{\eta}&quot; alt=&quot;P(q) = q^{-\dfrac{1}{\eta}&quot; /&gt;
 
 &lt;p&gt;the cost function for firm i is:&lt;/p&gt;
 
-&lt;img alt=&#39;C_i(q_i) = P(q_1+q_2)*q_i - C_i(q_i)}&#39; src=&#39;http://latex.codecogs.com/png.latex?C_i(q_i) = P(q_1+q_2)*q_i - C_i(q_i)&#39; /&gt;
+&lt;img src=&quot;http://latex.codecogs.com/png.latex?C_i(q_i) = P(q_1+q_2)*q_i - C_i(q_i)&quot; alt=&quot;C_i(q_i) = P(q_1+q_2)*q_i - C_i(q_i)}&quot; /&gt;
 
 
 &lt;p&gt;and the profit for firm i:&lt;/p&gt;
 
-&lt;img alt=&#39;\pi_i(q1,q2) = P(q_1+q_2)q_i - C_i(q_i)&#39; src=&#39;http://latex.codecogs.com/png.latex?\pi_i(q1,q2) = P(q_1+q_2)q_i - C_i(q_i)&#39; /&gt;
+&lt;img src=&quot;http://latex.codecogs.com/png.latex?\pi_i(q1,q2) = P(q_1+q_2)q_i - C_i(q_i)&quot; alt=&quot;\pi_i(q1,q2) = P(q_1+q_2)q_i - C_i(q_i)&quot; /&gt;
 
 &lt;p&gt;The optimality condition for firm i is thus:&lt;/p&gt;
 
-&lt;img alt=&#39;\dfrac{\partial \pi_i}{\partial q_i} = (q1+q2)^{-\dfrac{1}{\eta}} - \dfrac{1}{\eta} (q_1+q_2)^{\dfrac{-1}{\eta-1}}q_i - c_iq_i=0.&#39; src=&#39;http://latex.codecogs.com/png.latex?\dfrac{\partial \pi_i}{\partial q_i} = (q1+q2)^{-\dfrac{1}{\eta}} - \dfrac{1}{\eta} (q_1+q_2)^{\dfrac{-1}{\eta-1}}q_i - c_iq_i=0.&#39; /&gt;
+&lt;img src=&quot;http://latex.codecogs.com/png.latex?\dfrac{\partial \pi_i}{\partial q_i} = (q1+q2)^{-\dfrac{1}{\eta}} - \dfrac{1}{\eta} (q_1+q_2)^{\dfrac{-1}{\eta-1}}q_i - c_iq_i=0.&quot; alt=&quot;\dfrac{\partial \pi_i}{\partial q_i} = (q1+q2)^{-\dfrac{1}{\eta}} - \dfrac{1}{\eta} (q_1+q_2)^{\dfrac{-1}{\eta-1}}q_i - c_iq_i=0.&quot; /&gt;
 
 
 &lt;h3&gt;Implementation in R&lt;/h3&gt;
 
-&lt;p&gt;If we want to find the optimal quantities &lt;img alt=&#39;\inline q_1&#39; src=&#39;http://latex.codecogs.com/png.latex?\inline q_1&#39; /&gt;  and  &lt;img alt=&#39;\inline q_2&#39; src=&#39;http://latex.codecogs.com/png.latex?\inline q_2&#39; /&gt; we need to program the optimality condition and we could also use the jacobian of the optimality condition. The jacobian is generally useful to speed up the root finding routines. This is were OOP is useful. Firt let&amp;#39;s create a new class, called &lt;em&gt;Model&lt;/em&gt;:&lt;/p&gt;
+&lt;p&gt;If we want to find the optimal quantities &lt;img src=&quot;http://latex.codecogs.com/png.latex?\inline q_1&quot; alt=&quot;\inline q_1&quot; /&gt;  and  &lt;img src=&quot;http://latex.codecogs.com/png.latex?\inline q_2&quot; alt=&quot;\inline q_2&quot; /&gt; we need to program the optimality condition and we could also use the jacobian of the optimality condition. The jacobian is generally useful to speed up the root finding routines. This is were OOP is useful. Firt let&amp;#39;s create a new class, called &lt;em&gt;Model&lt;/em&gt;:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#39;r&#39;&gt;setClass(Class = &amp;quot;Model&amp;quot;, slots = list(OptimCond = &amp;quot;function&amp;quot;, JacobiOptimCond = &amp;quot;function&amp;quot;))
+&lt;pre&gt;&lt;code class=&quot;r&quot;&gt;setClass(Class = &amp;quot;Model&amp;quot;, slots = list(OptimCond = &amp;quot;function&amp;quot;, JacobiOptimCond = &amp;quot;function&amp;quot;))
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;This new class has two &lt;em&gt;slots&lt;/em&gt;, which here are functions (in general &lt;em&gt;slots&lt;/em&gt; are properties of your class); we need the model to return the optimality condition and the jacobian of the optimality condition.&lt;/p&gt;
 
-&lt;p&gt;Now we can create a function which will return these two functions for certain values of the parameters, &lt;em&gt;c&lt;/em&gt; and  &lt;img alt=&#39;\inline \eta&#39; src=&#39;http://latex.codecogs.com/png.latex?\inline \eta&#39; /&gt; of the model:&lt;/p&gt;
+&lt;p&gt;Now we can create a function which will return these two functions for certain values of the parameters, &lt;em&gt;c&lt;/em&gt; and  &lt;img src=&quot;http://latex.codecogs.com/png.latex?\inline \eta&quot; alt=&quot;\inline \eta&quot; /&gt; of the model:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#39;r&#39;&gt;my_mod &amp;lt;- function(eta, c) {
+&lt;pre&gt;&lt;code class=&quot;r&quot;&gt;my_mod &amp;lt;- function(eta, c) {
     e = -1/eta
 
     OptimCond &amp;lt;- function(q) {
@@ -78,9 +81,9 @@
 
 &lt;p&gt;The function &lt;code&gt;my_mod&lt;/code&gt; takes two parameters, &lt;code&gt;eta&lt;/code&gt; and &lt;code&gt;c&lt;/code&gt; and returns two functions, the optimality condition and the jacobian of the optimality condition. Both are now accessible via &lt;code&gt;my_mod(eta=1.6,c = c(0.6,0.8))@OptimCond&lt;/code&gt; and &lt;code&gt;my_mod(eta=1.6,c = c(0.6,0.8))@JacobiOptimCond&lt;/code&gt; respectively (and by specifying values for &lt;code&gt;eta&lt;/code&gt; and &lt;code&gt;c&lt;/code&gt;).&lt;/p&gt;
 
-&lt;p&gt;Now, we can use the &lt;code&gt;rootSolve&lt;/code&gt; package to get the optimal values  &lt;img alt=&#39;\inline q_1&#39; src=&#39;http://latex.codecogs.com/png.latex?\inline q_1&#39; /&gt;  and  &lt;img alt=&#39;\inline q_2&#39; src=&#39;http://latex.codecogs.com/png.latex?\inline q_2&#39; /&gt; :&lt;/p&gt;
+&lt;p&gt;Now, we can use the &lt;code&gt;rootSolve&lt;/code&gt; package to get the optimal values  &lt;img src=&quot;http://latex.codecogs.com/png.latex?\inline q_1&quot; alt=&quot;\inline q_1&quot; /&gt;  and  &lt;img src=&quot;http://latex.codecogs.com/png.latex?\inline q_2&quot; alt=&quot;\inline q_2&quot; /&gt; :&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#39;r&#39;&gt;library(&amp;quot;rootSolve&amp;quot;)
+&lt;pre&gt;&lt;code class=&quot;r&quot;&gt;library(&amp;quot;rootSolve&amp;quot;)
 
 multiroot(f = my_mod(eta = 1.6, c = c(0.6, 0.8))@OptimCond, start = c(1, 1), 
     maxiter = 100, jacfunc = my_mod(eta = 1.6, c = c(0.6, 0.8))@JacobiOptimCond)
@@ -101,13 +104,13 @@ multiroot(f = my_mod(eta = 1.6, c = c(0.6, 0.8))@OptimCond, start = c(1, 1),
 ## [1] 6.074e-09
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;After 4 iterations, we get that  &lt;img alt=&#39;\inline q_1&#39; src=&#39;http://latex.codecogs.com/png.latex?\inline q_1&#39; /&gt;  and  &lt;img alt=&#39;\inline q_2&#39; src=&#39;http://latex.codecogs.com/png.latex?\inline q_2&#39; /&gt; are equal to 0.84 and 0.69 respectively, which are the same values as in the book!&lt;/p&gt;
+&lt;p&gt;After 4 iterations, we get that  &lt;img src=&quot;http://latex.codecogs.com/png.latex?\inline q_1&quot; alt=&quot;\inline q_1&quot; /&gt;  and  &lt;img src=&quot;http://latex.codecogs.com/png.latex?\inline q_2&quot; alt=&quot;\inline q_2&quot; /&gt; are equal to 0.84 and 0.69 respectively, which are the same values as in the book!&lt;/p&gt;
 
 &lt;h3&gt;Suggestion by Reddit user, TheDrownedKraken&lt;/h3&gt;
 
-&lt;p&gt;I posted this article on rstats subbreddit on &lt;a href=&#39;http://www.reddit.com&#39;&gt;www.reddit.com&lt;/a&gt;. I got a very useful comment by reddit member TheDrownedKraken which suggested the following approach, which doesn&amp;#39;t need a new class to be build. I thank him for this. Here is his suggestion:&lt;/p&gt;
+&lt;p&gt;I posted this article on rstats subbreddit on &lt;a href=&quot;http://www.reddit.com&quot;&gt;www.reddit.com&lt;/a&gt;. I got a very useful comment by reddit member TheDrownedKraken which suggested the following approach, which doesn&amp;#39;t need a new class to be build. I thank him for this. Here is his suggestion:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#39;r&#39;&gt;generator &amp;lt;- function(eta, a) {
+&lt;pre&gt;&lt;code class=&quot;r&quot;&gt;generator &amp;lt;- function(eta, a) {
     e = -1/eta
 
     OptimCond &amp;lt;- function(q) {
@@ -144,7 +147,9 @@ multiroot(f = f.s$OptimCond, start = c(1, 1), maxiter = 100, jacfunc = f.s$Jacob
 &lt;/code&gt;&lt;/pre&gt;
 
 
-&lt;/body&gt;</content>
+&lt;/body&gt;
+
+</content>
  </entry>
  
  <entry>
@@ -152,14 +157,17 @@ multiroot(f = f.s$OptimCond, start = c(1, 1), maxiter = 100, jacfunc = f.s$Jacob
    <link href="http://b-rodrigues.github.com/2013/12/31/r-cas"/>
    <updated>2013-12-31T00:00:00+01:00</updated>
    <id>http://b-rodrigues.github.com/2013/12/31/r-cas</id>
-   <content type="html">&lt;head&gt;
-&lt;meta content=&#39;text/html; charset=utf-8&#39; http-equiv=&#39;Content-Type&#39; /&gt;
+   <content type="html">
+&lt;head&gt;
+&lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=utf-8&quot; /&gt;
 
 &lt;!-- MathJax scripts --&gt;
-&lt;script src=&#39;https://c328740.ssl.cf1.rackcdn.com/mathjax/2.0-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML&#39; type=&#39;text/javascript&#39;&gt;&lt;![CDATA[
-]]&gt;&lt;/script&gt;
+&lt;script type=&quot;text/javascript&quot; src=&quot;https://c328740.ssl.cf1.rackcdn.com/mathjax/2.0-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML&quot;&gt;
+&lt;/script&gt;
 
-&lt;/head&gt;&lt;body&gt;
+&lt;/head&gt;
+
+&lt;body&gt;
 &lt;p&gt;R is used to perform statistical analysis and doesn&amp;#39;t focus on symbolic maths. But it is sometimes useful to let the computer derive a function for you (and have the analytic expression of said derivative), but maybe you don&amp;#39;t want to leave your comfy R shell. It is possible to turn R into a full-fledged computer algebra system. CASs are tools that perform symbolic operations, such as getting the expression of the derivative of a user-defined (and thus completely arbitrary) function. Popular CASs include the proprietary Mathematica and Maple. There exists a lot of CASs under a Free Software license, Maxima (based on the very old Macsyma), Yacas, Xcas&amp;hellip; In this post I will focus on Yacas and the &lt;code&gt;Ryacas&lt;/code&gt; libarary. There is also the possibility to use the &lt;code&gt;rSympy&lt;/code&gt; library that uses the &lt;code&gt;Sympy&lt;/code&gt; Python library, which has a lot more features than Yacas. However, depending on your operating system installation can be tricky as it also requires &lt;code&gt;rJava&lt;/code&gt; as a dependency. &lt;/p&gt;
 
 &lt;p&gt;Even though &lt;code&gt;Ryacas&lt;/code&gt; is quite nice to have, there are some issues though. For example, let&amp;#39;s say you want the first derivative of a certain function f. If you use &lt;code&gt;Ryacas&lt;/code&gt; to get it, the returned object won&amp;#39;t be a function. There is a way to &amp;ldquo;extract&amp;rdquo; the text from the returned object and make a function out of it. But there are still other issues; I&amp;#39;ll discuss them later.&lt;/p&gt;
@@ -173,31 +181,31 @@ library(Ryacas)
 yacasInstall()
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;You can find more information on the &lt;a href=&#39;https://code.google.com/p/ryacas/#INSTALLATION&#39;&gt;project&amp;#39;s page&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;You can find more information on the &lt;a href=&quot;https://code.google.com/p/ryacas/#INSTALLATION&quot;&gt;project&amp;#39;s page&lt;/a&gt;.&lt;/p&gt;
 
 &lt;h2&gt;Example session&lt;/h2&gt;
 
 &lt;p&gt;First, you must load &lt;code&gt;Ryacas&lt;/code&gt; and define symbols that you will use in your functions.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#39;r&#39;&gt;require(&amp;quot;Ryacas&amp;quot;)
+&lt;pre&gt;&lt;code class=&quot;r&quot;&gt;require(&amp;quot;Ryacas&amp;quot;)
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;pre&gt;&lt;code&gt;## Loading required package: Ryacas Loading required package: XML
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;pre&gt;&lt;code class=&#39;r&#39;&gt;x &amp;lt;- Sym(&amp;quot;x&amp;quot;)
+&lt;pre&gt;&lt;code class=&quot;r&quot;&gt;x &amp;lt;- Sym(&amp;quot;x&amp;quot;)
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;You can then define your fonctions:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#39;r&#39;&gt;my_func &amp;lt;- function(x) {
+&lt;pre&gt;&lt;code class=&quot;r&quot;&gt;my_func &amp;lt;- function(x) {
     return(x/(x^2 + 3))
 }
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;And you can get the derivative for instance:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#39;r&#39;&gt;my_deriv &amp;lt;- yacas(deriv(my_func(x), x))
+&lt;pre&gt;&lt;code class=&quot;r&quot;&gt;my_deriv &amp;lt;- yacas(deriv(my_func(x), x))
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;pre&gt;&lt;code&gt;## [1] &amp;quot;Starting Yacas!&amp;quot;
@@ -205,7 +213,7 @@ yacasInstall()
 
 &lt;p&gt;If you check the class of &lt;code&gt;my_deriv&lt;/code&gt;, you&amp;#39;ll see that it is of class &lt;code&gt;yacas&lt;/code&gt;, which is not very useful. Let&amp;#39;s «convert» it to a function:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#39;r&#39;&gt;my_deriv2 &amp;lt;- function(x) {
+&lt;pre&gt;&lt;code class=&quot;r&quot;&gt;my_deriv2 &amp;lt;- function(x) {
     eval(parse(text = my_deriv$YacasForm))
 }
 &lt;/code&gt;&lt;/pre&gt;
@@ -216,7 +224,7 @@ yacasInstall()
 
 &lt;p&gt;You can&amp;#39;t use elements of a vector as parameters of your function, i.e.:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#39;r&#39;&gt;theta &amp;lt;- Sym(&amp;quot;theta&amp;quot;)
+&lt;pre&gt;&lt;code class=&quot;r&quot;&gt;theta &amp;lt;- Sym(&amp;quot;theta&amp;quot;)
 func &amp;lt;- function(x) {
     return(theta[1] * x + theta[2])
 }
@@ -226,7 +234,7 @@ Func &amp;lt;- yacas(Integrate(func(x), x))
 
 &lt;p&gt;returns &lt;code&gt;(x^2*theta)/2+NA*x;&lt;/code&gt; which is not quite what we want&amp;hellip;there is a workaround however. Define your functions like this:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#39;r&#39;&gt;a &amp;lt;- Sym(&amp;quot;a&amp;quot;)
+&lt;pre&gt;&lt;code class=&quot;r&quot;&gt;a &amp;lt;- Sym(&amp;quot;a&amp;quot;)
 b &amp;lt;- Sym(&amp;quot;b&amp;quot;)
 func2 &amp;lt;- function(x) {
     return(a * x + b)
@@ -237,13 +245,13 @@ Func2 &amp;lt;- yacas(Integrate(func2(x), x))
 
 &lt;p&gt;we get the expected result: &lt;code&gt;(x^2*a)/2+b*x;&lt;/code&gt;. Now replace &lt;code&gt;a&lt;/code&gt; and &lt;code&gt;b&lt;/code&gt; by the thetas:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#39;r&#39;&gt;Func2 &amp;lt;- gsub(&amp;quot;a&amp;quot;, &amp;quot;theta[1]&amp;quot;, Func2$YacasForm)
+&lt;pre&gt;&lt;code class=&quot;r&quot;&gt;Func2 &amp;lt;- gsub(&amp;quot;a&amp;quot;, &amp;quot;theta[1]&amp;quot;, Func2$YacasForm)
 Func2 &amp;lt;- gsub(&amp;quot;b&amp;quot;, &amp;quot;theta[2]&amp;quot;, Func2)
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;Now we have what we want: &lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#39;r&#39;&gt;Func2
+&lt;pre&gt;&lt;code class=&quot;r&quot;&gt;Func2
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;pre&gt;&lt;code&gt;## [1] &amp;quot;(x^2*theta[1])/2+theta[2]*x;&amp;quot;
@@ -253,14 +261,14 @@ Func2 &amp;lt;- gsub(&amp;quot;b&amp;quot;, &amp;quot;theta[2]&amp;quot;, Func2)
 
 &lt;p&gt;Another problem is if you use built-in functions that are different between R and Yacas. For example:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#39;r&#39;&gt;my_log &amp;lt;- function(x) {
+&lt;pre&gt;&lt;code class=&quot;r&quot;&gt;my_log &amp;lt;- function(x) {
     return(sin(log(2 + x)))
 }
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;Now try to differentiate it:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#39;r&#39;&gt;dmy_log &amp;lt;- yacas(deriv(my_log(x), x))
+&lt;pre&gt;&lt;code class=&quot;r&quot;&gt;dmy_log &amp;lt;- yacas(deriv(my_log(x), x))
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;you get: &lt;code&gt;Cos(Ln(x+2))/(x+2);&lt;/code&gt;. The problem with this, is that R doesn&amp;#39;t recognize &lt;code&gt;Cos&lt;/code&gt; as the cosine (which is &lt;code&gt;cos&lt;/code&gt; in R) and the same goes for &lt;code&gt;Ln&lt;/code&gt;. These are valid Yacas functions, but that is not the case in R. So you&amp;#39;ll have to use &lt;code&gt;gsub&lt;/code&gt; to replace these functions and then copy paste the end result into a function.&lt;/p&gt;
@@ -269,7 +277,9 @@ Func2 &amp;lt;- gsub(&amp;quot;b&amp;quot;, &amp;quot;theta[2]&amp;quot;, Func2)
 
 &lt;p&gt;While it has some flaws, &lt;code&gt;Ryacas&lt;/code&gt; can be quite useful if you need to derive or integrate complicated expressions that you then want to use in R. Using some of the tricks I showed here, you should be able to overcome some of its shortcomings. If installation of &lt;code&gt;rJava&lt;/code&gt; and thus &lt;code&gt;rSympy&lt;/code&gt; becomes easier, I&amp;#39;ll probably also do a short blog-post about it, as it has more features than &lt;code&gt;Ryacas&lt;/code&gt;.&lt;/p&gt;
 
-&lt;/body&gt;</content>
+&lt;/body&gt;
+
+</content>
  </entry>
  
  <entry>
@@ -277,23 +287,26 @@ Func2 &amp;lt;- gsub(&amp;quot;b&amp;quot;, &amp;quot;theta[2]&amp;quot;, Func2)
    <link href="http://b-rodrigues.github.com/2013/11/07/gmm-with-rmd"/>
    <updated>2013-11-07T00:00:00+01:00</updated>
    <id>http://b-rodrigues.github.com/2013/11/07/gmm-with-rmd</id>
-   <content type="html">&lt;head&gt;
-&lt;meta content=&#39;text/html; charset=utf-8&#39; http-equiv=&#39;Content-Type&#39; /&gt;
+   <content type="html">
+&lt;head&gt;
+&lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=utf-8&quot; /&gt;
 
 &lt;!-- MathJax scripts --&gt;
-&lt;script src=&#39;https://c328740.ssl.cf1.rackcdn.com/mathjax/2.0-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML&#39; type=&#39;text/javascript&#39;&gt;&lt;![CDATA[
-]]&gt;&lt;/script&gt;
+&lt;script type=&quot;text/javascript&quot; src=&quot;https://c328740.ssl.cf1.rackcdn.com/mathjax/2.0-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML&quot;&gt;
+&lt;/script&gt;
 
-&lt;/head&gt;&lt;body&gt;
+&lt;/head&gt;
+
+&lt;body&gt;
 &lt;p&gt;In this post, I will explain how you can use the R &lt;code&gt;gmm&lt;/code&gt; package to estimate a non-linear model, and more specifically a logit model. For my research, I have to estimate Euler equations using the Generalized Method of Moments. I contacted Pierre Chaussé, the creator of the &lt;code&gt;gmm&lt;/code&gt; library for help, since I was having some difficulties. I am very grateful for his help (without him, I&amp;#39;d still probably be trying to estimate my model!).&lt;/p&gt;
 
 &lt;h3&gt;Theoretical background, motivation and data set&lt;/h3&gt;
 
-&lt;p&gt;I will not dwell in the theory too much, because you can find everything you need &lt;a href=&#39;https://en.wikipedia.org/wiki/Generalized_method_of_moments&#39;&gt;here&lt;/a&gt;. I think it&#39;s more interesting to try to understand why someone would use the Generalized Method of Moments instead of maximization of the log-likelihood. Well, in some cases, getting the log-likelihood can be quite complicated, as can be the case for arbitrary, non-linear models (for example if you want to estimate the parameters of a very non-linear utility function). Also, moment conditions can sometimes be readily available, so using GMM instead of MLE is trivial. And finally, GMM is... well, a very general method: every popular estimator can be obtained as a special case of the GMM estimator, which makes it quite useful.&lt;/p&gt;
+&lt;p&gt;I will not dwell in the theory too much, because you can find everything you need &lt;a href=&quot;https://en.wikipedia.org/wiki/Generalized_method_of_moments&quot;&gt;here&lt;/a&gt;. I think it&#39;s more interesting to try to understand why someone would use the Generalized Method of Moments instead of maximization of the log-likelihood. Well, in some cases, getting the log-likelihood can be quite complicated, as can be the case for arbitrary, non-linear models (for example if you want to estimate the parameters of a very non-linear utility function). Also, moment conditions can sometimes be readily available, so using GMM instead of MLE is trivial. And finally, GMM is... well, a very general method: every popular estimator can be obtained as a special case of the GMM estimator, which makes it quite useful.&lt;/p&gt;
 
 &lt;p&gt;Another question that I think is important to answer is: why this post? Well, because that&#39;s exactly the kind of post I would have loved to have found 2 months ago, when I was beginning to work with the GMM. Most posts I found presented the &lt;code&gt;gmm&lt;/code&gt; package with very simple and trivial examples, which weren&#39;t very helpful. The example presented below is not very complicated per se, but much more closer to a real-world problem than most stuff that is out there. At least, I hope you will find it useful!&lt;/p&gt;
 
-&lt;p&gt;For illustration purposes, I&amp;#39;ll use data from Marno Verbeek&amp;#39;s &lt;em&gt;A guide to modern Econometrics&lt;/em&gt;, used in the illustration on page 197. You can download the data from the book&amp;#39;s companion page &lt;a href=&#39;http://www.econ.kuleuven.ac.be/gme/&#39;&gt;here&lt;/a&gt; under the section &lt;em&gt;Data sets&lt;/em&gt; or from the &lt;code&gt;Ecdat&lt;/code&gt; package in R. I use the data set from Gretl though, as the dummy variables are numeric (instead of class &lt;code&gt;factor&lt;/code&gt;) which makes life easier when writing your own functions. You can get the data set &lt;a href=&#39;/assets/files/benefits.R&#39;&gt;here&lt;/a&gt;. &lt;/p&gt;
+&lt;p&gt;For illustration purposes, I&amp;#39;ll use data from Marno Verbeek&amp;#39;s &lt;em&gt;A guide to modern Econometrics&lt;/em&gt;, used in the illustration on page 197. You can download the data from the book&amp;#39;s companion page &lt;a href=&quot;http://www.econ.kuleuven.ac.be/gme/&quot;&gt;here&lt;/a&gt; under the section &lt;em&gt;Data sets&lt;/em&gt; or from the &lt;code&gt;Ecdat&lt;/code&gt; package in R. I use the data set from Gretl though, as the dummy variables are numeric (instead of class &lt;code&gt;factor&lt;/code&gt;) which makes life easier when writing your own functions. You can get the data set &lt;a href=&quot;/assets/files/benefits.R&quot;&gt;here&lt;/a&gt;. &lt;/p&gt;
 
 &lt;h3&gt;Implementation in R&lt;/h3&gt;
 
@@ -301,7 +314,7 @@ Func2 &amp;lt;- gsub(&amp;quot;b&amp;quot;, &amp;quot;theta[2]&amp;quot;, Func2)
 
 &lt;p&gt;First load the &lt;code&gt;gmm&lt;/code&gt; package and load the data set:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#39;r&#39;&gt;require(&amp;quot;gmm&amp;quot;)
+&lt;pre&gt;&lt;code class=&quot;r&quot;&gt;require(&amp;quot;gmm&amp;quot;)
 data &amp;lt;- read.table(&amp;quot;path/to/data/benefits.R&amp;quot;, header = T)
 
 attach(data)
@@ -309,7 +322,7 @@ attach(data)
 
 &lt;p&gt;We can then estimate a logit model with the &lt;code&gt;glm()&lt;/code&gt; function:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#39;r&#39;&gt;native &amp;lt;- glm(y ~ age + age2 + dkids + dykids + head + male + married + rr +  rr2, family = binomial(link = &amp;quot;logit&amp;quot;), na.action = na.pass)
+&lt;pre&gt;&lt;code class=&quot;r&quot;&gt;native &amp;lt;- glm(y ~ age + age2 + dkids + dykids + head + male + married + rr +  rr2, family = binomial(link = &amp;quot;logit&amp;quot;), na.action = na.pass)
 
 summary(native)
 &lt;/code&gt;&lt;/pre&gt;
@@ -357,20 +370,20 @@ $$
 
 &lt;p&gt;where \( \Lambda() \) is the logistic function. Let&amp;#39;s translate this condition into code. First, we need the logistic function:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#39;r&#39;&gt;logistic &amp;lt;- function(theta, data) {
+&lt;pre&gt;&lt;code class=&quot;r&quot;&gt;logistic &amp;lt;- function(theta, data) {
     return(1/(1 + exp(-data %*% theta)))
 }
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;and let&amp;#39;s also define a new data frame, to make our life easier with the moment conditions (don&#39;t forget to add a column of ones to the matrix, hence the &lt;code&gt;1&lt;/code&gt; after &lt;code&gt;y&lt;/code&gt;):&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#39;r&#39;&gt;dat &amp;lt;- data.matrix(cbind(y, 1, age, age2, dkids, dykids, head, male, married, 
+&lt;pre&gt;&lt;code class=&quot;r&quot;&gt;dat &amp;lt;- data.matrix(cbind(y, 1, age, age2, dkids, dykids, head, male, married, 
     rr, rr2))
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;and now the moment condition itself:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#39;r&#39;&gt;moments &amp;lt;- function(theta, data) {
+&lt;pre&gt;&lt;code class=&quot;r&quot;&gt;moments &amp;lt;- function(theta, data) {
     y &amp;lt;- as.numeric(data[, 1])
     x &amp;lt;- data.matrix(data[, 2:11])
     m &amp;lt;- x * as.vector((y - logistic(theta, x)))
@@ -382,12 +395,12 @@ $$
 
 &lt;p&gt;To use the &lt;code&gt;gmm()&lt;/code&gt; function to estimate our model, we need to specify some initial values to get the maximization routine going. One neat trick is simply to use the coefficients of a linear regression; I found it to work well in a lot of situations:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#39;r&#39;&gt;init &amp;lt;- (lm(y ~ age + age2 + dkids + dykids + head + male + married + rr + rr2))$coefficients
+&lt;pre&gt;&lt;code class=&quot;r&quot;&gt;init &amp;lt;- (lm(y ~ age + age2 + dkids + dykids + head + male + married + rr + rr2))$coefficients
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;And finally, we have everything to use &lt;code&gt;gmm()&lt;/code&gt;:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#39;r&#39;&gt;my_gmm &amp;lt;- gmm(moments, x = dat, t0 = init, type = &amp;quot;iterative&amp;quot;, crit = 1e-25, wmatrix = &amp;quot;optimal&amp;quot;, method = &amp;quot;Nelder-Mead&amp;quot;, control = list(reltol = 1e-25, maxit = 20000))
+&lt;pre&gt;&lt;code class=&quot;r&quot;&gt;my_gmm &amp;lt;- gmm(moments, x = dat, t0 = init, type = &amp;quot;iterative&amp;quot;, crit = 1e-25, wmatrix = &amp;quot;optimal&amp;quot;, method = &amp;quot;Nelder-Mead&amp;quot;, control = list(reltol = 1e-25, maxit = 20000))
 
 summary(my_gmm)
 &lt;/code&gt;&lt;/pre&gt;
@@ -432,7 +445,9 @@ summary(my_gmm)
 
 &lt;p&gt;Should you notice any error whatsoever, do not hesitate to tell me.&lt;/p&gt;
 
-&lt;/body&gt;</content>
+&lt;/body&gt;
+
+</content>
  </entry>
  
  <entry>
@@ -440,7 +455,9 @@ summary(my_gmm)
    <link href="http://b-rodrigues.github.com/2013/01/29/method-of-simulated-moments-with-r"/>
    <updated>2013-01-29T00:00:00+01:00</updated>
    <id>http://b-rodrigues.github.com/2013/01/29/method-of-simulated-moments-with-r</id>
-   <content type="html">&lt;p&gt;Second update on my research, details &lt;a href=&quot;/pages/Research.html&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;</content>
+   <content type="html">
+&lt;p&gt;Second update on my research, details &lt;a href=&quot;/pages/Research.html&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+</content>
  </entry>
  
  <entry>
@@ -448,7 +465,9 @@ summary(my_gmm)
    <link href="http://b-rodrigues.github.com/2013/01/16/simulated-maximum-likelihood-with-r"/>
    <updated>2013-01-16T00:00:00+01:00</updated>
    <id>http://b-rodrigues.github.com/2013/01/16/simulated-maximum-likelihood-with-r</id>
-   <content type="html">&lt;p&gt;First update on my research, details &lt;a href=&quot;/pages/Research.html&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;</content>
+   <content type="html">
+&lt;p&gt;First update on my research, details &lt;a href=&quot;/pages/Research.html&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+</content>
  </entry>
  
  <entry>
@@ -456,7 +475,9 @@ summary(my_gmm)
    <link href="http://b-rodrigues.github.com/2012/12/11/new-website"/>
    <updated>2012-12-11T00:00:00+01:00</updated>
    <id>http://b-rodrigues.github.com/2012/12/11/new-website</id>
-   <content type="html">&lt;p&gt;This is my new website! It’s built using jekyll-bootstrap and hosted on Github.&lt;/p&gt;</content>
+   <content type="html">
+&lt;p&gt;This is my new website! It’s built using jekyll-bootstrap and hosted on Github. &lt;/p&gt;
+</content>
  </entry>
  
  

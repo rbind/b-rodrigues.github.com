@@ -64,52 +64,8 @@
     
       
       	
-      	<li><a href="/archive.html">Archive</a></li>
-      	
-      
-    
-  
-    
-      
-      	
-      	<li><a href="/pages/gumbel.html">Gumbel Linux</a></li>
-      	
-      
-    
-  
-    
-      
-      	
       	<li><a href="/pages/Research.html">Research</a></li>
       	
-      
-    
-  
-    
-      
-    
-  
-    
-      
-      	
-      	<li><a href="/pages/aboutme.html">About me</a></li>
-      	
-      
-    
-  
-    
-      
-    
-  
-    
-      
-      	
-      	<li><a href="/pages/software.html">Software</a></li>
-      	
-      
-    
-  
-    
       
     
   
@@ -124,8 +80,20 @@
     
       
       	
-      	<li><a href="/pages.html">Pages</a></li>
+      	<li><a href="/pages/aboutme.html">About me</a></li>
       	
+      
+    
+  
+    
+      
+      	
+      	<li><a href="/archive.html">Archive</a></li>
+      	
+      
+    
+  
+    
       
     
   
@@ -139,6 +107,10 @@
   
     
       
+      	
+      	<li><a href="/pages/gumbel.html">Gumbel Linux</a></li>
+      	
+      
     
   
     
@@ -146,6 +118,34 @@
     
   
     
+      
+    
+  
+    
+      
+      	
+      	<li><a href="/pages.html">Pages</a></li>
+      	
+      
+    
+  
+    
+      
+    
+  
+    
+      
+    
+  
+    
+      
+    
+  
+    
+      
+      	
+      	<li><a href="/pages/software.html">Software</a></li>
+      	
       
     
   
@@ -192,16 +192,19 @@
 
 <div class="row">
   <div class="span12">
-    <head>
-<meta content='text/html; charset=utf-8' http-equiv='Content-Type' />
+    
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
 <!-- MathJax scripts -->
-<script src='https://c328740.ssl.cf1.rackcdn.com/mathjax/2.0-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' type='text/javascript'><![CDATA[
-]]></script>
+<script type="text/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/2.0-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
 
-</head><body>
+</head>
 
-<p>This document details section <em>12.5.6. Unobserved Heterogeneity Example</em>. The original source code giving the results from table 12.3 are available from the authors&#39; site <a href='http://cameron.econ.ucdavis.edu/mmabook/mmaprograms.html'>here</a> and written for Stata. This is an attempt to translate the code to R.</p>
+<body>
+
+<p>This document details section <em>12.5.6. Unobserved Heterogeneity Example</em>. The original source code giving the results from table 12.3 are available from the authors&#39; site <a href="http://cameron.econ.ucdavis.edu/mmabook/mmaprograms.html">here</a> and written for Stata. This is an attempt to translate the code to R.</p>
 
 <p>Consult the original source code if you want to read the authors&#39; comments. If you want the R source code without all the commentaries, grab it here. This is not guaranteed to work, nor to be correct. It could set your pet on fire and/or eat your first born. Use at your own risk. I may, or may not, expand this example. Corrections, constructive criticism are welcome.</p>
 
@@ -217,7 +220,7 @@
 
 <p>You can consult the original source code to see how the authors simulated the data. To get the same results, and verify that I didn&#39;t make mistakes I prefer importing their data directly from their website.</p>
 
-<pre><code class='r'>data &lt;- read.table(&quot;http://cameron.econ.ucdavis.edu/mmabook/mma12p2mslmsm.asc&quot;)
+<pre><code class="r">data &lt;- read.table(&quot;http://cameron.econ.ucdavis.edu/mmabook/mma12p2mslmsm.asc&quot;)
 u &lt;- data[, 1]
 e &lt;- data[, 2]
 y &lt;- data[, 3]
@@ -229,7 +232,7 @@ simreps &lt;- 10000
 
 <p>In the code below, we simulate the equation defined above:</p>
 
-<pre><code class='r'>usim &lt;- -log(-log(runif(simreps)))
+<pre><code class="r">usim &lt;- -log(-log(runif(simreps)))
 esim &lt;- rnorm(simreps, 0, 1)
 
 isim &lt;- 0
@@ -257,6 +260,8 @@ approx_sterror &lt;- sd(theta)/sqrt(simreps)
 </code></pre>
 
 </body>
+
+
   </div>
 </div>
 

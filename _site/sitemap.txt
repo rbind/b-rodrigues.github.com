@@ -1,20 +1,20 @@
 
-http://b-rodrigues.github.com/archive.html
-http://b-rodrigues.github.com/pages/gumbel.html
 http://b-rodrigues.github.com/pages/Research.html
-http://b-rodrigues.github.com/pages/testpage.html
-http://b-rodrigues.github.com/pages/aboutme.html
-http://b-rodrigues.github.com/pages/simulated_moments.html
-http://b-rodrigues.github.com/pages/software.html
-http://b-rodrigues.github.com/pages/simulated_max_lik.html
 http://b-rodrigues.github.com/pages/Teachings.html
-http://b-rodrigues.github.com/pages.html
+http://b-rodrigues.github.com/pages/aboutme.html
+http://b-rodrigues.github.com/archive.html
+http://b-rodrigues.github.com/atom.xml
 http://b-rodrigues.github.com/categories.html
+http://b-rodrigues.github.com/pages/gumbel.html
 http://b-rodrigues.github.com/json/index.html
 http://b-rodrigues.github.com/index.html
-http://b-rodrigues.github.com/tags.html
+http://b-rodrigues.github.com/pages.html
+http://b-rodrigues.github.com/pages/simulated_max_lik.html
+http://b-rodrigues.github.com/pages/simulated_moments.html
 http://b-rodrigues.github.com/sitemap.txt
-http://b-rodrigues.github.com/atom.xml
+http://b-rodrigues.github.com/pages/software.html
+http://b-rodrigues.github.com/tags.html
+http://b-rodrigues.github.com/pages/testpage.html
 
 http://b-rodrigues.github.com/2014/04/23/r-s4-rootfinding
 http://b-rodrigues.github.com/2013/12/31/r-cas
