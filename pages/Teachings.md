@@ -10,11 +10,11 @@ group: "navigation"
     
 ###L3 S5
 
-Chers étudiatns, vous trouverez la totalité des TDs sur ce [lien](https://copy.com/VDdsjOxa6C1v). Le dossier sera mis à jour au fur et à mesure que les TDs arriveront.
+Chers étudiants, vous trouverez la totalité des TDs sur ce [lien](https://copy.com/VDdsjOxa6C1v). Le dossier sera mis à jour au fur et à mesure que les TDs arriveront.
 
 ###L2 S3
 
-Chers étudiatns, vous trouverez la totalité des TDs sur ce [lien](https://copy.com/9XpQk7iJbZjD). Tous les TDs sont déjà en ligne.
+Chers étudiants, vous trouverez la totalité des TDs sur ce [lien](https://copy.com/9XpQk7iJbZjD). Tous les TDs sont déjà en ligne.
 
 ##2013-2014:
 
