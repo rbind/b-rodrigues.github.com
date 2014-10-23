@@ -16,6 +16,19 @@ Chers étudiants, vous trouverez la totalité des TDs sur ce [lien](https://copy
 
 Chers étudiants, vous trouverez la totalité des TDs sur ce [lien](https://copy.com/9XpQk7iJbZjD). Tous les TDs sont déjà en ligne.
 
+
+###M1 et M2 APE
+
+Ateliers Git et LaTeX:
+    
+Vous trouverez ici des informations sur les ateliers git et LaTeX. Les ateliers auront lieu le mardi 5 novembre et le jeudi 7 novembre de 17h00 jusqu'à 18h30. 
+    
+Présentation des logiciels:
+ 
+LaTeX est un langage informatique qui permet d'éditer des documents scientifiques. Il permet de créer simplement des documents longs aux standard de l'édition. LaTeX se charge de la mise en page de votre document, protège vos écrits en éditant des documents au format PDF. Par ailleurs, contrairement à Word ou Open Office, LaTeX offre la possibilité de gérer simplement la création d'une bibliographie lourde ainsi que l'écriture de formules mathématiques complexes et nombreuses. Il offre également la possibilité de créer des diaporamas sobres et professionnels, évitant ainsi de tomber dans les pièges de PowerPoint. Git est un logiciel de contrôle de versions utilisé principalement dans le développement logiciel. Il permet de garder un historique des modifications apportées à un fichier, et permet de revenir à n'importe quel version de ce fichier. Il permet aussi de faciliter grandement le travail en équipe. Couplé avec LaTeX, ces deux outils vous permettront de rédiger un mémoire ou un rapport de manière beaucoup plus efficace. 
+
+Pour l'atelier du 10 novembre, il faudrait déjà avoir installé les logiciels sur vos ordinateurs et faire les premiers exercices. Les instructions sont téléchargeables dès maintenant; les consignes [ici](https://copy.com/TyMMvLGAeFxy) et les documents nécessaires [ici](https://copy.com/kXluDzIHoc7v). Si vous avez des questions sur LaTeX, contactez <a href="mailto:t.coudert@unistra.fr">Thomas</a> et sur git, contactez <a href="mailto:brodrigues@unistra.fr">moi</a>.  
+
 ##2013-2014:
 
 ###L2 S4
