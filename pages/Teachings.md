@@ -21,7 +21,7 @@ Chers étudiants, vous trouverez la totalité des TDs sur ce [lien](https://copy
 
 Ateliers Git et LaTeX:
     
-Vous trouverez ici des informations sur les ateliers git et LaTeX. Les ateliers auront lieu le mardi 5 novembre et le jeudi 7 novembre de 17h00 jusqu'à 18h30. 
+Vous trouverez ici des informations sur les ateliers git et LaTeX. Les ateliers auront lieu le jeudi 20 novembre. 
     
 Présentation des logiciels:
  
