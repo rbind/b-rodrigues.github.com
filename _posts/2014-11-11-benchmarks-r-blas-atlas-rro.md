@@ -1,0 +1,86 @@
+---
+layout: post
+title: "R, R with Atlas, R with OpenBLAS and Revolution R Open: which is fastest?"
+description: ""
+category: 
+tags: [R, benchmarks]
+---
+{% include JB/setup %}
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+<!-- MathJax scripts -->
+<script type="text/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/2.0-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+</head>
+
+<body>
+
+<p>In this short post, I benchmark different &ldquo;versions&rdquo; of R. I compare the execution speeds of R, R linked against OpenBLAS, R linked against ATLAS and Revolution R Open. Revolution R Open is a new open source version of R made by Revolution Analytics. It is linked against MKL and should offer huge speed improvements over vanilla R. Also, it uses every cores of your computer by default, without any change whatsoever to your code.</p>
+
+<p>TL;DR: Revolution R Open is the fastest of all the benchmarked versions (with R linked against OpenBLAS and ATLAS just behind), and easier to setup. </p>
+
+<h2>Setup</h2>
+
+<p>I benchmarked these different versions of R using <code>R-benchmark-25.R</code> that you can download <a href="http://r.research.att.com/benchmarks/R-benchmark-25.R">here</a>. This benchmark file was created by Simon Urbanek.</p>
+
+<p>I ran the benchmarks on my OpenSUSE 13.2 computer with a Pentium Dual-Core CPU E6500@2.93GHz with 4GB of Ram. It&#39;s outdated, but it&#39;s still quite fast for most of my numerical computation needs. I installed &ldquo;vanilla&rdquo; R from the official OpenSUSE repositories which is currently at version 3.1.2.</p>
+
+<p>Then, I downloaded OpenBLAS and ATLAS also from the official OpenSUSE repositories and made R use these libraries instead of its own implementation of BLAS. The way I did that is a bit hacky, but works: first, go to <code>/usr/lib64/R/lib</code> and backup <code>libRblas.so</code> (rename it to <code>libRblas.soBackup</code> for instance). Then link <code>/usr/lib64/libopenblas.so.0</code> to <code>/usr/lib64/R/lib/libRblas</code>, and that&#39;s it, R will use OpenBLAS. For ATLAS, you can do it in the same fashion, but you&#39;ll find the library in <code>/usr/lib64/atlas/</code>. These paths should be the same for any GNU/Linux distribution. For other operating systems, I&#39;m sure you can find where these libraries are with Google.</p>
+
+<p>The last version I benchmarked was Revolution R Open. This is a new version of R released by Revolution Analytics. Revolution Analytics had their own version of R, called Revolution R, for quite some time now. They decided to release a completely free as in freedom and free as in free beer version of this product which they now renamed Revolution R Open. You can download Revolution R Open <a href="http://mran.revolutionanalytics.com/download/#review">here</a>. You can have both &ldquo;vanilla&rdquo; R and Revolution R Open installed on your system. </p>
+
+<h2>Results</h2>
+
+<p>I ran the <code>R-benchmark-25.R</code> 6 times for every version but will only discuss the 4 best runs.</p>
+
+
+<style type="text/css">
+.tg  {border-collapse:collapse;border-spacing:0;}
+.tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 11px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;}
+.tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 11px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;}
+.tg .tg-0ord{text-align:right}
+</style>
+<table class="tg">
+<tr>
+<th class="tg-031e">R version</th>
+<th class="tg-0ord">Fastest run</th>
+<th class="tg-0ord">Slowest run</th>
+<th class="tg-0ord">Mean Run</th>
+</tr>
+<tr>
+<td class="tg-031e">Vanilla R</td>
+<td class="tg-0ord">63.65</td>
+<td class="tg-0ord">66.21</td>
+<td class="tg-0ord">64.61</td>
+</tr>
+<tr>
+<td class="tg-031e">OpenBLAS R</td>
+<td class="tg-0ord">15.63</td>
+<td class="tg-0ord">18.96</td>
+<td class="tg-0ord">16.94</td>
+</tr>
+<tr>
+<td class="tg-031e">ATLAS R</td>
+<td class="tg-0ord">16.92</td>
+<td class="tg-0ord">21.57</td>
+<td class="tg-0ord">18.24</td>
+</tr>
+<tr>
+<td class="tg-031e">RRO</td>
+<td class="tg-0ord">14.96</td>
+<td class="tg-0ord">16.08</td>
+<td class="tg-0ord">15.49</td>
+</tr>
+</table>
+
+
+<p>As you can read from the table above, Revolution R Open was the fastest of the four versions, but not significantly faster than BLAS or ATLAS R. However, RRO uses all the available cores by default, so if your code relies on a lot matrix algebra, RRO might be actually a lot more faster than OpenBLAS and ATLAS R. Another advantage of RRO is that it is very easy to install, and also works with Rstudio and is compatible with every R package to existence. "Vanilla" R is much slower than the other three versions, more than 3 times as slow! </p>
+
+<h2>Conclusion</h2>
+
+<p>With other benchmarks, you could get other results, but I don't think that "vanilla" R could beat any of the other three versions. Whatever your choice, I recommend not using plain, &ldquo;vanilla&rdquo; R. The other options are much faster than standard R, and don&#39;t require much work to set up. I&#39;d personally recommend Revolution R Open, as it is free software and compatible with CRAN packages and Rstudio. </p>
+
+</body>

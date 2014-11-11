@@ -4,13 +4,99 @@
  <title>Econometrics and Free Software</title>
  <link href="http://b-rodrigues.github.com/atom.xml" rel="self"/>
  <link href="http://b-rodrigues.github.com"/>
- <updated>2014-10-23T10:12:20+02:00</updated>
+ <updated>2014-11-11T17:51:39+01:00</updated>
  <id>http://b-rodrigues.github.com</id>
  <author>
    <name>Bruno Rodrigues</name>
    <email>brodrigues@unistra.fr</email>
  </author>
 
+ 
+ <entry>
+   <title>R, R with Atlas, R with OpenBLAS and Revolution R Open: which is fastest?</title>
+   <link href="http://b-rodrigues.github.com/2014/11/11/benchmarks-r-blas-atlas-rro"/>
+   <updated>2014-11-11T00:00:00+01:00</updated>
+   <id>http://b-rodrigues.github.com/2014/11/11/benchmarks-r-blas-atlas-rro</id>
+   <content type="html">
+&lt;head&gt;
+&lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=utf-8&quot; /&gt;
+
+&lt;!-- MathJax scripts --&gt;
+&lt;script type=&quot;text/javascript&quot; src=&quot;https://c328740.ssl.cf1.rackcdn.com/mathjax/2.0-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML&quot;&gt;
+&lt;/script&gt;
+
+&lt;/head&gt;
+
+&lt;body&gt;
+
+&lt;p&gt;In this short post, I benchmark different &amp;ldquo;versions&amp;rdquo; of R. I compare the execution speeds of R, R linked against OpenBLAS, R linked against ATLAS and Revolution R Open. Revolution R Open is a new open source version of R made by Revolution Analytics. It is linked against MKL and should offer huge speed improvements over vanilla R. Also, it uses every cores of your computer by default, without any change whatsoever to your code.&lt;/p&gt;
+
+&lt;p&gt;TL;DR: Revolution R Open is the fastest of all the benchmarked versions (with R linked against OpenBLAS and ATLAS just behind), and easier to setup. &lt;/p&gt;
+
+&lt;h2&gt;Setup&lt;/h2&gt;
+
+&lt;p&gt;I benchmarked these different versions of R using &lt;code&gt;R-benchmark-25.R&lt;/code&gt; that you can download &lt;a href=&quot;http://r.research.att.com/benchmarks/R-benchmark-25.R&quot;&gt;here&lt;/a&gt;. This benchmark file was created by Simon Urbanek.&lt;/p&gt;
+
+&lt;p&gt;I ran the benchmarks on my OpenSUSE 13.2 computer with a Pentium Dual-Core CPU E6500@2.93GHz with 4GB of Ram. It&amp;#39;s outdated, but it&amp;#39;s still quite fast for most of my numerical computation needs. I installed &amp;ldquo;vanilla&amp;rdquo; R from the official OpenSUSE repositories which is currently at version 3.1.2.&lt;/p&gt;
+
+&lt;p&gt;Then, I downloaded OpenBLAS and ATLAS also from the official OpenSUSE repositories and made R use these libraries instead of its own implementation of BLAS. The way I did that is a bit hacky, but works: first, go to &lt;code&gt;/usr/lib64/R/lib&lt;/code&gt; and backup &lt;code&gt;libRblas.so&lt;/code&gt; (rename it to &lt;code&gt;libRblas.soBackup&lt;/code&gt; for instance). Then link &lt;code&gt;/usr/lib64/libopenblas.so.0&lt;/code&gt; to &lt;code&gt;/usr/lib64/R/lib/libRblas&lt;/code&gt;, and that&amp;#39;s it, R will use OpenBLAS. For ATLAS, you can do it in the same fashion, but you&amp;#39;ll find the library in &lt;code&gt;/usr/lib64/atlas/&lt;/code&gt;. These paths should be the same for any GNU/Linux distribution. For other operating systems, I&amp;#39;m sure you can find where these libraries are with Google.&lt;/p&gt;
+
+&lt;p&gt;The last version I benchmarked was Revolution R Open. This is a new version of R released by Revolution Analytics. Revolution Analytics had their own version of R, called Revolution R, for quite some time now. They decided to release a completely free as in freedom and free as in free beer version of this product which they now renamed Revolution R Open. You can download Revolution R Open &lt;a href=&quot;http://mran.revolutionanalytics.com/download/#review&quot;&gt;here&lt;/a&gt;. You can have both &amp;ldquo;vanilla&amp;rdquo; R and Revolution R Open installed on your system. &lt;/p&gt;
+
+&lt;h2&gt;Results&lt;/h2&gt;
+
+&lt;p&gt;I ran the &lt;code&gt;R-benchmark-25.R&lt;/code&gt; 6 times for every version but will only discuss the 4 best runs.&lt;/p&gt;
+
+
+&lt;style type=&quot;text/css&quot;&gt;
+.tg  {border-collapse:collapse;border-spacing:0;}
+.tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 11px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;}
+.tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 11px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;}
+.tg .tg-0ord{text-align:right}
+&lt;/style&gt;
+&lt;table class=&quot;tg&quot;&gt;
+&lt;tr&gt;
+&lt;th class=&quot;tg-031e&quot;&gt;R version&lt;/th&gt;
+&lt;th class=&quot;tg-0ord&quot;&gt;Fastest run&lt;/th&gt;
+&lt;th class=&quot;tg-0ord&quot;&gt;Slowest run&lt;/th&gt;
+&lt;th class=&quot;tg-0ord&quot;&gt;Mean Run&lt;/th&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td class=&quot;tg-031e&quot;&gt;Vanilla R&lt;/td&gt;
+&lt;td class=&quot;tg-0ord&quot;&gt;63.65&lt;/td&gt;
+&lt;td class=&quot;tg-0ord&quot;&gt;66.21&lt;/td&gt;
+&lt;td class=&quot;tg-0ord&quot;&gt;64.61&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td class=&quot;tg-031e&quot;&gt;OpenBLAS R&lt;/td&gt;
+&lt;td class=&quot;tg-0ord&quot;&gt;15.63&lt;/td&gt;
+&lt;td class=&quot;tg-0ord&quot;&gt;18.96&lt;/td&gt;
+&lt;td class=&quot;tg-0ord&quot;&gt;16.94&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td class=&quot;tg-031e&quot;&gt;ATLAS R&lt;/td&gt;
+&lt;td class=&quot;tg-0ord&quot;&gt;16.92&lt;/td&gt;
+&lt;td class=&quot;tg-0ord&quot;&gt;21.57&lt;/td&gt;
+&lt;td class=&quot;tg-0ord&quot;&gt;18.24&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td class=&quot;tg-031e&quot;&gt;RRO&lt;/td&gt;
+&lt;td class=&quot;tg-0ord&quot;&gt;14.96&lt;/td&gt;
+&lt;td class=&quot;tg-0ord&quot;&gt;16.08&lt;/td&gt;
+&lt;td class=&quot;tg-0ord&quot;&gt;15.49&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/table&gt;
+
+
+&lt;p&gt;As you can read from the table above, Revolution R Open was the fastest of the four versions, but not significantly faster than BLAS or ATLAS R. However, RRO uses all the available cores by default, so if your code relies on a lot matrix algebra, RRO might be actually a lot more faster than OpenBLAS and ATLAS R. Another advantage of RRO is that it is very easy to install, and also works with Rstudio and is compatible with every R package to existence. &quot;Vanilla&quot; R is much slower than the other three versions, more than 3 times as slow! &lt;/p&gt;
+
+&lt;h2&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;With other benchmarks, you could get other results, but I don&#39;t think that &quot;vanilla&quot; R could beat any of the other three versions. Whatever your choice, I recommend not using plain, &amp;ldquo;vanilla&amp;rdquo; R. The other options are much faster than standard R, and don&amp;#39;t require much work to set up. I&amp;#39;d personally recommend Revolution R Open, as it is free software and compatible with CRAN packages and Rstudio. &lt;/p&gt;
+
+&lt;/body&gt;
+</content>
+ </entry>
  
  <entry>
    <title>Object Oriented Programming with R: An example with a Cournot duopoly</title>
