@@ -10,7 +10,7 @@ tagline: PhD Candidate at BÉTA, University of Strasbourg
 </div>
 
 Welcome to my page.
-If you are one of my students, you're probably interested in the [Teachings](/pages/Teachings.html) and [Software](/pages/software.html) pages. If you're a fellow PhD candidate, maybe my [Research](/pages/Research.html) will be of interest to you. If you want to [email me](mailto:brodrigues@unistra.fr), you can click on the red envelope at the top-right corner of any page. You can also follow me on [identi.ca](https://www.identi.ca/brodrigues). I sometimes write blog posts about R, and hope to contribute in this way to [R-bloggers](http://www.r-bloggers.com/).
+If you are one of my students, you're probably interested in the [Teachings](/pages/Teachings.html) and [Software](/pages/software.html) pages. If you're a fellow PhD candidate, maybe my [Research](/pages/Research.html) will be of interest to you. If you want to [email me](mailto:brodrigues@unistra.fr), you can click on the red envelope at the top-right corner of any page. You can also follow me on [twitter](https://twitter.com/brodriguesco). I sometimes write blog posts about R, and hope to contribute in this way to [R-bloggers](http://www.r-bloggers.com/).
 
   
 ## Blog
