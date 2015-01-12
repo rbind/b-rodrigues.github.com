@@ -4,13 +4,27 @@
  <title>Econometrics and Free Software</title>
  <link href="http://b-rodrigues.github.com/atom.xml" rel="self"/>
  <link href="http://b-rodrigues.github.com"/>
- <updated>2014-11-11T19:55:40+01:00</updated>
+ <updated>2015-01-12T15:36:14+01:00</updated>
  <id>http://b-rodrigues.github.com</id>
  <author>
    <name>Bruno Rodrigues</name>
    <email>brodrigues@unistra.fr</email>
  </author>
 
+ 
+ <entry>
+   <title>Introduction to programming econometrics with R</title>
+   <link href="http://b-rodrigues.github.com/2015/01/12/introduction-to-programming-econometrics-with-r"/>
+   <updated>2015-01-12T00:00:00+01:00</updated>
+   <id>http://b-rodrigues.github.com/2015/01/12/introduction-to-programming-econometrics-with-r</id>
+   <content type="html">
+&lt;p&gt;This semester, I’ll be teaching an introduction to applied econometrics with R, so I’ve decided to write a very small book called “Introduction to programming Econometrics with R”. This is primarily intended for bachelor students and the focus is not much on econometric theory, but more on how to implement econometric theory in computer code, using the R programming language. It is still very rough around the edges, and it’s missing the last chapter about reproducible research, and the references, but I think it’s time to put it out there; someone else than my students may find it useful. The book’s probably full of typos and mistakes, so don’t hesitate to drop me an e-mail if you find something fishy: brodrigues@unistra.fr&lt;/p&gt;
+
+&lt;p&gt;Also there might be some sections at the beginning that only concern my students. Just ignore that.&lt;/p&gt;
+
+&lt;p&gt;Get it here: &lt;a href=&quot;https://www.dropbox.com/s/k0tfyqlf3uxz6m2/Introduction%20to%20programming%20Econometrics%20with%20R%20-%20Draft.pdf?dl=0&quot;&gt;download&lt;/a&gt;&lt;/p&gt;
+</content>
+ </entry>
  
  <entry>
    <title>R, R with Atlas, R with OpenBLAS and Revolution R Open: which is fastest?</title>

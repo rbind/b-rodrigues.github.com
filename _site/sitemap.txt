@@ -16,6 +16,7 @@ http://b-rodrigues.github.com/pages/software.html
 http://b-rodrigues.github.com/tags.html
 http://b-rodrigues.github.com/pages/testpage.html
 
+http://b-rodrigues.github.com/2015/01/12/introduction-to-programming-econometrics-with-r
 http://b-rodrigues.github.com/2014/11/11/benchmarks-r-blas-atlas-rro
 http://b-rodrigues.github.com/2014/04/23/r-s4-rootfinding
 http://b-rodrigues.github.com/2013/12/31/r-cas
