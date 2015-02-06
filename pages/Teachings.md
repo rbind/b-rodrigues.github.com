@@ -7,7 +7,11 @@ group: "navigation"
 {% include JB/setup %}
 
 ##2014-2015:
-    
+
+###L3 S6
+
+Chers étudiants, voici le lien pour télécharger les notes le cours. Ce lien contiendra toujours la dernière version en data du document.  [Lien](https://www.dropbox.com/s/k0tfyqlf3uxz6m2/Introduction%20to%20programming%20Econometrics%20with%20R%20-%20Draft.pdf?dl=0)
+
 ###L3 S5
 
 Chers étudiants, vous trouverez la totalité des TDs sur ce [lien](https://copy.com/VDdsjOxa6C1v). Le dossier sera mis à jour au fur et à mesure que les TDs arriveront.
