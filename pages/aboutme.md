@@ -14,4 +14,4 @@ You can find my CV [here](/assets/files/cv_english.pdf).
 
 My thesis topic is about dynamic discrete choice models.
 
-My ORCiD: [link.](orcid.org/0000-0001-6462-0565)
+My ORCiD: [link.](http://orcid.org/0000-0001-6462-0565)
