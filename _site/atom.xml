@@ -4,13 +4,41 @@
  <title>Econometrics and Free Software</title>
  <link href="http://b-rodrigues.github.com/atom.xml" rel="self"/>
  <link href="http://b-rodrigues.github.com"/>
- <updated>2015-02-06T10:56:40+01:00</updated>
+ <updated>2015-02-22T17:07:39+01:00</updated>
  <id>http://b-rodrigues.github.com</id>
  <author>
    <name>Bruno Rodrigues</name>
    <email>brodrigues@unistra.fr</email>
  </author>
 
+ 
+ <entry>
+   <title>Export R output to a file</title>
+   <link href="http://b-rodrigues.github.com/2015/02/22/export-r-output-to-file"/>
+   <updated>2015-02-22T00:00:00+01:00</updated>
+   <id>http://b-rodrigues.github.com/2015/02/22/export-r-output-to-file</id>
+   <content type="html">
+&lt;head&gt;
+&lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=utf-8&quot; /&gt;
+
+&lt;!-- MathJax scripts --&gt;
+&lt;script type=&quot;text/javascript&quot; src=&quot;https://c328740.ssl.cf1.rackcdn.com/mathjax/2.0-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML&quot;&gt;
+&lt;/script&gt;
+
+&lt;/head&gt;
+
+&lt;body&gt;
+
+&lt;p&gt;Sometimes it is useful to export the output of a long-running R command. For example, you might want to run a time consuming regression just before leaving work on Friday night, but would like to get the output saved inside your Dropbox folder to take a look at the results before going back to work on Monday.&lt;/p&gt;
+&lt;p&gt;This can be achieved very easily using &lt;code&gt;capture.output()&lt;/code&gt; and &lt;code&gt;cat()&lt;/code&gt; like so:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;out &amp;lt;- capture.output(summary(my_very_time_consuming_regression))
+
+cat(&amp;quot;My title&amp;quot;, out, file=&amp;quot;summary_of_my_very_time_consuming_regression.txt&amp;quot;, sep=&amp;quot;\n&amp;quot;, append=TRUE)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;code&gt;my_very_time_consuming_regression&lt;/code&gt; is an object of class &lt;code&gt;lm&lt;/code&gt; for example. I save the output of &lt;code&gt;summary(my_very_time_consuming_regression)&lt;/code&gt; as text using &lt;code&gt;capture.output&lt;/code&gt; and save it in a variable called &lt;code&gt;out&lt;/code&gt;. Finally, I save &lt;code&gt;out&lt;/code&gt; to a file called &lt;code&gt;summary_of_my_very_time_consuming_regression.txt&lt;/code&gt; with the first sentence being &lt;code&gt;My title&lt;/code&gt; (you can put anything there). The file &lt;code&gt;summary_of_my_very_time_consuming_regression.txt&lt;/code&gt; doesn’t have to already exist in your working directory. The option &lt;code&gt;sep=&amp;quot;\n&amp;quot;&lt;/code&gt; is important or else the whole output will be written in a single line. Finally, &lt;code&gt;append=TRUE&lt;/code&gt; makes sure your file won’t be overwritten; additional output will be appended to the file, which can be nice if you want to compare different versions of your model.&lt;/p&gt;
+
+&lt;/body&gt;
+</content>
+ </entry>
  
  <entry>
    <title>Introduction to programming econometrics with R</title>
