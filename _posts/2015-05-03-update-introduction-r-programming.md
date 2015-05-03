@@ -28,4 +28,6 @@ and then, with Rstudio, open the file *appliedEconometrics.Rnw* and knit it. Ano
 
 inside a terminal (should work on GNU+Linux and OSX systems) and it should compile the document. You may get some message about "additional information" for some R packages. When these come up, just press Q on your keyboard to continue the compilation process.
 
+Get the notes here: [download](https://www.dropbox.com/s/k0tfyqlf3uxz6m2/Introduction%20to%20programming%20Econometrics%20with%20R%20-%20Draft.pdf?dl=0)
+
 As always, if you have questions or suggestions, do not hesitate to send me an email: [brodrigues@unistra.fr](mailto:brodrigues@unistra.fr) and I sure hope you'll find these notes useful!
