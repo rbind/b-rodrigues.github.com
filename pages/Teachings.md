@@ -16,7 +16,7 @@ Chers étudiants, voici le lien pour télécharger les documents du cours: [Lien
 
 ###L3 S6
 
-Chers étudiants, voici le lien pour télécharger les notes le cours. Ce lien contiendra toujours la dernière version en data du document.  [Lien](https://www.dropbox.com/s/k0tfyqlf3uxz6m2/Introduction%20to%20programming%20Econometrics%20with%20R%20-%20Draft.pdf?dl=0)
+Chers étudiants, voici le lien pour télécharger les notes le cours. Ce lien contiendra toujours la dernière version en date du document.  [Lien](https://www.dropbox.com/s/k0tfyqlf3uxz6m2/Introduction%20to%20programming%20Econometrics%20with%20R%20-%20Draft.pdf?dl=0)
 
 ###L3 S5
 
