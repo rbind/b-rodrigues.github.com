@@ -8,6 +8,10 @@ group: "navigation"
 
 ##2015-2016:
 
+###L2 S3 (Proba-Stats)
+
+Chers étudiants, voici le lien pour télécharger les TDs. Ce lien contiendra tous les TDs au fur et à mesure qu'ils seront publiés: [Lien](https://copy.com/wWdfYPtpy9axNA22)
+
 ###L2 S3 (C2i)
 
 Chers étudiants, voici le lien pour télécharger les documents du cours: [Lien](https://www.dropbox.com/sh/qgpp1l7n68jia5j/AADglHEjScDSt4Q9A_6X2H5La?dl=0)
