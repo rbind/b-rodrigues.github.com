@@ -4,13 +4,92 @@
  <title>Econometrics and Free Software</title>
  <link href="http://b-rodrigues.github.com/atom.xml" rel="self"/>
  <link href="http://b-rodrigues.github.com"/>
- <updated>2015-10-07T16:27:24+02:00</updated>
+ <updated>2015-11-11T19:46:14+01:00</updated>
  <id>http://b-rodrigues.github.com</id>
  <author>
    <name>Bruno Rodrigues</name>
    <email>brodrigues@unistra.fr</email>
  </author>
 
+ 
+ <entry>
+   <title>Bootstrapping standard errors for difference-in-differences estimation with R</title>
+   <link href="http://b-rodrigues.github.com/2015/11/11/bootstrapping-did-with-r"/>
+   <updated>2015-11-11T00:00:00+01:00</updated>
+   <id>http://b-rodrigues.github.com/2015/11/11/bootstrapping-did-with-r</id>
+   <content type="html">
+&lt;head&gt;
+&lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=utf-8&quot; /&gt;
+
+&lt;!-- MathJax scripts --&gt;
+&lt;script type=&quot;text/javascript&quot; src=&quot;https://c328740.ssl.cf1.rackcdn.com/mathjax/2.0-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML&quot;&gt;
+&lt;/script&gt;
+
+&lt;/head&gt;
+
+&lt;body&gt;
+&lt;p&gt;I’m currently working on a paper (with my colleague Vincent Vergnat who is also a Phd candidate at BETA) where I want to estimate the causal impact of the birth of a child on hourly and daily wages as well as yearly worked hours. For this we are using non-parametric difference-in-differences (henceforth DiD) and thus have to bootstrap the standard errors. In this post, I show how this is possible using the function &lt;code&gt;boot&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;For this we are going to replicate the example from Wooldridge’s &lt;em&gt;Econometric Analysis of Cross Section and Panel Data&lt;/em&gt; and more specifically the example on page 415. You can download the data for R &lt;a href=&quot;/assets/files/kielmc.RData&quot;&gt;here&lt;/a&gt;. The question we are going to try to answer is &lt;em&gt;how much does the price of housing decrease due to the presence of an incinerator in the neighborhood?&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;First put the data in a folder and set the correct working directory and load the &lt;code&gt;boot&lt;/code&gt; library.&lt;/p&gt;
+&lt;pre class=&quot;r&quot;&gt;&lt;code&gt;library(boot)
+setwd(&amp;quot;/home/cbrunos/Dropbox/Documents/Work/Thesis/diff in diff fertility education/kiel data/&amp;quot;)
+load(&amp;quot;kielmc.RData&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now you need to write a function that takes the data as an argument, as well as an indices argument. This argument is used by the &lt;code&gt;boot&lt;/code&gt; function to select samples. This function should return the statistic you’re interested in, in our case, the DiD estimate.&lt;/p&gt;
+&lt;pre class=&quot;r&quot;&gt;&lt;code&gt;run_DiD &amp;lt;- function(my_data, indices){
+    d &amp;lt;- my_data[indices,]
+    return(
+        mean(d$rprice[d$year==1981 &amp;amp; d$nearinc==1]) - 
+        mean(d$rprice[d$year==1981 &amp;amp; d$nearinc==0]) - 
+        (mean(d$rprice[d$year==1978 &amp;amp; d$nearinc==1]) - 
+        mean(d$rprice[d$year==1978 &amp;amp; d$nearinc==0]))
+    )
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;You’re almost done! To bootstrap your DiD estimate you just need to use the boot function. If you have cpu with multiple cores (which you should, single core machines are quite outdated by now) you can even parallelize the bootstrapping.&lt;/p&gt;
+&lt;pre class=&quot;r&quot;&gt;&lt;code&gt;boot_est &amp;lt;- boot(data, run_DiD, R=1000, parallel=&amp;quot;multicore&amp;quot;, ncpus = 2)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now you should just take a look at your estimates:&lt;/p&gt;
+&lt;pre class=&quot;r&quot;&gt;&lt;code&gt;boot_est&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## 
+## ORDINARY NONPARAMETRIC BOOTSTRAP
+## 
+## 
+## Call:
+## boot(data = data, statistic = run_DiD, R = 1000, parallel = &amp;quot;multicore&amp;quot;, 
+##     ncpus = 2)
+## 
+## 
+## Bootstrap Statistics :
+##     original    bias    std. error
+## t1* -11863.9 -553.3393    8580.435&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;These results are very similar to the ones in the book, only the standard error is higher.&lt;/p&gt;
+
+&lt;p&gt;You can get confidence intervals like this:&lt;/p&gt;
+&lt;pre class=&quot;r&quot;&gt;&lt;code&gt;quantile(boot_est$t, c(0.025, 0.975))&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##       2.5%      97.5% 
+## -30186.397   3456.133&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;or a t-statistic:&lt;/p&gt;
+&lt;pre class=&quot;r&quot;&gt;&lt;code&gt;boot_est$t0/sd(boot_est$t)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] -1.382669&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Or the density of the replications:&lt;/p&gt;
+&lt;pre class=&quot;r&quot;&gt;&lt;code&gt;plot(density(boot_est$t))&lt;/code&gt;&lt;/pre&gt;
+
+&lt;div style=&quot;text-align:center;&quot;&gt;
+    &lt;img src=&quot;/assets/images/density_did.png&quot; width=&quot;670&quot; height=&quot;450&quot; /&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Just as in the book, we find that the DiD estimate is not significant to the 5% level.&lt;/p&gt;
+&lt;p&gt;How many bootstrap estimates should you run? To answer this question, it might be interesting to take a look at the following graph:&lt;/p&gt;
+&lt;pre class=&quot;r&quot;&gt;&lt;code&gt;plot(boot_est$t, type=&amp;quot;l&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+
+&lt;div style=&quot;text-align:center;&quot;&gt;
+    &lt;img src=&quot;/assets/images/sims_did.png&quot; width=&quot;670&quot; height=&quot;450&quot; /&gt;
+&lt;/div&gt;
+
+&lt;p&gt;What you see here are the different values our bootstrapped statistic takes at the different replication steps. 1000 replications might be overkill, as there doesn’t seem to be any convergence going on.&lt;/p&gt;
+
+
+&lt;/body&gt;
+</content>
+ </entry>
  
  <entry>
    <title>Update to Introduction to programming econometrics with R</title>
