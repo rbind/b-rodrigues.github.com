@@ -208,7 +208,7 @@
 <p>For this we are going to replicate the example from Wooldridge’s <em>Econometric Analysis of Cross Section and Panel Data</em> and more specifically the example on page 415. You can download the data for R <a href="/assets/files/kielmc.RData">here</a>. The question we are going to try to answer is <em>how much does the price of housing decrease due to the presence of an incinerator in the neighborhood?</em></p>
 <p>First put the data in a folder and set the correct working directory and load the <code>boot</code> library.</p>
 <pre class="r"><code>library(boot)
-setwd(&quot;/home/cbrunos/Dropbox/Documents/Work/Thesis/diff in diff fertility education/kiel data/&quot;)
+setwd(&quot;/home/path/to/data/kiel data/&quot;)
 load(&quot;kielmc.RData&quot;)</code></pre>
 <p>Now you need to write a function that takes the data as an argument, as well as an indices argument. This argument is used by the <code>boot</code> function to select samples. This function should return the statistic you’re interested in, in our case, the DiD estimate.</p>
 <pre class="r"><code>run_DiD &lt;- function(my_data, indices){

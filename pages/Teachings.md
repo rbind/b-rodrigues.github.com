@@ -8,6 +8,11 @@ group: "navigation"
 
 ##2015-2016:
 
+###L3 S5 (Économie industrielle)
+
+Chers étudiants, voici le lien pour télécharger les TDs. [Lien](https://copy.com/js1st2p3X8f1ZYwt)
+
+
 ###L2 S3 (Proba-Stats)
 
 Chers étudiants, voici le lien pour télécharger les TDs. Ce lien contiendra tous les TDs au fur et à mesure qu'ils seront publiés: [Lien](https://copy.com/wWdfYPtpy9axNA22)
