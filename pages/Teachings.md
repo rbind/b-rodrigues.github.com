@@ -8,6 +8,12 @@ group: "navigation"
 
 ##2015-2016:
 
+###M1 AGR
+
+Chers étudiants, vous trouverez les slides et autres documents du cours sur ce [Lien](https://www.dropbox.com/sh/dxtuj7krzsegv3i/AAAXu8TH0ttA4EUcr1vIh36Ma?dl=0).
+
+Vous pourrez trouver les données utilisées dans ce cours à l'adresse suivante: [Lien 1](https://onlinecourses.science.psu.edu/stat504/node/165), [Lien 2](https://onlinecourses.science.psu.edu/stat857/node/215) et [Lien 3](http://instruction.bus.wisc.edu/jfrees/jfreesbooks/Regression%20Modeling/BookWebDec2010/data.html).
+
 ###L3 S5 (Économie industrielle)
 
 Chers étudiants, voici le lien pour télécharger les TDs. [Lien](https://copy.com/js1st2p3X8f1ZYwt)
