@@ -1,20 +1,20 @@
 
-http://b-rodrigues.github.com/pages/Research.html
-http://b-rodrigues.github.com/pages/Teachings.html
-http://b-rodrigues.github.com/pages/aboutme.html
-http://b-rodrigues.github.com/archive.html
+http://b-rodrigues.github.com/pages/Research
+http://b-rodrigues.github.com/pages/Teachings
+http://b-rodrigues.github.com/pages/aboutme
+http://b-rodrigues.github.com/archive
 http://b-rodrigues.github.com/atom.xml
-http://b-rodrigues.github.com/categories.html
-http://b-rodrigues.github.com/pages/gumbel.html
-http://b-rodrigues.github.com/json/index.html
-http://b-rodrigues.github.com/index.html
-http://b-rodrigues.github.com/pages.html
-http://b-rodrigues.github.com/pages/simulated_max_lik.html
-http://b-rodrigues.github.com/pages/simulated_moments.html
+http://b-rodrigues.github.com/categories
+http://b-rodrigues.github.com/pages/gumbel
+http://b-rodrigues.github.com/json/
+http://b-rodrigues.github.com/
+http://b-rodrigues.github.com/pages
+http://b-rodrigues.github.com/pages/simulated_max_lik
+http://b-rodrigues.github.com/pages/simulated_moments
 http://b-rodrigues.github.com/sitemap.txt
-http://b-rodrigues.github.com/pages/software.html
-http://b-rodrigues.github.com/tags.html
-http://b-rodrigues.github.com/pages/testpage.html
+http://b-rodrigues.github.com/pages/software
+http://b-rodrigues.github.com/tags
+http://b-rodrigues.github.com/pages/testpage
 
 http://b-rodrigues.github.com/2015/11/11/bootstrapping-did-with-r
 http://b-rodrigues.github.com/2015/05/03/update-introduction-r-programming
