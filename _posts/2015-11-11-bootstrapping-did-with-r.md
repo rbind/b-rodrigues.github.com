@@ -67,14 +67,6 @@ load(&quot;kielmc.RData&quot;)</code></pre>
 </div>
 
 <p>Just as in the book, we find that the DiD estimate is not significant to the 5% level.</p>
-<p>How many bootstrap estimates should you run? To answer this question, it might be interesting to take a look at the following graph:</p>
-<pre class="r"><code>plot(boot_est$t, type=&quot;l&quot;)</code></pre>
-
-<div style="text-align:center;">
-    <img src="/assets/images/sims_did.png" width="670" height="450" /></a>
-</div>
-
-<p>What you see here are the different values our bootstrapped statistic takes at the different replication steps. 1000 replications might be overkill, as there doesn’t seem to be any convergence going on.</p>
 
 
 </body>

@@ -4,7 +4,7 @@
  <title>Econometrics and Free Software</title>
  <link href="http://b-rodrigues.github.com/atom.xml" rel="self"/>
  <link href="http://b-rodrigues.github.com"/>
- <updated>2016-03-31T12:52:02+02:00</updated>
+ <updated>2016-03-31T13:01:19+02:00</updated>
  <id>http://b-rodrigues.github.com</id>
  <author>
    <name>Bruno Rodrigues</name>
@@ -77,14 +77,6 @@ load(&amp;quot;kielmc.RData&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 
 &lt;p&gt;Just as in the book, we find that the DiD estimate is not significant to the 5% level.&lt;/p&gt;
-&lt;p&gt;How many bootstrap estimates should you run? To answer this question, it might be interesting to take a look at the following graph:&lt;/p&gt;
-&lt;pre class=&quot;r&quot;&gt;&lt;code&gt;plot(boot_est$t, type=&amp;quot;l&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
-
-&lt;div style=&quot;text-align:center;&quot;&gt;
-    &lt;img src=&quot;/assets/images/sims_did.png&quot; width=&quot;670&quot; height=&quot;450&quot; /&gt;
-&lt;/div&gt;
-
-&lt;p&gt;What you see here are the different values our bootstrapped statistic takes at the different replication steps. 1000 replications might be overkill, as there doesn’t seem to be any convergence going on.&lt;/p&gt;
 
 
 &lt;/body&gt;
