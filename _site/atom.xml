@@ -4,7 +4,7 @@
  <title>Econometrics and Free Software</title>
  <link href="http://b-rodrigues.github.com/atom.xml" rel="self"/>
  <link href="http://b-rodrigues.github.com"/>
- <updated>2016-03-30T17:22:04+02:00</updated>
+ <updated>2016-03-31T12:31:27+02:00</updated>
  <id>http://b-rodrigues.github.com</id>
  <author>
    <name>Bruno Rodrigues</name>
@@ -101,7 +101,7 @@ load(&amp;quot;kielmc.RData&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;This is why the beginning of the document focuses more on general programming knowledge and techniques, and then only on econometrics. People online seemed to like the document, as I’ve received some positive comments by David Smith from Revolution R (read his blog post about the document &lt;a href=&quot;http://blog.revolutionanalytics.com/2015/01/introduction-to-applied-econometrics-with-r.html&quot;&gt;here&lt;/a&gt;) and Dave Giles which links to David’s blog post &lt;a href=&quot;http://davegiles.blogspot.fr/2015/04/introduction-to-applied-econometrics.html?spref=tw&quot;&gt;here&lt;/a&gt;. People on twitter have also retweeted David’s and Dave’s tweets to their blog posts and I’ve received some requests by people to send them the PDF by email (because they live in places where Dropbox is not accessible unfortunately).&lt;/p&gt;
 
-&lt;p&gt;The document is still a work in progress (and will probably remain so for a long time), but I’ve added some new sections about reproducible research and thought that this update could warrant a new blog post. &lt;/p&gt;
+&lt;p&gt;The document is still a work in progress (and will probably remain so for a long time), but I’ve added some new sections about reproducible research and thought that this update could warrant a new blog post.&lt;/p&gt;
 
 &lt;p&gt;For now, only linear models are reviewed, but I think I’ll start adding some chapters about non-linear models soonish. The goal for these notes, however, is not to re-invent the wheel: there are lots of good books about econometrics with R out there and packages that estimate a very wide range of models. What I want for these notes, is to focus more on the programming knowledge an econometrician needs, in a very broad and general sense. I want my students to understand that R is a true programming language, and that they need to use every feature offered by such a language, and not think of R as a black box into which you only type pre-programmed commands, but also be able to program their own routines.&lt;/p&gt;
 
@@ -109,11 +109,11 @@ load(&amp;quot;kielmc.RData&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;You can compile the book in two ways: first download the whole repository:&lt;/p&gt;
 
-&lt;p&gt;&lt;code&gt;git clone git@bitbucket.org:b-rodrigues/programmingeconometrics.git&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;git clone git@bitbucket.org:b-rodrigues/programmingeconometrics.git&lt;/code&gt;&lt;/p&gt;
 
 &lt;p&gt;and then, with Rstudio, open the file &lt;em&gt;appliedEconometrics.Rnw&lt;/em&gt; and knit it. Another solution is to use the Makefile. Just type:&lt;/p&gt;
 
-&lt;p&gt;&lt;code&gt;make&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;make&lt;/code&gt;&lt;/p&gt;
 
 &lt;p&gt;inside a terminal (should work on GNU+Linux and OSX systems) and it should compile the document. You may get some message about “additional information” for some R packages. When these come up, just press Q on your keyboard to continue the compilation process.&lt;/p&gt;
 
@@ -715,7 +715,7 @@ summary(my_gmm)
    <updated>2012-12-11T00:00:00+01:00</updated>
    <id>http://b-rodrigues.github.com/2012/12/11/new-website</id>
    <content type="html">
-&lt;p&gt;This is my new website! It’s built using jekyll-bootstrap and hosted on Github. &lt;/p&gt;
+&lt;p&gt;This is my new website! It’s built using jekyll-bootstrap and hosted on Github.&lt;/p&gt;
 </content>
  </entry>
  

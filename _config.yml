@@ -6,7 +6,10 @@ permalink: /:categories/:year/:month/:day/:title
 
 exclude: [".rvmrc", ".rbenv-version", "README.md", "Rakefile", "changelog.md"]
 auto: true
-pygments: true
+highlighter: 'rouge'
+#pygments: true
+
+
 
 # Themes are encouraged to use these universal variables 
 # so be sure to set them if your theme uses them.
@@ -17,7 +20,7 @@ author :
   name : Bruno Rodrigues
   email : brodrigues@unistra.fr
   github : brodrigues@unistra.fr
-#   twitter : brodrigues
+  twitter : brodriguesco
 
 
 # The production_url is only used when full-domain names are needed
@@ -67,7 +70,8 @@ JB :
   #   http://s3.amazonaws.com/yoursite/themes/watermelon
   #   /assets
   #
-  ASSET_PATH : /assets/themes/hooligan
+  ASSET_PATH: false
+  #ASSET_PATH : /assets/themes/the-program
 
   # These paths are to the main pages Jekyll-Bootstrap ships with.
   # Some JB helpers refer to these paths; change theme here if needed.

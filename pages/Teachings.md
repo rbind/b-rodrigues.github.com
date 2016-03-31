@@ -6,43 +6,51 @@ group: "navigation"
 ---
 {% include JB/setup %}
 
-##2015-2016:
+2015-2016:
+===========
 
-###M1 AGR
+M1 AGR
+-------
 
 Chers étudiants, vous trouverez les slides et autres documents du cours sur ce [Lien](https://www.dropbox.com/sh/dxtuj7krzsegv3i/AAAXu8TH0ttA4EUcr1vIh36Ma?dl=0).
 
 Vous pourrez trouver les données utilisées dans ce cours à l'adresse suivante: [Lien 1](https://onlinecourses.science.psu.edu/stat504/node/165), [Lien 2](https://onlinecourses.science.psu.edu/stat857/node/215) et [Lien 3](http://instruction.bus.wisc.edu/jfrees/jfreesbooks/Regression%20Modeling/BookWebDec2010/data.html).
 
-###L3 S5 (Économie industrielle)
-
+L3 S5 (Économie industrielle)
+------------------------------
 Chers étudiants, voici le lien pour télécharger les TDs. [Lien](https://copy.com/js1st2p3X8f1ZYwt)
 
 
-###L2 S3 (Proba-Stats)
+L2 S3 (Proba-Stats)
+------------------------------
 
 Chers étudiants, voici le lien pour télécharger les TDs. Ce lien contiendra tous les TDs au fur et à mesure qu'ils seront publiés: [Lien](https://copy.com/wWdfYPtpy9axNA22)
 
-###L2 S3 (C2i)
+L2 S3 (C2i)
+------------------------------
 
 Chers étudiants, voici le lien pour télécharger les documents du cours: [Lien](https://www.dropbox.com/sh/qgpp1l7n68jia5j/AADglHEjScDSt4Q9A_6X2H5La?dl=0)
 
-##2014-2015:
+2014-2015:
 
-###L3 S6
+L3 S6
+------------------------------
 
 Chers étudiants, voici le lien pour télécharger les notes le cours. Ce lien contiendra toujours la dernière version en date du document.  [Lien](https://www.dropbox.com/s/k0tfyqlf3uxz6m2/Introduction%20to%20programming%20Econometrics%20with%20R%20-%20Draft.pdf?dl=0)
 
-###L3 S5
+L3 S5
+------------------------------
 
 Chers étudiants, vous trouverez la totalité des TDs sur ce [lien](https://copy.com/VDdsjOxa6C1v). Le dossier sera mis à jour au fur et à mesure que les TDs arriveront.
 
-###L2 S3
+L2 S3
+------------------------------
 
 Chers étudiants, vous trouverez la totalité des TDs sur ce [lien](https://copy.com/9XpQk7iJbZjD). Tous les TDs sont déjà en ligne.
 
 
-###M1 et M2 APE
+M1 et M2 APE
+------------------------------
 
 Ateliers Git et LaTeX:
     
@@ -54,15 +62,17 @@ LaTeX est un langage informatique qui permet d'éditer des documents scientifiqu
 
 Pour l'atelier du 20 novembre, il faudrait déjà avoir installé les logiciels sur vos ordinateurs et faire les premiers exercices. Les instructions sont téléchargeables dès maintenant; les consignes [ici](https://copy.com/TyMMvLGAeFxy) et les documents nécessaires [ici](https://copy.com/kXluDzIHoc7v). Si vous avez des questions sur LaTeX, contactez <a href="mailto:t.coudert@unistra.fr">Thomas</a> et sur git, contactez <a href="mailto:brodrigues@unistra.fr">moi</a>.  
 
-##2013-2014:
+2013-2014:
 
-###L2 S4
+L2 S4
+------------------------------
 
 Chers étudiants, vous trouverez la totalité des TDs sur ce [lien](https://copy.com/DrQekw2znrDq). 
 
 En outre, je vous conseille l'application suivante pour Android: [Statisical Toolbox](https://play.google.com/store/apps/details?id=dk.evolve.android.sta&hl=en). Cette application permet de trouver les valeur des tables de probabilité pour les lois usuelles.
 
-###L1 S2
+L1 S2
+------------------------------
 
 Chers étudiants, vous trouverez la totalité des TDs sur ce [lien](https://copy.com/IpGSIxL7uaKj).
 
@@ -70,7 +80,8 @@ Vous pouvez aussi télécharger des exercices supplémentaires sur la combinatoi
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-###S3
+S3
+------------------------------
 
 Licence Économie-Gestion 2ème année: 
 
@@ -100,7 +111,8 @@ identi.ca est juste un moyen plus rapide de pouvoir communiquer avec vous.
 
 [Table de probabilités des lois usuelles](https://copy.com/dePKCc86f9lE)
 
-###M1 et M2 APE
+M1 et M2 APE
+------------------------------
 
 Les fichiers à télécharger sont disponibles! Lisez la suite!
 
@@ -135,5 +147,6 @@ Si vous avez des questions sur LaTeX, contactez <a href="mailto:t.coudert@unistr
 et sur git, contactez <a href="mailto:brodrigues@unistra.fr">moi</a>. 
 
 
-##2012-2013:
+2012-2013:
+=========
 Licence Économie-Gestion 2ème année: [ressources supplémentaires (S3)](http://minus.com/mbzoVJWhT5fT3s "Aller sur minus.com") et [exercices supplémentaires (S4)](http://minus.com/mKIzjdMTFOWiB "Aller sur minus.com")
