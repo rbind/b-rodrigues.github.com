@@ -75,3 +75,14 @@ Latex files. There are a lot of very good IDEs out there (such as Rstudio for R)
 but now that I'm really getting confortable with Vim, I prefer to just use Vim for 
 everything. Neovim is a modern implementation of Vim, and works very well.
 
+
+<div style="text-align:center;">
+  <a href="https://www.gimp.org/downloads"/>
+    <img src="/assets/images/gimp.png" width="80" height="80"/></a>
+    <a href="https://www.scribus.net/downloads/stable-branch/">
+    <img src="/assets/images/scribus.png" width="80" height="80"/></a>
+</div>
+
+*   I'm not a designer by any means, but when I need to design a poster for a conference,
+or a call for papers, I use Gimp and Scribus. Gimp is an image manipulation tool not unlike
+Adobe Photoshop and Scribus is a desktop publishing tool like Adobe Indesign.
