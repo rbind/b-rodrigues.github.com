@@ -10,10 +10,9 @@ Published Articles
 ==================
 
 [Version Control Systems to Facilitate Research Collaboration in Economics](http://link.springer.com/article/10.1007/s10614-015-9513-8), in Computational Economics, 2015
+----------------------------------------------------------------------------------------------------------------------
 
-Abstract
---------
-
+*Abstract*
 
 Reliable and reproducible research is an important cornerstone of science, and version control systems not only make reproducible research possible in a rapid and easy way, but also provide a way of collaborating with co-authors. 
 The purpose of this methodological paper is to present Git, a very successful version control system and how it can be used by economists working together on their papers and the accompanying computer code. 
@@ -25,16 +24,24 @@ In the second section I present Git which is a widely used version control syste
 
 Working Papers
 ==============
-The birth of a child and its impact on wages and worked hours: evidence from France, 2015-2016, with Vincent Vergnat
 
-Abstract
---------
+The birth of a child and its impact on wages and worked hours: evidence from France, 2015-2016, with Vincent Vergnat
+----------------------------------------------------------------------------------------------------------------------
+
+*Abstract*
 
 Using French administrative data, we estimate the impact of the birth of a first child on hourly and daily wages, as well as for hours worked, for both women and men. 
 We compute the impact on these outcome variables, two, four and eight years after the birth of the child, using difference-in-differences.
 We compare the impact for different education levels of both mothers and fathers. The results show that in the short term there is no impact of a birth on wages and hours worked but eight years after
 the birth of a child, highly educated women suffer from a loss in daily and hourly wages as well as hours worked. 
 Educated men also decrease their labour supply.
+
+The career and fertility decisions of highly educated women, 2013-2016, with Richard Blundell, Hans-Martin von Gaudecker, Bertrand Koebel, François Laisney and Holger Stichnoth.
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+*Summary of the project*
+
+This project aims to estimate a structural model of fertility and career decisions of university educated women for Germany and France.
 
 Master's Thesis
 ===============
