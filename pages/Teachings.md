@@ -9,6 +9,11 @@ group: "navigation"
 2015-2016:
 ===========
 
+L3 S6
+-----
+Chers étuiants, vous pouvez télécharger sur ce [lien](http://www.rstudio.com/wp-content/uploads/2015/02/data-wrangling-cheatsheet.pdf) un document résumant les commandes les plus utiles de dplyr.
+
+
 M1 AGR
 -------
 
