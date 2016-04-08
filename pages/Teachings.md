@@ -11,7 +11,7 @@ group: "navigation"
 
 L3 S6
 -----
-Chers étuiants, vous pouvez télécharger sur ce [lien](http://www.rstudio.com/wp-content/uploads/2015/02/data-wrangling-cheatsheet.pdf) un document résumant les commandes les plus utiles de dplyr.
+Chers étuiants, vous pouvez télécharger sur ce [lien](http://www.rstudio.com/wp-content/uploads/2015/02/data-wrangling-cheatsheet.pdf) un document résumant les commandes les plus utiles de dplyr et un document similaire pour RMarkdown [ici](https://www.dropbox.com/s/rbb4h5ohbw4b78t/rmarkdown-cheatsheet.pdf?dl=0).
 
 
 M1 AGR
