@@ -4,7 +4,7 @@
  <title>Econometrics and Free Software</title>
  <link href="http://b-rodrigues.github.com/atom.xml" rel="self"/>
  <link href="http://b-rodrigues.github.com"/>
- <updated>2016-04-10T00:01:53+02:00</updated>
+ <updated>2016-06-17T18:50:44+02:00</updated>
  <id>http://b-rodrigues.github.com</id>
  <author>
    <name>Bruno Rodrigues</name>
@@ -226,7 +226,7 @@ load(&amp;quot;kielmc.RData&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;inside a terminal (should work on GNU+Linux and OSX systems) and it should compile the document. You may get some message about “additional information” for some R packages. When these come up, just press Q on your keyboard to continue the compilation process.&lt;/p&gt;
 
-&lt;p&gt;Get the notes here: &lt;a href=&quot;https://www.dropbox.com/s/k0tfyqlf3uxz6m2/Introduction%20to%20programming%20Econometrics%20with%20R%20-%20Draft.pdf?dl=0&quot;&gt;download&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Get the notes &lt;a href=&quot;https://cloud.openmailbox.org/index.php/s/ghZwBxMb24tWGSL&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
 
 &lt;p&gt;As always, if you have questions or suggestions, do not hesitate to send me an email: &lt;a href=&quot;&amp;#109;&amp;#097;&amp;#105;&amp;#108;&amp;#116;&amp;#111;:&amp;#098;&amp;#114;&amp;#111;&amp;#100;&amp;#114;&amp;#105;&amp;#103;&amp;#117;&amp;#101;&amp;#115;&amp;#064;&amp;#117;&amp;#110;&amp;#105;&amp;#115;&amp;#116;&amp;#114;&amp;#097;&amp;#046;&amp;#102;&amp;#114;&quot;&gt;&amp;#098;&amp;#114;&amp;#111;&amp;#100;&amp;#114;&amp;#105;&amp;#103;&amp;#117;&amp;#101;&amp;#115;&amp;#064;&amp;#117;&amp;#110;&amp;#105;&amp;#115;&amp;#116;&amp;#114;&amp;#097;&amp;#046;&amp;#102;&amp;#114;&lt;/a&gt; and I sure hope you’ll find these notes useful!&lt;/p&gt;
 </content>
