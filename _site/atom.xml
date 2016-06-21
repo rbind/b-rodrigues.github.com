@@ -4,7 +4,7 @@
  <title>Econometrics and Free Software</title>
  <link href="http://b-rodrigues.github.com/atom.xml" rel="self"/>
  <link href="http://b-rodrigues.github.com"/>
- <updated>2016-06-21T20:46:41+02:00</updated>
+ <updated>2016-06-21T21:55:25+02:00</updated>
  <id>http://b-rodrigues.github.com</id>
  <author>
    <name>Bruno Rodrigues</name>
@@ -90,7 +90,7 @@ print(mother)&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;So you could make the same mistake as myself and use tryCatch:&lt;/p&gt;
 &lt;pre class=&quot;r&quot;&gt;&lt;code&gt;tryCatch(sqrt(c(4, 9, &amp;quot;haha&amp;quot;)), error=function(e) NA)&lt;/code&gt;&lt;/pre&gt;
 &lt;pre&gt;&lt;code&gt;## [1] NA&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;But you only get &lt;code&gt;NA&lt;/code&gt; in return. That’s actually completely normal, but it took me off-guard and I spent quite some time to figure out what was happening. Especially because I had written unit tests to test my function &lt;code&gt;create_birthdays()&lt;/code&gt; that was doing the above computations and all tests were passing! The problem was that in my tests, I only had a single individual, so for a wrong date, having &lt;code&gt;NA&lt;/code&gt; for this individual was expected behaviour. But in a panel, only some individuals have a weird date like the 30th of February, but because of those, the whole column was filled with &lt;code&gt;NA&lt;/code&gt;’s! What I’m doing now is trying to either remove these weird birthdays (there are mothers whose children were born on the 99-99-9999, or tyring to figure out how to only get &lt;code&gt;NA&lt;/code&gt;’s for the “weird” dates. I guess that the answer lies with &lt;code&gt;dplyr&lt;/code&gt;’s &lt;code&gt;group_by()&lt;/code&gt; and &lt;code&gt;mutate()&lt;/code&gt; to compute this birthdays for each individual separately.&lt;/p&gt;
+&lt;p&gt;But you only get &lt;code&gt;NA&lt;/code&gt; in return. That’s actually completely normal, but it took me off-guard and I spent quite some time to figure out what was happening. Especially because I had written unit tests to test my function &lt;code&gt;create_birthdays()&lt;/code&gt; that was doing the above computations and all tests were passing! The problem was that in my tests, I only had a single individual, so for a wrong date, having &lt;code&gt;NA&lt;/code&gt; for this individual was expected behaviour. But in a panel, only some individuals have a weird date like the 30th of February, but because of those, the whole column was filled with &lt;code&gt;NA&lt;/code&gt;’s! What I’m doing now is trying to either remove these weird birthdays (there are mothers whose children were born on the 99-99-9999. Documentation is lacking, but this probably means &lt;code&gt;missing value&lt;/code&gt;), or tyring to figure out how to only get &lt;code&gt;NA&lt;/code&gt;’s for the “weird” dates. I guess that the answer lies with &lt;code&gt;dplyr&lt;/code&gt;’s &lt;code&gt;group_by()&lt;/code&gt; and &lt;code&gt;mutate()&lt;/code&gt; to compute this birthdays for each individual separately.&lt;/p&gt;
 
 </content>
  </entry>
