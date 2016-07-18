@@ -4,13 +4,171 @@
  <title>Econometrics and Free Software</title>
  <link href="http://b-rodrigues.github.com/atom.xml" rel="self"/>
  <link href="http://b-rodrigues.github.com"/>
- <updated>2016-06-21T21:55:25+02:00</updated>
+ <updated>2016-07-18T22:05:45+02:00</updated>
  <id>http://b-rodrigues.github.com</id>
  <author>
    <name>Bruno Rodrigues</name>
    <email>brodrigues@unistra.fr</email>
  </author>
 
+ 
+ <entry>
+   <title>Data frame columns as arguments to dplyr functions</title>
+   <link href="http://b-rodrigues.github.com/2016/07/18/data-frame-columns-as-arguments-to-dplyr-functions"/>
+   <updated>2016-07-18T00:00:00+02:00</updated>
+   <id>http://b-rodrigues.github.com/2016/07/18/data-frame-columns-as-arguments-to-dplyr-functions</id>
+   <content type="html">
+&lt;p&gt;Suppose that you would like to create a function which does a series of computations on a data frame. You would like to pass a column as this function’s argument. Something like:&lt;/p&gt;
+&lt;pre class=&quot;r&quot;&gt;&lt;code&gt;data(cars)
+
+
+convertToKmh &amp;lt;- function(dataset, col_name){
+  dataset$col_name &amp;lt;- dataset$speed * 1.609344
+  return(dataset)
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This example is obviously not very interesting (you don’t need a function for this), but it will illustrate the point. You would like to append a column called &lt;code&gt;speed_in_kmh&lt;/code&gt; with the speed in kilometers per hour to this dataset, but this is what happens:&lt;/p&gt;
+&lt;pre class=&quot;r&quot;&gt;&lt;code&gt;head(convertToKmh(cars, &amp;quot;speed_in_kmh&amp;quot;))&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##   speed dist  col_name
+## 1     4    2  6.437376
+## 2     4   10  6.437376
+## 3     7    4 11.265408
+## 4     7   22 11.265408
+## 5     8   16 12.874752
+## 6     9   10 14.484096&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Your column is not called &lt;code&gt;speed_in_kmh&lt;/code&gt; but &lt;code&gt;col_name&lt;/code&gt;! It turns out that there is a very simple solution:&lt;/p&gt;
+&lt;pre class=&quot;r&quot;&gt;&lt;code&gt;convertToKmh &amp;lt;- function(dataset, col_name){
+  dataset[col_name] &amp;lt;- dataset$speed * 1.609344
+  return(dataset)
+}
+
+head(convertToKmh(cars, &amp;quot;speed_in_kmh&amp;quot;))&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##   speed dist speed_in_kmh
+## 1     4    2     6.437376
+## 2     4   10     6.437376
+## 3     7    4    11.265408
+## 4     7   22    11.265408
+## 5     8   16    12.874752
+## 6     9   10    14.484096&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;You can access columns with &lt;code&gt;[]&lt;/code&gt; instead of &lt;code&gt;$&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;But sometimes you want to do more complex things and for example have a function that groups by a variable and then computes new variables, filters by another and so on. You would like to avoid having to hard code these variables in your function, because then why write a function and of course you would like to use &lt;code&gt;dplyr&lt;/code&gt; to do it.&lt;/p&gt;
+&lt;p&gt;I often use &lt;code&gt;dplyr&lt;/code&gt; functions in my functions. For illustration purposes, consider this very simple function:&lt;/p&gt;
+&lt;pre class=&quot;r&quot;&gt;&lt;code&gt;simpleFunction &amp;lt;- function(dataset, col_name){
+  require(&amp;quot;dplyr&amp;quot;)
+  dataset %&amp;gt;% 
+    group_by(col_name) %&amp;gt;%
+    summarise(mean_speed = mean(speed)) -&amp;gt; dataset
+  return(dataset)
+}
+
+simpleFunction(cars, &amp;quot;dist&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This function takes a dataset as an argument, as well as a column name. However, this does not work. You get this error:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;Error: unknown variable to group by : col_name &lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The variable &lt;code&gt;col_name&lt;/code&gt; is passed to &lt;code&gt;simpleFunction()&lt;/code&gt; as a string, but &lt;code&gt;group_by()&lt;/code&gt; requires a variable name. So why not try to convert &lt;code&gt;col_name&lt;/code&gt; to a name?&lt;/p&gt;
+&lt;pre class=&quot;r&quot;&gt;&lt;code&gt;simpleFunction &amp;lt;- function(dataset, col_name){
+  require(&amp;quot;dplyr&amp;quot;)
+  col_name &amp;lt;- as.name(col_name)
+  dataset %&amp;gt;% 
+    group_by(col_name) %&amp;gt;%
+    summarise(mean_speed = mean(speed)) -&amp;gt; dataset
+  return(dataset)
+}
+
+simpleFunction(cars, &amp;quot;dist&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;You get the same error as before:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;Error: unknown variable to group by : col_name &lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;So how can you pass a column name to &lt;code&gt;group_by()&lt;/code&gt;? Well, there is another version of &lt;code&gt;group_by()&lt;/code&gt; called &lt;code&gt;group_by_()&lt;/code&gt; that uses standard evaluation. You can learn more about it &lt;a href=&quot;https://cran.r-project.org/web/packages/dplyr/vignettes/nse.html&quot;&gt;here&lt;/a&gt;. Let’s take a look at what happens when we use &lt;code&gt;group_by_()&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class=&quot;r&quot;&gt;&lt;code&gt;simpleFunction &amp;lt;- function(dataset, col_name){
+  require(&amp;quot;dplyr&amp;quot;)
+  dataset %&amp;gt;% 
+    group_by_(col_name) %&amp;gt;%
+    summarise(mean_speed = mean(speed)) -&amp;gt; dataset
+  return(dataset)
+}
+
+simpleFunction(cars, &amp;quot;dist&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## # A tibble: 35 x 2
+##     dist mean_speed
+##    &amp;lt;dbl&amp;gt;      &amp;lt;dbl&amp;gt;
+## 1      2        4.0
+## 2      4        7.0
+## 3     10        6.5
+## 4     14       12.0
+## 5     16        8.0
+## 6     17       11.0
+## 7     18       10.0
+## 8     20       13.5
+## 9     22        7.0
+## 10    24       12.0
+## # ... with 25 more rows&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We can even use a formula instead of a string:&lt;/p&gt;
+&lt;pre class=&quot;r&quot;&gt;&lt;code&gt;simpleFunction(cars, ~dist)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## # A tibble: 35 x 2
+##     dist mean_speed
+##    &amp;lt;dbl&amp;gt;      &amp;lt;dbl&amp;gt;
+## 1      2        4.0
+## 2      4        7.0
+## 3     10        6.5
+## 4     14       12.0
+## 5     16        8.0
+## 6     17       11.0
+## 7     18       10.0
+## 8     20       13.5
+## 9     22        7.0
+## 10    24       12.0
+## # ... with 25 more rows&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;What if you want to pass column names and constants, for example to filter without hardcoding anything?&lt;/p&gt;
+&lt;p&gt;Trying to do it naively will only yield pain and despair:&lt;/p&gt;
+&lt;pre class=&quot;r&quot;&gt;&lt;code&gt;simpleFunction &amp;lt;- function(dataset, col_name, value){
+  require(&amp;quot;dplyr&amp;quot;)
+  dataset %&amp;gt;% 
+    filter_(col_name == value) %&amp;gt;%
+    summarise(mean_speed = mean(speed)) -&amp;gt; dataset
+  return(dataset)
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;&amp;gt; simpleFunction(cars, &amp;quot;dist&amp;quot;, 10)
+
+  mean_speed
+1        NaN
+
+&amp;gt; simpleFunction(cars, dist, 10)
+
+ Error in col_name == value : 
+  comparison (1) is possible only for atomic and list types 
+  
+&amp;gt; simpleFunction(cars, ~dist, 10)
+
+  mean_speed
+1        NaN
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;To solve this issue, we need to know a little bit about two concepts, &lt;em&gt;lazy evaluation&lt;/em&gt; and &lt;em&gt;non-standard evaluation&lt;/em&gt;. I recommend you read &lt;a href=&quot;http://adv-r.had.co.nz/Computing-on-the-language.html&quot;&gt;the following document&lt;/a&gt; from Hadley Wickham’s book &lt;em&gt;Advanced R&lt;/em&gt; as well as the part on lazy evaluation &lt;a href=&quot;http://adv-r.had.co.nz/Functions.html#function-arguments&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;A nice package called &lt;code&gt;lazyeval&lt;/code&gt; can help us out. We would like to make R understand that the column name is not &lt;code&gt;col_name&lt;/code&gt; but the string inside it &lt;code&gt;&amp;quot;dist&amp;quot;&lt;/code&gt;, and now we would like to use &lt;code&gt;filter()&lt;/code&gt; for &lt;code&gt;dist&lt;/code&gt; equal to &lt;code&gt;10&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;In the &lt;code&gt;lazyeval&lt;/code&gt; package, you’ll find the function &lt;code&gt;interp()&lt;/code&gt;. &lt;code&gt;interp()&lt;/code&gt; allows you to&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;build an expression up from a mixture of constants and variables.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Take a look at this example:&lt;/p&gt;
+&lt;pre class=&quot;r&quot;&gt;&lt;code&gt;library(lazyeval)
+interp(~x+y, x = 2)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## ~2 + y&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;What you get back is this nice formula that you can then use within functions. To see why this is useful, let’s look at the above example again, and make it work using &lt;code&gt;interp()&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class=&quot;r&quot;&gt;&lt;code&gt;simpleFunction &amp;lt;- function(dataset, col_name, value){
+  require(&amp;quot;dplyr&amp;quot;)
+  require(&amp;quot;lazyeval&amp;quot;)
+  filter_criteria &amp;lt;- interp(~y == x, .values=list(y = as.name(col_name), x = value))
+  dataset %&amp;gt;% 
+    filter_(filter_criteria) %&amp;gt;%
+    summarise(mean_speed = mean(speed)) -&amp;gt; dataset
+  return(dataset)
+}
+
+
+simpleFunction(cars, &amp;quot;dist&amp;quot;, 10)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##   mean_speed
+## 1        6.5&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;And now it works! For some reason, you have to pass the column name as a string though.&lt;/p&gt;
+&lt;p&gt;Sources: apart from the documents above, the following stackoverflow threads helped me out quite a lot: &lt;a href=&quot;http://stackoverflow.com/questions/28973056/in-r-pass-column-name-as-argument-and-use-it-in-function-with-dplyrmutate-a&quot;&gt;In R: pass column name as argument and use it in function with dplyr::mutate() and lazyeval::interp()&lt;/a&gt; and &lt;a href=&quot;http://stackoverflow.com/questions/26492280/non-standard-evaluation-nse-in-dplyrs-filter-pulling-data-from-mysql&quot;&gt;Non-standard evaluation (NSE) in dplyr’s filter_ &amp;amp; pulling data from MySQL&lt;/a&gt;.&lt;/p&gt;
+</content>
+ </entry>
  
  <entry>
    <title>Careful with tryCatch</title>
