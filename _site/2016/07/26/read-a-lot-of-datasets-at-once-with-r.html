@@ -6,7 +6,7 @@
     <meta charset="utf-8">
     <title>
       
-        Bootstrapping standard errors for difference-in-differences estimation with R - 
+        Read a lot of datasets at once with R - 
       
       Econometrics and Free Software
     </title>
@@ -194,7 +194,7 @@
 
 <div class="page-header">
   <h1>
-    Bootstrapping standard errors for difference-in-differences estimation with R 
+    Read a lot of datasets at once with R 
     
   </h1>
 </div>
@@ -202,77 +202,75 @@
 <div class="row">
   <div class="span8">
     
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<p>I often have to read a lot of datasets at once using R. So I’ve wrote the following function to solve this issue:</p>
+<pre class="r"><code>read_list &lt;- function(list_of_datasets, read_func){
 
-<!-- MathJax scripts -->
-<script type="text/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/2.0-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
-</script>
+        read_and_assign &lt;- function(dataset, read_func){
+                dataset_name &lt;- as.name(dataset)
+                dataset_name &lt;- read_func(dataset)
+        }
 
-</head>
+        # invisible is used to suppress the unneeded output
+        output &lt;- invisible(
+                sapply(list_of_datasets,
+                           read_and_assign, read_func = read_func, simplify = FALSE, USE.NAMES = TRUE))
 
-<body>
-<p>I’m currently working on a paper (with my colleague Vincent Vergnat who is also a Phd candidate at BETA) where I want to estimate the causal impact of the birth of a child on hourly and daily wages as well as yearly worked hours. For this we are using non-parametric difference-in-differences (henceforth DiD) and thus have to bootstrap the standard errors. In this post, I show how this is possible using the function <code>boot</code>.</p>
-<p>For this we are going to replicate the example from Wooldridge’s <em>Econometric Analysis of Cross Section and Panel Data</em> and more specifically the example on page 415. You can download the data for R <a href="/assets/files/kielmc.RData">here</a>. The question we are going to try to answer is <em>how much does the price of housing decrease due to the presence of an incinerator in the neighborhood?</em></p>
-<p>First put the data in a folder and set the correct working directory and load the <code>boot</code> library.</p>
-<pre class="r"><code>library(boot)
-setwd(&quot;/home/path/to/data/kiel data/&quot;)
-load(&quot;kielmc.RData&quot;)</code></pre>
-<p>Now you need to write a function that takes the data as an argument, as well as an indices argument. This argument is used by the <code>boot</code> function to select samples. This function should return the statistic you’re interested in, in our case, the DiD estimate.</p>
-<pre class="r"><code>run_DiD &lt;- function(my_data, indices){
-    d &lt;- my_data[indices,]
-    return(
-        mean(d$rprice[d$year==1981 &amp; d$nearinc==1]) - 
-        mean(d$rprice[d$year==1981 &amp; d$nearinc==0]) - 
-        (mean(d$rprice[d$year==1978 &amp; d$nearinc==1]) - 
-        mean(d$rprice[d$year==1978 &amp; d$nearinc==0]))
-    )
+        # Remove the extension at the end of the data set names
+        names_of_datasets &lt;- c(unlist(strsplit(list_of_datasets, &quot;[.]&quot;))[c(T, F)])
+        names(output) &lt;- names_of_datasets
+        return(output)
 }</code></pre>
-<p>You’re almost done! To bootstrap your DiD estimate you just need to use the boot function. If you have cpu with multiple cores (which you should, single core machines are quite outdated by now) you can even parallelize the bootstrapping.</p>
-<pre class="r"><code>boot_est &lt;- boot(data, run_DiD, R=1000, parallel=&quot;multicore&quot;, ncpus = 2)</code></pre>
-<p>Now you should just take a look at your estimates:</p>
-<pre class="r"><code>boot_est</code></pre>
-<pre><code>## 
-## ORDINARY NONPARAMETRIC BOOTSTRAP
-## 
-## 
-## Call:
-## boot(data = data, statistic = run_DiD, R = 1000, parallel = &quot;multicore&quot;, 
-##     ncpus = 2)
-## 
-## 
-## Bootstrap Statistics :
-##     original    bias    std. error
-## t1* -11863.9 -553.3393    8580.435</code></pre>
-<p>These results are very similar to the ones in the book, only the standard error is higher.</p>
+<p>You need to supply a list of datasets as well as the function to read the datasets to <code>read_list</code>. So for example to read in <code>.csv</code> files, you could use <code>read.csv()</code> (or <code>read_csv()</code> from the <code>readr</code> package, which I prefer to use), or <code>read_dta()</code> from the package <code>haven</code> for STATA files, and so on.</p>
+<p>Now imagine you have some data in your working directory. First start by saving the name of the datasets in a variable:</p>
+<pre class="r"><code>data_files &lt;- list.files(pattern = &quot;.csv&quot;)
 
-<p>You can get confidence intervals like this:</p>
-<pre class="r"><code>quantile(boot_est$t, c(0.025, 0.975))</code></pre>
-<pre><code>##       2.5%      97.5% 
-## -30186.397   3456.133</code></pre>
-<p>or a t-statistic:</p>
-<pre class="r"><code>boot_est$t0/sd(boot_est$t)</code></pre>
-<pre><code>## [1] -1.382669</code></pre>
-<p>Or the density of the replications:</p>
-<pre class="r"><code>plot(density(boot_est$t))</code></pre>
+print(data_files)</code></pre>
+<pre><code>## [1] &quot;data_1.csv&quot; &quot;data_2.csv&quot; &quot;data_3.csv&quot;</code></pre>
+<p>Now you can read all the data sets and save them in a list with <code>read_list()</code>:</p>
+<pre class="r"><code>library(&quot;readr&quot;)
+library(&quot;tibble&quot;)
 
-<div style="text-align:center;">
-    <img src="/assets/images/density_did.png" width="670" height="450" />
-</div>
-
-<p>Just as in the book, we find that the DiD estimate is not significant to the 5% level.</p>
+list_of_data_sets &lt;- read_list(data_files, read_csv)
 
 
-</body>
+glimpse(list_of_data_sets)</code></pre>
+<pre><code>## List of 3
+##  $ data_1:Classes 'tbl_df', 'tbl' and 'data.frame':  19 obs. of  3 variables:
+##   ..$ col1: chr [1:19] &quot;0,018930679&quot; &quot;0,8748013128&quot; &quot;0,1025635934&quot; &quot;0,6246140983&quot; ...
+##   ..$ col2: chr [1:19] &quot;0,0377725807&quot; &quot;0,5959457638&quot; &quot;0,4429121533&quot; &quot;0,558387159&quot; ...
+##   ..$ col3: chr [1:19] &quot;0,6241767189&quot; &quot;0,031324594&quot; &quot;0,2238059868&quot; &quot;0,2773350732&quot; ...
+##  $ data_2:Classes 'tbl_df', 'tbl' and 'data.frame':  19 obs. of  3 variables:
+##   ..$ col1: chr [1:19] &quot;0,9098418493&quot; &quot;0,1127788509&quot; &quot;0,5818891392&quot; &quot;0,1011773532&quot; ...
+##   ..$ col2: chr [1:19] &quot;0,7455905887&quot; &quot;0,4015039612&quot; &quot;0,6625796605&quot; &quot;0,029955339&quot; ...
+##   ..$ col3: chr [1:19] &quot;0,327232932&quot; &quot;0,2784035673&quot; &quot;0,8092386735&quot; &quot;0,1216045306&quot; ...
+##  $ data_3:Classes 'tbl_df', 'tbl' and 'data.frame':  19 obs. of  3 variables:
+##   ..$ col1: chr [1:19] &quot;0,9236124896&quot; &quot;0,6303271761&quot; &quot;0,6413583054&quot; &quot;0,5573887416&quot; ...
+##   ..$ col2: chr [1:19] &quot;0,2114708388&quot; &quot;0,6984538266&quot; &quot;0,0469865249&quot; &quot;0,9271510226&quot; ...
+##   ..$ col3: chr [1:19] &quot;0,4941919971&quot; &quot;0,7391538511&quot; &quot;0,3876723797&quot; &quot;0,2815014394&quot; ...</code></pre>
+<p>If you prefer not to have the datasets in a list, but rather import them into the global environment, you can change the above function like so:</p>
+<pre class="r"><code>read_list &lt;- function(list_of_datasets, read_func){
+
+        read_and_assign &lt;- function(dataset, read_func){
+                assign(dataset, read_func(dataset), envir = .GlobalEnv)
+        }
+
+        # invisible is used to suppress the unneeded output
+        output &lt;- invisible(
+                sapply(list_of_datasets,
+                           read_and_assign, read_func = read_func, simplify = FALSE, USE.NAMES = TRUE))
+
+}</code></pre>
+<p>But I personnally don’t like this second option, but I put it here for completeness.</p>
+
 
     <hr>
     <div class="pagination btn-group">
       
-        <a class="btn prev" href="/2015/05/03/update-introduction-r-programming" title="Update to Introduction to programming econometrics with R">&larr; Previous</a>
+        <a class="btn prev" href="/2016/07/18/data-frame-columns-as-arguments-to-dplyr-functions" title="Data frame columns as arguments to dplyr functions">&larr; Previous</a>
       
         <a class="btn" href="/archive.html">Archive</a>
       
-        <a class="btn next" href="/2016/03/31/unit-testing-with-r" title="Unit testing with R">Next &rarr;</a>
+        <a class="btn next disabled">Next &rarr;</a>
       
     </div>
     <hr>
@@ -282,7 +280,7 @@ load(&quot;kielmc.RData&quot;)</code></pre>
   <div class="span4">
     <section>
       <h4>Published</h4>
-      <div class="date"><span>11 November 2015</span></div>
+      <div class="date"><span>26 July 2016</span></div>
     </section>
          
     

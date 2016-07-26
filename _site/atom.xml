@@ -4,13 +4,82 @@
  <title>Econometrics and Free Software</title>
  <link href="http://b-rodrigues.github.com/atom.xml" rel="self"/>
  <link href="http://b-rodrigues.github.com"/>
- <updated>2016-07-18T22:18:32+02:00</updated>
+ <updated>2016-07-26T21:40:26+02:00</updated>
  <id>http://b-rodrigues.github.com</id>
  <author>
    <name>Bruno Rodrigues</name>
    <email>brodrigues@unistra.fr</email>
  </author>
 
+ 
+ <entry>
+   <title>Read a lot of datasets at once with R</title>
+   <link href="http://b-rodrigues.github.com/2016/07/26/read-a-lot-of-datasets-at-once-with-r"/>
+   <updated>2016-07-26T00:00:00+02:00</updated>
+   <id>http://b-rodrigues.github.com/2016/07/26/read-a-lot-of-datasets-at-once-with-r</id>
+   <content type="html">
+&lt;p&gt;I often have to read a lot of datasets at once using R. So I’ve wrote the following function to solve this issue:&lt;/p&gt;
+&lt;pre class=&quot;r&quot;&gt;&lt;code&gt;read_list &amp;lt;- function(list_of_datasets, read_func){
+
+        read_and_assign &amp;lt;- function(dataset, read_func){
+                dataset_name &amp;lt;- as.name(dataset)
+                dataset_name &amp;lt;- read_func(dataset)
+        }
+
+        # invisible is used to suppress the unneeded output
+        output &amp;lt;- invisible(
+                sapply(list_of_datasets,
+                           read_and_assign, read_func = read_func, simplify = FALSE, USE.NAMES = TRUE))
+
+        # Remove the extension at the end of the data set names
+        names_of_datasets &amp;lt;- c(unlist(strsplit(list_of_datasets, &amp;quot;[.]&amp;quot;))[c(T, F)])
+        names(output) &amp;lt;- names_of_datasets
+        return(output)
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;You need to supply a list of datasets as well as the function to read the datasets to &lt;code&gt;read_list&lt;/code&gt;. So for example to read in &lt;code&gt;.csv&lt;/code&gt; files, you could use &lt;code&gt;read.csv()&lt;/code&gt; (or &lt;code&gt;read_csv()&lt;/code&gt; from the &lt;code&gt;readr&lt;/code&gt; package, which I prefer to use), or &lt;code&gt;read_dta()&lt;/code&gt; from the package &lt;code&gt;haven&lt;/code&gt; for STATA files, and so on.&lt;/p&gt;
+&lt;p&gt;Now imagine you have some data in your working directory. First start by saving the name of the datasets in a variable:&lt;/p&gt;
+&lt;pre class=&quot;r&quot;&gt;&lt;code&gt;data_files &amp;lt;- list.files(pattern = &amp;quot;.csv&amp;quot;)
+
+print(data_files)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;data_1.csv&amp;quot; &amp;quot;data_2.csv&amp;quot; &amp;quot;data_3.csv&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now you can read all the data sets and save them in a list with &lt;code&gt;read_list()&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class=&quot;r&quot;&gt;&lt;code&gt;library(&amp;quot;readr&amp;quot;)
+library(&amp;quot;tibble&amp;quot;)
+
+list_of_data_sets &amp;lt;- read_list(data_files, read_csv)
+
+
+glimpse(list_of_data_sets)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## List of 3
+##  $ data_1:Classes &#39;tbl_df&#39;, &#39;tbl&#39; and &#39;data.frame&#39;:  19 obs. of  3 variables:
+##   ..$ col1: chr [1:19] &amp;quot;0,018930679&amp;quot; &amp;quot;0,8748013128&amp;quot; &amp;quot;0,1025635934&amp;quot; &amp;quot;0,6246140983&amp;quot; ...
+##   ..$ col2: chr [1:19] &amp;quot;0,0377725807&amp;quot; &amp;quot;0,5959457638&amp;quot; &amp;quot;0,4429121533&amp;quot; &amp;quot;0,558387159&amp;quot; ...
+##   ..$ col3: chr [1:19] &amp;quot;0,6241767189&amp;quot; &amp;quot;0,031324594&amp;quot; &amp;quot;0,2238059868&amp;quot; &amp;quot;0,2773350732&amp;quot; ...
+##  $ data_2:Classes &#39;tbl_df&#39;, &#39;tbl&#39; and &#39;data.frame&#39;:  19 obs. of  3 variables:
+##   ..$ col1: chr [1:19] &amp;quot;0,9098418493&amp;quot; &amp;quot;0,1127788509&amp;quot; &amp;quot;0,5818891392&amp;quot; &amp;quot;0,1011773532&amp;quot; ...
+##   ..$ col2: chr [1:19] &amp;quot;0,7455905887&amp;quot; &amp;quot;0,4015039612&amp;quot; &amp;quot;0,6625796605&amp;quot; &amp;quot;0,029955339&amp;quot; ...
+##   ..$ col3: chr [1:19] &amp;quot;0,327232932&amp;quot; &amp;quot;0,2784035673&amp;quot; &amp;quot;0,8092386735&amp;quot; &amp;quot;0,1216045306&amp;quot; ...
+##  $ data_3:Classes &#39;tbl_df&#39;, &#39;tbl&#39; and &#39;data.frame&#39;:  19 obs. of  3 variables:
+##   ..$ col1: chr [1:19] &amp;quot;0,9236124896&amp;quot; &amp;quot;0,6303271761&amp;quot; &amp;quot;0,6413583054&amp;quot; &amp;quot;0,5573887416&amp;quot; ...
+##   ..$ col2: chr [1:19] &amp;quot;0,2114708388&amp;quot; &amp;quot;0,6984538266&amp;quot; &amp;quot;0,0469865249&amp;quot; &amp;quot;0,9271510226&amp;quot; ...
+##   ..$ col3: chr [1:19] &amp;quot;0,4941919971&amp;quot; &amp;quot;0,7391538511&amp;quot; &amp;quot;0,3876723797&amp;quot; &amp;quot;0,2815014394&amp;quot; ...&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;If you prefer not to have the datasets in a list, but rather import them into the global environment, you can change the above function like so:&lt;/p&gt;
+&lt;pre class=&quot;r&quot;&gt;&lt;code&gt;read_list &amp;lt;- function(list_of_datasets, read_func){
+
+        read_and_assign &amp;lt;- function(dataset, read_func){
+                assign(dataset, read_func(dataset), envir = .GlobalEnv)
+        }
+
+        # invisible is used to suppress the unneeded output
+        output &amp;lt;- invisible(
+                sapply(list_of_datasets,
+                           read_and_assign, read_func = read_func, simplify = FALSE, USE.NAMES = TRUE))
+
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;But I personnally don’t like this second option, but I put it here for completeness.&lt;/p&gt;
+
+</content>
+ </entry>
  
  <entry>
    <title>Data frame columns as arguments to dplyr functions</title>
