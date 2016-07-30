@@ -16,6 +16,7 @@ http://b-rodrigues.github.com/pages/software
 http://b-rodrigues.github.com/tags
 http://b-rodrigues.github.com/pages/testpage
 
+http://b-rodrigues.github.com/2016/07/30/merge-a-list-of-datasets-together
 http://b-rodrigues.github.com/2016/07/26/read-a-lot-of-datasets-at-once-with-r
 http://b-rodrigues.github.com/2016/07/18/data-frame-columns-as-arguments-to-dplyr-functions
 http://b-rodrigues.github.com/2016/06/21/careful-with-trycatch

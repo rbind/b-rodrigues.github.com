@@ -4,13 +4,83 @@
  <title>Econometrics and Free Software</title>
  <link href="http://b-rodrigues.github.com/atom.xml" rel="self"/>
  <link href="http://b-rodrigues.github.com"/>
- <updated>2016-07-26T21:40:26+02:00</updated>
+ <updated>2016-07-30T17:16:04+02:00</updated>
  <id>http://b-rodrigues.github.com</id>
  <author>
    <name>Bruno Rodrigues</name>
    <email>brodrigues@unistra.fr</email>
  </author>
 
+ 
+ <entry>
+   <title>Merge a list of datasets together</title>
+   <link href="http://b-rodrigues.github.com/2016/07/30/merge-a-list-of-datasets-together"/>
+   <updated>2016-07-30T00:00:00+02:00</updated>
+   <id>http://b-rodrigues.github.com/2016/07/30/merge-a-list-of-datasets-together</id>
+   <content type="html">
+&lt;p&gt;&lt;a href=&quot;http://www.brodrigues.co/2016/07/26/read-a-lot-of-datasets-at-once-with-r&quot;&gt;Last week&lt;/a&gt; I showed how to read a lot of datasets at once with R, and this week I’ll continue from there and show a very simple function that uses this list of read datasets and merges them all together.&lt;/p&gt;
+&lt;p&gt;First we’ll use &lt;code&gt;read_list()&lt;/code&gt; to read all the datasets at once (for more details read &lt;a href=&quot;http://www.brodrigues.co/2016/07/26/read-a-lot-of-datasets-at-once-with-r&quot;&gt;last week’s post&lt;/a&gt;):&lt;/p&gt;
+&lt;pre class=&quot;r&quot;&gt;&lt;code&gt;library(&amp;quot;readr&amp;quot;)
+library(&amp;quot;tibble&amp;quot;)
+
+data_files &amp;lt;- list.files(pattern = &amp;quot;.csv&amp;quot;)
+
+print(data_files)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;data_1.csv&amp;quot; &amp;quot;data_2.csv&amp;quot; &amp;quot;data_3.csv&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&quot;r&quot;&gt;&lt;code&gt;list_of_data_sets &amp;lt;- read_list(data_files, read_csv)
+
+glimpse(list_of_data_sets)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## List of 3
+##  $ data_1:Classes &#39;tbl_df&#39;, &#39;tbl&#39; and &#39;data.frame&#39;:  19 obs. of  3 variables:
+##   ..$ col1: chr [1:19] &amp;quot;0,018930679&amp;quot; &amp;quot;0,8748013128&amp;quot; &amp;quot;0,1025635934&amp;quot; &amp;quot;0,6246140983&amp;quot; ...
+##   ..$ col2: chr [1:19] &amp;quot;0,0377725807&amp;quot; &amp;quot;0,5959457638&amp;quot; &amp;quot;0,4429121533&amp;quot; &amp;quot;0,558387159&amp;quot; ...
+##   ..$ col3: chr [1:19] &amp;quot;0,6241767189&amp;quot; &amp;quot;0,031324594&amp;quot; &amp;quot;0,2238059868&amp;quot; &amp;quot;0,2773350732&amp;quot; ...
+##  $ data_2:Classes &#39;tbl_df&#39;, &#39;tbl&#39; and &#39;data.frame&#39;:  19 obs. of  3 variables:
+##   ..$ col1: chr [1:19] &amp;quot;0,9098418493&amp;quot; &amp;quot;0,1127788509&amp;quot; &amp;quot;0,5818891392&amp;quot; &amp;quot;0,1011773532&amp;quot; ...
+##   ..$ col2: chr [1:19] &amp;quot;0,7455905887&amp;quot; &amp;quot;0,4015039612&amp;quot; &amp;quot;0,6625796605&amp;quot; &amp;quot;0,029955339&amp;quot; ...
+##   ..$ col3: chr [1:19] &amp;quot;0,327232932&amp;quot; &amp;quot;0,2784035673&amp;quot; &amp;quot;0,8092386735&amp;quot; &amp;quot;0,1216045306&amp;quot; ...
+##  $ data_3:Classes &#39;tbl_df&#39;, &#39;tbl&#39; and &#39;data.frame&#39;:  19 obs. of  3 variables:
+##   ..$ col1: chr [1:19] &amp;quot;0,9236124896&amp;quot; &amp;quot;0,6303271761&amp;quot; &amp;quot;0,6413583054&amp;quot; &amp;quot;0,5573887416&amp;quot; ...
+##   ..$ col2: chr [1:19] &amp;quot;0,2114708388&amp;quot; &amp;quot;0,6984538266&amp;quot; &amp;quot;0,0469865249&amp;quot; &amp;quot;0,9271510226&amp;quot; ...
+##   ..$ col3: chr [1:19] &amp;quot;0,4941919971&amp;quot; &amp;quot;0,7391538511&amp;quot; &amp;quot;0,3876723797&amp;quot; &amp;quot;0,2815014394&amp;quot; ...&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;You see that all these datasets have the same column names. We can now merge them using this simple function:&lt;/p&gt;
+&lt;pre class=&quot;r&quot;&gt;&lt;code&gt;multi_join &amp;lt;- function(list_of_loaded_data, join_func, ...){
+
+    require(&amp;quot;dplyr&amp;quot;)
+
+    output &amp;lt;- Reduce(function(x, y) {join_func(x, y, ...)}, list_of_loaded_data)
+
+    return(output)
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This function uses &lt;code&gt;Reduce()&lt;/code&gt;. &lt;code&gt;Reduce()&lt;/code&gt; is a very important function that can be found in all functional programming languages. What does &lt;code&gt;Reduce()&lt;/code&gt; do? Let’s take a look at the following example:&lt;/p&gt;
+&lt;pre class=&quot;r&quot;&gt;&lt;code&gt;Reduce(`+`, c(1, 2, 3, 4, 5))&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] 15&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;code&gt;Reduce()&lt;/code&gt; has several arguments, but you need to specify at least two: a function, here &lt;code&gt;+&lt;/code&gt; and a list, here &lt;code&gt;c(1, 2, 3, 4, 5)&lt;/code&gt;. The next code block shows what &lt;code&gt;Reduce()&lt;/code&gt; basically does:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;0 + c(1, 2, 3, 4, 5)
+0 + 1 + c(2, 3, 4, 5)
+0 + 1 + 2 + c(3, 4, 5)
+0 + 1 + 2 + 3 + c(4, 5)
+0 + 1 + 2 + 3 + 4 + c(5)
+0 + 1 + 2 + 3 + 4 + 5&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;code&gt;0&lt;/code&gt; had to be added as in “init”. You can also specify this “init” to &lt;code&gt;Reduce()&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class=&quot;r&quot;&gt;&lt;code&gt;Reduce(`+`, c(1, 2, 3, 4, 5), init = 20)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] 35&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;So what &lt;code&gt;multi_join()&lt;/code&gt; does, is the same operation as in the example above, but where the function is a user supplied join or merge function, and the list of datasets is the one read with &lt;code&gt;read_list()&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Let’s see what happens when we use &lt;code&gt;multi_join()&lt;/code&gt; on our list:&lt;/p&gt;
+&lt;pre class=&quot;r&quot;&gt;&lt;code&gt;merged_data &amp;lt;- multi_join(list_of_data_sets, full_join)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&quot;r&quot;&gt;&lt;code&gt;class(merged_data)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;tbl_df&amp;quot;     &amp;quot;tbl&amp;quot;        &amp;quot;data.frame&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&quot;r&quot;&gt;&lt;code&gt;glimpse(merged_data)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## Observations: 57
+## Variables: 3
+## $ col1 &amp;lt;chr&amp;gt; &amp;quot;0,018930679&amp;quot;, &amp;quot;0,8748013128&amp;quot;, &amp;quot;0,1025635934&amp;quot;, &amp;quot;0,6246140...
+## $ col2 &amp;lt;chr&amp;gt; &amp;quot;0,0377725807&amp;quot;, &amp;quot;0,5959457638&amp;quot;, &amp;quot;0,4429121533&amp;quot;, &amp;quot;0,558387...
+## $ col3 &amp;lt;chr&amp;gt; &amp;quot;0,6241767189&amp;quot;, &amp;quot;0,031324594&amp;quot;, &amp;quot;0,2238059868&amp;quot;, &amp;quot;0,2773350...&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;You should make sure that all the data frames have the same column names but you can also join data frames with different column names if you give the argument &lt;code&gt;by&lt;/code&gt; to the join function. This is possible thanks to &lt;code&gt;...&lt;/code&gt; that allows you to pass further argument to &lt;code&gt;join_func()&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;This function was inspired by the one found on the blog &lt;a href=&quot;http://novicemetrics.blogspot.lu/2011/04/merging-multiple-data-files-into-one.html&quot;&gt;Coffee and Econometrics in the Morning&lt;/a&gt;.&lt;/p&gt;
+
+</content>
+ </entry>
  
  <entry>
    <title>Read a lot of datasets at once with R</title>
