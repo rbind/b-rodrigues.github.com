@@ -4,13 +4,28 @@
  <title>Econometrics and Free Software</title>
  <link href="http://b-rodrigues.github.com/atom.xml" rel="self"/>
  <link href="http://b-rodrigues.github.com"/>
- <updated>2016-07-30T17:16:04+02:00</updated>
+ <updated>2016-11-04T22:23:07+01:00</updated>
  <id>http://b-rodrigues.github.com</id>
  <author>
    <name>Bruno Rodrigues</name>
    <email>brodrigues@unistra.fr</email>
  </author>
 
+ 
+ <entry>
+   <title>I've started writing a 'book': Functional programming and unit testing for data munging with R</title>
+   <link href="http://b-rodrigues.github.com/2016/11/04/ive-started-writing-a-book-functional-programming-and-unit-testing-for-data-munging-with-r"/>
+   <updated>2016-11-04T00:00:00+01:00</updated>
+   <id>http://b-rodrigues.github.com/2016/11/04/ive-started-writing-a-book-functional-programming-and-unit-testing-for-data-munging-with-r</id>
+   <content type="html">
+&lt;p&gt;I have started writing a ‘book’ using the awesome &lt;code class=&quot;highlighter-rouge&quot;&gt;bookdown&lt;/code&gt; package. In the book I explain and show why using functional programming 
+and putting your functions in your own packages is the way to go when you want to clean, prepare and transform large data sets. 
+It makes testing and documenting your code easier. You don’t need to think about managing paths either. The book is far from complete,
+but I plan on working on it steadily. For now, you can read an intro to functional programming, unit testing and creating your own packages
+that will hold your code. I also show you can write documentation for your functions. I am also looking for feedback; so if you have any
+suggestions, do not hesitate to shoot me an email or a tweet! You can read the book by clicking &lt;a href=&quot;http://www.brodrigues.co/functional_programming_and_unit_testing_for_data_munging/&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+</content>
+ </entry>
  
  <entry>
    <title>Merge a list of datasets together</title>
