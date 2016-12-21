@@ -16,6 +16,7 @@ http://b-rodrigues.github.com/pages/software
 http://b-rodrigues.github.com/tags
 http://b-rodrigues.github.com/pages/testpage
 
+http://b-rodrigues.github.com/2016/12/21/work-on-lists-of-datasets-instead-of-individual-datasets-by-using-functional-programming
 http://b-rodrigues.github.com/2016/11/04/ive-started-writing-a-book-functional-programming-and-unit-testing-for-data-munging-with-r
 http://b-rodrigues.github.com/2016/07/30/merge-a-list-of-datasets-together
 http://b-rodrigues.github.com/2016/07/26/read-a-lot-of-datasets-at-once-with-r
