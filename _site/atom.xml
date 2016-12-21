@@ -4,7 +4,7 @@
  <title>Econometrics and Free Software</title>
  <link href="http://b-rodrigues.github.com/atom.xml" rel="self"/>
  <link href="http://b-rodrigues.github.com"/>
- <updated>2016-12-21T21:22:52+01:00</updated>
+ <updated>2016-12-21T21:25:28+01:00</updated>
  <id>http://b-rodrigues.github.com</id>
  <author>
    <name>Bruno Rodrigues</name>
@@ -241,7 +241,6 @@ tablemap(list_data, &amp;quot;cyl&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
 ##   21 21.4 21.5 22.8 24.4   26 27.3 30.4 32.4 33.9 
 ##    2    2    1    2    1    1    1    2    1    1&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;I hope you will find this little function useful, and as usual, for any comments just drop me an email by clicking the red enveloppe in the top right corner or &lt;a href=&quot;https://twitter.com/brodriguesco&quot;&gt;tweet me&lt;/a&gt;.&lt;/p&gt;
-
 &lt;/body&gt;
 </content>
  </entry>
@@ -257,7 +256,7 @@ and putting your functions in your own packages is the way to go when you want t
 It makes testing and documenting your code easier. You don’t need to think about managing paths either. The book is far from complete,
 but I plan on working on it steadily. For now, you can read an intro to functional programming, unit testing and creating your own packages
 that will hold your code. I also show you can write documentation for your functions. I am also looking for feedback; so if you have any
-suggestions, do not hesitate to shoot me an email or a tweet! You can read the book by clicking &lt;a href=&quot;http://www.brodrigues.co/functional_programming_and_unit_testing_for_data_munging/&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+suggestions, do not hesitate to shoot me an email or a tweet! You can read the book by clicking &lt;a href=&quot;http://www.brodrigues.co/fput/&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
 </content>
  </entry>
  
