@@ -4,13 +4,39 @@
  <title>Econometrics and Free Software</title>
  <link href="http://b-rodrigues.github.com/atom.xml" rel="self"/>
  <link href="http://b-rodrigues.github.com"/>
- <updated>2016-12-24T10:46:20+01:00</updated>
+ <updated>2017-01-07T14:59:05+01:00</updated>
  <id>http://b-rodrigues.github.com</id>
  <author>
    <name>Bruno Rodrigues</name>
    <email>contact@brodrigues.co</email>
  </author>
 
+ 
+ <entry>
+   <title>My free book has a cover!</title>
+   <link href="http://b-rodrigues.github.com/2017/01/07/my-free-book-has-a-cover"/>
+   <updated>2017-01-07T00:00:00+01:00</updated>
+   <id>http://b-rodrigues.github.com/2017/01/07/my-free-book-has-a-cover</id>
+   <content type="html">
+&lt;p&gt;I’m currently writing a book as a hobby. It’s titled &lt;em&gt;Functional programming and unit testing for data munging with R&lt;/em&gt; and you can get it for free &lt;a href=&quot;https://leanpub.com/fput/&quot;&gt;here&lt;/a&gt;. You can also read it online for free on my &lt;a href=&quot;www.brodrigues.co/fput&quot;&gt;webpage&lt;/a&gt; What’s the book about?&lt;/p&gt;
+
+&lt;p&gt;Here’s the teaser text:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Learn the basics of functional programming, unit testing and package development for the R programming language in order to make your data tidy!&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;The book now has a beautiful cover thanks to &lt;a href=&quot;https://twitter.com/putosaure&quot;&gt;@putosaure&lt;/a&gt;. Putosaure is a Paris based graphic designer who also reviews video games. He is also a very good friend of mine and I am very happy he made this beautiful cover for my book:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/cover.png&quot; width=&quot;612&quot; height=&quot;792&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;In it, we see a guy holding a shield with the Greek letter lambda, which also happens to be the letter to design functional programming. I’ve added the title with the &lt;a href=&quot;http://www.dafont.com/komika-title.font&quot;&gt;Komika Title&lt;/a&gt; font.&lt;/p&gt;
+
+&lt;p&gt;Condiser this cover in beta, it’ll probably evolve some more. But I couldn’t wait to use it!&lt;/p&gt;
+
+&lt;p&gt;I love it. Hope you’ll love it too!&lt;/p&gt;
+</content>
+ </entry>
  
  <entry>
    <title>Functional programming and unit testing for data munging with R available on Leanpub</title>
