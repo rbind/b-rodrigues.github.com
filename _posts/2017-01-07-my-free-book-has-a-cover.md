@@ -7,7 +7,7 @@ tags: [R]
 ---
 {% include JB/setup %}
 
-I'm currently writing a book as a hobby. It's titled *Functional programming and unit testing for data munging with R* and you can get it for free [here](https://leanpub.com/fput/). You can also read it online for free on my [webpage](www.brodrigues.co/fput) What's the book about?
+I'm currently writing a book as a hobby. It's titled *Functional programming and unit testing for data munging with R* and you can get it for free [here](https://leanpub.com/fput/). You can also read it online for free on my [webpage](http://www.brodrigues.co/fput) What's the book about?
 
 Here's the teaser text: 
 
