@@ -17,8 +17,8 @@ The book now has a beautiful cover thanks to [@putosaure](https://twitter.com/pu
 
 <img src="/assets/images/cover.png" width="612" height="792"/>
 
-In it, we see a guy holding a shield with the Greek letter lambda, which also happens to be the letter to design functional programming. I've added the title with the [Komika Title](http://www.dafont.com/komika-title.font) font.
+In it, we see a guy holding a shield with the Greek letter lambda, which also happens to be the letter to designate functional programming. I've added the title with the [Komika Title](http://www.dafont.com/komika-title.font) font.
 
-Condiser this cover in beta, it'll probably evolve some more. But I couldn't wait to use it!
+Consider this cover in beta, it'll probably evolve some more. But I couldn't wait to use it!
 
 I love it. Hope you'll love it too!
