@@ -1,0 +1,1045 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Econometrics and Free Software</title>
+    <link>/index.xml</link>
+    <description>Recent content on Econometrics and Free Software</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sun, 22 Jan 2017 19:50:00 +0200</lastBuildDate>
+    <atom:link href="/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>index</title>
+      <link>/</link>
+      <pubDate>Sun, 22 Jan 2017 19:50:00 +0200</pubDate>
+      
+      <guid>/</guid>
+      <description>
+
+&lt;h1 id=&#34;welcome&#34;&gt;Welcome&lt;/h1&gt;
+
+&lt;div style=&#34;float: left;margin: 0px 80px 50px 0px&#34;&gt;
+    &lt;img src=&#34;./img/profile.jpg&#34; width=&#34;213&#34; height=&#34;213&#34;/&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Welcome to my page. If you are were one of my students, you’re probably interested in the Teachings (if links are dead, don’t hesitate to send me an email!) and Software pages. If you’re a fellow PhD candidate, maybe my Research will be of interest to you. If you want to email me, you can click on the red envelope at the top-right corner of any page. You can also follow me on twitter. I sometimes write blog posts about R, and hope to contribute in this way to R-bloggers.&lt;/p&gt;
+
+&lt;h1 id=&#34;blog-posts&#34;&gt;Blog posts&lt;/h1&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Functional programming and unit testing for data munging with R available on Leanpub</title>
+      <link>/blog/2016-12-24-functional-programming-and-unit-testing-for-data-munging-with-r-available-on-leanpub/</link>
+      <pubDate>Sat, 24 Dec 2016 00:00:00 +0000</pubDate>
+      
+      <guid>/blog/2016-12-24-functional-programming-and-unit-testing-for-data-munging-with-r-available-on-leanpub/</guid>
+      <description>&lt;p&gt;The book I&amp;rsquo;ve been working on these pasts months (you can read about it &lt;a href=&#34;http://www.brodrigues.co/2016/11/04/ive-started-writing-a-book-functional-programming-and-unit-testing-for-data-munging-with-r&#34;&gt;here&lt;/a&gt;, and read it for free &lt;a href=&#34;http://www.brodrigues.co/fput&#34;&gt;here&lt;/a&gt;) is now available on Leanpub! You can grab a copy and read it on your ebook reader or on your computer, and what&amp;rsquo;s even better is that it is available for free (but you can also decide to buy it if you really like it). Here is the link on &lt;a href=&#34;https://leanpub.com/fput&#34;&gt;Leanpub&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;In the book, I show you the basics of functional programming, unit testing and package development for the R programming language. The end goal is to make your data tidy in a reproducible way!&lt;/p&gt;
+
+&lt;p&gt;Just a heads up: as the book is right now, the formatting is not perfect and images are missing. This is because I use &lt;code&gt;bookdown&lt;/code&gt; to write the book and convert it to Leanpub&amp;rsquo;s markdown flavour is not trivial. I will find a solution to automate the conversion from &lt;code&gt;bookdown&lt;/code&gt;&amp;rsquo;s version to Leanpub&amp;rsquo;s markdown and try to keep both versions in sync. Of course, once the book will be finished, the version on Leanpub and on my &lt;a href=&#34;http://www.brodrigues.co/fput&#34;&gt;website&lt;/a&gt; are going to be completely identical. If you want to read it on your computer offline, you can also download a pdf from the book&amp;rsquo;s website, by clicking on the pdf icon in the top left corner.  Do not hesitate to send me an email if you want to give me feedback (just click on the red envelope in the top right corner) or tweet me &lt;a href=&#34;https://twitter.com/brodriguesco&#34;&gt;@brodriguesco&lt;/a&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>My free book has a cover!</title>
+      <link>/blog/2017-01-07-my-free-book-has-a-cover/</link>
+      <pubDate>Sat, 24 Dec 2016 00:00:00 +0000</pubDate>
+      
+      <guid>/blog/2017-01-07-my-free-book-has-a-cover/</guid>
+      <description>&lt;p&gt;I&amp;rsquo;m currently writing a book as a hobby. It&amp;rsquo;s titled &lt;em&gt;Functional programming and unit testing for data munging with R&lt;/em&gt; and you can get it for free &lt;a href=&#34;https://leanpub.com/fput/&#34;&gt;here&lt;/a&gt;. You can also read it online for free on my &lt;a href=&#34;http://www.brodrigues.co/fput&#34;&gt;webpage&lt;/a&gt; What&amp;rsquo;s the book about?&lt;/p&gt;
+
+&lt;p&gt;Here&amp;rsquo;s the teaser text:&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Learn the basics of functional programming, unit testing and package development for the R programming language in order to make your data tidy!&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;The book now has a beautiful cover thanks to &lt;a href=&#34;https://twitter.com/putosaure&#34;&gt;@putosaure&lt;/a&gt;. Putosaure is a Paris based graphic designer who also reviews video games. He is also a very good friend of mine and I am very happy he made this beautiful cover for my book:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;./img/cover.png&#34; width=&#34;612&#34; height=&#34;792&#34;/&gt;&lt;/p&gt;
+
+&lt;p&gt;In it, we see a guy holding a shield with the Greek letter lambda, which also happens to be the letter to designate functional programming. I&amp;rsquo;ve added the title with the &lt;a href=&#34;http://www.dafont.com/komika-title.font&#34;&gt;Komika Title&lt;/a&gt; font.&lt;/p&gt;
+
+&lt;p&gt;Consider this cover in beta, it&amp;rsquo;ll probably evolve some more. But I couldn&amp;rsquo;t wait to use it!&lt;/p&gt;
+
+&lt;p&gt;I love it. Hope you&amp;rsquo;ll love it too!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Work on lists of datasets instead of individual datasets by using functional programming</title>
+      <link>/blog/2016-12-21-work-on-lists-of-datasets-instead-of-individual-datasets-by-using-functional-programming/</link>
+      <pubDate>Wed, 21 Dec 2016 00:00:00 +0000</pubDate>
+      
+      <guid>/blog/2016-12-21-work-on-lists-of-datasets-instead-of-individual-datasets-by-using-functional-programming/</guid>
+      <description>&lt;p&gt;&lt;p&gt;Analyzing a lot of datasets can be tedious. In my work, I often have to compute descriptive statistics, or plot some graphs for some variables for a lot of datasets. The variables in question have the same name accross the datasets but are measured for different years. As an example, imagine you have this situation:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;data2000 &amp;lt;- mtcars
+data2001 &amp;lt;- mtcars&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;For the sake of argument, imagine that &lt;code&gt;data2000&lt;/code&gt; is data from a survey conducted in the year 2000 and &lt;code&gt;data2001&lt;/code&gt; is the same survey but conducted in the year 2001. For illustration purposes, I use the &lt;code&gt;mtcars&lt;/code&gt; dataset, but I could have used any other example. In these sort of situations, the variables are named the same in both datasets. Now if I want to check the summary statistics of a variable, I might do it by running:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;summary(data2000$cyl)
+summary(data2001$cyl)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;but this can get quite tedious, especially if instead of only having two years of data, you have 20 years. Another possibility is to merge both datasets and then check the summary statistics of the variable of interest. But this might require a lot of preprocessing, and sometimes you really just want to do a quick check, or some dirty graphs. So you might be tempted to write a loop, which would require to put these two datasets in some kind of structure, such as a list:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;list_data &amp;lt;- list(&amp;quot;data2000&amp;quot; = data2000, &amp;quot;data2001&amp;quot; = data2001)&lt;/p&gt;
+
+&lt;p&gt;for (i in 1:2){
+    print(summary(list_data[[i]]$cyl))
+ }&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.
+  4.000   4.000   6.000   6.188   8.000   8.000
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max.
+  4.000   4.000   6.000   6.188   8.000   8.000&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;But this also might get tedious, especially if you want to do this for a lot of different variables, and want to use different functions than &lt;code&gt;summary()&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Another, simpler way of doing this, is to use &lt;code&gt;purrr::map()&lt;/code&gt; or &lt;code&gt;lapply()&lt;/code&gt;. But there is a catch though: how do we specify the column we want to work on? Let’s try some things out:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(purrr)&lt;/p&gt;
+
+&lt;p&gt;map(list_data, summary(cyl))&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;Error in summary(cyl) : object &amp;lsquo;cyl&amp;rsquo; not found&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Maybe this will work:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;map(list_data, summary, cyl)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## $data2000
+     mpg             cyl             disp             hp&lt;br /&gt;
+Min.   :10.40   Min.   :4.000   Min.   : 71.1   Min.   : 52.0&lt;br /&gt;
+1st Qu.:15.43   1st Qu.:4.000   1st Qu.:120.8   1st Qu.: 96.5&lt;br /&gt;
+Median :19.20   Median :6.000   Median :196.3   Median :123.0&lt;br /&gt;
+Mean   :20.09   Mean   :6.188   Mean   :230.7   Mean   :146.7&lt;br /&gt;
+3rd Qu.:22.80   3rd Qu.:8.000   3rd Qu.:326.0   3rd Qu.:180.0&lt;br /&gt;
+Max.   :33.90   Max.   :8.000   Max.   :472.0   Max.   :335.0&lt;br /&gt;
+     drat             wt             qsec             vs&lt;br /&gt;
+Min.   :2.760   Min.   :1.513   Min.   :14.50   Min.   :0.0000&lt;br /&gt;
+1st Qu.:3.080   1st Qu.:2.581   1st Qu.:16.89   1st Qu.:0.0000&lt;br /&gt;
+Median :3.695   Median :3.325   Median :17.71   Median :0.0000&lt;br /&gt;
+Mean   :3.597   Mean   :3.217   Mean   :17.85   Mean   :0.4375&lt;br /&gt;
+3rd Qu.:3.920   3rd Qu.:3.610   3rd Qu.:18.90   3rd Qu.:1.0000&lt;br /&gt;
+Max.   :4.930   Max.   :5.424   Max.   :22.90   Max.   :1.0000&lt;br /&gt;
+      am              gear            carb&lt;br /&gt;
+Min.   :0.0000   Min.   :3.000   Min.   :1.000&lt;br /&gt;
+1st Qu.:0.0000   1st Qu.:3.000   1st Qu.:2.000&lt;br /&gt;
+Median :0.0000   Median :4.000   Median :2.000&lt;br /&gt;
+Mean   :0.4062   Mean   :3.688   Mean   :2.812&lt;br /&gt;
+3rd Qu.:1.0000   3rd Qu.:4.000   3rd Qu.:4.000&lt;br /&gt;
+Max.   :1.0000   Max.   :5.000   Max.   :8.000&lt;/p&gt;
+
+&lt;p&gt;data2001
+     mpg             cyl             disp             hp&lt;br /&gt;
+Min.   :10.40   Min.   :4.000   Min.   : 71.1   Min.   : 52.0&lt;br /&gt;
+1st Qu.:15.43   1st Qu.:4.000   1st Qu.:120.8   1st Qu.: 96.5&lt;br /&gt;
+Median :19.20   Median :6.000   Median :196.3   Median :123.0&lt;br /&gt;
+Mean   :20.09   Mean   :6.188   Mean   :230.7   Mean   :146.7&lt;br /&gt;
+3rd Qu.:22.80   3rd Qu.:8.000   3rd Qu.:326.0   3rd Qu.:180.0&lt;br /&gt;
+Max.   :33.90   Max.   :8.000   Max.   :472.0   Max.   :335.0&lt;br /&gt;
+     drat             wt             qsec             vs&lt;br /&gt;
+Min.   :2.760   Min.   :1.513   Min.   :14.50   Min.   :0.0000&lt;br /&gt;
+1st Qu.:3.080   1st Qu.:2.581   1st Qu.:16.89   1st Qu.:0.0000&lt;br /&gt;
+Median :3.695   Median :3.325   Median :17.71   Median :0.0000&lt;br /&gt;
+Mean   :3.597   Mean   :3.217   Mean   :17.85   Mean   :0.4375&lt;br /&gt;
+3rd Qu.:3.920   3rd Qu.:3.610   3rd Qu.:18.90   3rd Qu.:1.0000&lt;br /&gt;
+Max.   :4.930   Max.   :5.424   Max.   :22.90   Max.   :1.0000&lt;br /&gt;
+      am              gear            carb&lt;br /&gt;
+Min.   :0.0000   Min.   :3.000   Min.   :1.000&lt;br /&gt;
+1st Qu.:0.0000   1st Qu.:3.000   1st Qu.:2.000&lt;br /&gt;
+Median :0.0000   Median :4.000   Median :2.000&lt;br /&gt;
+Mean   :0.4062   Mean   :3.688   Mean   :2.812&lt;br /&gt;
+3rd Qu.:1.0000   3rd Qu.:4.000   3rd Qu.:4.000&lt;br /&gt;
+Max.   :1.0000   Max.   :5.000   Max.   :8.000&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Not quite! You get the summary statistics of every variable, &lt;code&gt;cyl&lt;/code&gt; simply gets ignored. This might be ok in our small toy example, but if you have dozens of datasets with hundreds of variables, the output becomes unreadable. The solution is to use an anonymous functions:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;map(list_data, (function(x) summary(x$cyl)))&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## $data2000
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max.
+  4.000   4.000   6.000   6.188   8.000   8.000&lt;/p&gt;
+
+&lt;p&gt;$data2001
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max.
+  4.000   4.000   6.000   6.188   8.000   8.000&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This is, in my opinion, much more readable than a loop, and the output of this is another list, so it’s easy to save it:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;summary_cyl &amp;lt;- map(list_data, (function(x) summary(x$cyl)))
+str(summary_cyl)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## List of 2
+$ data2000:Classes &amp;lsquo;summaryDefault&amp;rsquo;, &amp;lsquo;table&amp;rsquo;  Named num [1:6] 4 4 6 6.19 8 &amp;hellip;
+ .. ..- attr(&lt;em&gt;, &amp;quot;names&amp;quot;)= chr [1:6] &amp;quot;Min.&amp;quot; &amp;quot;1st Qu.&amp;quot; &amp;quot;Median&amp;quot; &amp;quot;Mean&amp;quot; &amp;hellip;
+$ data2001:Classes &amp;lsquo;summaryDefault&amp;rsquo;, &amp;lsquo;table&amp;rsquo;  Named num [1:6] 4 4 6 6.19 8 &amp;hellip;
+ .. ..- attr(&lt;/em&gt;, &amp;quot;names&amp;quot;)= chr [1:6] &amp;quot;Min.&amp;quot; &amp;quot;1st Qu.&amp;quot; &amp;quot;Median&amp;quot; &amp;quot;Mean&amp;quot; &amp;hellip;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;With the loop, you would need to “allocate” an empty list that you would fill at each iteration.&lt;/p&gt;
+&lt;p&gt;So this is already nice, but wouldn’t it be nicer to simply have to type:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;summary(list_data$cyl)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;and have the summary of variable &lt;code&gt;cyl&lt;/code&gt; for each dataset in the list? Well it is possible with the following function I wrote to make my life easier:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;to_map &amp;lt;- function(func){
+  function(list, column, &amp;hellip;){
+    if(missing(column)){
+        res &amp;lt;- purrr::map(list, (function(x) func(x, &amp;hellip;)))
+      } else {
+        res &amp;lt;- purrr::map(list, (function(x) func(x[column], &amp;hellip;)))
+             }
+    res
+  }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;By following &lt;a href=&#34;http://adv-r.had.co.nz/Function-operators.html&#34;&gt;this&lt;/a&gt; chapter of Hadley Wickham’s book, &lt;i&gt;Advanced R&lt;/i&gt;, I was able to write this function. What does it do? It basically &lt;i&gt;generalizes&lt;/i&gt; a function to work on a list of datasets instead of just on a dataset. So for example, in the case of &lt;code&gt;summary()&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;summarymap &amp;lt;- to_map(summary)&lt;/p&gt;
+
+&lt;p&gt;summarymap(list_data, &amp;quot;cyl&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;$data2000
+     cyl&lt;br /&gt;
+Min.   :4.000&lt;br /&gt;
+1st Qu.:4.000&lt;br /&gt;
+Median :6.000&lt;br /&gt;
+Mean   :6.188&lt;br /&gt;
+3rd Qu.:8.000&lt;br /&gt;
+Max.   :8.000&lt;/p&gt;
+
+&lt;p&gt;$data2001
+     cyl&lt;br /&gt;
+Min.   :4.000&lt;br /&gt;
+1st Qu.:4.000&lt;br /&gt;
+Median :6.000&lt;br /&gt;
+Mean   :6.188&lt;br /&gt;
+3rd Qu.:8.000&lt;br /&gt;
+Max.   :8.000&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;So now everytime I want to have summary statistics for a variable, I just need to use &lt;code&gt;summarymap()&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;summarymap(list_data, &amp;quot;mpg&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## $data2000
+      mpg&lt;br /&gt;
+ Min.   :10.40&lt;br /&gt;
+ 1st Qu.:15.43&lt;br /&gt;
+ Median :19.20&lt;br /&gt;
+ Mean   :20.09&lt;br /&gt;
+ 3rd Qu.:22.80&lt;br /&gt;
+ Max.   :33.90&lt;/p&gt;
+
+&lt;p&gt;$data2001
+      mpg&lt;br /&gt;
+ Min.   :10.40&lt;br /&gt;
+ 1st Qu.:15.43&lt;br /&gt;
+ Median :19.20&lt;br /&gt;
+ Mean   :20.09&lt;br /&gt;
+ 3rd Qu.:22.80&lt;br /&gt;
+ Max.   :33.90&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;If I want the summary statistics for every variable, I simply omit the column name:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;summarymap(list_data)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;$data2000
+      mpg             cyl             disp             hp&lt;br /&gt;
+ Min.   :10.40   Min.   :4.000   Min.   : 71.1   Min.   : 52.0&lt;br /&gt;
+ 1st Qu.:15.43   1st Qu.:4.000   1st Qu.:120.8   1st Qu.: 96.5&lt;br /&gt;
+ Median :19.20   Median :6.000   Median :196.3   Median :123.0&lt;br /&gt;
+ Mean   :20.09   Mean   :6.188   Mean   :230.7   Mean   :146.7&lt;br /&gt;
+ 3rd Qu.:22.80   3rd Qu.:8.000   3rd Qu.:326.0   3rd Qu.:180.0&lt;br /&gt;
+ Max.   :33.90   Max.   :8.000   Max.   :472.0   Max.   :335.0&lt;br /&gt;
+      drat             wt             qsec             vs&lt;br /&gt;
+ Min.   :2.760   Min.   :1.513   Min.   :14.50   Min.   :0.0000&lt;br /&gt;
+ 1st Qu.:3.080   1st Qu.:2.581   1st Qu.:16.89   1st Qu.:0.0000&lt;br /&gt;
+ Median :3.695   Median :3.325   Median :17.71   Median :0.0000&lt;br /&gt;
+ Mean   :3.597   Mean   :3.217   Mean   :17.85   Mean   :0.4375&lt;br /&gt;
+ 3rd Qu.:3.920   3rd Qu.:3.610   3rd Qu.:18.90   3rd Qu.:1.0000&lt;br /&gt;
+ Max.   :4.930   Max.   :5.424   Max.   :22.90   Max.   :1.0000&lt;br /&gt;
+       am              gear            carb&lt;br /&gt;
+ Min.   :0.0000   Min.   :3.000   Min.   :1.000&lt;br /&gt;
+ 1st Qu.:0.0000   1st Qu.:3.000   1st Qu.:2.000&lt;br /&gt;
+ Median :0.0000   Median :4.000   Median :2.000&lt;br /&gt;
+ Mean   :0.4062   Mean   :3.688   Mean   :2.812&lt;br /&gt;
+ 3rd Qu.:1.0000   3rd Qu.:4.000   3rd Qu.:4.000&lt;br /&gt;
+ Max.   :1.0000   Max.   :5.000   Max.   :8.000&lt;/p&gt;
+
+&lt;p&gt;$data2001
+      mpg             cyl             disp             hp&lt;br /&gt;
+ Min.   :10.40   Min.   :4.000   Min.   : 71.1   Min.   : 52.0&lt;br /&gt;
+ 1st Qu.:15.43   1st Qu.:4.000   1st Qu.:120.8   1st Qu.: 96.5&lt;br /&gt;
+ Median :19.20   Median :6.000   Median :196.3   Median :123.0&lt;br /&gt;
+ Mean   :20.09   Mean   :6.188   Mean   :230.7   Mean   :146.7&lt;br /&gt;
+ 3rd Qu.:22.80   3rd Qu.:8.000   3rd Qu.:326.0   3rd Qu.:180.0&lt;br /&gt;
+ Max.   :33.90   Max.   :8.000   Max.   :472.0   Max.   :335.0&lt;br /&gt;
+      drat             wt             qsec             vs&lt;br /&gt;
+ Min.   :2.760   Min.   :1.513   Min.   :14.50   Min.   :0.0000&lt;br /&gt;
+ 1st Qu.:3.080   1st Qu.:2.581   1st Qu.:16.89   1st Qu.:0.0000&lt;br /&gt;
+ Median :3.695   Median :3.325   Median :17.71   Median :0.0000&lt;br /&gt;
+ Mean   :3.597   Mean   :3.217   Mean   :17.85   Mean   :0.4375&lt;br /&gt;
+ 3rd Qu.:3.920   3rd Qu.:3.610   3rd Qu.:18.90   3rd Qu.:1.0000&lt;br /&gt;
+ Max.   :4.930   Max.   :5.424   Max.   :22.90   Max.   :1.0000&lt;br /&gt;
+       am              gear            carb&lt;br /&gt;
+ Min.   :0.0000   Min.   :3.000   Min.   :1.000&lt;br /&gt;
+ 1st Qu.:0.0000   1st Qu.:3.000   1st Qu.:2.000&lt;br /&gt;
+ Median :0.0000   Median :4.000   Median :2.000&lt;br /&gt;
+ Mean   :0.4062   Mean   :3.688   Mean   :2.812&lt;br /&gt;
+ 3rd Qu.:1.0000   3rd Qu.:4.000   3rd Qu.:4.000&lt;br /&gt;
+ Max.   :1.0000   Max.   :5.000   Max.   :8.000&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;I can use any function:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;tablemap &amp;lt;- to_map(table)&lt;/p&gt;
+
+&lt;p&gt;tablemap(list_data, &amp;quot;cyl&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## $data2000&lt;/p&gt;
+
+&lt;p&gt;4  6  8
+11  7 14&lt;/p&gt;
+
+&lt;p&gt;$data2001&lt;/p&gt;
+
+&lt;p&gt;4  6  8
+11  7 14&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;tablemap(list_data, &amp;quot;mpg&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## $data2000&lt;/p&gt;
+
+&lt;p&gt;10.4 13.3 14.3 14.7   15 15.2 15.5 15.8 16.4 17.3 17.8 18.1 18.7 19.2 19.7
+   2    1    1    1    1    2    1    1    1    1    1    1    1    2    1
+  21 21.4 21.5 22.8 24.4   26 27.3 30.4 32.4 33.9
+   2    2    1    2    1    1    1    2    1    1&lt;/p&gt;
+
+&lt;p&gt;$data2001&lt;/p&gt;
+
+&lt;p&gt;10.4 13.3 14.3 14.7   15 15.2 15.5 15.8 16.4 17.3 17.8 18.1 18.7 19.2 19.7
+   2    1    1    1    1    2    1    1    1    1    1    1    1    2    1
+  21 21.4 21.5 22.8 24.4   26 27.3 30.4 32.4 33.9
+   2    2    1    2    1    1    1    2    1    1&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;I hope you will find this little function useful, and as usual, for any comments just drop me an email by clicking the red enveloppe in the top right corner or &lt;a href=&#34;https://twitter.com/brodriguesco&#34;&gt;tweet me&lt;/a&gt;.&lt;/p&gt;
+&lt;/body&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>I&#39;ve started writing a &#39;book&#39;: Functional programming and unit testing for data munging with R</title>
+      <link>/blog/2016-11-04-ive-started-writing-a-book-functional-programming-and-unit-testing-for-data-munging-with-r/</link>
+      <pubDate>Fri, 04 Nov 2016 00:00:00 +0000</pubDate>
+      
+      <guid>/blog/2016-11-04-ive-started-writing-a-book-functional-programming-and-unit-testing-for-data-munging-with-r/</guid>
+      <description>&lt;p&gt;I have started writing a &amp;lsquo;book&amp;rsquo; using the awesome &lt;code&gt;bookdown&lt;/code&gt; package. In the book I explain and show why using functional programming
+and putting your functions in your own packages is the way to go when you want to clean, prepare and transform large data sets.
+It makes testing and documenting your code easier. You don&amp;rsquo;t need to think about managing paths either. The book is far from complete,
+but I plan on working on it steadily. For now, you can read an intro to functional programming, unit testing and creating your own packages
+that will hold your code. I also show you can write documentation for your functions. I am also looking for feedback; so if you have any
+suggestions, do not hesitate to shoot me an email or a tweet! You can read the book by clicking &lt;a href=&#34;http://www.brodrigues.co/fput/&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Merge a list of datasets together</title>
+      <link>/blog/2016-07-30-merge-a-list-of-datasets-together/</link>
+      <pubDate>Sat, 30 Jul 2016 00:00:00 +0000</pubDate>
+      
+      <guid>/blog/2016-07-30-merge-a-list-of-datasets-together/</guid>
+      <description>&lt;p&gt;&lt;a href=&#34;http://www.brodrigues.co/2016/07/26/read-a-lot-of-datasets-at-once-with-r&#34;&gt;Last week&lt;/a&gt; I showed how to read a lot of datasets at once with R, and this week I’ll continue from there and show a very simple function that uses this list of read datasets and merges them all together.&lt;/p&gt;
+&lt;p&gt;First we’ll use &lt;code&gt;read_list()&lt;/code&gt; to read all the datasets at once (for more details read &lt;a href=&#34;http://www.brodrigues.co/2016/07/26/read-a-lot-of-datasets-at-once-with-r&#34;&gt;last week’s post&lt;/a&gt;):&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(&amp;quot;readr&amp;quot;)
+library(&amp;quot;tibble&amp;quot;)
+
+data_files &amp;lt;- list.files(pattern = &amp;quot;.csv&amp;quot;)
+
+print(data_files)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;data_1.csv&amp;quot; &amp;quot;data_2.csv&amp;quot; &amp;quot;data_3.csv&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;list_of_data_sets &amp;lt;- read_list(data_files, read_csv)
+
+glimpse(list_of_data_sets)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## List of 3
+##  $ data_1:Classes &#39;tbl_df&#39;, &#39;tbl&#39; and &#39;data.frame&#39;:  19 obs. of  3 variables:
+##   ..$ col1: chr [1:19] &amp;quot;0,018930679&amp;quot; &amp;quot;0,8748013128&amp;quot; &amp;quot;0,1025635934&amp;quot; &amp;quot;0,6246140983&amp;quot; ...
+##   ..$ col2: chr [1:19] &amp;quot;0,0377725807&amp;quot; &amp;quot;0,5959457638&amp;quot; &amp;quot;0,4429121533&amp;quot; &amp;quot;0,558387159&amp;quot; ...
+##   ..$ col3: chr [1:19] &amp;quot;0,6241767189&amp;quot; &amp;quot;0,031324594&amp;quot; &amp;quot;0,2238059868&amp;quot; &amp;quot;0,2773350732&amp;quot; ...
+##  $ data_2:Classes &#39;tbl_df&#39;, &#39;tbl&#39; and &#39;data.frame&#39;:  19 obs. of  3 variables:
+##   ..$ col1: chr [1:19] &amp;quot;0,9098418493&amp;quot; &amp;quot;0,1127788509&amp;quot; &amp;quot;0,5818891392&amp;quot; &amp;quot;0,1011773532&amp;quot; ...
+##   ..$ col2: chr [1:19] &amp;quot;0,7455905887&amp;quot; &amp;quot;0,4015039612&amp;quot; &amp;quot;0,6625796605&amp;quot; &amp;quot;0,029955339&amp;quot; ...
+##   ..$ col3: chr [1:19] &amp;quot;0,327232932&amp;quot; &amp;quot;0,2784035673&amp;quot; &amp;quot;0,8092386735&amp;quot; &amp;quot;0,1216045306&amp;quot; ...
+##  $ data_3:Classes &#39;tbl_df&#39;, &#39;tbl&#39; and &#39;data.frame&#39;:  19 obs. of  3 variables:
+##   ..$ col1: chr [1:19] &amp;quot;0,9236124896&amp;quot; &amp;quot;0,6303271761&amp;quot; &amp;quot;0,6413583054&amp;quot; &amp;quot;0,5573887416&amp;quot; ...
+##   ..$ col2: chr [1:19] &amp;quot;0,2114708388&amp;quot; &amp;quot;0,6984538266&amp;quot; &amp;quot;0,0469865249&amp;quot; &amp;quot;0,9271510226&amp;quot; ...
+##   ..$ col3: chr [1:19] &amp;quot;0,4941919971&amp;quot; &amp;quot;0,7391538511&amp;quot; &amp;quot;0,3876723797&amp;quot; &amp;quot;0,2815014394&amp;quot; ...&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;You see that all these datasets have the same column names. We can now merge them using this simple function:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;multi_join &amp;lt;- function(list_of_loaded_data, join_func, ...){
+
+    require(&amp;quot;dplyr&amp;quot;)
+
+    output &amp;lt;- Reduce(function(x, y) {join_func(x, y, ...)}, list_of_loaded_data)
+
+    return(output)
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This function uses &lt;code&gt;Reduce()&lt;/code&gt;. &lt;code&gt;Reduce()&lt;/code&gt; is a very important function that can be found in all functional programming languages. What does &lt;code&gt;Reduce()&lt;/code&gt; do? Let’s take a look at the following example:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;Reduce(`+`, c(1, 2, 3, 4, 5))&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] 15&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;code&gt;Reduce()&lt;/code&gt; has several arguments, but you need to specify at least two: a function, here &lt;code&gt;+&lt;/code&gt; and a list, here &lt;code&gt;c(1, 2, 3, 4, 5)&lt;/code&gt;. The next code block shows what &lt;code&gt;Reduce()&lt;/code&gt; basically does:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;0 + c(1, 2, 3, 4, 5)
+0 + 1 + c(2, 3, 4, 5)
+0 + 1 + 2 + c(3, 4, 5)
+0 + 1 + 2 + 3 + c(4, 5)
+0 + 1 + 2 + 3 + 4 + c(5)
+0 + 1 + 2 + 3 + 4 + 5&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;code&gt;0&lt;/code&gt; had to be added as in “init”. You can also specify this “init” to &lt;code&gt;Reduce()&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;Reduce(`+`, c(1, 2, 3, 4, 5), init = 20)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] 35&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;So what &lt;code&gt;multi_join()&lt;/code&gt; does, is the same operation as in the example above, but where the function is a user supplied join or merge function, and the list of datasets is the one read with &lt;code&gt;read_list()&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Let’s see what happens when we use &lt;code&gt;multi_join()&lt;/code&gt; on our list:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;merged_data &amp;lt;- multi_join(list_of_data_sets, full_join)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;class(merged_data)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;tbl_df&amp;quot;     &amp;quot;tbl&amp;quot;        &amp;quot;data.frame&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;glimpse(merged_data)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## Observations: 57
+## Variables: 3
+## $ col1 &amp;lt;chr&amp;gt; &amp;quot;0,018930679&amp;quot;, &amp;quot;0,8748013128&amp;quot;, &amp;quot;0,1025635934&amp;quot;, &amp;quot;0,6246140...
+## $ col2 &amp;lt;chr&amp;gt; &amp;quot;0,0377725807&amp;quot;, &amp;quot;0,5959457638&amp;quot;, &amp;quot;0,4429121533&amp;quot;, &amp;quot;0,558387...
+## $ col3 &amp;lt;chr&amp;gt; &amp;quot;0,6241767189&amp;quot;, &amp;quot;0,031324594&amp;quot;, &amp;quot;0,2238059868&amp;quot;, &amp;quot;0,2773350...&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;You should make sure that all the data frames have the same column names but you can also join data frames with different column names if you give the argument &lt;code&gt;by&lt;/code&gt; to the join function. This is possible thanks to &lt;code&gt;...&lt;/code&gt; that allows you to pass further argument to &lt;code&gt;join_func()&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;This function was inspired by the one found on the blog &lt;a href=&#34;http://novicemetrics.blogspot.lu/2011/04/merging-multiple-data-files-into-one.html&#34;&gt;Coffee and Econometrics in the Morning&lt;/a&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Read a lot of datasets at once with R</title>
+      <link>/blog/2016-07-26-read-a-lot-of-datasets-at-once-with-r/</link>
+      <pubDate>Tue, 26 Jul 2016 00:00:00 +0000</pubDate>
+      
+      <guid>/blog/2016-07-26-read-a-lot-of-datasets-at-once-with-r/</guid>
+      <description>&lt;p&gt;I often have to read a lot of datasets at once using R. So I’ve wrote the following function to solve this issue:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;read_list &amp;lt;- function(list_of_datasets, read_func){
+
+        read_and_assign &amp;lt;- function(dataset, read_func){
+                dataset_name &amp;lt;- as.name(dataset)
+                dataset_name &amp;lt;- read_func(dataset)
+        }
+
+        # invisible is used to suppress the unneeded output
+        output &amp;lt;- invisible(
+                sapply(list_of_datasets,
+                           read_and_assign, read_func = read_func, simplify = FALSE, USE.NAMES = TRUE))
+
+        # Remove the extension at the end of the data set names
+        names_of_datasets &amp;lt;- c(unlist(strsplit(list_of_datasets, &amp;quot;[.]&amp;quot;))[c(T, F)])
+        names(output) &amp;lt;- names_of_datasets
+        return(output)
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;You need to supply a list of datasets as well as the function to read the datasets to &lt;code&gt;read_list&lt;/code&gt;. So for example to read in &lt;code&gt;.csv&lt;/code&gt; files, you could use &lt;code&gt;read.csv()&lt;/code&gt; (or &lt;code&gt;read_csv()&lt;/code&gt; from the &lt;code&gt;readr&lt;/code&gt; package, which I prefer to use), or &lt;code&gt;read_dta()&lt;/code&gt; from the package &lt;code&gt;haven&lt;/code&gt; for STATA files, and so on.&lt;/p&gt;
+&lt;p&gt;Now imagine you have some data in your working directory. First start by saving the name of the datasets in a variable:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;data_files &amp;lt;- list.files(pattern = &amp;quot;.csv&amp;quot;)
+
+print(data_files)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;data_1.csv&amp;quot; &amp;quot;data_2.csv&amp;quot; &amp;quot;data_3.csv&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now you can read all the data sets and save them in a list with &lt;code&gt;read_list()&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(&amp;quot;readr&amp;quot;)
+library(&amp;quot;tibble&amp;quot;)
+
+list_of_data_sets &amp;lt;- read_list(data_files, read_csv)
+
+
+glimpse(list_of_data_sets)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## List of 3
+##  $ data_1:Classes &#39;tbl_df&#39;, &#39;tbl&#39; and &#39;data.frame&#39;:  19 obs. of  3 variables:
+##   ..$ col1: chr [1:19] &amp;quot;0,018930679&amp;quot; &amp;quot;0,8748013128&amp;quot; &amp;quot;0,1025635934&amp;quot; &amp;quot;0,6246140983&amp;quot; ...
+##   ..$ col2: chr [1:19] &amp;quot;0,0377725807&amp;quot; &amp;quot;0,5959457638&amp;quot; &amp;quot;0,4429121533&amp;quot; &amp;quot;0,558387159&amp;quot; ...
+##   ..$ col3: chr [1:19] &amp;quot;0,6241767189&amp;quot; &amp;quot;0,031324594&amp;quot; &amp;quot;0,2238059868&amp;quot; &amp;quot;0,2773350732&amp;quot; ...
+##  $ data_2:Classes &#39;tbl_df&#39;, &#39;tbl&#39; and &#39;data.frame&#39;:  19 obs. of  3 variables:
+##   ..$ col1: chr [1:19] &amp;quot;0,9098418493&amp;quot; &amp;quot;0,1127788509&amp;quot; &amp;quot;0,5818891392&amp;quot; &amp;quot;0,1011773532&amp;quot; ...
+##   ..$ col2: chr [1:19] &amp;quot;0,7455905887&amp;quot; &amp;quot;0,4015039612&amp;quot; &amp;quot;0,6625796605&amp;quot; &amp;quot;0,029955339&amp;quot; ...
+##   ..$ col3: chr [1:19] &amp;quot;0,327232932&amp;quot; &amp;quot;0,2784035673&amp;quot; &amp;quot;0,8092386735&amp;quot; &amp;quot;0,1216045306&amp;quot; ...
+##  $ data_3:Classes &#39;tbl_df&#39;, &#39;tbl&#39; and &#39;data.frame&#39;:  19 obs. of  3 variables:
+##   ..$ col1: chr [1:19] &amp;quot;0,9236124896&amp;quot; &amp;quot;0,6303271761&amp;quot; &amp;quot;0,6413583054&amp;quot; &amp;quot;0,5573887416&amp;quot; ...
+##   ..$ col2: chr [1:19] &amp;quot;0,2114708388&amp;quot; &amp;quot;0,6984538266&amp;quot; &amp;quot;0,0469865249&amp;quot; &amp;quot;0,9271510226&amp;quot; ...
+##   ..$ col3: chr [1:19] &amp;quot;0,4941919971&amp;quot; &amp;quot;0,7391538511&amp;quot; &amp;quot;0,3876723797&amp;quot; &amp;quot;0,2815014394&amp;quot; ...&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;If you prefer not to have the datasets in a list, but rather import them into the global environment, you can change the above function like so:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;read_list &amp;lt;- function(list_of_datasets, read_func){
+
+        read_and_assign &amp;lt;- function(dataset, read_func){
+                assign(dataset, read_func(dataset), envir = .GlobalEnv)
+        }
+
+        # invisible is used to suppress the unneeded output
+        output &amp;lt;- invisible(
+                sapply(list_of_datasets,
+                           read_and_assign, read_func = read_func, simplify = FALSE, USE.NAMES = TRUE))
+
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;But I personnally don’t like this second option, but I put it here for completeness.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Data frame columns as arguments to dplyr functions</title>
+      <link>/blog/2016-07-18-data-frame-columns-as-arguments-to-dplyr-functions/</link>
+      <pubDate>Mon, 18 Jul 2016 00:00:00 +0000</pubDate>
+      
+      <guid>/blog/2016-07-18-data-frame-columns-as-arguments-to-dplyr-functions/</guid>
+      <description>&lt;!-- MathJax scripts --&gt;
+
+&lt;script type=&#34;text/javascript&#34; async
+  src=&#34;https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML&#34;&gt;
+&lt;/script&gt;
+
+&lt;p&gt;Suppose that you would like to create a function which does a series of computations on a data frame. You would like to pass a column as this function’s argument. Something like:&lt;/p&gt;
+
+&lt;p&gt;&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;data(cars)
+convertToKmh &amp;lt;- function(dataset, col_name){
+  dataset$col_name &amp;lt;- dataset$speed * 1.609344
+  return(dataset)
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This example is obviously not very interesting (you don’t need a function for this), but it will illustrate the point. You would like to append a column called &lt;code&gt;speed_in_kmh&lt;/code&gt; with the speed in kilometers per hour to this dataset, but this is what happens:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;head(convertToKmh(cars, &amp;quot;speed_in_kmh&amp;quot;))&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##   speed dist  col_name
+1     4    2  6.437376
+2     4   10  6.437376
+3     7    4 11.265408
+4     7   22 11.265408
+5     8   16 12.874752
+6     9   10 14.484096&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Your column is not called &lt;code&gt;speed_in_kmh&lt;/code&gt; but &lt;code&gt;col_name&lt;/code&gt;! It turns out that there is a very simple solution:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;convertToKmh &amp;lt;- function(dataset, col_name){
+  dataset[col_name] &amp;lt;- dataset$speed * 1.609344
+  return(dataset)
+}&lt;/p&gt;
+
+&lt;p&gt;head(convertToKmh(cars, &amp;quot;speed_in_kmh&amp;quot;))&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##   speed dist speed_in_kmh
+1     4    2     6.437376
+2     4   10     6.437376
+3     7    4    11.265408
+4     7   22    11.265408
+5     8   16    12.874752
+6     9   10    14.484096&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;You can access columns with &lt;code&gt;[]&lt;/code&gt; instead of &lt;code&gt;$&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;But sometimes you want to do more complex things and for example have a function that groups by a variable and then computes new variables, filters by another and so on. You would like to avoid having to hard code these variables in your function, because then why write a function and of course you would like to use &lt;code&gt;dplyr&lt;/code&gt; to do it.&lt;/p&gt;
+&lt;p&gt;I often use &lt;code&gt;dplyr&lt;/code&gt; functions in my functions. For illustration purposes, consider this very simple function:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;simpleFunction &amp;lt;- function(dataset, col_name){
+  require(&amp;quot;dplyr&amp;quot;)
+  dataset %&amp;gt;%
+    group_by(col_name) %&amp;gt;%
+    summarise(mean_speed = mean(speed)) -&amp;gt; dataset
+  return(dataset)
+}&lt;/p&gt;
+
+&lt;p&gt;simpleFunction(cars, &amp;quot;dist&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This function takes a dataset as an argument, as well as a column name. However, this does not work. You get this error:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;Error: unknown variable to group by : col_name &lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The variable &lt;code&gt;col_name&lt;/code&gt; is passed to &lt;code&gt;simpleFunction()&lt;/code&gt; as a string, but &lt;code&gt;group_by()&lt;/code&gt; requires a variable name. So why not try to convert &lt;code&gt;col_name&lt;/code&gt; to a name?&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;simpleFunction &amp;lt;- function(dataset, col_name){
+  require(&amp;quot;dplyr&amp;quot;)
+  col_name &amp;lt;- as.name(col_name)
+  dataset %&amp;gt;%
+    group_by(col_name) %&amp;gt;%
+    summarise(mean_speed = mean(speed)) -&amp;gt; dataset
+  return(dataset)
+}&lt;/p&gt;
+
+&lt;p&gt;simpleFunction(cars, &amp;quot;dist&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;You get the same error as before:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;Error: unknown variable to group by : col_name &lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;So how can you pass a column name to &lt;code&gt;group_by()&lt;/code&gt;? Well, there is another version of &lt;code&gt;group_by()&lt;/code&gt; called &lt;code&gt;group_by_()&lt;/code&gt; that uses standard evaluation. You can learn more about it &lt;a href=&#34;https://cran.r-project.org/web/packages/dplyr/vignettes/nse.html&#34;&gt;here&lt;/a&gt;. Let’s take a look at what happens when we use &lt;code&gt;group_by_()&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;simpleFunction &amp;lt;- function(dataset, col_name){
+  require(&amp;quot;dplyr&amp;quot;)
+  dataset %&amp;gt;%
+    group_by_(col_name) %&amp;gt;%
+    summarise(mean_speed = mean(speed)) -&amp;gt; dataset
+  return(dataset)
+}&lt;/p&gt;
+
+&lt;p&gt;simpleFunction(cars, &amp;quot;dist&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;A tibble: 35 x 2
+ dist mean_speed
+&amp;lt;dbl&amp;gt;      &amp;lt;dbl&amp;gt;
+1      2        4.0
+2      4        7.0
+3     10        6.5
+4     14       12.0
+5     16        8.0
+6     17       11.0
+7     18       10.0
+8     20       13.5
+9     22        7.0
+10    24       12.0
+ &amp;hellip; with 25 more rows&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We can even use a formula instead of a string:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;simpleFunction(cars, ~dist)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt; A tibble: 35 x 2
+    dist mean_speed
+   &amp;lt;dbl&amp;gt;      &amp;lt;dbl&amp;gt;
+1      2        4.0
+2      4        7.0
+3     10        6.5
+4     14       12.0
+5     16        8.0
+6     17       11.0
+7     18       10.0
+8     20       13.5
+9     22        7.0
+10    24       12.0
+&amp;hellip; with 25 more rows&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;What if you want to pass column names and constants, for example to filter without hardcoding anything?&lt;/p&gt;
+&lt;p&gt;Trying to do it naively will only yield pain and despair:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;simpleFunction &amp;lt;- function(dataset, col_name, value){
+  require(&amp;quot;dplyr&amp;quot;)
+  dataset %&amp;gt;%
+    filter_(col_name == value) %&amp;gt;%
+    summarise(mean_speed = mean(speed)) -&amp;gt; dataset
+  return(dataset)
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;&amp;gt; simpleFunction(cars, &amp;quot;dist&amp;quot;, 10)&lt;/p&gt;
+
+&lt;p&gt;mean_speed
+1        NaN&lt;/p&gt;
+
+&lt;p&gt;&amp;gt; simpleFunction(cars, dist, 10)&lt;/p&gt;
+
+&lt;p&gt;Error in col_name == value :
+  comparison (1) is possible only for atomic and list types&lt;/p&gt;
+
+&lt;p&gt;&amp;gt; simpleFunction(cars, ~dist, 10)&lt;/p&gt;
+
+&lt;p&gt;mean_speed
+1        NaN
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;To solve this issue, we need to know a little bit about two concepts, &lt;em&gt;lazy evaluation&lt;/em&gt; and &lt;em&gt;non-standard evaluation&lt;/em&gt;. I recommend you read &lt;a href=&#34;http://adv-r.had.co.nz/Computing-on-the-language.html&#34;&gt;the following document&lt;/a&gt; from Hadley Wickham’s book &lt;em&gt;Advanced R&lt;/em&gt; as well as the part on lazy evaluation &lt;a href=&#34;http://adv-r.had.co.nz/Functions.html#function-arguments&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;A nice package called &lt;code&gt;lazyeval&lt;/code&gt; can help us out. We would like to make R understand that the column name is not &lt;code&gt;col_name&lt;/code&gt; but the string inside it &lt;code&gt;&amp;quot;dist&amp;quot;&lt;/code&gt;, and now we would like to use &lt;code&gt;filter()&lt;/code&gt; for &lt;code&gt;dist&lt;/code&gt; equal to &lt;code&gt;10&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;In the &lt;code&gt;lazyeval&lt;/code&gt; package, you’ll find the function &lt;code&gt;interp()&lt;/code&gt;. &lt;code&gt;interp()&lt;/code&gt; allows you to&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;build an expression up from a mixture of constants and variables.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Take a look at this example:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(lazyeval)
+interp(~x+y, x = 2)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## ~2 + y&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;What you get back is this nice formula that you can then use within functions. To see why this is useful, let’s look at the above example again, and make it work using &lt;code&gt;interp()&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;simpleFunction &amp;lt;- function(dataset, col_name, value){
+  require(&amp;quot;dplyr&amp;quot;)
+  require(&amp;quot;lazyeval&amp;quot;)
+  filter_criteria &amp;lt;- interp(~y == x, .values=list(y = as.name(col&lt;em&gt;name), x = value))
+  dataset %&amp;gt;%
+    filter&lt;/em&gt;(filter_criteria) %&amp;gt;%
+    summarise(mean_speed = mean(speed)) -&amp;gt; dataset
+  return(dataset)
+}&lt;/p&gt;
+
+&lt;p&gt;simpleFunction(cars, &amp;quot;dist&amp;quot;, 10)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;  mean_speed
+1        6.5&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;And now it works! For some reason, you have to pass the column name as a string though.&lt;/p&gt;
+&lt;p&gt;Sources: apart from the documents above, the following stackoverflow threads helped me out quite a lot: &lt;a href=&#34;http://stackoverflow.com/questions/28973056/in-r-pass-column-name-as-argument-and-use-it-in-function-with-dplyrmutate-a&#34;&gt;In R: pass column name as argument and use it in function with dplyr::mutate() and lazyeval::interp()&lt;/a&gt; and &lt;a href=&#34;http://stackoverflow.com/questions/26492280/non-standard-evaluation-nse-in-dplyrs-filter-pulling-data-from-mysql&#34;&gt;Non-standard evaluation (NSE) in dplyr’s filter_ &amp;amp; pulling data from MySQL&lt;/a&gt;.&lt;/p&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Careful with tryCatch</title>
+      <link>/blog/2016-06-21-careful-with-trycatch/</link>
+      <pubDate>Thu, 31 Mar 2016 00:00:00 +0000</pubDate>
+      
+      <guid>/blog/2016-06-21-careful-with-trycatch/</guid>
+      <description>&lt;!-- MathJax scripts --&gt;
+
+&lt;script type=&#34;text/javascript&#34; async
+  src=&#34;https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML&#34;&gt;
+&lt;/script&gt;
+
+&lt;p&gt;&lt;code&gt;tryCatch&lt;/code&gt; is one of the functions that allows the users to handle errors in a simple way. With it, you can do things like: &lt;code&gt;if(error), then(do this)&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Take the following example:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;sqrt(&amp;quot;a&amp;quot;)
+Error in sqrt(&amp;quot;a&amp;quot;) : non-numeric argument to mathematical function&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now maybe you’d want something to happen when such an error happens. You can achieve that with &lt;code&gt;tryCatch&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;tryCatch(sqrt(&amp;quot;a&amp;quot;), error=function(e) print(&amp;quot;You can&#39;t take the square root of a character, silly!&amp;quot;))&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;You can&#39;t take the square root of a character, silly!&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Why am I interested in &lt;code&gt;tryCatch&lt;/code&gt;?&lt;/p&gt;
+&lt;p&gt;I am currently working with dates, specifically birthdays of people in my data sets. For a given mother, the birthday of her child is given in three distinct columns: a column for the child’s birth year, birth month and birth day respectively. I’ve wanted to put everything in a single column and convert the birthday to unix time (I have a very good reason to do that, but I won’t bore you with the details).&lt;/p&gt;
+&lt;p&gt;Let’s create some data:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;mother &amp;lt;- as.data.frame(list(month=12, day=1, year=1988))&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;In my data, there’s a lot more columns of course, such as the mother’s wage, education level, etc, but for illustration purposes, this is all that’s needed.&lt;/p&gt;
+&lt;p&gt;Now, to create this birthday column:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;mother$birth1 &amp;lt;- as.POSIXct(paste0(as.character(mother$year), 
+                                   &amp;quot;-&amp;quot;, as.character(mother$month), 
+                                   &amp;quot;-&amp;quot;, as.character(mother$day)), 
+                            origin=&amp;quot;1970-01-01&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;and to convert it to unix time:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;mother$birth1 &amp;lt;- as.numeric(as.POSIXct(paste0(as.character(mother$year), 
+                                              &amp;quot;-&amp;quot;, as.character(mother$month), 
+                                              &amp;quot;-&amp;quot;, as.character(mother$day)),
+                                       origin=&amp;quot;1970-01-01&amp;quot;))
+
+print(mother)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##   month day year    birth1
+## 1    12   1 1988 596934000&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now let’s see what happens in this other example here:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;mother2 &amp;lt;- as.data.frame(list(month=2, day=30, year=1988))
+
+mother2$birth1 &amp;lt;- as.POSIXct(paste0(as.character(mother2$year), 
+                                    &amp;quot;-&amp;quot;, as.character(mother2$month), 
+                                    &amp;quot;-&amp;quot;, as.character(mother2$day)), 
+                             origin=&amp;quot;1970-01-01&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This is what happens:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;Error in as.POSIXlt.character(x, tz, ...) : 
+  character string is not in a standard unambiguous format&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This error is to be expected; there is no 30th of February! It turns out that in some rare cases, weird dates like this exist in my data. Probably some encoding errors. Not a problem I thought, I could use &lt;code&gt;tryCatch&lt;/code&gt; and return &lt;code&gt;NA&lt;/code&gt; in the case of an error.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;mother2 &amp;lt;- as.data.frame(list(month=2, day=30, year=1988))
+
+mother2$birth1 &amp;lt;- tryCatch(as.POSIXct(paste0(as.character(mother2$year), 
+                                    &amp;quot;-&amp;quot;, as.character(mother2$month), 
+                                    &amp;quot;-&amp;quot;, as.character(mother2$day)), 
+                             origin=&amp;quot;1970-01-01&amp;quot;), error=function(e) NA)
+
+print(mother2)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##   month day year birth1
+## 1     2  30 1988     NA&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Pretty great, right? Well, no. Take a look at what happens in this case:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;mother &amp;lt;- as.data.frame(list(month=c(12, 2), day=c(1, 30), year=c(1988, 1987)))
+print(mother)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##   month day year
+## 1    12   1 1988
+## 2     2  30 1987&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We’d expect to have a correct date for the first mother and an &lt;code&gt;NA&lt;/code&gt; for the second. However, this is what happens&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;mother$birth1 &amp;lt;- tryCatch(as.POSIXct(paste0(as.character(mother$year), 
+                                    &amp;quot;-&amp;quot;, as.character(mother$month), 
+                                    &amp;quot;-&amp;quot;, as.character(mother$day)), 
+                             origin=&amp;quot;1970-01-01&amp;quot;), error=function(e) NA)
+
+print(mother)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##   month day year birth1
+## 1    12   1 1988     NA
+## 2     2  30 1987     NA&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;As you can see, we now have an &lt;code&gt;NA&lt;/code&gt; for both mothers! That’s actually to be expected. Indeed, this little example illustrates it well:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;sqrt(c(4, 9, &amp;quot;haha&amp;quot;))&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;Error in sqrt(c(4, 9, &amp;quot;haha&amp;quot;)) : 
+  non-numeric argument to mathematical function&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;But you’d like to have this:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;[1]  2  3 NA&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;So you could make the same mistake as myself and use tryCatch:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;tryCatch(sqrt(c(4, 9, &amp;quot;haha&amp;quot;)), error=function(e) NA)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] NA&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;But you only get &lt;code&gt;NA&lt;/code&gt; in return. That’s actually completely normal, but it took me off-guard and I spent quite some time to figure out what was happening. Especially because I had written unit tests to test my function &lt;code&gt;create_birthdays()&lt;/code&gt; that was doing the above computations and all tests were passing! The problem was that in my tests, I only had a single individual, so for a wrong date, having &lt;code&gt;NA&lt;/code&gt; for this individual was expected behaviour. But in a panel, only some individuals have a weird date like the 30th of February, but because of those, the whole column was filled with &lt;code&gt;NA&lt;/code&gt;’s! What I’m doing now is trying to either remove these weird birthdays (there are mothers whose children were born on the 99-99-9999. Documentation is lacking, but this probably means &lt;code&gt;missing value&lt;/code&gt;), or tyring to figure out how to only get &lt;code&gt;NA&lt;/code&gt;’s for the “weird” dates. I guess that the answer lies with &lt;code&gt;dplyr&lt;/code&gt;’s &lt;code&gt;group_by()&lt;/code&gt; and &lt;code&gt;mutate()&lt;/code&gt; to compute this birthdays for each individual separately.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Unit testing with R</title>
+      <link>/blog/2016-03-31-unit-testing-with-r/</link>
+      <pubDate>Thu, 31 Mar 2016 00:00:00 +0000</pubDate>
+      
+      <guid>/blog/2016-03-31-unit-testing-with-r/</guid>
+      <description>&lt;!-- MathJax scripts --&gt;
+
+&lt;script type=&#34;text/javascript&#34; async
+  src=&#34;https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML&#34;&gt;
+&lt;/script&gt;
+
+&lt;p&gt;&lt;body&gt;
+&lt;p&gt;I&amp;#39;ve been introduced to unit testing while working with colleagues on quite a big project for which
+we use Python.&lt;/p&gt;&lt;/p&gt;
+
+&lt;p&gt;At first I was a bit skeptical about the need of writing unit tests, but now I must admit that I 
+am seduced by the idea and by the huge time savings it allows. Naturally, I was wondering if the 
+same could be achieved with R, and was quite happy to find out that it also possible to write unit
+tests in R using a package called &lt;code&gt;testthat&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Unit tests (Not to be confused with unit root tests for time series) are small functions that test
+your code and help you make sure everything is alright. I&amp;#39;m going to show how the &lt;code&gt;testthat&lt;/code&gt; 
+packages works with a very trivial example, that might not do justice to the idea of
+unit testing. But you&amp;#39;ll hopefully see why writing unit tests is not a waste of your time,
+especially if your project gets very complex (if you&amp;#39;re writing a package for example).&lt;/p&gt;
+
+&lt;p&gt;First, you&amp;#39;ll need to download and install &lt;code&gt;testthat&lt;/code&gt;. Some dependencies will also be installed.&lt;/p&gt;
+
+&lt;p&gt;Now, you&amp;#39;ll need a function to test. Let&amp;#39;s suppose you&amp;#39;ve written a function that returns the
+nth Fibonacci number:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;r&#34;&gt;Fibonacci &amp;lt;- function(n){
+    a &amp;lt;- 0
+    b &amp;lt;- 1
+    for (i in 1:n){
+        temp &amp;lt;- b
+        b &amp;lt;- a
+        a &amp;lt;- a + temp
+    }
+    return(a)
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;You then save this function in a file, let&amp;#39;s call it &lt;code&gt;fibo.R&lt;/code&gt;. What you&amp;#39;ll probably do once you&amp;#39;ve
+written this function, is to try it out:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;r&#34;&gt;Fibonacci(5)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;## [1] 5
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;You&amp;#39;ll see that the function returns the right result and continue programming. The idea behind
+unit testing is write a bunch of functions that you can run after you make changes to your code,
+just to check that everything is still running as it should.&lt;/p&gt;
+
+&lt;p&gt;Let&amp;#39;s create a script called &lt;code&gt;test_fibo.R&lt;/code&gt; and write the following code in it:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;r&#34;&gt;test_that(&amp;quot;Test Fibo(15)&amp;quot;,{
+  phi &amp;lt;- (1 + sqrt(5))/2
+  psi &amp;lt;- (1 - sqrt(5))/2
+  expect_equal(Fibonacci(15), (phi**15 - psi**15)/sqrt(5))
+})
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The code above uses Binet&amp;#39;s formula, a closed form formula that gives the nth Fibonacci number and compares it 
+our implementation of the algorithm. If you didn&amp;#39;t know about Binet&amp;#39;s formula, you could simply compute some numbers
+by hand and compare them to what your function returns, for example. The function &lt;code&gt;expect_equal&lt;/code&gt; is a function from the 
+package &lt;code&gt;testthat&lt;/code&gt; and does exactly what it tells. We expect the result of our implementation to be equal to the result of
+Binet&amp;#39;s Formula. The file &lt;code&gt;test_fibo.R&lt;/code&gt; can contain as many tests as you need. 
+Also, the file that contains the tests must start with the string &lt;code&gt;test&lt;/code&gt;, so that &lt;code&gt;testthat&lt;/code&gt; knows with files it has to run.&lt;/p&gt;
+
+&lt;p&gt;Now, we&amp;#39;re almost done, create yet another script, let&amp;#39;s call it &lt;code&gt;run_tests.R&lt;/code&gt; and write the following code in it:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;r&#34;&gt;library(testthat) 
+
+source(&amp;quot;path/to/fibo.R&amp;quot;)
+
+test_results &amp;lt;- test_dir(&amp;quot;path/to/tests&amp;quot;, reporter=&amp;quot;summary&amp;quot;)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;After running these lines, and if everything goes well, you should see a message like this:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;&amp;gt; library(testthat)
+&amp;gt; source(&amp;quot;path/to/fibo.R&amp;quot;)
+&amp;gt; test_results &amp;lt;- test_dir(&amp;quot;path/to/tests&amp;quot;, reporter=&amp;quot;summary&amp;quot;)
+
+.
+Your tests are dandy! 
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Notice the small &lt;code&gt;.&lt;/code&gt; over the message? This means that one test was run successfully. You&amp;#39;ll get one dot per successful
+test. If you take a look at &lt;code&gt;test_results&lt;/code&gt; you&amp;#39;ll see this:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;&amp;gt; test_results
+         file context          test nb failed skipped error  user system  real
+1 test_fibo.R         Test Fibo(15)  1      0   FALSE FALSE 0.004      0 0.006
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;You&amp;#39;ll see each file and each function inside the files that were tested, and also whether the test was skipped, failed
+etc. This may seem overkill for such a simple function, but imagine that you write dozens of functions that get more
+and more complex over time. You might have to change a lot of lines because as time goes by you add new functionality,
+but don&amp;#39;t want to break what was working. Running your unit tests each time you make changes can help you pinpoint 
+regressions in your code. Unit tests can also help you start with your code. It can happen that sometimes you don&amp;#39;t
+know exactly how to start; well you could start by writing a unit test that returns the result you want to have and 
+then try to write the code to make that unit test pass. This is called test-driven development.&lt;/p&gt;
+
+&lt;p&gt;I hope that this post motivated you to write unit tests and make you a better R programmer!&lt;/p&gt;
+
+&lt;p&gt;&lt;/body&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Bootstrapping standard errors for difference-in-differences estimation with R</title>
+      <link>/blog/2015-11-11-bootstrapping-did-with-r/</link>
+      <pubDate>Wed, 11 Nov 2015 00:00:00 +0000</pubDate>
+      
+      <guid>/blog/2015-11-11-bootstrapping-did-with-r/</guid>
+      <description>&lt;!-- MathJax scripts --&gt;
+
+&lt;script type=&#34;text/javascript&#34; async
+  src=&#34;https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML&#34;&gt;
+&lt;/script&gt;
+
+&lt;p&gt;&lt;body&gt;
+&lt;p&gt;I’m currently working on a paper (with my colleague Vincent Vergnat who is also a Phd candidate at BETA) where I want to estimate the causal impact of the birth of a child on hourly and daily wages as well as yearly worked hours. For this we are using non-parametric difference-in-differences (henceforth DiD) and thus have to bootstrap the standard errors. In this post, I show how this is possible using the function &lt;code&gt;boot&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;For this we are going to replicate the example from Wooldridge’s &lt;em&gt;Econometric Analysis of Cross Section and Panel Data&lt;/em&gt; and more specifically the example on page 415. You can download the data for R &lt;a href=&#34;./assets/files/kielmc.RData&#34;&gt;here&lt;/a&gt;. The question we are going to try to answer is &lt;em&gt;how much does the price of housing decrease due to the presence of an incinerator in the neighborhood?&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;First put the data in a folder and set the correct working directory and load the &lt;code&gt;boot&lt;/code&gt; library.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(boot)
+setwd(&amp;quot;/home/path/to/data/kiel data/&amp;quot;)
+load(&amp;quot;kielmc.RData&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now you need to write a function that takes the data as an argument, as well as an indices argument. This argument is used by the &lt;code&gt;boot&lt;/code&gt; function to select samples. This function should return the statistic you’re interested in, in our case, the DiD estimate.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;run_DiD &amp;lt;- function(my_data, indices){
+    d &amp;lt;- my_data[indices,]
+    return(
+        mean(d$rprice[d$year==1981 &amp;amp; d$nearinc==1]) -
+        mean(d$rprice[d$year==1981 &amp;amp; d$nearinc==0]) -
+        (mean(d$rprice[d$year==1978 &amp;amp; d$nearinc==1]) -
+        mean(d$rprice[d$year==1978 &amp;amp; d$nearinc==0]))
+    )
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;You’re almost done! To bootstrap your DiD estimate you just need to use the boot function. If you have cpu with multiple cores (which you should, single core machines are quite outdated by now) you can even parallelize the bootstrapping.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;boot_est &amp;lt;- boot(data, run_DiD, R=1000, parallel=&amp;quot;multicore&amp;quot;, ncpus = 2)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now you should just take a look at your estimates:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;boot_est&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;
+ORDINARY NONPARAMETRIC BOOTSTRAP&lt;/p&gt;
+
+&lt;p&gt;Call:
+boot(data = data, statistic = run_DiD, R = 1000, parallel = &amp;quot;multicore&amp;quot;,
+ ncpus = 2)&lt;/p&gt;
+
+&lt;p&gt;Bootstrap Statistics :
+ original    bias    std. error
+t1* -11863.9 -553.3393    8580.435&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;These results are very similar to the ones in the book, only the standard error is higher.&lt;/p&gt;&lt;/p&gt;
+
+&lt;p&gt;You can get confidence intervals like this:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;quantile(boot_est$t, c(0.025, 0.975))&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##       2.5%      97.5% 
+## -30186.397   3456.133&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;or a t-statistic:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;boot_est$t0/sd(boot_est$t)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] -1.382669&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Or the density of the replications:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;plot(density(boot_est$t))&lt;/code&gt;&lt;/pre&gt;
+
+&lt;div style=&#34;text-align:center;&#34;&gt;
+    &lt;img src=&#34;./img/density_did.png&#34; width=&#34;670&#34; height=&#34;450&#34; /&gt;&lt;/a&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Just as in the book, we find that the DiD estimate is not significant to the 5% level.&lt;/p&gt;
+
+&lt;p&gt;&lt;/body&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Update to Introduction to programming econometrics with R</title>
+      <link>/blog/2015-05-03-update-introduction-r-programming/</link>
+      <pubDate>Sun, 03 May 2015 00:00:00 +0000</pubDate>
+      
+      <guid>/blog/2015-05-03-update-introduction-r-programming/</guid>
+      <description>&lt;!-- MathJax scripts --&gt;
+
+&lt;script type=&#34;text/javascript&#34; async
+  src=&#34;https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML&#34;&gt;
+&lt;/script&gt;
+
+&lt;p&gt;This semester I taught a course on applied econometrics with the R programming language. For this, I created a document that I gave to my students and shared online. This is the kind of document I would have liked to read when I first started using R. I already had some programming experience in C and Pascal but this is not necessarily the case for everyone that is confronted to R when they start learning about econometrics.&lt;/p&gt;
+
+&lt;p&gt;This is why the beginning of the document focuses more on general programming knowledge and techniques, and then only on econometrics. People online seemed to like the document, as I&amp;rsquo;ve received some positive comments by David Smith from Revolution R (read his blog post about the document &lt;a href=&#34;http://blog.revolutionanalytics.com/2015/01/introduction-to-applied-econometrics-with-r.html&#34;&gt;here&lt;/a&gt;) and Dave Giles which links to David&amp;rsquo;s blog post &lt;a href=&#34;http://davegiles.blogspot.fr/2015/04/introduction-to-applied-econometrics.html?spref=tw&#34;&gt;here&lt;/a&gt;. People on twitter have also retweeted David&amp;rsquo;s and Dave&amp;rsquo;s tweets to their blog posts and I&amp;rsquo;ve received some requests by people to send them the PDF by email (because they live in places where Dropbox is not accessible unfortunately).&lt;/p&gt;
+
+&lt;p&gt;The document is still a work in progress (and will probably remain so for a long time), but I&amp;rsquo;ve added some new sections about reproducible research and thought that this update could warrant a new blog post.&lt;/p&gt;
+
+&lt;p&gt;For now, only linear models are reviewed, but I think I&amp;rsquo;ll start adding some chapters about non-linear models soonish. The goal for these notes, however, is not to re-invent the wheel: there are lots of good books about econometrics with R out there and packages that estimate a very wide range of models. What I want for these notes, is to focus more on the programming knowledge an econometrician needs, in a very broad and general sense. I want my students to understand that R is a true programming language, and that they need to use every feature offered by such a language, and not think of R as a black box into which you only type pre-programmed commands, but also be able to program their own routines.&lt;/p&gt;
+
+&lt;p&gt;Also, I&amp;rsquo;ve made it possible to create the PDF using a Makefile. This may be useful for people that do not have access to Dropbox, but are familiar with git.&lt;/p&gt;
+
+&lt;p&gt;You can compile the book in two ways: first download the whole repository:&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;git clone git@bitbucket.org:b-rodrigues/programmingeconometrics.git&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;and then, with Rstudio, open the file &lt;em&gt;appliedEconometrics.Rnw&lt;/em&gt; and knit it. Another solution is to use the Makefile. Just type:&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;make&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;inside a terminal (should work on GNU+Linux and OSX systems) and it should compile the document. You may get some message about &amp;ldquo;additional information&amp;rdquo; for some R packages. When these come up, just press Q on your keyboard to continue the compilation process.&lt;/p&gt;
+
+&lt;p&gt;Get the notes &lt;a href=&#34;https://cloud.openmailbox.org/index.php/s/ghZwBxMb24tWGSL&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;As always, if you have questions or suggestions, do not hesitate to send me an  &lt;a href=&#34;mailto:contact@brodrigues.co&#34;&gt;email&lt;/a&gt; and I sure hope you&amp;rsquo;ll find these notes useful!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Export R output to a file</title>
+      <link>/blog/2015-02-22-export-r-output-to-file/</link>
+      <pubDate>Sun, 22 Feb 2015 00:00:00 +0000</pubDate>
+      
+      <guid>/blog/2015-02-22-export-r-output-to-file/</guid>
+      <description>&lt;!-- MathJax scripts --&gt;
+
+&lt;script type=&#34;text/javascript&#34; async
+  src=&#34;https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML&#34;&gt;
+&lt;/script&gt;
+
+&lt;p&gt;&lt;body&gt;&lt;/p&gt;
+
+&lt;p&gt;Sometimes it is useful to export the output of a long-running R command. For example, you might want to run a time consuming regression just before leaving work on Friday night, but would like to get the output saved inside your Dropbox folder to take a look at the results before going back to work on Monday.&lt;/p&gt;
+&lt;p&gt;This can be achieved very easily using &lt;code&gt;capture.output()&lt;/code&gt; and &lt;code&gt;cat()&lt;/code&gt; like so:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;out &amp;lt;- capture.output(summary(my_very_time_consuming_regression))
+
+cat(&amp;quot;My title&amp;quot;, out, file=&amp;quot;summary_of_my_very_time_consuming_regression.txt&amp;quot;, sep=&amp;quot;\n&amp;quot;, append=TRUE)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;code&gt;my_very_time_consuming_regression&lt;/code&gt; is an object of class &lt;code&gt;lm&lt;/code&gt; for example. I save the output of &lt;code&gt;summary(my_very_time_consuming_regression)&lt;/code&gt; as text using &lt;code&gt;capture.output&lt;/code&gt; and save it in a variable called &lt;code&gt;out&lt;/code&gt;. Finally, I save &lt;code&gt;out&lt;/code&gt; to a file called &lt;code&gt;summary_of_my_very_time_consuming_regression.txt&lt;/code&gt; with the first sentence being &lt;code&gt;My title&lt;/code&gt; (you can put anything there). The file &lt;code&gt;summary_of_my_very_time_consuming_regression.txt&lt;/code&gt; doesn’t have to already exist in your working directory. The option &lt;code&gt;sep=&amp;quot;\n&amp;quot;&lt;/code&gt; is important or else the whole output will be written in a single line. Finally, &lt;code&gt;append=TRUE&lt;/code&gt; makes sure your file won’t be overwritten; additional output will be appended to the file, which can be nice if you want to compare different versions of your model.&lt;/p&gt;
+
+&lt;p&gt;&lt;/body&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Introduction to programming econometrics with R</title>
+      <link>/blog/2015-01-12-introduction-to-programming-econometrics-with-r/</link>
+      <pubDate>Mon, 12 Jan 2015 00:00:00 +0000</pubDate>
+      
+      <guid>/blog/2015-01-12-introduction-to-programming-econometrics-with-r/</guid>
+      <description>
+
+&lt;p&gt;This semester, I&amp;rsquo;ll be teaching an introduction to applied econometrics with R, so I&amp;rsquo;ve decided to write a very small book called &amp;ldquo;Introduction to programming Econometrics with R&amp;rdquo;. This is primarily intended for bachelor students and the focus is not much on econometric theory, but more on how to implement econometric theory into computer code, using the R programming language. It&amp;rsquo;s very basic and doesn&amp;rsquo;t cover any advanced topics in econometrics and is intended for people with 0 previous programming knowledge. It is still very rough around the edges, and it&amp;rsquo;s missing the last chapter about reproducible research, and the references, but I think it&amp;rsquo;s time to put it out there; someone else than my students may find it useful. The book&amp;rsquo;s probably full of typos and mistakes, so don&amp;rsquo;t hesitate to drop me an e-mail if you find something fishy:
+contact@brodrigues.co&lt;/p&gt;
+
+&lt;p&gt;Also there might be some sections at the beginning that only concern my students. Just ignore that.&lt;/p&gt;
+
+&lt;p&gt;Get it here: &lt;a href=&#34;https://cloud.openmailbox.org/index.php/s/ghZwBxMb24tWGSL&#34;&gt;download&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;update-2017-01-22&#34;&gt;Update (2017-01-22)&lt;/h3&gt;
+
+&lt;p&gt;You might find the book useful as it is now, but I never had a chance to finish it. I might get back to
+it once I&amp;rsquo;ll have more time, and port it to bookdown.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>R, R with Atlas, R with OpenBLAS and Revolution R Open: which is fastest?</title>
+      <link>/blog/2014-11-11-benchmarks-r-blas-atlas-rro/</link>
+      <pubDate>Tue, 11 Nov 2014 00:00:00 +0000</pubDate>
+      
+      <guid>/blog/2014-11-11-benchmarks-r-blas-atlas-rro/</guid>
+      <description>&lt;!-- MathJax scripts --&gt;
+
+&lt;script type=&#34;text/javascript&#34; async
+  src=&#34;https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML&#34;&gt;
+&lt;/script&gt;
+
+&lt;p&gt;&lt;body&gt;&lt;/p&gt;
+
+&lt;p&gt;In this short post, I benchmark different &amp;ldquo;versions&amp;rdquo; of R. I compare the execution speeds of R, R linked against OpenBLAS, R linked against ATLAS and Revolution R Open. Revolution R Open is a new open source version of R made by Revolution Analytics. It is linked against MKL and should offer huge speed improvements over vanilla R. Also, it uses every cores of your computer by default, without any change whatsoever to your code.&lt;/p&gt;
+
+&lt;p&gt;TL;DR: Revolution R Open is the fastest of all the benchmarked versions (with R linked against OpenBLAS and ATLAS just behind), and easier to setup. &lt;/p&gt;
+
+&lt;h2&gt;Setup&lt;/h2&gt;
+
+&lt;p&gt;I benchmarked these different versions of R using &lt;code&gt;R-benchmark-25.R&lt;/code&gt; that you can download &lt;a href=&#34;http://r.research.att.com/benchmarks/R-benchmark-25.R&#34;&gt;here&lt;/a&gt;. This benchmark file was created by Simon Urbanek.&lt;/p&gt;
+
+&lt;p&gt;I ran the benchmarks on my OpenSUSE 13.2 computer with a Pentium Dual-Core CPU E6500@2.93GHz with 4GB of Ram. It&amp;#39;s outdated, but it&amp;#39;s still quite fast for most of my numerical computation needs. I installed &amp;ldquo;vanilla&amp;rdquo; R from the official OpenSUSE repositories which is currently at version 3.1.2.&lt;/p&gt;
+
+&lt;p&gt;Then, I downloaded OpenBLAS and ATLAS also from the official OpenSUSE repositories and made R use these libraries instead of its own implementation of BLAS. The way I did that is a bit hacky, but works: first, go to &lt;code&gt;/usr/lib64/R/lib&lt;/code&gt; and backup &lt;code&gt;libRblas.so&lt;/code&gt; (rename it to &lt;code&gt;libRblas.soBackup&lt;/code&gt; for instance). Then link &lt;code&gt;/usr/lib64/libopenblas.so.0&lt;/code&gt; to &lt;code&gt;/usr/lib64/R/lib/libRblas&lt;/code&gt;, and that&amp;#39;s it, R will use OpenBLAS. For ATLAS, you can do it in the same fashion, but you&amp;#39;ll find the library in &lt;code&gt;/usr/lib64/atlas/&lt;/code&gt;. These paths should be the same for any GNU/Linux distribution. For other operating systems, I&amp;#39;m sure you can find where these libraries are with Google.&lt;/p&gt;
+
+&lt;p&gt;The last version I benchmarked was Revolution R Open. This is a new version of R released by Revolution Analytics. Revolution Analytics had their own version of R, called Revolution R, for quite some time now. They decided to release a completely free as in freedom and free as in free beer version of this product which they now renamed Revolution R Open. You can download Revolution R Open &lt;a href=&#34;http://mran.revolutionanalytics.com/download/#review&#34;&gt;here&lt;/a&gt;. You can have both &amp;ldquo;vanilla&amp;rdquo; R and Revolution R Open installed on your system. &lt;/p&gt;
+
+&lt;h2&gt;Results&lt;/h2&gt;
+
+&lt;p&gt;I ran the &lt;code&gt;R-benchmark-25.R&lt;/code&gt; 6 times for every version but will only discuss the 4 best runs.&lt;/p&gt;
+
+&lt;p&gt;&lt;style type=&#34;text/css&#34;&gt;
+.tg  {border-collapse:collapse;border-spacing:0;}
+.tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 11px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;}
+.tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 11px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;}
+.tg .tg-0ord{text-align:right}
+&lt;/style&gt;
+&lt;table class=&#34;tg&#34;&gt;
+&lt;tr&gt;
+&lt;th class=&#34;tg-031e&#34;&gt;R version&lt;/th&gt;
+&lt;th class=&#34;tg-0ord&#34;&gt;Fastest run&lt;/th&gt;
+&lt;th class=&#34;tg-0ord&#34;&gt;Slowest run&lt;/th&gt;
+&lt;th class=&#34;tg-0ord&#34;&gt;Mean Run&lt;/th&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td class=&#34;tg-031e&#34;&gt;Vanilla R&lt;/td&gt;
+&lt;td class=&#34;tg-0ord&#34;&gt;63.65&lt;/td&gt;
+&lt;td class=&#34;tg-0ord&#34;&gt;66.21&lt;/td&gt;
+&lt;td class=&#34;tg-0ord&#34;&gt;64.61&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td class=&#34;tg-031e&#34;&gt;OpenBLAS R&lt;/td&gt;
+&lt;td class=&#34;tg-0ord&#34;&gt;15.63&lt;/td&gt;
+&lt;td class=&#34;tg-0ord&#34;&gt;18.96&lt;/td&gt;
+&lt;td class=&#34;tg-0ord&#34;&gt;16.94&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td class=&#34;tg-031e&#34;&gt;ATLAS R&lt;/td&gt;
+&lt;td class=&#34;tg-0ord&#34;&gt;16.92&lt;/td&gt;
+&lt;td class=&#34;tg-0ord&#34;&gt;21.57&lt;/td&gt;
+&lt;td class=&#34;tg-0ord&#34;&gt;18.24&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td class=&#34;tg-031e&#34;&gt;RRO&lt;/td&gt;
+&lt;td class=&#34;tg-0ord&#34;&gt;14.96&lt;/td&gt;
+&lt;td class=&#34;tg-0ord&#34;&gt;16.08&lt;/td&gt;
+&lt;td class=&#34;tg-0ord&#34;&gt;15.49&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/table&gt;&lt;/p&gt;
+
+&lt;p&gt;As you can read from the table above, Revolution R Open was the fastest of the four versions, but not significantly faster than BLAS or ATLAS R. However, RRO uses all the available cores by default, so if your code relies on a lot matrix algebra, RRO might be actually a lot more faster than OpenBLAS and ATLAS R. Another advantage of RRO is that it is very easy to install, and also works with Rstudio and is compatible with every R package to existence. &#34;Vanilla&#34; R is much slower than the other three versions, more than 3 times as slow! &lt;/p&gt;
+
+&lt;h2&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;With other benchmarks, you could get other results, but I don&#39;t think that &#34;vanilla&#34; R could beat any of the other three versions. Whatever your choice, I recommend not using plain, &amp;ldquo;vanilla&amp;rdquo; R. The other options are much faster than standard R, and don&amp;#39;t require much work to set up. I&amp;#39;d personally recommend Revolution R Open, as it is free software and compatible with CRAN packages and Rstudio. &lt;/p&gt;
+
+&lt;p&gt;&lt;/body&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

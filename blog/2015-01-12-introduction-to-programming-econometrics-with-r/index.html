@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"  lang="en-us">
+    <title>Introduction to programming econometrics with R - Econometrics and Free Software</title>
+    <meta name="generator" content="Hugo 0.18.1" />
+
+    
+    <meta name="description" content="A website built through Hugo and blogdown.">
+    
+    <link rel="canonical" href="../../blog/2015-01-12-introduction-to-programming-econometrics-with-r/">
+    
+    <meta name="author" content="Bruno Rodrigues">
+    
+    <meta name="generator" content="Hugo 0.18.1" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta property="og:url" content="/blog/2015-01-12-introduction-to-programming-econometrics-with-r/">
+    <meta property="og:title" content="Econometrics and Free Software">
+    <meta property="og:image" content="/map[width:50 height:50 alt:Logo url:logo.png]">
+    <meta name="apple-mobile-web-app-title" content="Econometrics and Free Software">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <link rel="shortcut icon" type="image/x-icon" href="../../images/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="../../images/favicon.ico">
+
+    
+    <link rel="stylesheet" href="../../css/bootstrap.min.css" media="screen">
+    <link rel="stylesheet" href="../../css/custom.css">
+    <link rel="stylesheet" href="../../css/pygments.css">
+    
+    <link rel="stylesheet" href="../../css/jquery.fancybox.css?v=2.1.5" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/helpers/jquery.fancybox-buttons.css?v=1.0.5" type="text/css" media="screen" />
+  </head>
+  <body>
+
+
+<div class="row">
+<div class="navbar navbar-default navbar-fixed-top">
+<div class="container">
+  <div class="navbar-header">
+    <a href="../../" class="navbar-brand">Econometrics and Free Software</a>
+    <button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar-main">
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+    </button>
+  </div>
+  <div class="navbar-collapse collapse" id="navbar-main">
+
+    <ul class="nav navbar-nav navbar-right">
+      <li><a href="https://github.com/b-rodrigues/">Github</a></li>
+      <li><a href="https://twitter.com/brodriguesco/">Twitter</a></li>
+    </ul>
+  </div>
+</div>
+
+</div>
+
+<div class="container">
+
+  <div>
+    <div class="row">
+      <div class="col-lg-3 col-md-3 col-sm-4">
+        
+
+<div class="list-group table-of-contents">
+
+  
+    <a class="list-group-item" href=#><b>About Me</b></a>
+    
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../../about/research/">Research</a>
+      
+      <a class="list-group-item" href="../../about/software/">Software</a>
+      
+      <a class="list-group-item" href="../../about/about/">Who am I?</a>
+      
+    </div>
+    
+  
+    <a class="list-group-item" href=#><b>Blog</b></a>
+    
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../../blog/2013-01-29-method-of-simulated-moments-with-r/">Method of Simulated Moments with R</a>
+      
+      <a class="list-group-item" href="../../blog/2012-12-11-new-website/">New website!</a>
+      
+      <a class="list-group-item" href="../../blog/2013-11-07-gmm-with-rmd/">Nonlinear Gmm with R - Example with a logistic regression</a>
+      
+      <a class="list-group-item" href="../../blog/2013-01-16-simulated-maximum-likelihood-with-r/">Simulated Maximum Likelihood with R</a>
+      
+      <a class="list-group-item" href="../../blog/2015-11-11-bootstrapping-did-with-r/">Bootstrapping standard errors for difference-in-differences estimation with R</a>
+      
+      <a class="list-group-item" href="../../blog/2016-06-21-careful-with-trycatch/">Careful with tryCatch</a>
+      
+      <a class="list-group-item" href="../../blog/2016-07-18-data-frame-columns-as-arguments-to-dplyr-functions/">Data frame columns as arguments to dplyr functions</a>
+      
+      <a class="list-group-item" href="../../blog/2015-02-22-export-r-output-to-file/">Export R output to a file</a>
+      
+      <a class="list-group-item" href="../../blog/2016-12-24-functional-programming-and-unit-testing-for-data-munging-with-r-available-on-leanpub/">Functional programming and unit testing for data munging with R available on Leanpub</a>
+      
+      <a class="list-group-item" href="../../blog/2016-11-04-ive-started-writing-a-book-functional-programming-and-unit-testing-for-data-munging-with-r/">I&#39;ve started writing a &#39;book&#39;: Functional programming and unit testing for data munging with R</a>
+      
+      <a class="list-group-item" href="../../blog/2015-01-12-introduction-to-programming-econometrics-with-r/">Introduction to programming econometrics with R</a>
+      
+      <a class="list-group-item" href="../../blog/2016-07-30-merge-a-list-of-datasets-together/">Merge a list of datasets together</a>
+      
+      <a class="list-group-item" href="../../blog/2017-01-07-my-free-book-has-a-cover/">My free book has a cover!</a>
+      
+      <a class="list-group-item" href="../../blog/2014-04-23-r-s4-rootfinding/">Object Oriented Programming with R: An example with a Cournot duopoly</a>
+      
+      <a class="list-group-item" href="../../blog/2014-11-11-benchmarks-r-blas-atlas-rro/">R, R with Atlas, R with OpenBLAS and Revolution R Open: which is fastest?</a>
+      
+      <a class="list-group-item" href="../../blog/2016-07-26-read-a-lot-of-datasets-at-once-with-r/">Read a lot of datasets at once with R</a>
+      
+      <a class="list-group-item" href="../../blog/2016-03-31-unit-testing-with-r/">Unit testing with R</a>
+      
+      <a class="list-group-item" href="../../blog/2015-05-03-update-introduction-r-programming/">Update to Introduction to programming econometrics with R</a>
+      
+      <a class="list-group-item" href="../../blog/2013-12-31-r-cas/">Using R as a Computer Algebra System with Ryacas</a>
+      
+      <a class="list-group-item" href="../../blog/2016-12-21-work-on-lists-of-datasets-instead-of-individual-datasets-by-using-functional-programming/">Work on lists of datasets instead of individual datasets by using functional programming</a>
+      
+    </div>
+    
+  
+
+</div>
+
+      </div>
+      <div class="col-lg-9 col-md-9 col-sm-8">
+        <div>
+           <h1 id="main">Introduction to programming econometrics with R</h1>
+           <span class="article-date">January 12, 2015</span>
+        </div>
+        
+
+<p>This semester, I&rsquo;ll be teaching an introduction to applied econometrics with R, so I&rsquo;ve decided to write a very small book called &ldquo;Introduction to programming Econometrics with R&rdquo;. This is primarily intended for bachelor students and the focus is not much on econometric theory, but more on how to implement econometric theory into computer code, using the R programming language. It&rsquo;s very basic and doesn&rsquo;t cover any advanced topics in econometrics and is intended for people with 0 previous programming knowledge. It is still very rough around the edges, and it&rsquo;s missing the last chapter about reproducible research, and the references, but I think it&rsquo;s time to put it out there; someone else than my students may find it useful. The book&rsquo;s probably full of typos and mistakes, so don&rsquo;t hesitate to drop me an e-mail if you find something fishy:
+contact@brodrigues.co</p>
+
+<p>Also there might be some sections at the beginning that only concern my students. Just ignore that.</p>
+
+<p>Get it here: <a href="https://cloud.openmailbox.org/index.php/s/ghZwBxMb24tWGSL">download</a></p>
+
+<h3 id="update-2017-01-22">Update (2017-01-22)</h3>
+
+<p>You might find the book useful as it is now, but I never had a chance to finish it. I might get back to
+it once I&rsquo;ll have more time, and port it to bookdown.</p>
+
+      </div>
+    </div>
+  <div class="row">
+    <div class="col-lg-9 col-md-9 col-sm-8 col-lg-offset-3 col-md-offset-3">
+    <footer>
+  <div class="row">
+    <div class="col-lg-12">
+      <p>Copyright 2017. <a> Bruno Rodrigues</a> </p>
+      <p>Made with the HUGO theme <a href="https://github.com/adejoux/hugo-darkdoc-theme" rel="nofollow">darkdoc</a>.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+
+    </div>
+  </div>
+
+</div>
+</html>
+<script>
+
+  var api_url = '';
+
+</script>
+<script src="//code.jquery.com/jquery-2.2.3.min.js"></script>
+<script src="../../js/application.js"></script>
+<script type="text/javascript" src="../../js/jquery.fancybox.pack.js?v=2.1.5"></script>
+<script type="text/javascript" src="../../js/helpers/jquery.fancybox-thumbs.js?v=1.0.7"></script>
+<script type="text/javascript" src="../../js/helpers/jquery.fancybox-buttons.js?v=1.0.5"></script>
+<script type="text/javascript" src="../../js/helpers/jquery.fancybox-media.js?v=1.0.6"></script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $(".fancybox").fancybox();
+  });
+</script>
+
