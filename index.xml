@@ -2,19 +2,19 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Econometrics and Free Software</title>
-    <link>/index.xml</link>
+    <link>https://b-rodrigues.github.io/bookshelf/index.xml</link>
     <description>Recent content on Econometrics and Free Software</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Fri, 17 Feb 2017 12:51:00 +0100</lastBuildDate>
-    <atom:link href="/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://b-rodrigues.github.io/bookshelf/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>How to use jailbreakr</title>
-      <link>/blog/2017-02-17-how_to_use_jailbreakr/</link>
+      <link>https://b-rodrigues.github.io/bookshelf/blog/2017-02-17-how_to_use_jailbreakr/</link>
       <pubDate>Fri, 17 Feb 2017 12:51:00 +0100</pubDate>
       
-      <guid>/blog/2017-02-17-how_to_use_jailbreakr/</guid>
+      <guid>https://b-rodrigues.github.io/bookshelf/blog/2017-02-17-how_to_use_jailbreakr/</guid>
       <description>&lt;!-- BLOGDOWN-BODY-BEFORE
 
 /BLOGDOWN-BODY-BEFORE --&gt;
@@ -262,31 +262,11 @@ head(dataset1)&lt;/code&gt;&lt;/pre&gt;
     </item>
     
     <item>
-      <title>index</title>
-      <link>/</link>
-      <pubDate>Sun, 22 Jan 2017 19:50:00 +0200</pubDate>
-      
-      <guid>/</guid>
-      <description>
-
-&lt;h1 id=&#34;welcome&#34;&gt;Welcome&lt;/h1&gt;
-
-&lt;div style=&#34;float: left;margin: 0px 80px 50px 0px&#34;&gt;
-    &lt;img src=&#34;./img/profile.jpg&#34; width=&#34;213&#34; height=&#34;213&#34;/&gt;
-&lt;/div&gt;
-
-&lt;p&gt;Welcome to my page. If you are were one of my students, you’re probably interested in the Teachings (if links are dead, don’t hesitate to send me an email!) and Software pages. If you’re a fellow PhD candidate, maybe my Research will be of interest to you. If you want to email me, you can click on the red envelope at the top-right corner of any page. You can also follow me on twitter. I sometimes write blog posts about R, and hope to contribute in this way to R-bloggers.&lt;/p&gt;
-
-&lt;h1 id=&#34;blog-posts&#34;&gt;Blog posts&lt;/h1&gt;
-</description>
-    </item>
-    
-    <item>
       <title>Functional programming and unit testing for data munging with R available on Leanpub</title>
-      <link>/blog/2016-12-24-functional-programming-and-unit-testing-for-data-munging-with-r-available-on-leanpub/</link>
+      <link>https://b-rodrigues.github.io/bookshelf/blog/2016-12-24-functional-programming-and-unit-testing-for-data-munging-with-r-available-on-leanpub/</link>
       <pubDate>Sat, 24 Dec 2016 00:00:00 +0000</pubDate>
       
-      <guid>/blog/2016-12-24-functional-programming-and-unit-testing-for-data-munging-with-r-available-on-leanpub/</guid>
+      <guid>https://b-rodrigues.github.io/bookshelf/blog/2016-12-24-functional-programming-and-unit-testing-for-data-munging-with-r-available-on-leanpub/</guid>
       <description>&lt;p&gt;The book I&amp;rsquo;ve been working on these pasts months (you can read about it &lt;a href=&#34;http://www.brodrigues.co/2016/11/04/ive-started-writing-a-book-functional-programming-and-unit-testing-for-data-munging-with-r&#34;&gt;here&lt;/a&gt;, and read it for free &lt;a href=&#34;http://www.brodrigues.co/fput&#34;&gt;here&lt;/a&gt;) is now available on Leanpub! You can grab a copy and read it on your ebook reader or on your computer, and what&amp;rsquo;s even better is that it is available for free (but you can also decide to buy it if you really like it). Here is the link on &lt;a href=&#34;https://leanpub.com/fput&#34;&gt;Leanpub&lt;/a&gt;.&lt;/p&gt;
 
 &lt;p&gt;In the book, I show you the basics of functional programming, unit testing and package development for the R programming language. The end goal is to make your data tidy in a reproducible way!&lt;/p&gt;
@@ -297,10 +277,10 @@ head(dataset1)&lt;/code&gt;&lt;/pre&gt;
     
     <item>
       <title>My free book has a cover!</title>
-      <link>/blog/2017-01-07-my-free-book-has-a-cover/</link>
+      <link>https://b-rodrigues.github.io/bookshelf/blog/2017-01-07-my-free-book-has-a-cover/</link>
       <pubDate>Sat, 24 Dec 2016 00:00:00 +0000</pubDate>
       
-      <guid>/blog/2017-01-07-my-free-book-has-a-cover/</guid>
+      <guid>https://b-rodrigues.github.io/bookshelf/blog/2017-01-07-my-free-book-has-a-cover/</guid>
       <description>&lt;p&gt;I&amp;rsquo;m currently writing a book as a hobby. It&amp;rsquo;s titled &lt;em&gt;Functional programming and unit testing for data munging with R&lt;/em&gt; and you can get it for free &lt;a href=&#34;https://leanpub.com/fput/&#34;&gt;here&lt;/a&gt;. You can also read it online for free on my &lt;a href=&#34;http://www.brodrigues.co/fput&#34;&gt;webpage&lt;/a&gt; What&amp;rsquo;s the book about?&lt;/p&gt;
 
 &lt;p&gt;Here&amp;rsquo;s the teaser text:&lt;/p&gt;
@@ -323,10 +303,10 @@ head(dataset1)&lt;/code&gt;&lt;/pre&gt;
     
     <item>
       <title>Work on lists of datasets instead of individual datasets by using functional programming</title>
-      <link>/blog/2016-12-21-work-on-lists-of-datasets-instead-of-individual-datasets-by-using-functional-programming/</link>
+      <link>https://b-rodrigues.github.io/bookshelf/blog/2016-12-21-work-on-lists-of-datasets-instead-of-individual-datasets-by-using-functional-programming/</link>
       <pubDate>Wed, 21 Dec 2016 00:00:00 +0000</pubDate>
       
-      <guid>/blog/2016-12-21-work-on-lists-of-datasets-instead-of-individual-datasets-by-using-functional-programming/</guid>
+      <guid>https://b-rodrigues.github.io/bookshelf/blog/2016-12-21-work-on-lists-of-datasets-instead-of-individual-datasets-by-using-functional-programming/</guid>
       <description>&lt;p&gt;&lt;p&gt;Analyzing a lot of datasets can be tedious. In my work, I often have to compute descriptive statistics, or plot some graphs for some variables for a lot of datasets. The variables in question have the same name accross the datasets but are measured for different years. As an example, imagine you have this situation:&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;data2000 &amp;lt;- mtcars
 data2001 &amp;lt;- mtcars&lt;/code&gt;&lt;/pre&gt;
@@ -548,10 +528,10 @@ Max.   :8.000&lt;/code&gt;&lt;/pre&gt;
     
     <item>
       <title>I&#39;ve started writing a &#39;book&#39;: Functional programming and unit testing for data munging with R</title>
-      <link>/blog/2016-11-04-ive-started-writing-a-book-functional-programming-and-unit-testing-for-data-munging-with-r/</link>
+      <link>https://b-rodrigues.github.io/bookshelf/blog/2016-11-04-ive-started-writing-a-book-functional-programming-and-unit-testing-for-data-munging-with-r/</link>
       <pubDate>Fri, 04 Nov 2016 00:00:00 +0000</pubDate>
       
-      <guid>/blog/2016-11-04-ive-started-writing-a-book-functional-programming-and-unit-testing-for-data-munging-with-r/</guid>
+      <guid>https://b-rodrigues.github.io/bookshelf/blog/2016-11-04-ive-started-writing-a-book-functional-programming-and-unit-testing-for-data-munging-with-r/</guid>
       <description>&lt;p&gt;I have started writing a &amp;lsquo;book&amp;rsquo; using the awesome &lt;code&gt;bookdown&lt;/code&gt; package. In the book I explain and show why using functional programming
 and putting your functions in your own packages is the way to go when you want to clean, prepare and transform large data sets.
 It makes testing and documenting your code easier. You don&amp;rsquo;t need to think about managing paths either. The book is far from complete,
@@ -563,10 +543,10 @@ suggestions, do not hesitate to shoot me an email or a tweet! You can read the b
     
     <item>
       <title>Merge a list of datasets together</title>
-      <link>/blog/2016-07-30-merge-a-list-of-datasets-together/</link>
+      <link>https://b-rodrigues.github.io/bookshelf/blog/2016-07-30-merge-a-list-of-datasets-together/</link>
       <pubDate>Sat, 30 Jul 2016 00:00:00 +0000</pubDate>
       
-      <guid>/blog/2016-07-30-merge-a-list-of-datasets-together/</guid>
+      <guid>https://b-rodrigues.github.io/bookshelf/blog/2016-07-30-merge-a-list-of-datasets-together/</guid>
       <description>&lt;p&gt;&lt;a href=&#34;http://www.brodrigues.co/2016/07/26/read-a-lot-of-datasets-at-once-with-r&#34;&gt;Last week&lt;/a&gt; I showed how to read a lot of datasets at once with R, and this week I’ll continue from there and show a very simple function that uses this list of read datasets and merges them all together.&lt;/p&gt;
 &lt;p&gt;First we’ll use &lt;code&gt;read_list()&lt;/code&gt; to read all the datasets at once (for more details read &lt;a href=&#34;http://www.brodrigues.co/2016/07/26/read-a-lot-of-datasets-at-once-with-r&#34;&gt;last week’s post&lt;/a&gt;):&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(&amp;quot;readr&amp;quot;)
@@ -632,10 +612,10 @@ glimpse(list_of_data_sets)&lt;/code&gt;&lt;/pre&gt;
     
     <item>
       <title>Read a lot of datasets at once with R</title>
-      <link>/blog/2016-07-26-read-a-lot-of-datasets-at-once-with-r/</link>
+      <link>https://b-rodrigues.github.io/bookshelf/blog/2016-07-26-read-a-lot-of-datasets-at-once-with-r/</link>
       <pubDate>Tue, 26 Jul 2016 00:00:00 +0000</pubDate>
       
-      <guid>/blog/2016-07-26-read-a-lot-of-datasets-at-once-with-r/</guid>
+      <guid>https://b-rodrigues.github.io/bookshelf/blog/2016-07-26-read-a-lot-of-datasets-at-once-with-r/</guid>
       <description>&lt;p&gt;I often have to read a lot of datasets at once using R. So I’ve wrote the following function to solve this issue:&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;read_list &amp;lt;- function(list_of_datasets, read_func){
 
@@ -700,10 +680,10 @@ glimpse(list_of_data_sets)&lt;/code&gt;&lt;/pre&gt;
     
     <item>
       <title>Data frame columns as arguments to dplyr functions</title>
-      <link>/blog/2016-07-18-data-frame-columns-as-arguments-to-dplyr-functions/</link>
+      <link>https://b-rodrigues.github.io/bookshelf/blog/2016-07-18-data-frame-columns-as-arguments-to-dplyr-functions/</link>
       <pubDate>Mon, 18 Jul 2016 00:00:00 +0000</pubDate>
       
-      <guid>/blog/2016-07-18-data-frame-columns-as-arguments-to-dplyr-functions/</guid>
+      <guid>https://b-rodrigues.github.io/bookshelf/blog/2016-07-18-data-frame-columns-as-arguments-to-dplyr-functions/</guid>
       <description>&lt;!-- MathJax scripts --&gt;
 
 &lt;script type=&#34;text/javascript&#34; async
@@ -862,10 +842,10 @@ interp(~x+y, x = 2)&lt;/code&gt;&lt;/pre&gt;
     
     <item>
       <title>Careful with tryCatch</title>
-      <link>/blog/2016-06-21-careful-with-trycatch/</link>
+      <link>https://b-rodrigues.github.io/bookshelf/blog/2016-06-21-careful-with-trycatch/</link>
       <pubDate>Thu, 31 Mar 2016 00:00:00 +0000</pubDate>
       
-      <guid>/blog/2016-06-21-careful-with-trycatch/</guid>
+      <guid>https://b-rodrigues.github.io/bookshelf/blog/2016-06-21-careful-with-trycatch/</guid>
       <description>&lt;!-- MathJax scripts --&gt;
 
 &lt;script type=&#34;text/javascript&#34; async
@@ -950,10 +930,10 @@ print(mother)&lt;/code&gt;&lt;/pre&gt;
     
     <item>
       <title>Unit testing with R</title>
-      <link>/blog/2016-03-31-unit-testing-with-r/</link>
+      <link>https://b-rodrigues.github.io/bookshelf/blog/2016-03-31-unit-testing-with-r/</link>
       <pubDate>Thu, 31 Mar 2016 00:00:00 +0000</pubDate>
       
-      <guid>/blog/2016-03-31-unit-testing-with-r/</guid>
+      <guid>https://b-rodrigues.github.io/bookshelf/blog/2016-03-31-unit-testing-with-r/</guid>
       <description>&lt;!-- MathJax scripts --&gt;
 
 &lt;script type=&#34;text/javascript&#34; async
@@ -1064,10 +1044,10 @@ then try to write the code to make that unit test pass. This is called test-driv
     
     <item>
       <title>Bootstrapping standard errors for difference-in-differences estimation with R</title>
-      <link>/blog/2015-11-11-bootstrapping-did-with-r/</link>
+      <link>https://b-rodrigues.github.io/bookshelf/blog/2015-11-11-bootstrapping-did-with-r/</link>
       <pubDate>Wed, 11 Nov 2015 00:00:00 +0000</pubDate>
       
-      <guid>/blog/2015-11-11-bootstrapping-did-with-r/</guid>
+      <guid>https://b-rodrigues.github.io/bookshelf/blog/2015-11-11-bootstrapping-did-with-r/</guid>
       <description>&lt;!-- MathJax scripts --&gt;
 
 &lt;script type=&#34;text/javascript&#34; async
@@ -1129,10 +1109,10 @@ t1* -11863.9 -553.3393    8580.435&lt;/code&gt;&lt;/pre&gt;
     
     <item>
       <title>Update to Introduction to programming econometrics with R</title>
-      <link>/blog/2015-05-03-update-introduction-r-programming/</link>
+      <link>https://b-rodrigues.github.io/bookshelf/blog/2015-05-03-update-introduction-r-programming/</link>
       <pubDate>Sun, 03 May 2015 00:00:00 +0000</pubDate>
       
-      <guid>/blog/2015-05-03-update-introduction-r-programming/</guid>
+      <guid>https://b-rodrigues.github.io/bookshelf/blog/2015-05-03-update-introduction-r-programming/</guid>
       <description>&lt;!-- MathJax scripts --&gt;
 
 &lt;script type=&#34;text/javascript&#34; async
@@ -1167,10 +1147,10 @@ t1* -11863.9 -553.3393    8580.435&lt;/code&gt;&lt;/pre&gt;
     
     <item>
       <title>Export R output to a file</title>
-      <link>/blog/2015-02-22-export-r-output-to-file/</link>
+      <link>https://b-rodrigues.github.io/bookshelf/blog/2015-02-22-export-r-output-to-file/</link>
       <pubDate>Sun, 22 Feb 2015 00:00:00 +0000</pubDate>
       
-      <guid>/blog/2015-02-22-export-r-output-to-file/</guid>
+      <guid>https://b-rodrigues.github.io/bookshelf/blog/2015-02-22-export-r-output-to-file/</guid>
       <description>&lt;!-- MathJax scripts --&gt;
 
 &lt;script type=&#34;text/javascript&#34; async
@@ -1192,10 +1172,10 @@ cat(&amp;quot;My title&amp;quot;, out, file=&amp;quot;summary_of_my_very_time_co
     
     <item>
       <title>Introduction to programming econometrics with R</title>
-      <link>/blog/2015-01-12-introduction-to-programming-econometrics-with-r/</link>
+      <link>https://b-rodrigues.github.io/bookshelf/blog/2015-01-12-introduction-to-programming-econometrics-with-r/</link>
       <pubDate>Mon, 12 Jan 2015 00:00:00 +0000</pubDate>
       
-      <guid>/blog/2015-01-12-introduction-to-programming-econometrics-with-r/</guid>
+      <guid>https://b-rodrigues.github.io/bookshelf/blog/2015-01-12-introduction-to-programming-econometrics-with-r/</guid>
       <description>
 
 &lt;p&gt;This semester, I&amp;rsquo;ll be teaching an introduction to applied econometrics with R, so I&amp;rsquo;ve decided to write a very small book called &amp;ldquo;Introduction to programming Econometrics with R&amp;rdquo;. This is primarily intended for bachelor students and the focus is not much on econometric theory, but more on how to implement econometric theory into computer code, using the R programming language. It&amp;rsquo;s very basic and doesn&amp;rsquo;t cover any advanced topics in econometrics and is intended for people with 0 previous programming knowledge. It is still very rough around the edges, and it&amp;rsquo;s missing the last chapter about reproducible research, and the references, but I think it&amp;rsquo;s time to put it out there; someone else than my students may find it useful. The book&amp;rsquo;s probably full of typos and mistakes, so don&amp;rsquo;t hesitate to drop me an e-mail if you find something fishy:
@@ -1209,6 +1189,87 @@ contact@brodrigues.co&lt;/p&gt;
 
 &lt;p&gt;You might find the book useful as it is now, but I never had a chance to finish it. I might get back to
 it once I&amp;rsquo;ll have more time, and port it to bookdown.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>R, R with Atlas, R with OpenBLAS and Revolution R Open: which is fastest?</title>
+      <link>https://b-rodrigues.github.io/bookshelf/blog/2014-11-11-benchmarks-r-blas-atlas-rro/</link>
+      <pubDate>Tue, 11 Nov 2014 00:00:00 +0000</pubDate>
+      
+      <guid>https://b-rodrigues.github.io/bookshelf/blog/2014-11-11-benchmarks-r-blas-atlas-rro/</guid>
+      <description>&lt;!-- MathJax scripts --&gt;
+
+&lt;script type=&#34;text/javascript&#34; async
+  src=&#34;https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML&#34;&gt;
+&lt;/script&gt;
+
+&lt;p&gt;&lt;body&gt;&lt;/p&gt;
+
+&lt;p&gt;In this short post, I benchmark different &amp;ldquo;versions&amp;rdquo; of R. I compare the execution speeds of R, R linked against OpenBLAS, R linked against ATLAS and Revolution R Open. Revolution R Open is a new open source version of R made by Revolution Analytics. It is linked against MKL and should offer huge speed improvements over vanilla R. Also, it uses every cores of your computer by default, without any change whatsoever to your code.&lt;/p&gt;
+
+&lt;p&gt;TL;DR: Revolution R Open is the fastest of all the benchmarked versions (with R linked against OpenBLAS and ATLAS just behind), and easier to setup. &lt;/p&gt;
+
+&lt;h2&gt;Setup&lt;/h2&gt;
+
+&lt;p&gt;I benchmarked these different versions of R using &lt;code&gt;R-benchmark-25.R&lt;/code&gt; that you can download &lt;a href=&#34;http://r.research.att.com/benchmarks/R-benchmark-25.R&#34;&gt;here&lt;/a&gt;. This benchmark file was created by Simon Urbanek.&lt;/p&gt;
+
+&lt;p&gt;I ran the benchmarks on my OpenSUSE 13.2 computer with a Pentium Dual-Core CPU E6500@2.93GHz with 4GB of Ram. It&amp;#39;s outdated, but it&amp;#39;s still quite fast for most of my numerical computation needs. I installed &amp;ldquo;vanilla&amp;rdquo; R from the official OpenSUSE repositories which is currently at version 3.1.2.&lt;/p&gt;
+
+&lt;p&gt;Then, I downloaded OpenBLAS and ATLAS also from the official OpenSUSE repositories and made R use these libraries instead of its own implementation of BLAS. The way I did that is a bit hacky, but works: first, go to &lt;code&gt;/usr/lib64/R/lib&lt;/code&gt; and backup &lt;code&gt;libRblas.so&lt;/code&gt; (rename it to &lt;code&gt;libRblas.soBackup&lt;/code&gt; for instance). Then link &lt;code&gt;/usr/lib64/libopenblas.so.0&lt;/code&gt; to &lt;code&gt;/usr/lib64/R/lib/libRblas&lt;/code&gt;, and that&amp;#39;s it, R will use OpenBLAS. For ATLAS, you can do it in the same fashion, but you&amp;#39;ll find the library in &lt;code&gt;/usr/lib64/atlas/&lt;/code&gt;. These paths should be the same for any GNU/Linux distribution. For other operating systems, I&amp;#39;m sure you can find where these libraries are with Google.&lt;/p&gt;
+
+&lt;p&gt;The last version I benchmarked was Revolution R Open. This is a new version of R released by Revolution Analytics. Revolution Analytics had their own version of R, called Revolution R, for quite some time now. They decided to release a completely free as in freedom and free as in free beer version of this product which they now renamed Revolution R Open. You can download Revolution R Open &lt;a href=&#34;http://mran.revolutionanalytics.com/download/#review&#34;&gt;here&lt;/a&gt;. You can have both &amp;ldquo;vanilla&amp;rdquo; R and Revolution R Open installed on your system. &lt;/p&gt;
+
+&lt;h2&gt;Results&lt;/h2&gt;
+
+&lt;p&gt;I ran the &lt;code&gt;R-benchmark-25.R&lt;/code&gt; 6 times for every version but will only discuss the 4 best runs.&lt;/p&gt;
+
+&lt;p&gt;&lt;style type=&#34;text/css&#34;&gt;
+.tg  {border-collapse:collapse;border-spacing:0;}
+.tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 11px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;}
+.tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 11px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;}
+.tg .tg-0ord{text-align:right}
+&lt;/style&gt;
+&lt;table class=&#34;tg&#34;&gt;
+&lt;tr&gt;
+&lt;th class=&#34;tg-031e&#34;&gt;R version&lt;/th&gt;
+&lt;th class=&#34;tg-0ord&#34;&gt;Fastest run&lt;/th&gt;
+&lt;th class=&#34;tg-0ord&#34;&gt;Slowest run&lt;/th&gt;
+&lt;th class=&#34;tg-0ord&#34;&gt;Mean Run&lt;/th&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td class=&#34;tg-031e&#34;&gt;Vanilla R&lt;/td&gt;
+&lt;td class=&#34;tg-0ord&#34;&gt;63.65&lt;/td&gt;
+&lt;td class=&#34;tg-0ord&#34;&gt;66.21&lt;/td&gt;
+&lt;td class=&#34;tg-0ord&#34;&gt;64.61&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td class=&#34;tg-031e&#34;&gt;OpenBLAS R&lt;/td&gt;
+&lt;td class=&#34;tg-0ord&#34;&gt;15.63&lt;/td&gt;
+&lt;td class=&#34;tg-0ord&#34;&gt;18.96&lt;/td&gt;
+&lt;td class=&#34;tg-0ord&#34;&gt;16.94&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td class=&#34;tg-031e&#34;&gt;ATLAS R&lt;/td&gt;
+&lt;td class=&#34;tg-0ord&#34;&gt;16.92&lt;/td&gt;
+&lt;td class=&#34;tg-0ord&#34;&gt;21.57&lt;/td&gt;
+&lt;td class=&#34;tg-0ord&#34;&gt;18.24&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td class=&#34;tg-031e&#34;&gt;RRO&lt;/td&gt;
+&lt;td class=&#34;tg-0ord&#34;&gt;14.96&lt;/td&gt;
+&lt;td class=&#34;tg-0ord&#34;&gt;16.08&lt;/td&gt;
+&lt;td class=&#34;tg-0ord&#34;&gt;15.49&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/table&gt;&lt;/p&gt;
+
+&lt;p&gt;As you can read from the table above, Revolution R Open was the fastest of the four versions, but not significantly faster than BLAS or ATLAS R. However, RRO uses all the available cores by default, so if your code relies on a lot matrix algebra, RRO might be actually a lot more faster than OpenBLAS and ATLAS R. Another advantage of RRO is that it is very easy to install, and also works with Rstudio and is compatible with every R package to existence. &#34;Vanilla&#34; R is much slower than the other three versions, more than 3 times as slow! &lt;/p&gt;
+
+&lt;h2&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;With other benchmarks, you could get other results, but I don&#39;t think that &#34;vanilla&#34; R could beat any of the other three versions. Whatever your choice, I recommend not using plain, &amp;ldquo;vanilla&amp;rdquo; R. The other options are much faster than standard R, and don&amp;#39;t require much work to set up. I&amp;#39;d personally recommend Revolution R Open, as it is free software and compatible with CRAN packages and Rstudio. &lt;/p&gt;
+
+&lt;p&gt;&lt;/body&gt;&lt;/p&gt;
 </description>
     </item>
     
