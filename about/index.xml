@@ -2,18 +2,18 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Abouts on Econometrics and Free Software</title>
-    <link>https://b-rodrigues.github.io/bookshelf/about/index.xml</link>
+    <link>/about/index.xml</link>
     <description>Recent content in Abouts on Econometrics and Free Software</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <atom:link href="https://b-rodrigues.github.io/bookshelf/about/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="/about/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>Research</title>
-      <link>https://b-rodrigues.github.io/bookshelf/about/research/</link>
+      <link>/about/research/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>https://b-rodrigues.github.io/bookshelf/about/research/</guid>
+      <guid>/about/research/</guid>
       <description>
 
 &lt;h2 id=&#34;published-articles&#34;&gt;Published Articles&lt;/h2&gt;
@@ -80,10 +80,10 @@ nunc mi, pretium in euismod vitae, sollicitudin quis massa. Donec accumsan magna
     
     <item>
       <title>Software</title>
-      <link>https://b-rodrigues.github.io/bookshelf/about/software/</link>
+      <link>/about/software/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>https://b-rodrigues.github.io/bookshelf/about/software/</guid>
+      <guid>/about/software/</guid>
       <description>&lt;p&gt;This is a list of software I use for my Research, or software I advise to my students. I only use Free Software.
 Free here is not about price, but about freedom. Think of free as in free speech. The reasons I chose to use free software are both
 practical and philosophical. Free software gives me infinite flexibility: I can install it on any machine I own without having to worry
@@ -175,10 +175,10 @@ Adobe Photoshop and Scribus is a desktop publishing tool like Adobe Indesign.&lt
     
     <item>
       <title>Who am I?</title>
-      <link>https://b-rodrigues.github.io/bookshelf/about/about/</link>
+      <link>/about/about/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>https://b-rodrigues.github.io/bookshelf/about/about/</guid>
+      <guid>/about/about/</guid>
       <description>&lt;p&gt;My name is Bruno Rodrigues and I am a PhD candidate at the &lt;a href=&#34;http://www.beta-umr7522.fr/?lang=fr&#34;&gt;Bureau d’économie Théorique et Appliquée&lt;/a&gt; at the &lt;a href=&#34;http://www.unistra.fr&#34;&gt;University of Strasbourg&lt;/a&gt;.
 My thesis advisor is Bertrand Kœbel and my co-advisor is François Laisney.&lt;/p&gt;
 

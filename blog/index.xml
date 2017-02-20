@@ -2,19 +2,19 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Blogs on Econometrics and Free Software</title>
-    <link>https://b-rodrigues.github.io/bookshelf/blog/index.xml</link>
+    <link>/blog/index.xml</link>
     <description>Recent content in Blogs on Econometrics and Free Software</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Fri, 17 Feb 2017 12:51:00 +0100</lastBuildDate>
-    <atom:link href="https://b-rodrigues.github.io/bookshelf/blog/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="/blog/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>How to use jailbreakr</title>
-      <link>https://b-rodrigues.github.io/bookshelf/blog/2017-02-17-how_to_use_jailbreakr/</link>
+      <link>/blog/2017-02-17-how_to_use_jailbreakr/</link>
       <pubDate>Fri, 17 Feb 2017 12:51:00 +0100</pubDate>
       
-      <guid>https://b-rodrigues.github.io/bookshelf/blog/2017-02-17-how_to_use_jailbreakr/</guid>
+      <guid>/blog/2017-02-17-how_to_use_jailbreakr/</guid>
       <description>&lt;!-- BLOGDOWN-BODY-BEFORE
 
 /BLOGDOWN-BODY-BEFORE --&gt;
@@ -263,10 +263,10 @@ head(dataset1)&lt;/code&gt;&lt;/pre&gt;
     
     <item>
       <title>Functional programming and unit testing for data munging with R available on Leanpub</title>
-      <link>https://b-rodrigues.github.io/bookshelf/blog/2016-12-24-functional-programming-and-unit-testing-for-data-munging-with-r-available-on-leanpub/</link>
+      <link>/blog/2016-12-24-functional-programming-and-unit-testing-for-data-munging-with-r-available-on-leanpub/</link>
       <pubDate>Sat, 24 Dec 2016 00:00:00 +0000</pubDate>
       
-      <guid>https://b-rodrigues.github.io/bookshelf/blog/2016-12-24-functional-programming-and-unit-testing-for-data-munging-with-r-available-on-leanpub/</guid>
+      <guid>/blog/2016-12-24-functional-programming-and-unit-testing-for-data-munging-with-r-available-on-leanpub/</guid>
       <description>&lt;p&gt;The book I&amp;rsquo;ve been working on these pasts months (you can read about it &lt;a href=&#34;http://www.brodrigues.co/2016/11/04/ive-started-writing-a-book-functional-programming-and-unit-testing-for-data-munging-with-r&#34;&gt;here&lt;/a&gt;, and read it for free &lt;a href=&#34;http://www.brodrigues.co/fput&#34;&gt;here&lt;/a&gt;) is now available on Leanpub! You can grab a copy and read it on your ebook reader or on your computer, and what&amp;rsquo;s even better is that it is available for free (but you can also decide to buy it if you really like it). Here is the link on &lt;a href=&#34;https://leanpub.com/fput&#34;&gt;Leanpub&lt;/a&gt;.&lt;/p&gt;
 
 &lt;p&gt;In the book, I show you the basics of functional programming, unit testing and package development for the R programming language. The end goal is to make your data tidy in a reproducible way!&lt;/p&gt;
@@ -277,10 +277,10 @@ head(dataset1)&lt;/code&gt;&lt;/pre&gt;
     
     <item>
       <title>My free book has a cover!</title>
-      <link>https://b-rodrigues.github.io/bookshelf/blog/2017-01-07-my-free-book-has-a-cover/</link>
+      <link>/blog/2017-01-07-my-free-book-has-a-cover/</link>
       <pubDate>Sat, 24 Dec 2016 00:00:00 +0000</pubDate>
       
-      <guid>https://b-rodrigues.github.io/bookshelf/blog/2017-01-07-my-free-book-has-a-cover/</guid>
+      <guid>/blog/2017-01-07-my-free-book-has-a-cover/</guid>
       <description>&lt;p&gt;I&amp;rsquo;m currently writing a book as a hobby. It&amp;rsquo;s titled &lt;em&gt;Functional programming and unit testing for data munging with R&lt;/em&gt; and you can get it for free &lt;a href=&#34;https://leanpub.com/fput/&#34;&gt;here&lt;/a&gt;. You can also read it online for free on my &lt;a href=&#34;http://www.brodrigues.co/fput&#34;&gt;webpage&lt;/a&gt; What&amp;rsquo;s the book about?&lt;/p&gt;
 
 &lt;p&gt;Here&amp;rsquo;s the teaser text:&lt;/p&gt;
@@ -303,10 +303,10 @@ head(dataset1)&lt;/code&gt;&lt;/pre&gt;
     
     <item>
       <title>Work on lists of datasets instead of individual datasets by using functional programming</title>
-      <link>https://b-rodrigues.github.io/bookshelf/blog/2016-12-21-work-on-lists-of-datasets-instead-of-individual-datasets-by-using-functional-programming/</link>
+      <link>/blog/2016-12-21-work-on-lists-of-datasets-instead-of-individual-datasets-by-using-functional-programming/</link>
       <pubDate>Wed, 21 Dec 2016 00:00:00 +0000</pubDate>
       
-      <guid>https://b-rodrigues.github.io/bookshelf/blog/2016-12-21-work-on-lists-of-datasets-instead-of-individual-datasets-by-using-functional-programming/</guid>
+      <guid>/blog/2016-12-21-work-on-lists-of-datasets-instead-of-individual-datasets-by-using-functional-programming/</guid>
       <description>&lt;p&gt;&lt;p&gt;Analyzing a lot of datasets can be tedious. In my work, I often have to compute descriptive statistics, or plot some graphs for some variables for a lot of datasets. The variables in question have the same name accross the datasets but are measured for different years. As an example, imagine you have this situation:&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;data2000 &amp;lt;- mtcars
 data2001 &amp;lt;- mtcars&lt;/code&gt;&lt;/pre&gt;
@@ -528,10 +528,10 @@ Max.   :8.000&lt;/code&gt;&lt;/pre&gt;
     
     <item>
       <title>I&#39;ve started writing a &#39;book&#39;: Functional programming and unit testing for data munging with R</title>
-      <link>https://b-rodrigues.github.io/bookshelf/blog/2016-11-04-ive-started-writing-a-book-functional-programming-and-unit-testing-for-data-munging-with-r/</link>
+      <link>/blog/2016-11-04-ive-started-writing-a-book-functional-programming-and-unit-testing-for-data-munging-with-r/</link>
       <pubDate>Fri, 04 Nov 2016 00:00:00 +0000</pubDate>
       
-      <guid>https://b-rodrigues.github.io/bookshelf/blog/2016-11-04-ive-started-writing-a-book-functional-programming-and-unit-testing-for-data-munging-with-r/</guid>
+      <guid>/blog/2016-11-04-ive-started-writing-a-book-functional-programming-and-unit-testing-for-data-munging-with-r/</guid>
       <description>&lt;p&gt;I have started writing a &amp;lsquo;book&amp;rsquo; using the awesome &lt;code&gt;bookdown&lt;/code&gt; package. In the book I explain and show why using functional programming
 and putting your functions in your own packages is the way to go when you want to clean, prepare and transform large data sets.
 It makes testing and documenting your code easier. You don&amp;rsquo;t need to think about managing paths either. The book is far from complete,
@@ -543,10 +543,10 @@ suggestions, do not hesitate to shoot me an email or a tweet! You can read the b
     
     <item>
       <title>Merge a list of datasets together</title>
-      <link>https://b-rodrigues.github.io/bookshelf/blog/2016-07-30-merge-a-list-of-datasets-together/</link>
+      <link>/blog/2016-07-30-merge-a-list-of-datasets-together/</link>
       <pubDate>Sat, 30 Jul 2016 00:00:00 +0000</pubDate>
       
-      <guid>https://b-rodrigues.github.io/bookshelf/blog/2016-07-30-merge-a-list-of-datasets-together/</guid>
+      <guid>/blog/2016-07-30-merge-a-list-of-datasets-together/</guid>
       <description>&lt;p&gt;&lt;a href=&#34;http://www.brodrigues.co/2016/07/26/read-a-lot-of-datasets-at-once-with-r&#34;&gt;Last week&lt;/a&gt; I showed how to read a lot of datasets at once with R, and this week I’ll continue from there and show a very simple function that uses this list of read datasets and merges them all together.&lt;/p&gt;
 &lt;p&gt;First we’ll use &lt;code&gt;read_list()&lt;/code&gt; to read all the datasets at once (for more details read &lt;a href=&#34;http://www.brodrigues.co/2016/07/26/read-a-lot-of-datasets-at-once-with-r&#34;&gt;last week’s post&lt;/a&gt;):&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(&amp;quot;readr&amp;quot;)
@@ -612,10 +612,10 @@ glimpse(list_of_data_sets)&lt;/code&gt;&lt;/pre&gt;
     
     <item>
       <title>Read a lot of datasets at once with R</title>
-      <link>https://b-rodrigues.github.io/bookshelf/blog/2016-07-26-read-a-lot-of-datasets-at-once-with-r/</link>
+      <link>/blog/2016-07-26-read-a-lot-of-datasets-at-once-with-r/</link>
       <pubDate>Tue, 26 Jul 2016 00:00:00 +0000</pubDate>
       
-      <guid>https://b-rodrigues.github.io/bookshelf/blog/2016-07-26-read-a-lot-of-datasets-at-once-with-r/</guid>
+      <guid>/blog/2016-07-26-read-a-lot-of-datasets-at-once-with-r/</guid>
       <description>&lt;p&gt;I often have to read a lot of datasets at once using R. So I’ve wrote the following function to solve this issue:&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;read_list &amp;lt;- function(list_of_datasets, read_func){
 
@@ -680,10 +680,10 @@ glimpse(list_of_data_sets)&lt;/code&gt;&lt;/pre&gt;
     
     <item>
       <title>Data frame columns as arguments to dplyr functions</title>
-      <link>https://b-rodrigues.github.io/bookshelf/blog/2016-07-18-data-frame-columns-as-arguments-to-dplyr-functions/</link>
+      <link>/blog/2016-07-18-data-frame-columns-as-arguments-to-dplyr-functions/</link>
       <pubDate>Mon, 18 Jul 2016 00:00:00 +0000</pubDate>
       
-      <guid>https://b-rodrigues.github.io/bookshelf/blog/2016-07-18-data-frame-columns-as-arguments-to-dplyr-functions/</guid>
+      <guid>/blog/2016-07-18-data-frame-columns-as-arguments-to-dplyr-functions/</guid>
       <description>&lt;!-- MathJax scripts --&gt;
 
 &lt;script type=&#34;text/javascript&#34; async
@@ -842,10 +842,10 @@ interp(~x+y, x = 2)&lt;/code&gt;&lt;/pre&gt;
     
     <item>
       <title>Careful with tryCatch</title>
-      <link>https://b-rodrigues.github.io/bookshelf/blog/2016-06-21-careful-with-trycatch/</link>
+      <link>/blog/2016-06-21-careful-with-trycatch/</link>
       <pubDate>Thu, 31 Mar 2016 00:00:00 +0000</pubDate>
       
-      <guid>https://b-rodrigues.github.io/bookshelf/blog/2016-06-21-careful-with-trycatch/</guid>
+      <guid>/blog/2016-06-21-careful-with-trycatch/</guid>
       <description>&lt;!-- MathJax scripts --&gt;
 
 &lt;script type=&#34;text/javascript&#34; async
@@ -930,10 +930,10 @@ print(mother)&lt;/code&gt;&lt;/pre&gt;
     
     <item>
       <title>Unit testing with R</title>
-      <link>https://b-rodrigues.github.io/bookshelf/blog/2016-03-31-unit-testing-with-r/</link>
+      <link>/blog/2016-03-31-unit-testing-with-r/</link>
       <pubDate>Thu, 31 Mar 2016 00:00:00 +0000</pubDate>
       
-      <guid>https://b-rodrigues.github.io/bookshelf/blog/2016-03-31-unit-testing-with-r/</guid>
+      <guid>/blog/2016-03-31-unit-testing-with-r/</guid>
       <description>&lt;!-- MathJax scripts --&gt;
 
 &lt;script type=&#34;text/javascript&#34; async
@@ -1044,10 +1044,10 @@ then try to write the code to make that unit test pass. This is called test-driv
     
     <item>
       <title>Bootstrapping standard errors for difference-in-differences estimation with R</title>
-      <link>https://b-rodrigues.github.io/bookshelf/blog/2015-11-11-bootstrapping-did-with-r/</link>
+      <link>/blog/2015-11-11-bootstrapping-did-with-r/</link>
       <pubDate>Wed, 11 Nov 2015 00:00:00 +0000</pubDate>
       
-      <guid>https://b-rodrigues.github.io/bookshelf/blog/2015-11-11-bootstrapping-did-with-r/</guid>
+      <guid>/blog/2015-11-11-bootstrapping-did-with-r/</guid>
       <description>&lt;!-- MathJax scripts --&gt;
 
 &lt;script type=&#34;text/javascript&#34; async
@@ -1109,10 +1109,10 @@ t1* -11863.9 -553.3393    8580.435&lt;/code&gt;&lt;/pre&gt;
     
     <item>
       <title>Update to Introduction to programming econometrics with R</title>
-      <link>https://b-rodrigues.github.io/bookshelf/blog/2015-05-03-update-introduction-r-programming/</link>
+      <link>/blog/2015-05-03-update-introduction-r-programming/</link>
       <pubDate>Sun, 03 May 2015 00:00:00 +0000</pubDate>
       
-      <guid>https://b-rodrigues.github.io/bookshelf/blog/2015-05-03-update-introduction-r-programming/</guid>
+      <guid>/blog/2015-05-03-update-introduction-r-programming/</guid>
       <description>&lt;!-- MathJax scripts --&gt;
 
 &lt;script type=&#34;text/javascript&#34; async
@@ -1147,10 +1147,10 @@ t1* -11863.9 -553.3393    8580.435&lt;/code&gt;&lt;/pre&gt;
     
     <item>
       <title>Export R output to a file</title>
-      <link>https://b-rodrigues.github.io/bookshelf/blog/2015-02-22-export-r-output-to-file/</link>
+      <link>/blog/2015-02-22-export-r-output-to-file/</link>
       <pubDate>Sun, 22 Feb 2015 00:00:00 +0000</pubDate>
       
-      <guid>https://b-rodrigues.github.io/bookshelf/blog/2015-02-22-export-r-output-to-file/</guid>
+      <guid>/blog/2015-02-22-export-r-output-to-file/</guid>
       <description>&lt;!-- MathJax scripts --&gt;
 
 &lt;script type=&#34;text/javascript&#34; async
@@ -1172,10 +1172,10 @@ cat(&amp;quot;My title&amp;quot;, out, file=&amp;quot;summary_of_my_very_time_co
     
     <item>
       <title>Introduction to programming econometrics with R</title>
-      <link>https://b-rodrigues.github.io/bookshelf/blog/2015-01-12-introduction-to-programming-econometrics-with-r/</link>
+      <link>/blog/2015-01-12-introduction-to-programming-econometrics-with-r/</link>
       <pubDate>Mon, 12 Jan 2015 00:00:00 +0000</pubDate>
       
-      <guid>https://b-rodrigues.github.io/bookshelf/blog/2015-01-12-introduction-to-programming-econometrics-with-r/</guid>
+      <guid>/blog/2015-01-12-introduction-to-programming-econometrics-with-r/</guid>
       <description>
 
 &lt;p&gt;This semester, I&amp;rsquo;ll be teaching an introduction to applied econometrics with R, so I&amp;rsquo;ve decided to write a very small book called &amp;ldquo;Introduction to programming Econometrics with R&amp;rdquo;. This is primarily intended for bachelor students and the focus is not much on econometric theory, but more on how to implement econometric theory into computer code, using the R programming language. It&amp;rsquo;s very basic and doesn&amp;rsquo;t cover any advanced topics in econometrics and is intended for people with 0 previous programming knowledge. It is still very rough around the edges, and it&amp;rsquo;s missing the last chapter about reproducible research, and the references, but I think it&amp;rsquo;s time to put it out there; someone else than my students may find it useful. The book&amp;rsquo;s probably full of typos and mistakes, so don&amp;rsquo;t hesitate to drop me an e-mail if you find something fishy:
@@ -1194,10 +1194,10 @@ it once I&amp;rsquo;ll have more time, and port it to bookdown.&lt;/p&gt;
     
     <item>
       <title>R, R with Atlas, R with OpenBLAS and Revolution R Open: which is fastest?</title>
-      <link>https://b-rodrigues.github.io/bookshelf/blog/2014-11-11-benchmarks-r-blas-atlas-rro/</link>
+      <link>/blog/2014-11-11-benchmarks-r-blas-atlas-rro/</link>
       <pubDate>Tue, 11 Nov 2014 00:00:00 +0000</pubDate>
       
-      <guid>https://b-rodrigues.github.io/bookshelf/blog/2014-11-11-benchmarks-r-blas-atlas-rro/</guid>
+      <guid>/blog/2014-11-11-benchmarks-r-blas-atlas-rro/</guid>
       <description>&lt;!-- MathJax scripts --&gt;
 
 &lt;script type=&#34;text/javascript&#34; async
