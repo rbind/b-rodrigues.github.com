@@ -6,8 +6,257 @@
     <description>Recent content on Econometrics and Free Software</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Fri, 17 Feb 2017 12:51:00 +0100</lastBuildDate>
+    <lastBuildDate>Wed, 08 Mar 2017 12:00:00 +0100</lastBuildDate>
     <atom:link href="/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Lesser known dplyr tricks</title>
+      <link>/blog/2017-02-17-lesser_known_tricks/</link>
+      <pubDate>Wed, 08 Mar 2017 12:00:00 +0100</pubDate>
+      
+      <guid>/blog/2017-02-17-lesser_known_tricks/</guid>
+      <description>&lt;!-- BLOGDOWN-BODY-BEFORE
+
+/BLOGDOWN-BODY-BEFORE --&gt;
+
+&lt;p&gt;In this blog post I share some lesser-known (at least I believe they are) tricks that use mainly functions from &lt;code&gt;dplyr&lt;/code&gt;.&lt;/p&gt;
+&lt;div id=&#34;removing-unneeded-columns&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Removing unneeded columns&lt;/h2&gt;
+&lt;p&gt;Did you know that you can use &lt;code&gt;-&lt;/code&gt; in front of a column name to remove it from a data frame?&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;mtcars %&amp;gt;% 
+    select(-disp) %&amp;gt;% 
+    head()&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##                    mpg cyl  hp drat    wt  qsec vs am gear carb
+## Mazda RX4         21.0   6 110 3.90 2.620 16.46  0  1    4    4
+## Mazda RX4 Wag     21.0   6 110 3.90 2.875 17.02  0  1    4    4
+## Datsun 710        22.8   4  93 3.85 2.320 18.61  1  1    4    1
+## Hornet 4 Drive    21.4   6 110 3.08 3.215 19.44  1  0    3    1
+## Hornet Sportabout 18.7   8 175 3.15 3.440 17.02  0  0    3    2
+## Valiant           18.1   6 105 2.76 3.460 20.22  1  0    3    1&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id=&#34;re-ordering-columns&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Re-ordering columns&lt;/h2&gt;
+&lt;p&gt;Still using &lt;code&gt;select()&lt;/code&gt;, it is easy te re-order columns in your data frame:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;mtcars %&amp;gt;% 
+    select(cyl, disp, hp, everything()) %&amp;gt;% 
+    head()&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##                   cyl disp  hp  mpg drat    wt  qsec vs am gear carb
+## Mazda RX4           6  160 110 21.0 3.90 2.620 16.46  0  1    4    4
+## Mazda RX4 Wag       6  160 110 21.0 3.90 2.875 17.02  0  1    4    4
+## Datsun 710          4  108  93 22.8 3.85 2.320 18.61  1  1    4    1
+## Hornet 4 Drive      6  258 110 21.4 3.08 3.215 19.44  1  0    3    1
+## Hornet Sportabout   8  360 175 18.7 3.15 3.440 17.02  0  0    3    2
+## Valiant             6  225 105 18.1 2.76 3.460 20.22  1  0    3    1&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;As its name implies &lt;code&gt;everything()&lt;/code&gt; simply means all the other columns.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;renaming-columns-with-rename&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Renaming columns with &lt;code&gt;rename()&lt;/code&gt;&lt;/h2&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;mtcars &amp;lt;- rename(mtcars, spam_mpg = mpg)
+mtcars &amp;lt;- rename(mtcars, spam_disp = disp)
+mtcars &amp;lt;- rename(mtcars, spam_hp = hp)
+
+head(mtcars)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##                   spam_mpg cyl spam_disp spam_hp drat    wt  qsec vs am
+## Mazda RX4             21.0   6       160     110 3.90 2.620 16.46  0  1
+## Mazda RX4 Wag         21.0   6       160     110 3.90 2.875 17.02  0  1
+## Datsun 710            22.8   4       108      93 3.85 2.320 18.61  1  1
+## Hornet 4 Drive        21.4   6       258     110 3.08 3.215 19.44  1  0
+## Hornet Sportabout     18.7   8       360     175 3.15 3.440 17.02  0  0
+## Valiant               18.1   6       225     105 2.76 3.460 20.22  1  0
+##                   gear carb
+## Mazda RX4            4    4
+## Mazda RX4 Wag        4    4
+## Datsun 710           4    1
+## Hornet 4 Drive       3    1
+## Hornet Sportabout    3    2
+## Valiant              3    1&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id=&#34;selecting-columns-with-a-regexep&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Selecting columns with a regexep&lt;/h2&gt;
+&lt;p&gt;It is easy to select the columns that start with “spam” with some helper functions:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;mtcars %&amp;gt;% 
+    select(contains(&amp;quot;spam&amp;quot;)) %&amp;gt;% 
+    head()&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##                   spam_mpg spam_disp spam_hp
+## Mazda RX4             21.0       160     110
+## Mazda RX4 Wag         21.0       160     110
+## Datsun 710            22.8       108      93
+## Hornet 4 Drive        21.4       258     110
+## Hornet Sportabout     18.7       360     175
+## Valiant               18.1       225     105&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;take also a look at &lt;code&gt;starts_with()&lt;/code&gt;, &lt;code&gt;ends_with()&lt;/code&gt;, &lt;code&gt;contains()&lt;/code&gt;, &lt;code&gt;matches()&lt;/code&gt;, &lt;code&gt;num_range()&lt;/code&gt;, &lt;code&gt;one_of()&lt;/code&gt; and &lt;code&gt;everything()&lt;/code&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;create-new-columns-with-mutate-and-if_else&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Create new columns with &lt;code&gt;mutate()&lt;/code&gt; and &lt;code&gt;if_else()&lt;/code&gt;&lt;/h2&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;mtcars %&amp;gt;% 
+    mutate(vs_new = if_else(
+        vs == 1, 
+        &amp;quot;one&amp;quot;, 
+        &amp;quot;zero&amp;quot;, 
+        NA_character_)) %&amp;gt;% 
+    head()&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##   spam_mpg cyl spam_disp spam_hp drat    wt  qsec vs am gear carb vs_new
+## 1     21.0   6       160     110 3.90 2.620 16.46  0  1    4    4   zero
+## 2     21.0   6       160     110 3.90 2.875 17.02  0  1    4    4   zero
+## 3     22.8   4       108      93 3.85 2.320 18.61  1  1    4    1    one
+## 4     21.4   6       258     110 3.08 3.215 19.44  1  0    3    1    one
+## 5     18.7   8       360     175 3.15 3.440 17.02  0  0    3    2   zero
+## 6     18.1   6       225     105 2.76 3.460 20.22  1  0    3    1    one&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;You might want to create a new variable conditionally on several values of another column:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;mtcars %&amp;gt;% 
+    mutate(carb_new = case_when(.$carb == 1 ~ &amp;quot;one&amp;quot;,
+                                .$carb == 2 ~ &amp;quot;two&amp;quot;,
+                                .$carb == 4 ~ &amp;quot;four&amp;quot;,
+                                 TRUE ~ &amp;quot;other&amp;quot;)) %&amp;gt;% 
+    head(15)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##    spam_mpg cyl spam_disp spam_hp drat    wt  qsec vs am gear carb
+## 1      21.0   6     160.0     110 3.90 2.620 16.46  0  1    4    4
+## 2      21.0   6     160.0     110 3.90 2.875 17.02  0  1    4    4
+## 3      22.8   4     108.0      93 3.85 2.320 18.61  1  1    4    1
+## 4      21.4   6     258.0     110 3.08 3.215 19.44  1  0    3    1
+## 5      18.7   8     360.0     175 3.15 3.440 17.02  0  0    3    2
+## 6      18.1   6     225.0     105 2.76 3.460 20.22  1  0    3    1
+## 7      14.3   8     360.0     245 3.21 3.570 15.84  0  0    3    4
+## 8      24.4   4     146.7      62 3.69 3.190 20.00  1  0    4    2
+## 9      22.8   4     140.8      95 3.92 3.150 22.90  1  0    4    2
+## 10     19.2   6     167.6     123 3.92 3.440 18.30  1  0    4    4
+## 11     17.8   6     167.6     123 3.92 3.440 18.90  1  0    4    4
+## 12     16.4   8     275.8     180 3.07 4.070 17.40  0  0    3    3
+## 13     17.3   8     275.8     180 3.07 3.730 17.60  0  0    3    3
+## 14     15.2   8     275.8     180 3.07 3.780 18.00  0  0    3    3
+## 15     10.4   8     472.0     205 2.93 5.250 17.98  0  0    3    4
+##    carb_new
+## 1      four
+## 2      four
+## 3       one
+## 4       one
+## 5       two
+## 6       one
+## 7      four
+## 8       two
+## 9       two
+## 10     four
+## 11     four
+## 12    other
+## 13    other
+## 14    other
+## 15     four&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Mind the &lt;code&gt;.$&lt;/code&gt; before the variable &lt;code&gt;carb&lt;/code&gt;. There is a &lt;a href=&#34;https://github.com/hadley/dplyr/issues/1965&#34;&gt;github issue&lt;/a&gt; about this, and it is already fixed in the development version of &lt;code&gt;dplyr&lt;/code&gt;, which means that in the next version of &lt;code&gt;dplyr&lt;/code&gt;, &lt;code&gt;case_when()&lt;/code&gt; will work as any other specialized &lt;code&gt;dplyr&lt;/code&gt; function inside &lt;code&gt;mutate()&lt;/code&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;apply-a-function-to-certain-columns-only-by-rows&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Apply a function to certain columns only, by rows&lt;/h2&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;mtcars %&amp;gt;%
+    select(am, gear, carb) %&amp;gt;%
+    purrr::by_row(sum, .collate = &amp;quot;cols&amp;quot;, .to = &amp;quot;sum_am_gear_carb&amp;quot;) -&amp;gt; mtcars2
+head(mtcars2)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## # A tibble: 6 × 4
+##      am  gear  carb sum_am_gear_carb
+##   &amp;lt;dbl&amp;gt; &amp;lt;dbl&amp;gt; &amp;lt;dbl&amp;gt;            &amp;lt;dbl&amp;gt;
+## 1     1     4     4                9
+## 2     1     4     4                9
+## 3     1     4     1                6
+## 4     0     3     1                4
+## 5     0     3     2                5
+## 6     0     3     1                4&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;For this, I had to use &lt;code&gt;purrr&lt;/code&gt;’s &lt;code&gt;by_row()&lt;/code&gt; function. You can then add this column to your original data frame:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;mtcars &amp;lt;- cbind(mtcars, &amp;quot;sum_am_gear_carb&amp;quot; = mtcars2$sum_am_gear_carb)
+head(mtcars)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##                   spam_mpg cyl spam_disp spam_hp drat    wt  qsec vs am
+## Mazda RX4             21.0   6       160     110 3.90 2.620 16.46  0  1
+## Mazda RX4 Wag         21.0   6       160     110 3.90 2.875 17.02  0  1
+## Datsun 710            22.8   4       108      93 3.85 2.320 18.61  1  1
+## Hornet 4 Drive        21.4   6       258     110 3.08 3.215 19.44  1  0
+## Hornet Sportabout     18.7   8       360     175 3.15 3.440 17.02  0  0
+## Valiant               18.1   6       225     105 2.76 3.460 20.22  1  0
+##                   gear carb sum_am_gear_carb
+## Mazda RX4            4    4                9
+## Mazda RX4 Wag        4    4                9
+## Datsun 710           4    1                6
+## Hornet 4 Drive       3    1                4
+## Hornet Sportabout    3    2                5
+## Valiant              3    1                4&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id=&#34;use-do-to-do-any-arbitrary-operation&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Use &lt;code&gt;do()&lt;/code&gt; to do any arbitrary operation&lt;/h2&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;mtcars %&amp;gt;% 
+    group_by(spam_disp) %&amp;gt;% 
+    do(models = lm(spam_mpg ~ drat + wt, data = .)) %&amp;gt;% 
+    broom::tidy(models)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## Source: local data frame [30 x 6]
+## Groups: spam_disp [27]
+## 
+##    spam_disp        term estimate std.error statistic p.value
+##        &amp;lt;dbl&amp;gt;       &amp;lt;chr&amp;gt;    &amp;lt;dbl&amp;gt;     &amp;lt;dbl&amp;gt;     &amp;lt;dbl&amp;gt;   &amp;lt;dbl&amp;gt;
+## 1       71.1 (Intercept)     33.9       NaN       NaN     NaN
+## 2       75.7 (Intercept)     30.4       NaN       NaN     NaN
+## 3       78.7 (Intercept)     32.4       NaN       NaN     NaN
+## 4       79.0 (Intercept)     27.3       NaN       NaN     NaN
+## 5       95.1 (Intercept)     30.4       NaN       NaN     NaN
+## 6      108.0 (Intercept)     22.8       NaN       NaN     NaN
+## 7      120.1 (Intercept)     21.5       NaN       NaN     NaN
+## 8      120.3 (Intercept)     26.0       NaN       NaN     NaN
+## 9      121.0 (Intercept)     21.4       NaN       NaN     NaN
+## 10     140.8 (Intercept)     22.8       NaN       NaN     NaN
+## # ... with 20 more rows&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;code&gt;do()&lt;/code&gt; is useful when you want to use any R function (user defined functions work too!) with &lt;code&gt;dplyr&lt;/code&gt; functions. First I grouped the observations by &lt;code&gt;spam_dist&lt;/code&gt; and then ran a linear model for each group. Then I converted the output to a tidy data frame using &lt;code&gt;broom::tidy()&lt;/code&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;using-dplyr-functions-inside-your-own-functions&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Using &lt;code&gt;dplyr()&lt;/code&gt; functions inside your own functions&lt;/h2&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;extract_vars &amp;lt;- function(data, some_string){
+    
+  data %&amp;gt;%
+    select_(lazyeval::interp(~contains(some_string))) -&amp;gt; data
+    
+  return(data)
+}
+
+extract_vars(mtcars, &amp;quot;spam&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##                     spam_mpg spam_disp spam_hp
+## Mazda RX4               21.0     160.0     110
+## Mazda RX4 Wag           21.0     160.0     110
+## Datsun 710              22.8     108.0      93
+## Hornet 4 Drive          21.4     258.0     110
+## Hornet Sportabout       18.7     360.0     175
+## Valiant                 18.1     225.0     105
+## Duster 360              14.3     360.0     245
+## Merc 240D               24.4     146.7      62
+## Merc 230                22.8     140.8      95
+## Merc 280                19.2     167.6     123
+## Merc 280C               17.8     167.6     123
+## Merc 450SE              16.4     275.8     180
+## Merc 450SL              17.3     275.8     180
+## Merc 450SLC             15.2     275.8     180
+## Cadillac Fleetwood      10.4     472.0     205
+## Lincoln Continental     10.4     460.0     215
+## Chrysler Imperial       14.7     440.0     230
+## Fiat 128                32.4      78.7      66
+## Honda Civic             30.4      75.7      52
+## Toyota Corolla          33.9      71.1      65
+## Toyota Corona           21.5     120.1      97
+## Dodge Challenger        15.5     318.0     150
+## AMC Javelin             15.2     304.0     150
+## Camaro Z28              13.3     350.0     245
+## Pontiac Firebird        19.2     400.0     175
+## Fiat X1-9               27.3      79.0      66
+## Porsche 914-2           26.0     120.3      91
+## Lotus Europa            30.4      95.1     113
+## Ford Pantera L          15.8     351.0     264
+## Ferrari Dino            19.7     145.0     175
+## Maserati Bora           15.0     301.0     335
+## Volvo 142E              21.4     121.0     109&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;About this last point, you can read more about it &lt;a href=&#34;http://www.brodrigues.co/blog/2016-07-18-data-frame-columns-as-arguments-to-dplyr-functions/&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Hope you liked this small list of tricks!&lt;/p&gt;
+&lt;/div&gt;
+
+
+&lt;!-- BLOGDOWN-HEAD
+
+
+
+
+/BLOGDOWN-HEAD --&gt;
+</description>
+    </item>
     
     <item>
       <title>How to use jailbreakr</title>
@@ -1189,87 +1438,6 @@ contact@brodrigues.co&lt;/p&gt;
 
 &lt;p&gt;You might find the book useful as it is now, but I never had a chance to finish it. I might get back to
 it once I&amp;rsquo;ll have more time, and port it to bookdown.&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>R, R with Atlas, R with OpenBLAS and Revolution R Open: which is fastest?</title>
-      <link>/blog/2014-11-11-benchmarks-r-blas-atlas-rro/</link>
-      <pubDate>Tue, 11 Nov 2014 00:00:00 +0000</pubDate>
-      
-      <guid>/blog/2014-11-11-benchmarks-r-blas-atlas-rro/</guid>
-      <description>&lt;!-- MathJax scripts --&gt;
-
-&lt;script type=&#34;text/javascript&#34; async
-  src=&#34;https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML&#34;&gt;
-&lt;/script&gt;
-
-&lt;p&gt;&lt;body&gt;&lt;/p&gt;
-
-&lt;p&gt;In this short post, I benchmark different &amp;ldquo;versions&amp;rdquo; of R. I compare the execution speeds of R, R linked against OpenBLAS, R linked against ATLAS and Revolution R Open. Revolution R Open is a new open source version of R made by Revolution Analytics. It is linked against MKL and should offer huge speed improvements over vanilla R. Also, it uses every cores of your computer by default, without any change whatsoever to your code.&lt;/p&gt;
-
-&lt;p&gt;TL;DR: Revolution R Open is the fastest of all the benchmarked versions (with R linked against OpenBLAS and ATLAS just behind), and easier to setup. &lt;/p&gt;
-
-&lt;h2&gt;Setup&lt;/h2&gt;
-
-&lt;p&gt;I benchmarked these different versions of R using &lt;code&gt;R-benchmark-25.R&lt;/code&gt; that you can download &lt;a href=&#34;http://r.research.att.com/benchmarks/R-benchmark-25.R&#34;&gt;here&lt;/a&gt;. This benchmark file was created by Simon Urbanek.&lt;/p&gt;
-
-&lt;p&gt;I ran the benchmarks on my OpenSUSE 13.2 computer with a Pentium Dual-Core CPU E6500@2.93GHz with 4GB of Ram. It&amp;#39;s outdated, but it&amp;#39;s still quite fast for most of my numerical computation needs. I installed &amp;ldquo;vanilla&amp;rdquo; R from the official OpenSUSE repositories which is currently at version 3.1.2.&lt;/p&gt;
-
-&lt;p&gt;Then, I downloaded OpenBLAS and ATLAS also from the official OpenSUSE repositories and made R use these libraries instead of its own implementation of BLAS. The way I did that is a bit hacky, but works: first, go to &lt;code&gt;/usr/lib64/R/lib&lt;/code&gt; and backup &lt;code&gt;libRblas.so&lt;/code&gt; (rename it to &lt;code&gt;libRblas.soBackup&lt;/code&gt; for instance). Then link &lt;code&gt;/usr/lib64/libopenblas.so.0&lt;/code&gt; to &lt;code&gt;/usr/lib64/R/lib/libRblas&lt;/code&gt;, and that&amp;#39;s it, R will use OpenBLAS. For ATLAS, you can do it in the same fashion, but you&amp;#39;ll find the library in &lt;code&gt;/usr/lib64/atlas/&lt;/code&gt;. These paths should be the same for any GNU/Linux distribution. For other operating systems, I&amp;#39;m sure you can find where these libraries are with Google.&lt;/p&gt;
-
-&lt;p&gt;The last version I benchmarked was Revolution R Open. This is a new version of R released by Revolution Analytics. Revolution Analytics had their own version of R, called Revolution R, for quite some time now. They decided to release a completely free as in freedom and free as in free beer version of this product which they now renamed Revolution R Open. You can download Revolution R Open &lt;a href=&#34;http://mran.revolutionanalytics.com/download/#review&#34;&gt;here&lt;/a&gt;. You can have both &amp;ldquo;vanilla&amp;rdquo; R and Revolution R Open installed on your system. &lt;/p&gt;
-
-&lt;h2&gt;Results&lt;/h2&gt;
-
-&lt;p&gt;I ran the &lt;code&gt;R-benchmark-25.R&lt;/code&gt; 6 times for every version but will only discuss the 4 best runs.&lt;/p&gt;
-
-&lt;p&gt;&lt;style type=&#34;text/css&#34;&gt;
-.tg  {border-collapse:collapse;border-spacing:0;}
-.tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 11px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;}
-.tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 11px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;}
-.tg .tg-0ord{text-align:right}
-&lt;/style&gt;
-&lt;table class=&#34;tg&#34;&gt;
-&lt;tr&gt;
-&lt;th class=&#34;tg-031e&#34;&gt;R version&lt;/th&gt;
-&lt;th class=&#34;tg-0ord&#34;&gt;Fastest run&lt;/th&gt;
-&lt;th class=&#34;tg-0ord&#34;&gt;Slowest run&lt;/th&gt;
-&lt;th class=&#34;tg-0ord&#34;&gt;Mean Run&lt;/th&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td class=&#34;tg-031e&#34;&gt;Vanilla R&lt;/td&gt;
-&lt;td class=&#34;tg-0ord&#34;&gt;63.65&lt;/td&gt;
-&lt;td class=&#34;tg-0ord&#34;&gt;66.21&lt;/td&gt;
-&lt;td class=&#34;tg-0ord&#34;&gt;64.61&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td class=&#34;tg-031e&#34;&gt;OpenBLAS R&lt;/td&gt;
-&lt;td class=&#34;tg-0ord&#34;&gt;15.63&lt;/td&gt;
-&lt;td class=&#34;tg-0ord&#34;&gt;18.96&lt;/td&gt;
-&lt;td class=&#34;tg-0ord&#34;&gt;16.94&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td class=&#34;tg-031e&#34;&gt;ATLAS R&lt;/td&gt;
-&lt;td class=&#34;tg-0ord&#34;&gt;16.92&lt;/td&gt;
-&lt;td class=&#34;tg-0ord&#34;&gt;21.57&lt;/td&gt;
-&lt;td class=&#34;tg-0ord&#34;&gt;18.24&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td class=&#34;tg-031e&#34;&gt;RRO&lt;/td&gt;
-&lt;td class=&#34;tg-0ord&#34;&gt;14.96&lt;/td&gt;
-&lt;td class=&#34;tg-0ord&#34;&gt;16.08&lt;/td&gt;
-&lt;td class=&#34;tg-0ord&#34;&gt;15.49&lt;/td&gt;
-&lt;/tr&gt;
-&lt;/table&gt;&lt;/p&gt;
-
-&lt;p&gt;As you can read from the table above, Revolution R Open was the fastest of the four versions, but not significantly faster than BLAS or ATLAS R. However, RRO uses all the available cores by default, so if your code relies on a lot matrix algebra, RRO might be actually a lot more faster than OpenBLAS and ATLAS R. Another advantage of RRO is that it is very easy to install, and also works with Rstudio and is compatible with every R package to existence. &#34;Vanilla&#34; R is much slower than the other three versions, more than 3 times as slow! &lt;/p&gt;
-
-&lt;h2&gt;Conclusion&lt;/h2&gt;
-
-&lt;p&gt;With other benchmarks, you could get other results, but I don&#39;t think that &#34;vanilla&#34; R could beat any of the other three versions. Whatever your choice, I recommend not using plain, &amp;ldquo;vanilla&amp;rdquo; R. The other options are much faster than standard R, and don&amp;#39;t require much work to set up. I&amp;#39;d personally recommend Revolution R Open, as it is free software and compatible with CRAN packages and Rstudio. &lt;/p&gt;
-
-&lt;p&gt;&lt;/body&gt;&lt;/p&gt;
 </description>
     </item>
     
