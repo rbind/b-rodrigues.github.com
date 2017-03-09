@@ -71,8 +71,8 @@ head(mtcars)&lt;/code&gt;&lt;/pre&gt;
 ## Hornet Sportabout    3    2
 ## Valiant              3    1&lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
-&lt;div id=&#34;selecting-columns-with-a-regexep&#34; class=&#34;section level2&#34;&gt;
-&lt;h2&gt;Selecting columns with a regexep&lt;/h2&gt;
+&lt;div id=&#34;selecting-columns-with-a-regexp&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Selecting columns with a regexp&lt;/h2&gt;
 &lt;p&gt;It is easy to select the columns that start with “spam” with some helper functions:&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;mtcars %&amp;gt;% 
     select(contains(&amp;quot;spam&amp;quot;)) %&amp;gt;% 
@@ -179,26 +179,24 @@ head(mtcars)&lt;/code&gt;&lt;/pre&gt;
 &lt;div id=&#34;use-do-to-do-any-arbitrary-operation&#34; class=&#34;section level2&#34;&gt;
 &lt;h2&gt;Use &lt;code&gt;do()&lt;/code&gt; to do any arbitrary operation&lt;/h2&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;mtcars %&amp;gt;% 
-    group_by(spam_disp) %&amp;gt;% 
+    group_by(cyl) %&amp;gt;% 
     do(models = lm(spam_mpg ~ drat + wt, data = .)) %&amp;gt;% 
     broom::tidy(models)&lt;/code&gt;&lt;/pre&gt;
-&lt;pre&gt;&lt;code&gt;## Source: local data frame [30 x 6]
-## Groups: spam_disp [27]
+&lt;pre&gt;&lt;code&gt;## Source: local data frame [9 x 6]
+## Groups: cyl [3]
 ## 
-##    spam_disp        term estimate std.error statistic p.value
-##        &amp;lt;dbl&amp;gt;       &amp;lt;chr&amp;gt;    &amp;lt;dbl&amp;gt;     &amp;lt;dbl&amp;gt;     &amp;lt;dbl&amp;gt;   &amp;lt;dbl&amp;gt;
-## 1       71.1 (Intercept)     33.9       NaN       NaN     NaN
-## 2       75.7 (Intercept)     30.4       NaN       NaN     NaN
-## 3       78.7 (Intercept)     32.4       NaN       NaN     NaN
-## 4       79.0 (Intercept)     27.3       NaN       NaN     NaN
-## 5       95.1 (Intercept)     30.4       NaN       NaN     NaN
-## 6      108.0 (Intercept)     22.8       NaN       NaN     NaN
-## 7      120.1 (Intercept)     21.5       NaN       NaN     NaN
-## 8      120.3 (Intercept)     26.0       NaN       NaN     NaN
-## 9      121.0 (Intercept)     21.4       NaN       NaN     NaN
-## 10     140.8 (Intercept)     22.8       NaN       NaN     NaN
-## # ... with 20 more rows&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;&lt;code&gt;do()&lt;/code&gt; is useful when you want to use any R function (user defined functions work too!) with &lt;code&gt;dplyr&lt;/code&gt; functions. First I grouped the observations by &lt;code&gt;spam_dist&lt;/code&gt; and then ran a linear model for each group. Then I converted the output to a tidy data frame using &lt;code&gt;broom::tidy()&lt;/code&gt;.&lt;/p&gt;
+##     cyl        term   estimate  std.error  statistic     p.value
+##   &amp;lt;dbl&amp;gt;       &amp;lt;chr&amp;gt;      &amp;lt;dbl&amp;gt;      &amp;lt;dbl&amp;gt;      &amp;lt;dbl&amp;gt;       &amp;lt;dbl&amp;gt;
+## 1     4 (Intercept) 33.2493403 17.0987286  1.9445504 0.087727622
+## 2     4        drat  1.3244329  3.4519717  0.3836743 0.711215433
+## 3     4          wt -5.2400608  2.2150213 -2.3656932 0.045551615
+## 4     6 (Intercept) 30.6544931  7.5141648  4.0795609 0.015103868
+## 5     6        drat -0.4435744  1.1740862 -0.3778039 0.724768945
+## 6     6          wt -2.9902720  1.5685053 -1.9064468 0.129274249
+## 7     8 (Intercept) 29.6519180  7.0878976  4.1834574 0.001527613
+## 8     8        drat -1.4698722  1.6285054 -0.9025897 0.386081744
+## 9     8          wt -2.4518017  0.7985112 -3.0704664 0.010651044&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;code&gt;do()&lt;/code&gt; is useful when you want to use any R function (user defined functions work too!) with &lt;code&gt;dplyr&lt;/code&gt; functions. First I grouped the observations by &lt;code&gt;cyl&lt;/code&gt; and then ran a linear model for each group. Then I converted the output to a tidy data frame using &lt;code&gt;broom::tidy()&lt;/code&gt;.&lt;/p&gt;
 &lt;/div&gt;
 &lt;div id=&#34;using-dplyr-functions-inside-your-own-functions&#34; class=&#34;section level2&#34;&gt;
 &lt;h2&gt;Using &lt;code&gt;dplyr()&lt;/code&gt; functions inside your own functions&lt;/h2&gt;

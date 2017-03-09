@@ -17,7 +17,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta property="og:url" content="/blog/2017-02-17-lesser_known_tricks/">
     <meta property="og:title" content="Econometrics and Free Software">
-    <meta property="og:image" content="/map[alt:Logo url:logo.png width:50 height:50]">
+    <meta property="og:image" content="/map[url:logo.png width:50 height:50 alt:Logo]">
     <meta name="apple-mobile-web-app-title" content="Econometrics and Free Software">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -307,26 +307,24 @@ head(mtcars)</code></pre>
 <div id="use-do-to-do-any-arbitrary-operation" class="section level2">
 <h2>Use <code>do()</code> to do any arbitrary operation</h2>
 <pre class="r"><code>mtcars %&gt;% 
-    group_by(spam_disp) %&gt;% 
+    group_by(cyl) %&gt;% 
     do(models = lm(spam_mpg ~ drat + wt, data = .)) %&gt;% 
     broom::tidy(models)</code></pre>
-<pre><code>## Source: local data frame [30 x 6]
-## Groups: spam_disp [27]
+<pre><code>## Source: local data frame [9 x 6]
+## Groups: cyl [3]
 ## 
-##    spam_disp        term estimate std.error statistic p.value
-##        &lt;dbl&gt;       &lt;chr&gt;    &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;
-## 1       71.1 (Intercept)     33.9       NaN       NaN     NaN
-## 2       75.7 (Intercept)     30.4       NaN       NaN     NaN
-## 3       78.7 (Intercept)     32.4       NaN       NaN     NaN
-## 4       79.0 (Intercept)     27.3       NaN       NaN     NaN
-## 5       95.1 (Intercept)     30.4       NaN       NaN     NaN
-## 6      108.0 (Intercept)     22.8       NaN       NaN     NaN
-## 7      120.1 (Intercept)     21.5       NaN       NaN     NaN
-## 8      120.3 (Intercept)     26.0       NaN       NaN     NaN
-## 9      121.0 (Intercept)     21.4       NaN       NaN     NaN
-## 10     140.8 (Intercept)     22.8       NaN       NaN     NaN
-## # ... with 20 more rows</code></pre>
-<p><code>do()</code> is useful when you want to use any R function (user defined functions work too!) with <code>dplyr</code> functions. First I grouped the observations by <code>spam_dist</code> and then ran a linear model for each group. Then I converted the output to a tidy data frame using <code>broom::tidy()</code>.</p>
+##     cyl        term   estimate  std.error  statistic     p.value
+##   &lt;dbl&gt;       &lt;chr&gt;      &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;       &lt;dbl&gt;
+## 1     4 (Intercept) 33.2493403 17.0987286  1.9445504 0.087727622
+## 2     4        drat  1.3244329  3.4519717  0.3836743 0.711215433
+## 3     4          wt -5.2400608  2.2150213 -2.3656932 0.045551615
+## 4     6 (Intercept) 30.6544931  7.5141648  4.0795609 0.015103868
+## 5     6        drat -0.4435744  1.1740862 -0.3778039 0.724768945
+## 6     6          wt -2.9902720  1.5685053 -1.9064468 0.129274249
+## 7     8 (Intercept) 29.6519180  7.0878976  4.1834574 0.001527613
+## 8     8        drat -1.4698722  1.6285054 -0.9025897 0.386081744
+## 9     8          wt -2.4518017  0.7985112 -3.0704664 0.010651044</code></pre>
+<p><code>do()</code> is useful when you want to use any R function (user defined functions work too!) with <code>dplyr</code> functions. First I grouped the observations by <code>cyl</code> and then ran a linear model for each group. Then I converted the output to a tidy data frame using <code>broom::tidy()</code>.</p>
 </div>
 <div id="using-dplyr-functions-inside-your-own-functions" class="section level2">
 <h2>Using <code>dplyr()</code> functions inside your own functions</h2>
