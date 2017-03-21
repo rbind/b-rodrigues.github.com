@@ -134,6 +134,10 @@
   </url>
   
   <url>
+    <loc>/about/projects/</loc>
+  </url>
+  
+  <url>
     <loc>/tags/r/</loc>
     <lastmod>2017-03-08T12:00:00+01:00</lastmod>
     <priority>0</priority>

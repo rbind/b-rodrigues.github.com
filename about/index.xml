@@ -9,6 +9,28 @@
     <atom:link href="/about/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
+      <title>Projects</title>
+      <link>/about/projects/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/about/projects/</guid>
+      <description>
+
+&lt;h2 id=&#34;functional-programming-and-unit-testing-for-data-munging-with-r&#34;&gt;Functional programming and unit testing for data munging with R&lt;/h2&gt;
+
+&lt;p&gt;I am currently writing a book about functional programming, unit
+testing and package development with R. You can read it for free &lt;a href=&#34;http://www.brodrigues.co/fput&#34;&gt;here&lt;/a&gt; and
+you can buy a digital copy at &lt;a href=&#34;http://www.leanpub.com/fput&#34;&gt;leanpub&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;gumbel-linux&#34;&gt;Gumbel Linux&lt;/h2&gt;
+
+&lt;p&gt;I am developing a custom GNU+Linux iso using &lt;a href=&#34;https://susestudio.com/&#34;&gt;Suse Studio&lt;/a&gt;. I already did this
+a couple years ago, but the project was not very satisfying. I am in the process of rebooting it. I&amp;rsquo;ll
+blog about it in the future.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Research</title>
       <link>/about/research/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
@@ -84,7 +106,7 @@ nunc mi, pretium in euismod vitae, sollicitudin quis massa. Donec accumsan magna
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>/about/software/</guid>
-      <description>&lt;p&gt;This is a list of software I use for my Research, or software I advise to my students. I only use Free Software.
+      <description>&lt;p&gt;This is a list of software I use for work. I only use Free Software (whenever I have a choice, at least).
 Free here is not about price, but about freedom. Think of free as in free speech. The reasons I chose to use free software are both
 practical and philosophical. Free software gives me infinite flexibility: I can install it on any machine I own without having to worry
 about licenses or worry that the software may become deprecated some day. As for the philosophical reasons, I think that free software is in line
@@ -98,7 +120,7 @@ To know more about Free Software, consult &lt;a href=&#34;http://www.fsf.org/&#3
 
 &lt;ul&gt;
 &lt;li&gt;I use openSUSE as my operating system. It&amp;rsquo;s fast, stable, doesn&amp;rsquo;t nag me with forced and unwanted
-updates and has a lot of software available for it in the default repositories.&lt;/li&gt;
+updates and has a lot of software available in the default repositories.&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;div style=&#34;text-align:center;&#34;&gt;
@@ -187,8 +209,10 @@ statistical office of the &lt;a href=&#34;https://en.wikipedia.org/wiki/Luxembou
 July 2016. I&amp;rsquo;m part of the &lt;a href=&#34;http://www.statistiques.public.lu/en/actors/statec/organisation/red/&#34;&gt;research division&lt;/a&gt;
 and my main mission is assisting the researchers with data issues.&lt;/p&gt;
 
-&lt;p&gt;My hobbies are boxing, lifting weights, cooking and reading. I also enjoy some light video gaming, mostly
-j-rpgs on Nintendo 3DS. I also enjoy learning about the R programming language and sharing my knowledge.
+&lt;p&gt;My hobbies are boxing, lifting weights, cycling, cooking and reading. I also enjoy some light video gaming, mostly
+j-rpgs on Nintendo 3DS (but Breath of the Wild on Wii U has been taking the place of said j-rpgs&amp;hellip;).
+As far as music goes, I basically only listen to &lt;a href=&#34;http://www.fipradio.fr/player&#34;&gt;FIP&lt;/a&gt;.
+I also enjoy learning about the R programming language and sharing my knowledge.
 That&amp;rsquo;s why I made this blog and why I am currently writing a book about functional programming, unit
 testing and package development with R. You can read it for free &lt;a href=&#34;http://www.brodrigues.co/fput&#34;&gt;here&lt;/a&gt; and
 you can buy a digital copy at &lt;a href=&#34;http://www.leanpub.com/fput&#34;&gt;leanpub&lt;/a&gt;.&lt;/p&gt;
