@@ -6,8 +6,322 @@
     <description>Recent content in Blogs on Econometrics and Free Software</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Wed, 08 Mar 2017 12:00:00 +0100</lastBuildDate>
+    <lastBuildDate>Fri, 24 Mar 2017 12:00:00 +0100</lastBuildDate>
     <atom:link href="/blog/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Lesser known purrr tricks</title>
+      <link>/blog/2017-03-24-lesser_known_purrr/</link>
+      <pubDate>Fri, 24 Mar 2017 12:00:00 +0100</pubDate>
+      
+      <guid>/blog/2017-03-24-lesser_known_purrr/</guid>
+      <description>&lt;!-- BLOGDOWN-BODY-BEFORE
+
+/BLOGDOWN-BODY-BEFORE --&gt;
+
+&lt;p&gt;&lt;code&gt;purrr&lt;/code&gt; is package that extends R’s functional programming capabilities. It brings a lot of new stuff to the table and in this post I show you some of the most useful (at least to me) functions included in &lt;code&gt;purrr&lt;/code&gt;.&lt;/p&gt;
+&lt;div id=&#34;getting-rid-of-loops-with-map&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Getting rid of loops with &lt;code&gt;map()&lt;/code&gt;&lt;/h2&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(purrr)
+
+numbers &amp;lt;- list(11, 12, 13, 14)
+
+map_dbl(numbers, sqrt)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] 3.316625 3.464102 3.605551 3.741657&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;You might wonder why this might be preferred to a for loop? It’s a lot less verbose, and you do not need to initialise any kind of structure to hold the result. If you google “create empty list in R” you will see that this is very common. However, with the &lt;code&gt;map()&lt;/code&gt; family of functions, there is no need for an initial structure. &lt;code&gt;map_dbl()&lt;/code&gt; returns an atomic list of real numbers, but if you use &lt;code&gt;map()&lt;/code&gt; you will get a list back. Try them all out!&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;map-conditionally&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Map conditionally&lt;/h2&gt;
+&lt;div id=&#34;map_if&#34; class=&#34;section level4&#34;&gt;
+&lt;h4&gt;map_if()&lt;/h4&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;# Create a helper function that returns TRUE if a number is even
+is_even &amp;lt;- function(x){
+  !as.logical(x %% 2)
+}
+
+map_if(numbers, is_even, sqrt)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [[1]]
+## [1] 11
+## 
+## [[2]]
+## [1] 3.464102
+## 
+## [[3]]
+## [1] 13
+## 
+## [[4]]
+## [1] 3.741657&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id=&#34;map_at&#34; class=&#34;section level4&#34;&gt;
+&lt;h4&gt;map_at()&lt;/h4&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;map_at(numbers, c(1,3), sqrt)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [[1]]
+## [1] 3.316625
+## 
+## [[2]]
+## [1] 12
+## 
+## [[3]]
+## [1] 3.605551
+## 
+## [[4]]
+## [1] 14&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;code&gt;map_if()&lt;/code&gt; and &lt;code&gt;map_at()&lt;/code&gt; have a further argument than &lt;code&gt;map()&lt;/code&gt;; in the case of &lt;code&gt;map_if()&lt;/code&gt;, a predicate function ( a function that returns &lt;code&gt;TRUE&lt;/code&gt; or &lt;code&gt;FALSE&lt;/code&gt;) and a vector of positions for &lt;code&gt;map_at()&lt;/code&gt;. This allows you to map your function only when certain conditions are met, which is also something that a lot of people google for.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&#34;map-a-function-with-multiple-arguments&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Map a function with multiple arguments&lt;/h2&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;numbers2 &amp;lt;- list(1, 2, 3, 4)
+
+map2(numbers, numbers2, `+`)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [[1]]
+## [1] 12
+## 
+## [[2]]
+## [1] 14
+## 
+## [[3]]
+## [1] 16
+## 
+## [[4]]
+## [1] 18&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;You can map two lists to a function which takes two arguments using &lt;code&gt;map_2()&lt;/code&gt;. You can even map an arbitrary number of lists to any function using &lt;code&gt;pmap()&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;By the way, try this in: &lt;code&gt;`+`(1,3)&lt;/code&gt; and see what happens.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;dont-stop-execution-of-your-function-if-something-goes-wrong&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Don’t stop execution of your function if something goes wrong&lt;/h2&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;possible_sqrt &amp;lt;- possibly(sqrt, otherwise = NA_real_)
+
+numbers_with_error &amp;lt;- list(1, 2, 3, &amp;quot;spam&amp;quot;, 4)
+
+map(numbers_with_error, possible_sqrt)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [[1]]
+## [1] 1
+## 
+## [[2]]
+## [1] 1.414214
+## 
+## [[3]]
+## [1] 1.732051
+## 
+## [[4]]
+## [1] NA
+## 
+## [[5]]
+## [1] 2&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Another very common issue is to keep running your loop even when something goes wrong. In most cases the loop simply stops at the error, but you would like it to continue and see where it failed. Try to google “skip error in a loop” or some variation of it and you’ll see that a lot of people really just want that. This is possible by combining &lt;code&gt;map()&lt;/code&gt; and &lt;code&gt;possibly()&lt;/code&gt;. Most solutions involve the use of &lt;code&gt;tryCatch()&lt;/code&gt; which I personally do not find very easy to use.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;dont-stop-execution-of-your-function-if-something-goes-wrong-and-capture-the-error&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Don’t stop execution of your function if something goes wrong and capture the error&lt;/h2&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;safe_sqrt &amp;lt;- safely(sqrt, otherwise = NA_real_)
+
+map(numbers_with_error, safe_sqrt)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [[1]]
+## [[1]]$result
+## [1] 1
+## 
+## [[1]]$error
+## NULL
+## 
+## 
+## [[2]]
+## [[2]]$result
+## [1] 1.414214
+## 
+## [[2]]$error
+## NULL
+## 
+## 
+## [[3]]
+## [[3]]$result
+## [1] 1.732051
+## 
+## [[3]]$error
+## NULL
+## 
+## 
+## [[4]]
+## [[4]]$result
+## [1] NA
+## 
+## [[4]]$error
+## &amp;lt;simpleError in .f(...): non-numeric argument to mathematical function&amp;gt;
+## 
+## 
+## [[5]]
+## [[5]]$result
+## [1] 2
+## 
+## [[5]]$error
+## NULL&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;code&gt;safely()&lt;/code&gt; is very similar to &lt;code&gt;possibly()&lt;/code&gt; but it returns a list of lists. An element is thus a list of the result and the accompagnying error message. If there is no error, the error component is &lt;code&gt;NULL&lt;/code&gt; if there is an error, it returns the error message.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;transpose-a-list&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Transpose a list&lt;/h2&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;safe_result_list &amp;lt;- map(numbers_with_error, safe_sqrt)
+
+transpose(safe_result_list)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## $result
+## $result[[1]]
+## [1] 1
+## 
+## $result[[2]]
+## [1] 1.414214
+## 
+## $result[[3]]
+## [1] 1.732051
+## 
+## $result[[4]]
+## [1] NA
+## 
+## $result[[5]]
+## [1] 2
+## 
+## 
+## $error
+## $error[[1]]
+## NULL
+## 
+## $error[[2]]
+## NULL
+## 
+## $error[[3]]
+## NULL
+## 
+## $error[[4]]
+## &amp;lt;simpleError in .f(...): non-numeric argument to mathematical function&amp;gt;
+## 
+## $error[[5]]
+## NULL&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Here we transposed the above list. This means that we still have a list of lists, but where the first list holds all the results (which you can then access with &lt;code&gt;safe_result_list$result&lt;/code&gt;) and the second list holds all the errors (which you can access with &lt;code&gt;safe_result_list$error&lt;/code&gt;). This can be quite useful!&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;apply-a-function-to-a-lower-depth-of-a-list&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Apply a function to a lower depth of a list&lt;/h2&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;transposed_list &amp;lt;- transpose(safe_result_list)
+
+transposed_list %&amp;gt;% 
+    at_depth(2, is_null)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## $result
+## $result[[1]]
+## [1] FALSE
+## 
+## $result[[2]]
+## [1] FALSE
+## 
+## $result[[3]]
+## [1] FALSE
+## 
+## $result[[4]]
+## [1] FALSE
+## 
+## $result[[5]]
+## [1] FALSE
+## 
+## 
+## $error
+## $error[[1]]
+## [1] TRUE
+## 
+## $error[[2]]
+## [1] TRUE
+## 
+## $error[[3]]
+## [1] TRUE
+## 
+## $error[[4]]
+## [1] FALSE
+## 
+## $error[[5]]
+## [1] TRUE&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Sometimes working with lists of lists can be tricky, especially when we want to apply a function to the sub-lists. This is easily done with &lt;code&gt;at_depth()&lt;/code&gt;!&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;set-names-of-list-elements&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Set names of list elements&lt;/h2&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;name_element &amp;lt;- c(&amp;quot;sqrt()&amp;quot;, &amp;quot;ok?&amp;quot;)
+
+set_names(transposed_list, name_element)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## $`sqrt()`
+## $`sqrt()`[[1]]
+## [1] 1
+## 
+## $`sqrt()`[[2]]
+## [1] 1.414214
+## 
+## $`sqrt()`[[3]]
+## [1] 1.732051
+## 
+## $`sqrt()`[[4]]
+## [1] NA
+## 
+## $`sqrt()`[[5]]
+## [1] 2
+## 
+## 
+## $`ok?`
+## $`ok?`[[1]]
+## NULL
+## 
+## $`ok?`[[2]]
+## NULL
+## 
+## $`ok?`[[3]]
+## NULL
+## 
+## $`ok?`[[4]]
+## &amp;lt;simpleError in .f(...): non-numeric argument to mathematical function&amp;gt;
+## 
+## $`ok?`[[5]]
+## NULL&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id=&#34;reduce-a-list-to-a-single-value&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Reduce a list to a single value&lt;/h2&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;reduce(numbers, `*`)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] 24024&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;code&gt;reduce()&lt;/code&gt; applies the function &lt;code&gt;*&lt;/code&gt; iteratively to the list of numbers. There’s also &lt;code&gt;accumulate()&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;accumulate(numbers, `*`)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1]    11   132  1716 24024&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;which keeps the intermediary results.&lt;/p&gt;
+&lt;p&gt;This function is very general, and you can reduce anything:&lt;/p&gt;
+&lt;p&gt;Matrices:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;mat1 &amp;lt;- matrix(rnorm(10), nrow = 2)
+mat2 &amp;lt;- matrix(rnorm(10), nrow = 2)
+mat3 &amp;lt;- matrix(rnorm(10), nrow = 2)
+
+list_mat &amp;lt;- list(mat1, mat2, mat3)
+
+reduce(list_mat, `+`)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##            [,1]       [,2]       [,3]       [,4]      [,5]
+## [1,] -0.5228188  0.4813357  0.3808749 -1.1678164 0.3080001
+## [2,] -3.8330509 -0.1061853 -3.8315768  0.3052248 0.3486929&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;even data frames:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;df1 &amp;lt;- as.data.frame(mat1)
+df2 &amp;lt;- as.data.frame(mat2)
+df3 &amp;lt;- as.data.frame(mat3)
+
+list_df &amp;lt;- list(df1, df2, df3)
+
+reduce(list_df, dplyr::full_join)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## Joining, by = c(&amp;quot;V1&amp;quot;, &amp;quot;V2&amp;quot;, &amp;quot;V3&amp;quot;, &amp;quot;V4&amp;quot;, &amp;quot;V5&amp;quot;)
+## Joining, by = c(&amp;quot;V1&amp;quot;, &amp;quot;V2&amp;quot;, &amp;quot;V3&amp;quot;, &amp;quot;V4&amp;quot;, &amp;quot;V5&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##            V1         V2          V3         V4         V5
+## 1  0.01587062  0.8570925  1.04330594 -0.5354500  0.7557203
+## 2 -0.46872345  0.3742191 -1.88322431  1.4983888 -1.2691007
+## 3 -0.60675851 -0.7402364 -0.49269182 -0.4884616 -1.0127531
+## 4 -1.49619518  1.0714251  0.06748534  0.6650679  1.1709317
+## 5  0.06806907  0.3644795 -0.16973919 -0.1439047  0.5650329
+## 6 -1.86813223 -1.5518295 -2.01583786 -1.8582319  0.4468619&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Hope you enjoyed this list of useful functions! If you enjoy the content of my blog, you can follow me on &lt;a href=&#34;https://www.twitter.com/brodriguesco&#34;&gt;twitter&lt;/a&gt;.&lt;/p&gt;
+&lt;/div&gt;
+
+
+&lt;!-- BLOGDOWN-HEAD
+
+
+
+
+/BLOGDOWN-HEAD --&gt;
+</description>
+    </item>
     
     <item>
       <title>Lesser known dplyr tricks</title>
@@ -1414,28 +1728,6 @@ cat(&amp;quot;My title&amp;quot;, out, file=&amp;quot;summary_of_my_very_time_co
 &lt;p&gt;&lt;code&gt;my_very_time_consuming_regression&lt;/code&gt; is an object of class &lt;code&gt;lm&lt;/code&gt; for example. I save the output of &lt;code&gt;summary(my_very_time_consuming_regression)&lt;/code&gt; as text using &lt;code&gt;capture.output&lt;/code&gt; and save it in a variable called &lt;code&gt;out&lt;/code&gt;. Finally, I save &lt;code&gt;out&lt;/code&gt; to a file called &lt;code&gt;summary_of_my_very_time_consuming_regression.txt&lt;/code&gt; with the first sentence being &lt;code&gt;My title&lt;/code&gt; (you can put anything there). The file &lt;code&gt;summary_of_my_very_time_consuming_regression.txt&lt;/code&gt; doesn’t have to already exist in your working directory. The option &lt;code&gt;sep=&amp;quot;\n&amp;quot;&lt;/code&gt; is important or else the whole output will be written in a single line. Finally, &lt;code&gt;append=TRUE&lt;/code&gt; makes sure your file won’t be overwritten; additional output will be appended to the file, which can be nice if you want to compare different versions of your model.&lt;/p&gt;
 
 &lt;p&gt;&lt;/body&gt;&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Introduction to programming econometrics with R</title>
-      <link>/blog/2015-01-12-introduction-to-programming-econometrics-with-r/</link>
-      <pubDate>Mon, 12 Jan 2015 00:00:00 +0000</pubDate>
-      
-      <guid>/blog/2015-01-12-introduction-to-programming-econometrics-with-r/</guid>
-      <description>
-
-&lt;p&gt;This semester, I&amp;rsquo;ll be teaching an introduction to applied econometrics with R, so I&amp;rsquo;ve decided to write a very small book called &amp;ldquo;Introduction to programming Econometrics with R&amp;rdquo;. This is primarily intended for bachelor students and the focus is not much on econometric theory, but more on how to implement econometric theory into computer code, using the R programming language. It&amp;rsquo;s very basic and doesn&amp;rsquo;t cover any advanced topics in econometrics and is intended for people with 0 previous programming knowledge. It is still very rough around the edges, and it&amp;rsquo;s missing the last chapter about reproducible research, and the references, but I think it&amp;rsquo;s time to put it out there; someone else than my students may find it useful. The book&amp;rsquo;s probably full of typos and mistakes, so don&amp;rsquo;t hesitate to drop me an e-mail if you find something fishy:
-contact@brodrigues.co&lt;/p&gt;
-
-&lt;p&gt;Also there might be some sections at the beginning that only concern my students. Just ignore that.&lt;/p&gt;
-
-&lt;p&gt;Get it here: &lt;a href=&#34;https://cloud.openmailbox.org/index.php/s/ghZwBxMb24tWGSL&#34;&gt;download&lt;/a&gt;&lt;/p&gt;
-
-&lt;h3 id=&#34;update-2017-01-22&#34;&gt;Update (2017-01-22)&lt;/h3&gt;
-
-&lt;p&gt;You might find the book useful as it is now, but I never had a chance to finish it. I might get back to
-it once I&amp;rsquo;ll have more time, and port it to bookdown.&lt;/p&gt;
 </description>
     </item>
     

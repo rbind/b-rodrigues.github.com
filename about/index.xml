@@ -24,9 +24,10 @@ you can buy a digital copy at &lt;a href=&#34;http://www.leanpub.com/fput&#34;&g
 
 &lt;h2 id=&#34;gumbel-linux&#34;&gt;Gumbel Linux&lt;/h2&gt;
 
-&lt;p&gt;I am developing a custom GNU+Linux iso using &lt;a href=&#34;https://susestudio.com/&#34;&gt;Suse Studio&lt;/a&gt;. I already did this
-a couple years ago, but the project was not very satisfying. I am in the process of rebooting it. I&amp;rsquo;ll
-blog about it in the future.&lt;/p&gt;
+&lt;p&gt;I am developing a custom GNU+Linux iso aimed at statisticians/data scientists/econometricians. It&amp;rsquo;ll have
+everything needed pre-installed. I did this in the past already, by using &lt;a href=&#34;https://susestudio.com/&#34;&gt;Suse Studio&lt;/a&gt;.
+However, the project was not very satisfying. This time I will use a minimal Ubuntu installation as a base.
+I&amp;rsquo;ll blog about it in the future.&lt;/p&gt;
 </description>
     </item>
     
