@@ -9,6 +9,111 @@
     <atom:link href="/tags/r/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
+      <title>Make ggplot2 purrr</title>
+      <link>/blog/2017-03-29-make-ggplot2-purrr/</link>
+      <pubDate>Wed, 29 Mar 2017 06:45:48 +0200</pubDate>
+      
+      <guid>/blog/2017-03-29-make-ggplot2-purrr/</guid>
+      <description>&lt;!-- BLOGDOWN-BODY-BEFORE
+
+/BLOGDOWN-BODY-BEFORE --&gt;
+
+&lt;p&gt;I’ll be honest: the title is a bit misleading. I will not use &lt;code&gt;purrr&lt;/code&gt; that much in this blog post. Actually, I will use one single &lt;code&gt;purrr&lt;/code&gt; function, at the very end. I use &lt;code&gt;dplyr&lt;/code&gt; much more. However &lt;em&gt;Make ggplot2 purrr&lt;/em&gt; sounds better than &lt;em&gt;Make ggplot dplyr&lt;/em&gt; or whatever the verb for &lt;code&gt;dplyr&lt;/code&gt; would be.&lt;/p&gt;
+&lt;p&gt;Also, this blog post was inspired by a stackoverflow question and in particular one of the &lt;a href=&#34;http://stackoverflow.com/a/29035145/1298051&#34;&gt;answers&lt;/a&gt;. So I don’t bring anything new to the table, but I found this stackoverflow answer so useful and so underrated (only 16 upvotes as I’m writing this!) that I wanted to write something about it.&lt;/p&gt;
+&lt;p&gt;Basically the idea of this blog post is to show how to create graphs using &lt;code&gt;ggplot2&lt;/code&gt;, but by grouping by a factor variable beforehand. To illustrate this idea, let’s use the data from the &lt;a href=&#34;http://www.rug.nl/ggdc/productivity/pwt/&#34;&gt;Penn World Tables 9.0&lt;/a&gt;. The easiest way to get this data is to install the package called &lt;code&gt;pwt9&lt;/code&gt; with:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;install.packages(&amp;quot;pwt9&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;and then load the data with:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;data(&amp;quot;pwt9.0&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now, let’s load the needed packages. I am also using &lt;code&gt;ggthemes&lt;/code&gt; which makes themeing your ggplots very easy. I’ll be making &lt;a href=&#34;https://en.wikipedia.org/wiki/Edward_Tufte&#34;&gt;Tufte&lt;/a&gt;-style plots.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(ggplot2)
+library(ggthemes)
+library(dplyr)
+library(purrr)
+library(pwt9)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;First let’s select a list of countries:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;country_list &amp;lt;- c(&amp;quot;France&amp;quot;, &amp;quot;Germany&amp;quot;, &amp;quot;United States of America&amp;quot;, &amp;quot;Luxembourg&amp;quot;, &amp;quot;Switzerland&amp;quot;, &amp;quot;Greece&amp;quot;)
+
+small_pwt &amp;lt;- pwt9.0 %&amp;gt;%
+  filter(country %in% country_list)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Let’s us also order the countries in the data frame as I have written them in &lt;code&gt;country_list&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;small_pwt &amp;lt;- small_pwt %&amp;gt;%
+  mutate(country = factor(country, levels = country_list, ordered = TRUE))&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;You might be wondering why this is important. At the end of the article, we are going to save the plots to disk. If we do not re-order the countries inside the data frame as in &lt;code&gt;country_list&lt;/code&gt;, the name of the files will not correspond to the correct plots!&lt;/p&gt;
+&lt;p&gt;Now when you want to plot the same variable by countries, say &lt;code&gt;avh&lt;/code&gt; (&lt;em&gt;Average annual hours worked by persons engaged&lt;/em&gt;), the usual way to do this is with one of &lt;code&gt;facet_wrap()&lt;/code&gt; or &lt;code&gt;facet_grid()&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;ggplot(data = small_pwt) + theme_tufte() +
+  geom_line(aes(y = avh, x = year)) +
+  facet_wrap(~country)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;#####../content/blog/2017-03-29-make-ggplot2-purrr_files/figure-html/unnamed-chunk-6-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;ggplot(data = small_pwt) + theme_tufte() +
+  geom_line(aes(y = avh, x = year)) +
+  facet_grid(country~.)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;#####../content/blog/2017-03-29-make-ggplot2-purrr_files/figure-html/unnamed-chunk-7-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;As you can see, for this particular example, &lt;code&gt;facet_grid()&lt;/code&gt; is not very useful, but do notice its argument, &lt;code&gt;country~.&lt;/code&gt;, which is different from &lt;code&gt;facet_wrap()&lt;/code&gt;’s argument. This way, I get the graphs stacked horizontally. If I had used &lt;code&gt;facet_grid(~country)&lt;/code&gt; the graphs would be side by side and completely unreadable.&lt;/p&gt;
+&lt;p&gt;Now, let’s go to the meat of this post: what if you would like to have one single graph for each country? You’d probably think of using &lt;code&gt;dplyr::group_by()&lt;/code&gt; to form the groups and then the graphs. This is the way to go, but you also have to use &lt;code&gt;dplyr::do()&lt;/code&gt;. This is because as far as I understand, &lt;code&gt;ggplot2&lt;/code&gt; is not &lt;code&gt;dplyr&lt;/code&gt;-aware, and using an arbitrary function with groups is only possible with &lt;code&gt;dplyr::do()&lt;/code&gt;.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;plots &amp;lt;- small_pwt %&amp;gt;%
+  group_by(country) %&amp;gt;%
+  do(plot = ggplot(data = .) + theme_tufte() +
+       geom_line(aes(y = avh, x = year)) +
+       ggtitle(unique(.$country)) +
+       ylab(&amp;quot;Year&amp;quot;) +
+       xlab(&amp;quot;Average annual hours worked by persons engaged&amp;quot;))&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;If you know &lt;code&gt;dplyr&lt;/code&gt; at least a little bit, the above lines should be easy for you to understand. But notice how we get the title of the graphs, with &lt;code&gt;ggtitle(unique(.$country))&lt;/code&gt;, which was actually the point of the stackoverflow question. What might be surprising though, is the object that is created by this code. Let’s take a look at &lt;code&gt;plots&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;print(plots)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## Source: local data frame [6 x 2]
+## Groups: &amp;lt;by row&amp;gt;
+## 
+## # A tibble: 6 × 2
+##                    country     plot
+## *                    &amp;lt;ord&amp;gt;   &amp;lt;list&amp;gt;
+## 1                   France &amp;lt;S3: gg&amp;gt;
+## 2                  Germany &amp;lt;S3: gg&amp;gt;
+## 3 United States of America &amp;lt;S3: gg&amp;gt;
+## 4               Luxembourg &amp;lt;S3: gg&amp;gt;
+## 5              Switzerland &amp;lt;S3: gg&amp;gt;
+## 6                   Greece &amp;lt;S3: gg&amp;gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;As &lt;code&gt;dplyr::do()&lt;/code&gt;’s documentation tells us, the return values get stored inside a list. And this is exactly what we get back; a list of plots! Lists are a very flexible and useful class, and you cannot spell &lt;em&gt;list&lt;/em&gt; without &lt;code&gt;purrr&lt;/code&gt; (at least not when you’re a ne&lt;code&gt;R&lt;/code&gt;d).&lt;/p&gt;
+&lt;p&gt;Here are the final lines that use &lt;code&gt;purrr::map2()&lt;/code&gt; to save all these plots at once inside your working directory:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;file_names &amp;lt;- paste0(country_list, &amp;quot;.pdf&amp;quot;)
+
+map2(file_names, plots$plot, ggsave)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;As I said before, if you do not re-order the countries inside the data frame, the names of the files and the plots will not match. Try running all the code without re-ordering, you’ll see!&lt;/p&gt;
+&lt;p&gt;I hope you found this post useful. You can follow me on &lt;a href=&#34;https://www.twitter.com/brodriguesco&#34;&gt;twitter&lt;/a&gt; for blog updates.&lt;/p&gt;
+
+
+&lt;!-- BLOGDOWN-HEAD
+
+
+
+
+/BLOGDOWN-HEAD --&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Introducing brotools</title>
+      <link>/blog/2017-03-27-introducing_brotools/</link>
+      <pubDate>Mon, 27 Mar 2017 09:23:56 +0200</pubDate>
+      
+      <guid>/blog/2017-03-27-introducing_brotools/</guid>
+      <description>&lt;!-- BLOGDOWN-BODY-BEFORE
+
+/BLOGDOWN-BODY-BEFORE --&gt;
+
+&lt;p&gt;I’m happy to announce my first R package, called &lt;code&gt;brotools&lt;/code&gt;. This is a package that contains functions that are specific to my needs but that you might find also useful. I blogged about some of these functions, so if you follow my blog you might already be familiar with some of them. It is not on CRAN and might very well never be. The code is hosted on &lt;a href=&#34;https://bitbucket.org/b-rodrigues/brotools&#34;&gt;bitbucket&lt;/a&gt; and you can install the package with&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;devtools::install_bitbucket(&amp;quot;b-rodrigues/brotools&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Hope you’ll find the &lt;code&gt;brotools&lt;/code&gt; useful!&lt;/p&gt;
+
+
+&lt;!-- BLOGDOWN-HEAD
+
+
+
+
+/BLOGDOWN-HEAD --&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Lesser known purrr tricks</title>
       <link>/blog/2017-03-24-lesser_known_purrr/</link>
       <pubDate>Fri, 24 Mar 2017 12:00:00 +0100</pubDate>
@@ -18,7 +123,7 @@
 
 /BLOGDOWN-BODY-BEFORE --&gt;
 
-&lt;p&gt;&lt;code&gt;purrr&lt;/code&gt; is package that extends R’s functional programming capabilities. It brings a lot of new stuff to the table and in this post I show you some of the most useful (at least to me) functions included in &lt;code&gt;purrr&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;purrr&lt;/code&gt; is a package that extends R’s functional programming capabilities. It brings a lot of new stuff to the table and in this post I show you some of the most useful (at least to me) functions included in &lt;code&gt;purrr&lt;/code&gt;.&lt;/p&gt;
 &lt;div id=&#34;getting-rid-of-loops-with-map&#34; class=&#34;section level2&#34;&gt;
 &lt;h2&gt;Getting rid of loops with &lt;code&gt;map()&lt;/code&gt;&lt;/h2&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(purrr)
@@ -289,9 +394,15 @@ mat3 &amp;lt;- matrix(rnorm(10), nrow = 2)
 list_mat &amp;lt;- list(mat1, mat2, mat3)
 
 reduce(list_mat, `+`)&lt;/code&gt;&lt;/pre&gt;
-&lt;pre&gt;&lt;code&gt;##            [,1]       [,2]       [,3]       [,4]      [,5]
-## [1,] -0.5228188  0.4813357  0.3808749 -1.1678164 0.3080001
-## [2,] -3.8330509 -0.1061853 -3.8315768  0.3052248 0.3486929&lt;/code&gt;&lt;/pre&gt;
+&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+&lt;pre&gt;&lt;code&gt;##         [,1]      [,2]       [,3]       [,4]     [,5]
+## [1,] 1.73862  1.654980  4.0704047 -1.1941237 1.421257
+## [2,] 1.20838 -1.791906 -0.5315674  0.1921851 1.124713&lt;/code&gt;&lt;/pre&gt;
+=======
+&lt;pre&gt;&lt;code&gt;##           [,1]       [,2]       [,3]      [,4]      [,5]
+## [1,] -3.401145  3.2621679  4.3501944 0.5026007  1.580499
+## [2,]  2.541452 -0.2201349 -0.9668128 1.2657017 -0.131160&lt;/code&gt;&lt;/pre&gt;
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; 10546251138b1086d5b6335e555101e663eaf6a9
 &lt;p&gt;even data frames:&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;df1 &amp;lt;- as.data.frame(mat1)
 df2 &amp;lt;- as.data.frame(mat2)
@@ -302,13 +413,23 @@ list_df &amp;lt;- list(df1, df2, df3)
 reduce(list_df, dplyr::full_join)&lt;/code&gt;&lt;/pre&gt;
 &lt;pre&gt;&lt;code&gt;## Joining, by = c(&amp;quot;V1&amp;quot;, &amp;quot;V2&amp;quot;, &amp;quot;V3&amp;quot;, &amp;quot;V4&amp;quot;, &amp;quot;V5&amp;quot;)
 ## Joining, by = c(&amp;quot;V1&amp;quot;, &amp;quot;V2&amp;quot;, &amp;quot;V3&amp;quot;, &amp;quot;V4&amp;quot;, &amp;quot;V5&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
-&lt;pre&gt;&lt;code&gt;##            V1         V2          V3         V4         V5
-## 1  0.01587062  0.8570925  1.04330594 -0.5354500  0.7557203
-## 2 -0.46872345  0.3742191 -1.88322431  1.4983888 -1.2691007
-## 3 -0.60675851 -0.7402364 -0.49269182 -0.4884616 -1.0127531
-## 4 -1.49619518  1.0714251  0.06748534  0.6650679  1.1709317
-## 5  0.06806907  0.3644795 -0.16973919 -0.1439047  0.5650329
-## 6 -1.86813223 -1.5518295 -2.01583786 -1.8582319  0.4468619&lt;/code&gt;&lt;/pre&gt;
+&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+&lt;pre&gt;&lt;code&gt;##           V1          V2         V3         V4          V5
+## 1 -0.8929770  1.95048512  1.1744652 -1.4007527  0.20422567
+## 2 -0.9017354 -0.24177371 -0.4769648 -0.3230181 -0.37133613
+## 3  1.6006226  0.05752285  1.1637334 -0.3425802  0.60650141
+## 4  2.2201228 -0.39842050 -0.6826387  0.1163401  1.55993048
+## 5  1.0309742 -0.35302828  1.7322061  0.5492092  0.61052959
+## 6 -0.1100074 -1.15171185  0.6280362  0.3988630 -0.06388108&lt;/code&gt;&lt;/pre&gt;
+=======
+&lt;pre&gt;&lt;code&gt;##           V1         V2         V3          V4          V5
+## 1 -0.6879498  1.3538065  1.5451136  0.18765525  0.05720413
+## 2  1.3568639 -0.1129477  0.5203980 -0.77706558  0.97236572
+## 3 -1.2710200  1.1984437  1.3719907 -0.09056343  1.95472443
+## 4  0.6057531  0.5030554  0.2664449  0.98363020  0.29639801
+## 5 -1.4421749  0.7099176  1.4330901  0.40550893 -0.43142957
+## 6  0.5788352 -0.6102426 -1.7536557  1.05913712 -1.39992370&lt;/code&gt;&lt;/pre&gt;
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; 10546251138b1086d5b6335e555101e663eaf6a9
 &lt;p&gt;Hope you enjoyed this list of useful functions! If you enjoy the content of my blog, you can follow me on &lt;a href=&#34;https://www.twitter.com/brodriguesco&#34;&gt;twitter&lt;/a&gt;.&lt;/p&gt;
 &lt;/div&gt;
 
@@ -575,7 +696,19 @@ extract_vars(mtcars, &amp;quot;spam&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
       <pubDate>Fri, 17 Feb 2017 12:51:00 +0100</pubDate>
       
       <guid>/blog/2017-02-17-how_to_use_jailbreakr/</guid>
-      <description>&lt;!-- BLOGDOWN-BODY-BEFORE
+      <description>---
+date: 2017-02-17T12:51:00+01:00
+title: How to use jailbreakr
+tags: [R]
+menu:
+  main:
+    parent: Blog
+    identifier: /blog/jailbreakr
+    weight: 2
+---
+
+
+&lt;!-- BLOGDOWN-BODY-BEFORE
 
 /BLOGDOWN-BODY-BEFORE --&gt;
 
@@ -1385,9 +1518,9 @@ interp(~x+y, x = 2)&lt;/code&gt;&lt;/pre&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;simpleFunction &amp;lt;- function(dataset, col_name, value){
   require(&amp;quot;dplyr&amp;quot;)
   require(&amp;quot;lazyeval&amp;quot;)
-  filter_criteria &amp;lt;- interp(~y == x, .values=list(y = as.name(col&lt;em&gt;name), x = value))
+  filter_criteria &amp;lt;- interp(~y == x, .values=list(y = as.name(col_name), x = value))
   dataset %&amp;gt;%
-    filter&lt;/em&gt;(filter_criteria) %&amp;gt;%
+    filter_(filter_criteria) %&amp;gt;%
     summarise(mean_speed = mean(speed)) -&amp;gt; dataset
   return(dataset)
 }&lt;/p&gt;
@@ -1662,69 +1795,6 @@ t1* -11863.9 -553.3393    8580.435&lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 
 &lt;p&gt;Just as in the book, we find that the DiD estimate is not significant to the 5% level.&lt;/p&gt;
-
-&lt;p&gt;&lt;/body&gt;&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Update to Introduction to programming econometrics with R</title>
-      <link>/blog/2015-05-03-update-introduction-r-programming/</link>
-      <pubDate>Sun, 03 May 2015 00:00:00 +0000</pubDate>
-      
-      <guid>/blog/2015-05-03-update-introduction-r-programming/</guid>
-      <description>&lt;!-- MathJax scripts --&gt;
-
-&lt;script type=&#34;text/javascript&#34; async
-  src=&#34;https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML&#34;&gt;
-&lt;/script&gt;
-
-&lt;p&gt;This semester I taught a course on applied econometrics with the R programming language. For this, I created a document that I gave to my students and shared online. This is the kind of document I would have liked to read when I first started using R. I already had some programming experience in C and Pascal but this is not necessarily the case for everyone that is confronted to R when they start learning about econometrics.&lt;/p&gt;
-
-&lt;p&gt;This is why the beginning of the document focuses more on general programming knowledge and techniques, and then only on econometrics. People online seemed to like the document, as I&amp;rsquo;ve received some positive comments by David Smith from Revolution R (read his blog post about the document &lt;a href=&#34;http://blog.revolutionanalytics.com/2015/01/introduction-to-applied-econometrics-with-r.html&#34;&gt;here&lt;/a&gt;) and Dave Giles which links to David&amp;rsquo;s blog post &lt;a href=&#34;http://davegiles.blogspot.fr/2015/04/introduction-to-applied-econometrics.html?spref=tw&#34;&gt;here&lt;/a&gt;. People on twitter have also retweeted David&amp;rsquo;s and Dave&amp;rsquo;s tweets to their blog posts and I&amp;rsquo;ve received some requests by people to send them the PDF by email (because they live in places where Dropbox is not accessible unfortunately).&lt;/p&gt;
-
-&lt;p&gt;The document is still a work in progress (and will probably remain so for a long time), but I&amp;rsquo;ve added some new sections about reproducible research and thought that this update could warrant a new blog post.&lt;/p&gt;
-
-&lt;p&gt;For now, only linear models are reviewed, but I think I&amp;rsquo;ll start adding some chapters about non-linear models soonish. The goal for these notes, however, is not to re-invent the wheel: there are lots of good books about econometrics with R out there and packages that estimate a very wide range of models. What I want for these notes, is to focus more on the programming knowledge an econometrician needs, in a very broad and general sense. I want my students to understand that R is a true programming language, and that they need to use every feature offered by such a language, and not think of R as a black box into which you only type pre-programmed commands, but also be able to program their own routines.&lt;/p&gt;
-
-&lt;p&gt;Also, I&amp;rsquo;ve made it possible to create the PDF using a Makefile. This may be useful for people that do not have access to Dropbox, but are familiar with git.&lt;/p&gt;
-
-&lt;p&gt;You can compile the book in two ways: first download the whole repository:&lt;/p&gt;
-
-&lt;p&gt;&lt;code&gt;git clone git@bitbucket.org:b-rodrigues/programmingeconometrics.git&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;and then, with Rstudio, open the file &lt;em&gt;appliedEconometrics.Rnw&lt;/em&gt; and knit it. Another solution is to use the Makefile. Just type:&lt;/p&gt;
-
-&lt;p&gt;&lt;code&gt;make&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;inside a terminal (should work on GNU+Linux and OSX systems) and it should compile the document. You may get some message about &amp;ldquo;additional information&amp;rdquo; for some R packages. When these come up, just press Q on your keyboard to continue the compilation process.&lt;/p&gt;
-
-&lt;p&gt;Get the notes &lt;a href=&#34;https://cloud.openmailbox.org/index.php/s/ghZwBxMb24tWGSL&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;As always, if you have questions or suggestions, do not hesitate to send me an  &lt;a href=&#34;mailto:contact@brodrigues.co&#34;&gt;email&lt;/a&gt; and I sure hope you&amp;rsquo;ll find these notes useful!&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Export R output to a file</title>
-      <link>/blog/2015-02-22-export-r-output-to-file/</link>
-      <pubDate>Sun, 22 Feb 2015 00:00:00 +0000</pubDate>
-      
-      <guid>/blog/2015-02-22-export-r-output-to-file/</guid>
-      <description>&lt;!-- MathJax scripts --&gt;
-
-&lt;script type=&#34;text/javascript&#34; async
-  src=&#34;https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML&#34;&gt;
-&lt;/script&gt;
-
-&lt;p&gt;&lt;body&gt;&lt;/p&gt;
-
-&lt;p&gt;Sometimes it is useful to export the output of a long-running R command. For example, you might want to run a time consuming regression just before leaving work on Friday night, but would like to get the output saved inside your Dropbox folder to take a look at the results before going back to work on Monday.&lt;/p&gt;
-&lt;p&gt;This can be achieved very easily using &lt;code&gt;capture.output()&lt;/code&gt; and &lt;code&gt;cat()&lt;/code&gt; like so:&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;out &amp;lt;- capture.output(summary(my_very_time_consuming_regression))
-
-cat(&amp;quot;My title&amp;quot;, out, file=&amp;quot;summary_of_my_very_time_consuming_regression.txt&amp;quot;, sep=&amp;quot;\n&amp;quot;, append=TRUE)&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;&lt;code&gt;my_very_time_consuming_regression&lt;/code&gt; is an object of class &lt;code&gt;lm&lt;/code&gt; for example. I save the output of &lt;code&gt;summary(my_very_time_consuming_regression)&lt;/code&gt; as text using &lt;code&gt;capture.output&lt;/code&gt; and save it in a variable called &lt;code&gt;out&lt;/code&gt;. Finally, I save &lt;code&gt;out&lt;/code&gt; to a file called &lt;code&gt;summary_of_my_very_time_consuming_regression.txt&lt;/code&gt; with the first sentence being &lt;code&gt;My title&lt;/code&gt; (you can put anything there). The file &lt;code&gt;summary_of_my_very_time_consuming_regression.txt&lt;/code&gt; doesn’t have to already exist in your working directory. The option &lt;code&gt;sep=&amp;quot;\n&amp;quot;&lt;/code&gt; is important or else the whole output will be written in a single line. Finally, &lt;code&gt;append=TRUE&lt;/code&gt; makes sure your file won’t be overwritten; additional output will be appended to the file, which can be nice if you want to compare different versions of your model.&lt;/p&gt;
 
 &lt;p&gt;&lt;/body&gt;&lt;/p&gt;
 </description>
