@@ -19,6 +19,7 @@
 
 /BLOGDOWN-BODY-BEFORE --&gt;
 
+&lt;p&gt;&lt;em&gt;Update&lt;/em&gt;: I’ve included another way of saving a separate plot by group in this article, as pointed out by &lt;a href=&#34;https://twitter.com/monitus/status/849033025631297536&#34;&gt;&lt;code&gt;@monitus&lt;/code&gt;&lt;/a&gt;. Actually, this is the preferred solution; using &lt;code&gt;dplyr::do()&lt;/code&gt; is deprecated, according to Hadley Wickham &lt;a href=&#34;https://twitter.com/hadleywickham/status/719542847045636096&#34;&gt;himself&lt;/a&gt;.&lt;/p&gt;
 &lt;p&gt;I’ll be honest: the title is a bit misleading. I will not use &lt;code&gt;purrr&lt;/code&gt; that much in this blog post. Actually, I will use one single &lt;code&gt;purrr&lt;/code&gt; function, at the very end. I use &lt;code&gt;dplyr&lt;/code&gt; much more. However &lt;em&gt;Make ggplot2 purrr&lt;/em&gt; sounds better than &lt;em&gt;Make ggplot dplyr&lt;/em&gt; or whatever the verb for &lt;code&gt;dplyr&lt;/code&gt; would be.&lt;/p&gt;
 &lt;p&gt;Also, this blog post was inspired by a stackoverflow question and in particular one of the &lt;a href=&#34;http://stackoverflow.com/a/29035145/1298051&#34;&gt;answers&lt;/a&gt;. So I don’t bring anything new to the table, but I found this stackoverflow answer so useful and so underrated (only 16 upvotes as I’m writing this!) that I wanted to write something about it.&lt;/p&gt;
 &lt;p&gt;Basically the idea of this blog post is to show how to create graphs using &lt;code&gt;ggplot2&lt;/code&gt;, but by grouping by a factor variable beforehand. To illustrate this idea, let’s use the data from the &lt;a href=&#34;http://www.rug.nl/ggdc/productivity/pwt/&#34;&gt;Penn World Tables 9.0&lt;/a&gt;. The easiest way to get this data is to install the package called &lt;code&gt;pwt9&lt;/code&gt; with:&lt;/p&gt;
@@ -29,6 +30,7 @@
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(ggplot2)
 library(ggthemes)
 library(dplyr)
+library(tidyr)
 library(purrr)
 library(pwt9)&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;First let’s select a list of countries:&lt;/p&gt;
@@ -40,6 +42,7 @@ small_pwt &amp;lt;- pwt9.0 %&amp;gt;%
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;small_pwt &amp;lt;- small_pwt %&amp;gt;%
   mutate(country = factor(country, levels = country_list, ordered = TRUE))&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;You might be wondering why this is important. At the end of the article, we are going to save the plots to disk. If we do not re-order the countries inside the data frame as in &lt;code&gt;country_list&lt;/code&gt;, the name of the files will not correspond to the correct plots!&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;Update&lt;/em&gt;: While this can still be interesting to know, especially if you want to order the bars of a barplot made with &lt;code&gt;ggplot2&lt;/code&gt;, I included a suggestion by &lt;a href=&#34;https://twitter.com/expersso/status/846986357792739328&#34;&gt;&lt;code&gt;@expersso&lt;/code&gt;&lt;/a&gt; that does not require your data to be ordered!&lt;/p&gt;
 &lt;p&gt;Now when you want to plot the same variable by countries, say &lt;code&gt;avh&lt;/code&gt; (&lt;em&gt;Average annual hours worked by persons engaged&lt;/em&gt;), the usual way to do this is with one of &lt;code&gt;facet_wrap()&lt;/code&gt; or &lt;code&gt;facet_grid()&lt;/code&gt;:&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;ggplot(data = small_pwt) + theme_tufte() +
   geom_line(aes(y = avh, x = year)) +
@@ -51,34 +54,62 @@ small_pwt &amp;lt;- pwt9.0 %&amp;gt;%
 &lt;p&gt;&lt;img src=&#34;#####../content/blog/2017-03-29-make-ggplot2-purrr_files/figure-html/unnamed-chunk-7-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;As you can see, for this particular example, &lt;code&gt;facet_grid()&lt;/code&gt; is not very useful, but do notice its argument, &lt;code&gt;country~.&lt;/code&gt;, which is different from &lt;code&gt;facet_wrap()&lt;/code&gt;’s argument. This way, I get the graphs stacked horizontally. If I had used &lt;code&gt;facet_grid(~country)&lt;/code&gt; the graphs would be side by side and completely unreadable.&lt;/p&gt;
 &lt;p&gt;Now, let’s go to the meat of this post: what if you would like to have one single graph for each country? You’d probably think of using &lt;code&gt;dplyr::group_by()&lt;/code&gt; to form the groups and then the graphs. This is the way to go, but you also have to use &lt;code&gt;dplyr::do()&lt;/code&gt;. This is because as far as I understand, &lt;code&gt;ggplot2&lt;/code&gt; is not &lt;code&gt;dplyr&lt;/code&gt;-aware, and using an arbitrary function with groups is only possible with &lt;code&gt;dplyr::do()&lt;/code&gt;.&lt;/p&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;plots &amp;lt;- small_pwt %&amp;gt;%
+&lt;p&gt;&lt;em&gt;Update&lt;/em&gt;: As explained in the intro above, I also added the solution that uses &lt;code&gt;tidyr::nest()&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;# Ancient, deprecated way of doing this
+plots &amp;lt;- small_pwt %&amp;gt;%
   group_by(country) %&amp;gt;%
   do(plot = ggplot(data = .) + theme_tufte() +
        geom_line(aes(y = avh, x = year)) +
        ggtitle(unique(.$country)) +
        ylab(&amp;quot;Year&amp;quot;) +
        xlab(&amp;quot;Average annual hours worked by persons engaged&amp;quot;))&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;If you know &lt;code&gt;dplyr&lt;/code&gt; at least a little bit, the above lines should be easy for you to understand. But notice how we get the title of the graphs, with &lt;code&gt;ggtitle(unique(.$country))&lt;/code&gt;, which was actually the point of the stackoverflow question. What might be surprising though, is the object that is created by this code. Let’s take a look at &lt;code&gt;plots&lt;/code&gt;:&lt;/p&gt;
+&lt;p&gt;And this is the approach that uses &lt;code&gt;tidyr::nest()&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;# Preferred approach
+plots &amp;lt;- small_pwt %&amp;gt;%
+  group_by(country) %&amp;gt;%
+  nest() %&amp;gt;%
+  mutate(plot = map2(data, country, ~ggplot(data = .x) + theme_tufte() +
+       geom_line(aes(y = avh, x = year)) +
+       ggtitle(.y) +
+       ylab(&amp;quot;Year&amp;quot;) +
+       xlab(&amp;quot;Average annual hours worked by persons engaged&amp;quot;)))&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;If you know &lt;code&gt;dplyr&lt;/code&gt; at least a little bit, the above lines should be easy for you to understand. But notice how we get the title of the graphs, with &lt;code&gt;ggtitle(unique(.$country))&lt;/code&gt;, which was actually the point of the stackoverflow question.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;Update:&lt;/em&gt; The modern version uses &lt;code&gt;tidyr::nest()&lt;/code&gt;. Its documentation tells us:&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;There are many possible ways one could choose to nest columns inside a data frame. &lt;code&gt;nest()&lt;/code&gt; creates a list of data frames containing all the nested variables: this seems to be the most useful form in practice.&lt;/em&gt; Let’s take a closer look at what it does exactly:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;small_pwt %&amp;gt;%
+  group_by(country) %&amp;gt;%
+  nest() %&amp;gt;%
+  head()&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## # A tibble: 6 × 2
+##                    country               data
+##                      &amp;lt;ord&amp;gt;             &amp;lt;list&amp;gt;
+## 1              Switzerland &amp;lt;tibble [65 × 46]&amp;gt;
+## 2                  Germany &amp;lt;tibble [65 × 46]&amp;gt;
+## 3                   France &amp;lt;tibble [65 × 46]&amp;gt;
+## 4                   Greece &amp;lt;tibble [65 × 46]&amp;gt;
+## 5               Luxembourg &amp;lt;tibble [65 × 46]&amp;gt;
+## 6 United States of America &amp;lt;tibble [65 × 46]&amp;gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This is why I love lists in R; we get a &lt;code&gt;tibble&lt;/code&gt; where each element of the column &lt;code&gt;data&lt;/code&gt; is itself a &lt;code&gt;tibble&lt;/code&gt;. We can now apply any function that we know works on lists.&lt;/p&gt;
+&lt;p&gt;What might be surprising though, is the object that is created by this code. Let’s take a look at &lt;code&gt;plots&lt;/code&gt;:&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;print(plots)&lt;/code&gt;&lt;/pre&gt;
-&lt;pre&gt;&lt;code&gt;## Source: local data frame [6 x 2]
-## Groups: &amp;lt;by row&amp;gt;
-## 
-## # A tibble: 6 × 2
-##                    country     plot
-## *                    &amp;lt;ord&amp;gt;   &amp;lt;list&amp;gt;
-## 1                   France &amp;lt;S3: gg&amp;gt;
-## 2                  Germany &amp;lt;S3: gg&amp;gt;
-## 3 United States of America &amp;lt;S3: gg&amp;gt;
-## 4               Luxembourg &amp;lt;S3: gg&amp;gt;
-## 5              Switzerland &amp;lt;S3: gg&amp;gt;
-## 6                   Greece &amp;lt;S3: gg&amp;gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## # A tibble: 6 × 3
+##                    country               data     plot
+##                      &amp;lt;ord&amp;gt;             &amp;lt;list&amp;gt;   &amp;lt;list&amp;gt;
+## 1              Switzerland &amp;lt;tibble [65 × 46]&amp;gt; &amp;lt;S3: gg&amp;gt;
+## 2                  Germany &amp;lt;tibble [65 × 46]&amp;gt; &amp;lt;S3: gg&amp;gt;
+## 3                   France &amp;lt;tibble [65 × 46]&amp;gt; &amp;lt;S3: gg&amp;gt;
+## 4                   Greece &amp;lt;tibble [65 × 46]&amp;gt; &amp;lt;S3: gg&amp;gt;
+## 5               Luxembourg &amp;lt;tibble [65 × 46]&amp;gt; &amp;lt;S3: gg&amp;gt;
+## 6 United States of America &amp;lt;tibble [65 × 46]&amp;gt; &amp;lt;S3: gg&amp;gt;&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;As &lt;code&gt;dplyr::do()&lt;/code&gt;’s documentation tells us, the return values get stored inside a list. And this is exactly what we get back; a list of plots! Lists are a very flexible and useful class, and you cannot spell &lt;em&gt;list&lt;/em&gt; without &lt;code&gt;purrr&lt;/code&gt; (at least not when you’re a ne&lt;code&gt;R&lt;/code&gt;d).&lt;/p&gt;
 &lt;p&gt;Here are the final lines that use &lt;code&gt;purrr::map2()&lt;/code&gt; to save all these plots at once inside your working directory:&lt;/p&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;file_names &amp;lt;- paste0(country_list, &amp;quot;.pdf&amp;quot;)
+&lt;p&gt;&lt;em&gt;Update&lt;/em&gt;: I have changed the code below which does not require your data frame to be ordered according to the variable &lt;code&gt;country_list&lt;/code&gt;.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;# file_names &amp;lt;- paste0(country_list, &amp;quot;.pdf&amp;quot;)
 
-map2(file_names, plots$plot, ggsave)&lt;/code&gt;&lt;/pre&gt;
+map2(paste0(plots$country, &amp;quot;.pdf&amp;quot;), plots$plot, ggsave)&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;As I said before, if you do not re-order the countries inside the data frame, the names of the files and the plots will not match. Try running all the code without re-ordering, you’ll see!&lt;/p&gt;
 &lt;p&gt;I hope you found this post useful. You can follow me on &lt;a href=&#34;https://www.twitter.com/brodriguesco&#34;&gt;twitter&lt;/a&gt; for blog updates.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;Update&lt;/em&gt;: Many thanks to the readers of this article and for their useful suggestions. I love the R community; everyday I learn something new and useful!&lt;/p&gt;
 
 
 &lt;!-- BLOGDOWN-HEAD
@@ -390,20 +421,13 @@ set_names(transposed_list, name_element)&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;Matrices:&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;mat1 &amp;lt;- matrix(rnorm(10), nrow = 2)
 mat2 &amp;lt;- matrix(rnorm(10), nrow = 2)
-mat3 &amp;lt;- matrix(rnorm(10), nrow = 2)
-
-list_mat &amp;lt;- list(mat1, mat2, mat3)
+mat3 &amp;lt;- matrix(rnorm(10), nrow = 2)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;list_mat &amp;lt;- list(mat1, mat2, mat3)
 
 reduce(list_mat, `+`)&lt;/code&gt;&lt;/pre&gt;
-&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
-&lt;pre&gt;&lt;code&gt;##         [,1]      [,2]       [,3]       [,4]     [,5]
-## [1,] 1.73862  1.654980  4.0704047 -1.1941237 1.421257
-## [2,] 1.20838 -1.791906 -0.5315674  0.1921851 1.124713&lt;/code&gt;&lt;/pre&gt;
-=======
-&lt;pre&gt;&lt;code&gt;##           [,1]       [,2]       [,3]      [,4]      [,5]
-## [1,] -3.401145  3.2621679  4.3501944 0.5026007  1.580499
-## [2,]  2.541452 -0.2201349 -0.9668128 1.2657017 -0.131160&lt;/code&gt;&lt;/pre&gt;
-&gt;&gt;&gt;&gt;&gt;&gt;&gt; 10546251138b1086d5b6335e555101e663eaf6a9
+&lt;pre&gt;&lt;code&gt;##             [,1]       [,2]       [,3]     [,4]      [,5]
+## [1,] -2.48530177  1.0110049  0.4450388 1.280802 1.3413979
+## [2,]  0.07596679 -0.6872268 -0.6579242 1.615237 0.8231933&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;even data frames:&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;df1 &amp;lt;- as.data.frame(mat1)
 df2 &amp;lt;- as.data.frame(mat2)
@@ -414,23 +438,13 @@ list_df &amp;lt;- list(df1, df2, df3)
 reduce(list_df, dplyr::full_join)&lt;/code&gt;&lt;/pre&gt;
 &lt;pre&gt;&lt;code&gt;## Joining, by = c(&amp;quot;V1&amp;quot;, &amp;quot;V2&amp;quot;, &amp;quot;V3&amp;quot;, &amp;quot;V4&amp;quot;, &amp;quot;V5&amp;quot;)
 ## Joining, by = c(&amp;quot;V1&amp;quot;, &amp;quot;V2&amp;quot;, &amp;quot;V3&amp;quot;, &amp;quot;V4&amp;quot;, &amp;quot;V5&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
-&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
-&lt;pre&gt;&lt;code&gt;##           V1          V2         V3         V4          V5
-## 1 -0.8929770  1.95048512  1.1744652 -1.4007527  0.20422567
-## 2 -0.9017354 -0.24177371 -0.4769648 -0.3230181 -0.37133613
-## 3  1.6006226  0.05752285  1.1637334 -0.3425802  0.60650141
-## 4  2.2201228 -0.39842050 -0.6826387  0.1163401  1.55993048
-## 5  1.0309742 -0.35302828  1.7322061  0.5492092  0.61052959
-## 6 -0.1100074 -1.15171185  0.6280362  0.3988630 -0.06388108&lt;/code&gt;&lt;/pre&gt;
-=======
-&lt;pre&gt;&lt;code&gt;##           V1         V2         V3          V4          V5
-## 1 -0.6879498  1.3538065  1.5451136  0.18765525  0.05720413
-## 2  1.3568639 -0.1129477  0.5203980 -0.77706558  0.97236572
-## 3 -1.2710200  1.1984437  1.3719907 -0.09056343  1.95472443
-## 4  0.6057531  0.5030554  0.2664449  0.98363020  0.29639801
-## 5 -1.4421749  0.7099176  1.4330901  0.40550893 -0.43142957
-## 6  0.5788352 -0.6102426 -1.7536557  1.05913712 -1.39992370&lt;/code&gt;&lt;/pre&gt;
-&gt;&gt;&gt;&gt;&gt;&gt;&gt; 10546251138b1086d5b6335e555101e663eaf6a9
+&lt;pre&gt;&lt;code&gt;##           V1         V2          V3          V4         V5
+## 1 -0.6264538 -0.8356286  0.32950777  0.48742905  0.5757814
+## 2  0.1836433  1.5952808 -0.82046838  0.73832471 -0.3053884
+## 3 -0.8969145  1.5878453 -0.08025176  0.70795473  1.9844739
+## 4  0.1848492 -1.1303757  0.13242028 -0.23969802 -0.1387870
+## 5 -0.9619334  0.2587882  0.19578283  0.08541773 -1.2188574
+## 6 -0.2925257 -1.1521319  0.03012394  1.11661021  1.2673687&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;Hope you enjoyed this list of useful functions! If you enjoy the content of my blog, you can follow me on &lt;a href=&#34;https://www.twitter.com/brodriguesco&#34;&gt;twitter&lt;/a&gt;.&lt;/p&gt;
 &lt;/div&gt;
 
@@ -697,19 +711,7 @@ extract_vars(mtcars, &amp;quot;spam&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
       <pubDate>Fri, 17 Feb 2017 12:51:00 +0100</pubDate>
       
       <guid>/blog/2017-02-17-how_to_use_jailbreakr/</guid>
-      <description>---
-date: 2017-02-17T12:51:00+01:00
-title: How to use jailbreakr
-tags: [R]
-menu:
-  main:
-    parent: Blog
-    identifier: /blog/jailbreakr
-    weight: 2
----
-
-
-&lt;!-- BLOGDOWN-BODY-BEFORE
+      <description>&lt;!-- BLOGDOWN-BODY-BEFORE
 
 /BLOGDOWN-BODY-BEFORE --&gt;
 
