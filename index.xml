@@ -2,19 +2,19 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Econometrics and Free Software</title>
-    <link>/index.xml</link>
+    <link>https://b-rodrigues.github.io/index.xml</link>
     <description>Recent content on Econometrics and Free Software</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Wed, 29 Mar 2017 06:45:48 +0200</lastBuildDate>
-    <atom:link href="/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://b-rodrigues.github.io/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>Make ggplot2 purrr</title>
-      <link>/blog/2017-03-29-make-ggplot2-purrr/</link>
+      <link>https://b-rodrigues.github.io/blog/2017-03-29-make-ggplot2-purrr/</link>
       <pubDate>Wed, 29 Mar 2017 06:45:48 +0200</pubDate>
       
-      <guid>/blog/2017-03-29-make-ggplot2-purrr/</guid>
+      <guid>https://b-rodrigues.github.io/blog/2017-03-29-make-ggplot2-purrr/</guid>
       <description>&lt;!-- BLOGDOWN-BODY-BEFORE
 
 /BLOGDOWN-BODY-BEFORE --&gt;
@@ -47,11 +47,11 @@ small_pwt &amp;lt;- pwt9.0 %&amp;gt;%
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;ggplot(data = small_pwt) + theme_tufte() +
   geom_line(aes(y = avh, x = year)) +
   facet_wrap(~country)&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;&lt;img src=&#34;#####../content/blog/2017-03-29-make-ggplot2-purrr_files/figure-html/unnamed-chunk-6-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://b-rodrigues.github.io/blog/2017-03-29-make-ggplot2-purrr/figures/unnamed-chunk-6-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;ggplot(data = small_pwt) + theme_tufte() +
   geom_line(aes(y = avh, x = year)) +
   facet_grid(country~.)&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;&lt;img src=&#34;#####../content/blog/2017-03-29-make-ggplot2-purrr_files/figure-html/unnamed-chunk-7-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://b-rodrigues.github.io/blog/2017-03-29-make-ggplot2-purrr/figures/unnamed-chunk-7-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;As you can see, for this particular example, &lt;code&gt;facet_grid()&lt;/code&gt; is not very useful, but do notice its argument, &lt;code&gt;country~.&lt;/code&gt;, which is different from &lt;code&gt;facet_wrap()&lt;/code&gt;’s argument. This way, I get the graphs stacked horizontally. If I had used &lt;code&gt;facet_grid(~country)&lt;/code&gt; the graphs would be side by side and completely unreadable.&lt;/p&gt;
 &lt;p&gt;Now, let’s go to the meat of this post: what if you would like to have one single graph for each country? You’d probably think of using &lt;code&gt;dplyr::group_by()&lt;/code&gt; to form the groups and then the graphs. This is the way to go, but you also have to use &lt;code&gt;dplyr::do()&lt;/code&gt;. This is because as far as I understand, &lt;code&gt;ggplot2&lt;/code&gt; is not &lt;code&gt;dplyr&lt;/code&gt;-aware, and using an arbitrary function with groups is only possible with &lt;code&gt;dplyr::do()&lt;/code&gt;.&lt;/p&gt;
 &lt;p&gt;&lt;em&gt;Update&lt;/em&gt;: As explained in the intro above, I also added the solution that uses &lt;code&gt;tidyr::nest()&lt;/code&gt;:&lt;/p&gt;
@@ -123,10 +123,10 @@ map2(paste0(plots$country, &amp;quot;.pdf&amp;quot;), plots$plot, ggsave)&lt;/co
     
     <item>
       <title>Introducing brotools</title>
-      <link>/blog/2017-03-27-introducing_brotools/</link>
+      <link>https://b-rodrigues.github.io/blog/2017-03-27-introducing_brotools/</link>
       <pubDate>Mon, 27 Mar 2017 09:23:56 +0200</pubDate>
       
-      <guid>/blog/2017-03-27-introducing_brotools/</guid>
+      <guid>https://b-rodrigues.github.io/blog/2017-03-27-introducing_brotools/</guid>
       <description>&lt;!-- BLOGDOWN-BODY-BEFORE
 
 /BLOGDOWN-BODY-BEFORE --&gt;
@@ -147,10 +147,10 @@ map2(paste0(plots$country, &amp;quot;.pdf&amp;quot;), plots$plot, ggsave)&lt;/co
     
     <item>
       <title>Lesser known purrr tricks</title>
-      <link>/blog/2017-03-24-lesser_known_purrr/</link>
+      <link>https://b-rodrigues.github.io/blog/2017-03-24-lesser_known_purrr/</link>
       <pubDate>Fri, 24 Mar 2017 12:00:00 +0100</pubDate>
       
-      <guid>/blog/2017-03-24-lesser_known_purrr/</guid>
+      <guid>https://b-rodrigues.github.io/blog/2017-03-24-lesser_known_purrr/</guid>
       <description>&lt;!-- BLOGDOWN-BODY-BEFORE
 
 /BLOGDOWN-BODY-BEFORE --&gt;
@@ -460,10 +460,10 @@ reduce(list_df, dplyr::full_join)&lt;/code&gt;&lt;/pre&gt;
     
     <item>
       <title>Lesser known dplyr tricks</title>
-      <link>/blog/2017-02-17-lesser_known_tricks/</link>
+      <link>https://b-rodrigues.github.io/blog/2017-02-17-lesser_known_tricks/</link>
       <pubDate>Wed, 08 Mar 2017 12:00:00 +0100</pubDate>
       
-      <guid>/blog/2017-02-17-lesser_known_tricks/</guid>
+      <guid>https://b-rodrigues.github.io/blog/2017-02-17-lesser_known_tricks/</guid>
       <description>&lt;!-- BLOGDOWN-BODY-BEFORE
 
 /BLOGDOWN-BODY-BEFORE --&gt;
@@ -707,10 +707,10 @@ extract_vars(mtcars, &amp;quot;spam&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
     
     <item>
       <title>How to use jailbreakr</title>
-      <link>/blog/2017-02-17-how_to_use_jailbreakr/</link>
+      <link>https://b-rodrigues.github.io/blog/2017-02-17-how_to_use_jailbreakr/</link>
       <pubDate>Fri, 17 Feb 2017 12:51:00 +0100</pubDate>
       
-      <guid>/blog/2017-02-17-how_to_use_jailbreakr/</guid>
+      <guid>https://b-rodrigues.github.io/blog/2017-02-17-how_to_use_jailbreakr/</guid>
       <description>&lt;!-- BLOGDOWN-BODY-BEFORE
 
 /BLOGDOWN-BODY-BEFORE --&gt;
@@ -959,10 +959,10 @@ head(dataset1)&lt;/code&gt;&lt;/pre&gt;
     
     <item>
       <title>Functional programming and unit testing for data munging with R available on Leanpub</title>
-      <link>/blog/2016-12-24-functional-programming-and-unit-testing-for-data-munging-with-r-available-on-leanpub/</link>
+      <link>https://b-rodrigues.github.io/blog/2016-12-24-functional-programming-and-unit-testing-for-data-munging-with-r-available-on-leanpub/</link>
       <pubDate>Sat, 24 Dec 2016 00:00:00 +0000</pubDate>
       
-      <guid>/blog/2016-12-24-functional-programming-and-unit-testing-for-data-munging-with-r-available-on-leanpub/</guid>
+      <guid>https://b-rodrigues.github.io/blog/2016-12-24-functional-programming-and-unit-testing-for-data-munging-with-r-available-on-leanpub/</guid>
       <description>&lt;p&gt;The book I&amp;rsquo;ve been working on these pasts months (you can read about it &lt;a href=&#34;http://www.brodrigues.co/2016/11/04/ive-started-writing-a-book-functional-programming-and-unit-testing-for-data-munging-with-r&#34;&gt;here&lt;/a&gt;, and read it for free &lt;a href=&#34;http://www.brodrigues.co/fput&#34;&gt;here&lt;/a&gt;) is now available on Leanpub! You can grab a copy and read it on your ebook reader or on your computer, and what&amp;rsquo;s even better is that it is available for free (but you can also decide to buy it if you really like it). Here is the link on &lt;a href=&#34;https://leanpub.com/fput&#34;&gt;Leanpub&lt;/a&gt;.&lt;/p&gt;
 
 &lt;p&gt;In the book, I show you the basics of functional programming, unit testing and package development for the R programming language. The end goal is to make your data tidy in a reproducible way!&lt;/p&gt;
@@ -973,10 +973,10 @@ head(dataset1)&lt;/code&gt;&lt;/pre&gt;
     
     <item>
       <title>My free book has a cover!</title>
-      <link>/blog/2017-01-07-my-free-book-has-a-cover/</link>
+      <link>https://b-rodrigues.github.io/blog/2017-01-07-my-free-book-has-a-cover/</link>
       <pubDate>Sat, 24 Dec 2016 00:00:00 +0000</pubDate>
       
-      <guid>/blog/2017-01-07-my-free-book-has-a-cover/</guid>
+      <guid>https://b-rodrigues.github.io/blog/2017-01-07-my-free-book-has-a-cover/</guid>
       <description>&lt;p&gt;I&amp;rsquo;m currently writing a book as a hobby. It&amp;rsquo;s titled &lt;em&gt;Functional programming and unit testing for data munging with R&lt;/em&gt; and you can get it for free &lt;a href=&#34;https://leanpub.com/fput/&#34;&gt;here&lt;/a&gt;. You can also read it online for free on my &lt;a href=&#34;http://www.brodrigues.co/fput&#34;&gt;webpage&lt;/a&gt; What&amp;rsquo;s the book about?&lt;/p&gt;
 
 &lt;p&gt;Here&amp;rsquo;s the teaser text:&lt;/p&gt;
@@ -999,10 +999,10 @@ head(dataset1)&lt;/code&gt;&lt;/pre&gt;
     
     <item>
       <title>Work on lists of datasets instead of individual datasets by using functional programming</title>
-      <link>/blog/2016-12-21-work-on-lists-of-datasets-instead-of-individual-datasets-by-using-functional-programming/</link>
+      <link>https://b-rodrigues.github.io/blog/2016-12-21-work-on-lists-of-datasets-instead-of-individual-datasets-by-using-functional-programming/</link>
       <pubDate>Wed, 21 Dec 2016 00:00:00 +0000</pubDate>
       
-      <guid>/blog/2016-12-21-work-on-lists-of-datasets-instead-of-individual-datasets-by-using-functional-programming/</guid>
+      <guid>https://b-rodrigues.github.io/blog/2016-12-21-work-on-lists-of-datasets-instead-of-individual-datasets-by-using-functional-programming/</guid>
       <description>&lt;p&gt;&lt;p&gt;Analyzing a lot of datasets can be tedious. In my work, I often have to compute descriptive statistics, or plot some graphs for some variables for a lot of datasets. The variables in question have the same name accross the datasets but are measured for different years. As an example, imagine you have this situation:&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;data2000 &amp;lt;- mtcars
 data2001 &amp;lt;- mtcars&lt;/code&gt;&lt;/pre&gt;
@@ -1224,10 +1224,10 @@ Max.   :8.000&lt;/code&gt;&lt;/pre&gt;
     
     <item>
       <title>I&#39;ve started writing a &#39;book&#39;: Functional programming and unit testing for data munging with R</title>
-      <link>/blog/2016-11-04-ive-started-writing-a-book-functional-programming-and-unit-testing-for-data-munging-with-r/</link>
+      <link>https://b-rodrigues.github.io/blog/2016-11-04-ive-started-writing-a-book-functional-programming-and-unit-testing-for-data-munging-with-r/</link>
       <pubDate>Fri, 04 Nov 2016 00:00:00 +0000</pubDate>
       
-      <guid>/blog/2016-11-04-ive-started-writing-a-book-functional-programming-and-unit-testing-for-data-munging-with-r/</guid>
+      <guid>https://b-rodrigues.github.io/blog/2016-11-04-ive-started-writing-a-book-functional-programming-and-unit-testing-for-data-munging-with-r/</guid>
       <description>&lt;p&gt;I have started writing a &amp;lsquo;book&amp;rsquo; using the awesome &lt;code&gt;bookdown&lt;/code&gt; package. In the book I explain and show why using functional programming
 and putting your functions in your own packages is the way to go when you want to clean, prepare and transform large data sets.
 It makes testing and documenting your code easier. You don&amp;rsquo;t need to think about managing paths either. The book is far from complete,
@@ -1239,10 +1239,10 @@ suggestions, do not hesitate to shoot me an email or a tweet! You can read the b
     
     <item>
       <title>Merge a list of datasets together</title>
-      <link>/blog/2016-07-30-merge-a-list-of-datasets-together/</link>
+      <link>https://b-rodrigues.github.io/blog/2016-07-30-merge-a-list-of-datasets-together/</link>
       <pubDate>Sat, 30 Jul 2016 00:00:00 +0000</pubDate>
       
-      <guid>/blog/2016-07-30-merge-a-list-of-datasets-together/</guid>
+      <guid>https://b-rodrigues.github.io/blog/2016-07-30-merge-a-list-of-datasets-together/</guid>
       <description>&lt;p&gt;&lt;a href=&#34;http://www.brodrigues.co/2016/07/26/read-a-lot-of-datasets-at-once-with-r&#34;&gt;Last week&lt;/a&gt; I showed how to read a lot of datasets at once with R, and this week I’ll continue from there and show a very simple function that uses this list of read datasets and merges them all together.&lt;/p&gt;
 &lt;p&gt;First we’ll use &lt;code&gt;read_list()&lt;/code&gt; to read all the datasets at once (for more details read &lt;a href=&#34;http://www.brodrigues.co/2016/07/26/read-a-lot-of-datasets-at-once-with-r&#34;&gt;last week’s post&lt;/a&gt;):&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(&amp;quot;readr&amp;quot;)
@@ -1308,10 +1308,10 @@ glimpse(list_of_data_sets)&lt;/code&gt;&lt;/pre&gt;
     
     <item>
       <title>Read a lot of datasets at once with R</title>
-      <link>/blog/2016-07-26-read-a-lot-of-datasets-at-once-with-r/</link>
+      <link>https://b-rodrigues.github.io/blog/2016-07-26-read-a-lot-of-datasets-at-once-with-r/</link>
       <pubDate>Tue, 26 Jul 2016 00:00:00 +0000</pubDate>
       
-      <guid>/blog/2016-07-26-read-a-lot-of-datasets-at-once-with-r/</guid>
+      <guid>https://b-rodrigues.github.io/blog/2016-07-26-read-a-lot-of-datasets-at-once-with-r/</guid>
       <description>&lt;p&gt;I often have to read a lot of datasets at once using R. So I’ve wrote the following function to solve this issue:&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;read_list &amp;lt;- function(list_of_datasets, read_func){
 
@@ -1376,10 +1376,10 @@ glimpse(list_of_data_sets)&lt;/code&gt;&lt;/pre&gt;
     
     <item>
       <title>Data frame columns as arguments to dplyr functions</title>
-      <link>/blog/2016-07-18-data-frame-columns-as-arguments-to-dplyr-functions/</link>
+      <link>https://b-rodrigues.github.io/blog/2016-07-18-data-frame-columns-as-arguments-to-dplyr-functions/</link>
       <pubDate>Mon, 18 Jul 2016 00:00:00 +0000</pubDate>
       
-      <guid>/blog/2016-07-18-data-frame-columns-as-arguments-to-dplyr-functions/</guid>
+      <guid>https://b-rodrigues.github.io/blog/2016-07-18-data-frame-columns-as-arguments-to-dplyr-functions/</guid>
       <description>&lt;!-- MathJax scripts --&gt;
 
 &lt;script type=&#34;text/javascript&#34; async
@@ -1538,10 +1538,10 @@ interp(~x+y, x = 2)&lt;/code&gt;&lt;/pre&gt;
     
     <item>
       <title>Careful with tryCatch</title>
-      <link>/blog/2016-06-21-careful-with-trycatch/</link>
+      <link>https://b-rodrigues.github.io/blog/2016-06-21-careful-with-trycatch/</link>
       <pubDate>Thu, 31 Mar 2016 00:00:00 +0000</pubDate>
       
-      <guid>/blog/2016-06-21-careful-with-trycatch/</guid>
+      <guid>https://b-rodrigues.github.io/blog/2016-06-21-careful-with-trycatch/</guid>
       <description>&lt;!-- MathJax scripts --&gt;
 
 &lt;script type=&#34;text/javascript&#34; async
@@ -1626,10 +1626,10 @@ print(mother)&lt;/code&gt;&lt;/pre&gt;
     
     <item>
       <title>Unit testing with R</title>
-      <link>/blog/2016-03-31-unit-testing-with-r/</link>
+      <link>https://b-rodrigues.github.io/blog/2016-03-31-unit-testing-with-r/</link>
       <pubDate>Thu, 31 Mar 2016 00:00:00 +0000</pubDate>
       
-      <guid>/blog/2016-03-31-unit-testing-with-r/</guid>
+      <guid>https://b-rodrigues.github.io/blog/2016-03-31-unit-testing-with-r/</guid>
       <description>&lt;!-- MathJax scripts --&gt;
 
 &lt;script type=&#34;text/javascript&#34; async
@@ -1740,10 +1740,10 @@ then try to write the code to make that unit test pass. This is called test-driv
     
     <item>
       <title>Bootstrapping standard errors for difference-in-differences estimation with R</title>
-      <link>/blog/2015-11-11-bootstrapping-did-with-r/</link>
+      <link>https://b-rodrigues.github.io/blog/2015-11-11-bootstrapping-did-with-r/</link>
       <pubDate>Wed, 11 Nov 2015 00:00:00 +0000</pubDate>
       
-      <guid>/blog/2015-11-11-bootstrapping-did-with-r/</guid>
+      <guid>https://b-rodrigues.github.io/blog/2015-11-11-bootstrapping-did-with-r/</guid>
       <description>&lt;!-- MathJax scripts --&gt;
 
 &lt;script type=&#34;text/javascript&#34; async
