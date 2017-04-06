@@ -2,177 +2,177 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>https://b-rodrigues.github.io/blog/2017-03-29-make-ggplot2-purrr/</loc>
+    <loc>/blog/2017-03-29-make-ggplot2-purrr/</loc>
     <lastmod>2017-03-29T06:45:48+02:00</lastmod>
   </url>
   
   <url>
-    <loc>https://b-rodrigues.github.io/blog/2017-03-27-introducing_brotools/</loc>
+    <loc>/blog/2017-03-27-introducing_brotools/</loc>
     <lastmod>2017-03-27T09:23:56+02:00</lastmod>
   </url>
   
   <url>
-    <loc>https://b-rodrigues.github.io/blog/2017-03-24-lesser_known_purrr/</loc>
+    <loc>/blog/2017-03-24-lesser_known_purrr/</loc>
     <lastmod>2017-03-24T12:00:00+01:00</lastmod>
   </url>
   
   <url>
-    <loc>https://b-rodrigues.github.io/blog/2017-02-17-lesser_known_tricks/</loc>
+    <loc>/blog/2017-02-17-lesser_known_tricks/</loc>
     <lastmod>2017-03-08T12:00:00+01:00</lastmod>
   </url>
   
   <url>
-    <loc>https://b-rodrigues.github.io/blog/2017-02-17-how_to_use_jailbreakr/</loc>
+    <loc>/blog/2017-02-17-how_to_use_jailbreakr/</loc>
     <lastmod>2017-02-17T12:51:00+01:00</lastmod>
   </url>
   
   <url>
-    <loc>https://b-rodrigues.github.io/blog/2016-12-24-functional-programming-and-unit-testing-for-data-munging-with-r-available-on-leanpub/</loc>
+    <loc>/blog/2016-12-24-functional-programming-and-unit-testing-for-data-munging-with-r-available-on-leanpub/</loc>
     <lastmod>2016-12-24T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>https://b-rodrigues.github.io/blog/2017-01-07-my-free-book-has-a-cover/</loc>
+    <loc>/blog/2017-01-07-my-free-book-has-a-cover/</loc>
     <lastmod>2016-12-24T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>https://b-rodrigues.github.io/blog/2016-12-21-work-on-lists-of-datasets-instead-of-individual-datasets-by-using-functional-programming/</loc>
+    <loc>/blog/2016-12-21-work-on-lists-of-datasets-instead-of-individual-datasets-by-using-functional-programming/</loc>
     <lastmod>2016-12-21T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>https://b-rodrigues.github.io/blog/2016-11-04-ive-started-writing-a-book-functional-programming-and-unit-testing-for-data-munging-with-r/</loc>
+    <loc>/blog/2016-11-04-ive-started-writing-a-book-functional-programming-and-unit-testing-for-data-munging-with-r/</loc>
     <lastmod>2016-11-04T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>https://b-rodrigues.github.io/blog/2016-07-30-merge-a-list-of-datasets-together/</loc>
+    <loc>/blog/2016-07-30-merge-a-list-of-datasets-together/</loc>
     <lastmod>2016-07-30T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>https://b-rodrigues.github.io/blog/2016-07-26-read-a-lot-of-datasets-at-once-with-r/</loc>
+    <loc>/blog/2016-07-26-read-a-lot-of-datasets-at-once-with-r/</loc>
     <lastmod>2016-07-26T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>https://b-rodrigues.github.io/blog/2016-07-18-data-frame-columns-as-arguments-to-dplyr-functions/</loc>
+    <loc>/blog/2016-07-18-data-frame-columns-as-arguments-to-dplyr-functions/</loc>
     <lastmod>2016-07-18T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>https://b-rodrigues.github.io/blog/2016-06-21-careful-with-trycatch/</loc>
+    <loc>/blog/2016-06-21-careful-with-trycatch/</loc>
     <lastmod>2016-03-31T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>https://b-rodrigues.github.io/blog/2016-03-31-unit-testing-with-r/</loc>
+    <loc>/blog/2016-03-31-unit-testing-with-r/</loc>
     <lastmod>2016-03-31T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>https://b-rodrigues.github.io/blog/2015-11-11-bootstrapping-did-with-r/</loc>
+    <loc>/blog/2015-11-11-bootstrapping-did-with-r/</loc>
     <lastmod>2015-11-11T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>https://b-rodrigues.github.io/blog/2015-05-03-update-introduction-r-programming/</loc>
+    <loc>/blog/2015-05-03-update-introduction-r-programming/</loc>
     <lastmod>2015-05-03T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>https://b-rodrigues.github.io/blog/2015-02-22-export-r-output-to-file/</loc>
+    <loc>/blog/2015-02-22-export-r-output-to-file/</loc>
     <lastmod>2015-02-22T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>https://b-rodrigues.github.io/blog/2015-01-12-introduction-to-programming-econometrics-with-r/</loc>
+    <loc>/blog/2015-01-12-introduction-to-programming-econometrics-with-r/</loc>
     <lastmod>2015-01-12T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>https://b-rodrigues.github.io/blog/2014-11-11-benchmarks-r-blas-atlas-rro/</loc>
+    <loc>/blog/2014-11-11-benchmarks-r-blas-atlas-rro/</loc>
     <lastmod>2014-11-11T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>https://b-rodrigues.github.io/blog/2014-04-23-r-s4-rootfinding/</loc>
+    <loc>/blog/2014-04-23-r-s4-rootfinding/</loc>
     <lastmod>2014-04-23T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>https://b-rodrigues.github.io/blog/2013-12-31-r-cas/</loc>
+    <loc>/blog/2013-12-31-r-cas/</loc>
     <lastmod>2013-12-31T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>https://b-rodrigues.github.io/blog/2013-01-29-method-of-simulated-moments-with-r/</loc>
+    <loc>/blog/2013-01-29-method-of-simulated-moments-with-r/</loc>
     <lastmod>2013-12-11T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>https://b-rodrigues.github.io/blog/2013-01-16-simulated-maximum-likelihood-with-r/</loc>
+    <loc>/blog/2013-01-16-simulated-maximum-likelihood-with-r/</loc>
     <lastmod>2013-12-11T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>https://b-rodrigues.github.io/blog/2013-11-07-gmm-with-rmd/</loc>
+    <loc>/blog/2013-11-07-gmm-with-rmd/</loc>
     <lastmod>2013-11-07T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>https://b-rodrigues.github.io/blog/2012-12-11-new-website/</loc>
+    <loc>/blog/2012-12-11-new-website/</loc>
     <lastmod>2012-12-11T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>https://b-rodrigues.github.io/</loc>
+    <loc>/</loc>
     <lastmod>2000-01-01T19:50:00+02:00</lastmod>
   </url>
   
   <url>
-    <loc>https://b-rodrigues.github.io/about/</loc>
+    <loc>/about/</loc>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://b-rodrigues.github.io/blog/</loc>
+    <loc>/blog/</loc>
     <lastmod>2017-03-29T06:45:48+02:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://b-rodrigues.github.io/</loc>
+    <loc>/</loc>
     <lastmod>2017-03-29T06:45:48+02:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://b-rodrigues.github.io/about/projects/</loc>
+    <loc>/about/projects/</loc>
   </url>
   
   <url>
-    <loc>https://b-rodrigues.github.io/tags/r/</loc>
+    <loc>/tags/r/</loc>
     <lastmod>2017-03-29T06:45:48+02:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://b-rodrigues.github.io/about/research/</loc>
+    <loc>/about/research/</loc>
   </url>
   
   <url>
-    <loc>https://b-rodrigues.github.io/about/software/</loc>
+    <loc>/about/software/</loc>
   </url>
   
   <url>
-    <loc>https://b-rodrigues.github.io/tags/</loc>
+    <loc>/tags/</loc>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://b-rodrigues.github.io/about/about/</loc>
+    <loc>/about/about/</loc>
   </url>
   
 </urlset>
