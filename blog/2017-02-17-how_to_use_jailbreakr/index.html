@@ -17,7 +17,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta property="og:url" content="/blog/2017-02-17-how_to_use_jailbreakr/">
     <meta property="og:title" content="Econometrics and Free Software">
-    <meta property="og:image" content="/map[url:logo.png width:50 height:50 alt:Logo]">
+    <meta property="og:image" content="/map[alt:Logo url:logo.png width:50 height:50]">
     <meta name="apple-mobile-web-app-title" content="Econometrics and Free Software">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -32,10 +32,6 @@
     
     <link rel="stylesheet" href="../../css/jquery.fancybox.css?v=2.1.5" type="text/css" media="screen" />
     <link rel="stylesheet" href="../../css/helpers/jquery.fancybox-buttons.css?v=1.0.5" type="text/css" media="screen" />
-
-
-
-
   </head>
   <body>
 
@@ -92,17 +88,19 @@
     
     <div class="list-group">
       
-      <a class="list-group-item" href="../../blog/2017-03-27-introducing_brotools/">Introducing brotools</a>
+      <a class="list-group-item" href="../../blog/2017-06-19-dplyr-0-70-tutorial/">Lesser known dplyr 0.7* tricks</a>
       
       <a class="list-group-item" href="../../blog/2017-03-24-lesser_known_purrr/">Lesser known purrr tricks</a>
       
       <a class="list-group-item" href="../../blog/2017-03-29-make-ggplot2-purrr/">Make ggplot2 purrr</a>
       
-      <a class="list-group-item" href="../../blog/2017-02-17-how_to_use_jailbreakr/">How to use jailbreakr</a>
+      <a class="list-group-item" href="../../blog/2017-03-27-introducing_brotools/">Introducing brotools</a>
       
       <a class="list-group-item" href="../../blog/2017-02-17-lesser_known_tricks/">Lesser known dplyr tricks</a>
       
       <a class="list-group-item" href="../../blog/2016-12-24-functional-programming-and-unit-testing-for-data-munging-with-r-available-on-leanpub/">Functional programming and unit testing for data munging with R available on Leanpub</a>
+      
+      <a class="list-group-item" href="../../blog/2017-02-17-how_to_use_jailbreakr/">How to use jailbreakr</a>
       
       <a class="list-group-item" href="../../blog/2017-01-07-my-free-book-has-a-cover/">My free book has a cover!</a>
       
@@ -154,8 +152,11 @@
            <h1 id="main">How to use jailbreakr</h1>
            <span class="article-date">February 17, 2017</span>
         </div>
+        <!-- BLOGDOWN-HEAD -->
+<!-- /BLOGDOWN-HEAD -->
 
-
+<!-- BLOGDOWN-BODY-BEFORE -->
+<!-- /BLOGDOWN-BODY-BEFORE -->
 <div id="what-is-jailbreakr" class="section level2">
 <h2>What is <code>jailbreakr</code></h2>
 <p>The <code>jailbreakr</code> package is probably one of the most interesting packages I came across recently. This package makes it possible to extract messy data from spreadsheets. What is meant by messy? I am sure you already had to deal with spreadsheets that contained little tables inside a single sheet for example. As far as I know, there is no simple way of extracting these tables without having to fiddle around a lot. This is now over with <code>jailbreakr</code>. Well not entirely, because <code>jailbreakr</code> is still in development, but it works well already. If you want to know more about the planned features, you can watch the following <a href="https://channel9.msdn.com/Events/useR-international-R-User-conference/useR2016/jailbreakr-Get-out-of-Excel-free">video</a> by Jenny Bryan, one of the package’s authors.</p>
@@ -387,8 +388,6 @@ head(dataset1)</code></pre>
 ## [6,] 37.5</code></pre>
 <p>Et voilà! We went from a messy spreadsheet to a tidy dataset in a matter of minutes. Even though this package is still in early development and not all the features that are planned are available, the basics are there and can save you a lot of pain!</p>
 </div>
-
-
 
       </div>
     </div>

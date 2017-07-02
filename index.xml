@@ -6,8 +6,196 @@
     <description>Recent content on Econometrics and Free Software</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Wed, 29 Mar 2017 06:45:48 +0200</lastBuildDate>
+    <lastBuildDate>Sun, 02 Jul 2017 00:00:00 +0000</lastBuildDate>
     <atom:link href="/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Lesser known dplyr 0.7* tricks</title>
+      <link>/blog/2017-06-19-dplyr-0-70-tutorial/</link>
+      <pubDate>Sun, 02 Jul 2017 00:00:00 +0000</pubDate>
+      
+      <guid>/blog/2017-06-19-dplyr-0-70-tutorial/</guid>
+      <description>&lt;!-- BLOGDOWN-HEAD --&gt;
+&lt;!-- /BLOGDOWN-HEAD --&gt;
+
+&lt;!-- BLOGDOWN-BODY-BEFORE --&gt;
+&lt;!-- /BLOGDOWN-BODY-BEFORE --&gt;
+&lt;p&gt;This blog post is an update to an older &lt;a href=&#34;http://www.brodrigues.co/blog/2017-02-17-lesser_known_tricks/&#34;&gt;one&lt;/a&gt; I wrote in March. In the post from March, &lt;code&gt;dplyr&lt;/code&gt; was at version 0.50, but since then a major update introduced some changes that make some of the tips in that post obsolete. So here I revisit the blog post from March by using &lt;code&gt;dplyr&lt;/code&gt; 0.70.&lt;/p&gt;
+&lt;div id=&#34;create-new-columns-with-mutate-and-case_when&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Create new columns with &lt;code&gt;mutate()&lt;/code&gt; and &lt;code&gt;case_when()&lt;/code&gt;&lt;/h2&gt;
+&lt;p&gt;The basic things such as selecting columns, renaming them, filtering, etc did not change with this new version. What did change however is creating new columns using &lt;code&gt;case_when()&lt;/code&gt;. First, load &lt;code&gt;dplyr&lt;/code&gt; and the &lt;code&gt;mtcars&lt;/code&gt; dataset:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(&amp;quot;dplyr&amp;quot;)
+data(mtcars)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This was how it was done in version 0.50 (notice the ‘.$’ symbol before the variable ‘carb’):&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;mtcars %&amp;gt;% 
+    mutate(carb_new = case_when(.$carb == 1 ~ &amp;quot;one&amp;quot;,
+                                .$carb == 2 ~ &amp;quot;two&amp;quot;,
+                                .$carb == 4 ~ &amp;quot;four&amp;quot;,
+                                 TRUE ~ &amp;quot;other&amp;quot;)) %&amp;gt;% 
+    head(5)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##    mpg cyl disp  hp drat    wt  qsec vs am gear carb carb_new
+## 1 21.0   6  160 110 3.90 2.620 16.46  0  1    4    4     four
+## 2 21.0   6  160 110 3.90 2.875 17.02  0  1    4    4     four
+## 3 22.8   4  108  93 3.85 2.320 18.61  1  1    4    1      one
+## 4 21.4   6  258 110 3.08 3.215 19.44  1  0    3    1      one
+## 5 18.7   8  360 175 3.15 3.440 17.02  0  0    3    2      two&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This has been simplified to:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;mtcars %&amp;gt;% 
+    mutate(carb_new = case_when(carb == 1 ~ &amp;quot;one&amp;quot;,
+                                carb == 2 ~ &amp;quot;two&amp;quot;,
+                                carb == 4 ~ &amp;quot;four&amp;quot;,
+                                TRUE ~ &amp;quot;other&amp;quot;)) %&amp;gt;% 
+    head(5)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##    mpg cyl disp  hp drat    wt  qsec vs am gear carb carb_new
+## 1 21.0   6  160 110 3.90 2.620 16.46  0  1    4    4     four
+## 2 21.0   6  160 110 3.90 2.875 17.02  0  1    4    4     four
+## 3 22.8   4  108  93 3.85 2.320 18.61  1  1    4    1      one
+## 4 21.4   6  258 110 3.08 3.215 19.44  1  0    3    1      one
+## 5 18.7   8  360 175 3.15 3.440 17.02  0  0    3    2      two&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;No need for &lt;code&gt;.$&lt;/code&gt; anymore.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;apply-a-function-to-certain-columns-only-by-rows-with-purrrlyr&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Apply a function to certain columns only, by rows, with &lt;code&gt;purrrlyr&lt;/code&gt;&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;dplyr&lt;/code&gt; wasn’t the only package to get an overhaul, &lt;code&gt;purrr&lt;/code&gt; also got the same treatment.&lt;/p&gt;
+&lt;p&gt;In the past, I applied a function to certains columns like this:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;mtcars %&amp;gt;%
+    select(am, gear, carb) %&amp;gt;%
+    purrr::by_row(sum, .collate = &amp;quot;cols&amp;quot;, .to = &amp;quot;sum_am_gear_carb&amp;quot;) -&amp;gt; mtcars2
+head(mtcars2)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now, &lt;code&gt;by_row()&lt;/code&gt; does not exist in &lt;code&gt;purrr&lt;/code&gt; anymore, but instead a new package called &lt;code&gt;purrrlyr&lt;/code&gt; was introduced with functions that don’t really fit inside &lt;code&gt;purrr&lt;/code&gt; nor &lt;code&gt;dplyr&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;mtcars %&amp;gt;%
+    select(am, gear, carb) %&amp;gt;%
+    purrrlyr::by_row(sum, .collate = &amp;quot;cols&amp;quot;, .to = &amp;quot;sum_am_gear_carb&amp;quot;) -&amp;gt; mtcars2
+head(mtcars2)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## # A tibble: 6 x 4
+##      am  gear  carb sum_am_gear_carb
+##   &amp;lt;dbl&amp;gt; &amp;lt;dbl&amp;gt; &amp;lt;dbl&amp;gt;            &amp;lt;dbl&amp;gt;
+## 1     1     4     4                9
+## 2     1     4     4                9
+## 3     1     4     1                6
+## 4     0     3     1                4
+## 5     0     3     2                5
+## 6     0     3     1                4&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Think of &lt;code&gt;purrrlyr&lt;/code&gt; as &lt;code&gt;purrr&lt;/code&gt;s and &lt;code&gt;dplyr&lt;/code&gt;s love child.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;using-dplyr-functions-inside-your-own-functions-or-what-is-tidyeval&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Using &lt;code&gt;dplyr&lt;/code&gt; functions inside your own functions, or what is &lt;code&gt;tidyeval&lt;/code&gt;&lt;/h2&gt;
+&lt;p&gt;Programming with &lt;code&gt;dplyr&lt;/code&gt; has been simplified a lot. Before version &lt;code&gt;0.70&lt;/code&gt;, one needed to use &lt;code&gt;dplyr&lt;/code&gt; in conjuction with &lt;code&gt;lazyeval&lt;/code&gt; to use &lt;code&gt;dplyr&lt;/code&gt; functions inside one’s own fuctions. It was not always very easy, especially if you mixed columns and values inside your functions. Here’s the example from the March blog post:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;extract_vars &amp;lt;- function(data, some_string){
+    
+  data %&amp;gt;%
+    select_(lazyeval::interp(~contains(some_string))) -&amp;gt; data
+    
+  return(data)
+}
+
+extract_vars(mtcars, &amp;quot;spam&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;More examples are available in &lt;a href=&#34;http://www.brodrigues.co/blog/2016-07-18-data-frame-columns-as-arguments-to-dplyr-functions/&#34;&gt;this other blog post&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;I will revisit them now with &lt;code&gt;dplyr&lt;/code&gt;’s new &lt;code&gt;tidyeval&lt;/code&gt; syntax. I’d recommend you read the &lt;em&gt;Tidy evaluation&lt;/em&gt; vignette &lt;a href=&#34;https://cran.r-project.org/web/packages/rlang/vignettes/tidy-evaluation.html&#34;&gt;here&lt;/a&gt;. This vignette is part of the &lt;code&gt;rlang&lt;/code&gt; package, which gets used under the hood by &lt;code&gt;dplyr&lt;/code&gt; for all your programming needs. Here is the function I called &lt;code&gt;simpleFunction()&lt;/code&gt;, written with the old &lt;code&gt;dplyr&lt;/code&gt; syntax:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;simpleFunction &amp;lt;- function(dataset, col_name){
+  dataset %&amp;gt;%
+    group_by_(col_name) %&amp;gt;%
+    summarise(mean_mpg = mean(mpg)) -&amp;gt; dataset
+  return(dataset)
+}
+
+
+simpleFunction(mtcars, &amp;quot;cyl&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## # A tibble: 3 x 2
+##     cyl mean_mpg
+##   &amp;lt;dbl&amp;gt;    &amp;lt;dbl&amp;gt;
+## 1     4 26.66364
+## 2     6 19.74286
+## 3     8 15.10000&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;With the new synax, it must be rewritten a little bit:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;simpleFunction &amp;lt;- function(dataset, col_name){
+  col_name &amp;lt;- enquo(col_name)
+  dataset %&amp;gt;%
+    group_by(!!col_name) %&amp;gt;%
+    summarise(mean_mpg = mean(mpg)) -&amp;gt; dataset
+  return(dataset)
+}
+
+
+simpleFunction(mtcars, cyl)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## # A tibble: 3 x 2
+##     cyl mean_mpg
+##   &amp;lt;dbl&amp;gt;    &amp;lt;dbl&amp;gt;
+## 1     4 26.66364
+## 2     6 19.74286
+## 3     8 15.10000&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;What has changed? Forget the underscore versions of the usual functions such as &lt;code&gt;select_()&lt;/code&gt;, &lt;code&gt;group_by_()&lt;/code&gt;, etc. Now, you must quote the column name using &lt;code&gt;enquo()&lt;/code&gt; (or just &lt;code&gt;quo()&lt;/code&gt; if working interactively, outside a function), which returns a &lt;strong&gt;quosure&lt;/strong&gt;. This &lt;strong&gt;quosure&lt;/strong&gt; can then be evaluated using &lt;code&gt;!!&lt;/code&gt; in front of the quosure and inside the usual &lt;code&gt;dplyr&lt;/code&gt; functions.&lt;/p&gt;
+&lt;p&gt;Let’s look at another example:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;simpleFunction &amp;lt;- function(dataset, col_name, value){
+  filter_criteria &amp;lt;- lazyeval::interp(~y == x, .values=list(y = as.name(col_name), x = value))
+  dataset %&amp;gt;%
+    filter_(filter_criteria) %&amp;gt;%
+    summarise(mean_cyl = mean(cyl)) -&amp;gt; dataset
+  return(dataset)
+}
+
+
+simpleFunction(mtcars, &amp;quot;am&amp;quot;, 1)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##   mean_cyl
+## 1 5.076923&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;As you can see, it’s a bit more complicated, as you needed to use &lt;code&gt;lazyeval::interp()&lt;/code&gt; to make it work. With the improved &lt;code&gt;dplyr&lt;/code&gt;, here’s how it’s done:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;simpleFunction &amp;lt;- function(dataset, col_name, value){
+  col_name &amp;lt;- enquo(col_name)
+  dataset %&amp;gt;%
+    filter((!!col_name) == value) %&amp;gt;%
+    summarise(mean_cyl = mean(cyl)) -&amp;gt; dataset
+  return(dataset)
+}
+
+
+simpleFunction(mtcars, am, 1)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##   mean_cyl
+## 1 5.076923&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Much, much easier! There is something that you must pay attention to though. Notice that I’ve written:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;filter((!!col_name) == value)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;and not:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;filter(!!col_name == value)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;I have enclosed &lt;code&gt;!!col_name&lt;/code&gt; inside parentheses. I struggled with this, but thanks to help from &lt;a href=&#34;https://twitter.com/dmi3k/status/880374506291953664&#34;&gt;@dmi3k&lt;/a&gt; and &lt;a href=&#34;https://twitter.com/_lionelhenry/status/880380691078361090&#34;&gt;@_lionelhenry&lt;/a&gt; I was able to understand what was happening (isn’t the #rstats community on twitter great?).&lt;/p&gt;
+&lt;p&gt;One last thing: let’s make this function a bit more general. I hard-coded the variable &lt;code&gt;cyl&lt;/code&gt; inside the body of the function, but maybe you’d like the mean of another variable? Easy:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;simpleFunction &amp;lt;- function(dataset, group_col, mean_col, value){
+  group_col &amp;lt;- enquo(group_col)
+  mean_col &amp;lt;- enquo(mean_col)
+  dataset %&amp;gt;%
+    filter((!!group_col) == value) %&amp;gt;%
+    summarise(mean((!!mean_col))) -&amp;gt; dataset
+  return(dataset)
+}
+
+
+simpleFunction(mtcars, am, cyl, 1)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##   mean((cyl))
+## 1    5.076923&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;em&gt;«That’s very nice Bruno, but &lt;code&gt;mean((cyl))&lt;/code&gt; in the output looks ugly as sin»&lt;/em&gt; you might think, and you’d be right. It is possible to set the name of the column in the output using &lt;code&gt;:=&lt;/code&gt; instead of &lt;code&gt;=&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;simpleFunction &amp;lt;- function(dataset, group_col, mean_col, value){
+  group_col &amp;lt;- enquo(group_col)
+  mean_col &amp;lt;- enquo(mean_col)
+  mean_name &amp;lt;- paste0(&amp;quot;mean_&amp;quot;, mean_col)[2]
+  dataset %&amp;gt;%
+    filter((!!group_col) == value) %&amp;gt;%
+    summarise(!!mean_name := mean((!!mean_col))) -&amp;gt; dataset
+  return(dataset)
+}
+
+
+simpleFunction(mtcars, am, cyl, 1)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##   mean_cyl
+## 1 5.076923&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;To get the name of the column I added this line:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;mean_name &amp;lt;- paste0(&amp;quot;mean_&amp;quot;, mean_col)[2]&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;To see what it does, try the following inside an R interpreter (remember to us &lt;code&gt;quo()&lt;/code&gt; instead of &lt;code&gt;enquo()&lt;/code&gt; outside functions!):&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;paste0(&amp;quot;mean_&amp;quot;, quo(cyl))&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;mean_~&amp;quot;   &amp;quot;mean_cyl&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;code&gt;enquo()&lt;/code&gt; quotes the input, and with &lt;code&gt;paste0()&lt;/code&gt; it gets converted to a string that can be used as a column name. However, the &lt;code&gt;~&lt;/code&gt; is in the way and the output of &lt;code&gt;paste0()&lt;/code&gt; is a vector of two strings: the correct name is contained in the second element, hence the &lt;code&gt;[2]&lt;/code&gt;. There might be a more elegant way of doing that, but for now this has been working well for me.&lt;/p&gt;
+&lt;p&gt;That was it folks! I do recommend you read the &lt;em&gt;Programming with dplyr&lt;/em&gt; vignette &lt;a href=&#34;https://cran.r-project.org/web/packages/dplyr/vignettes/programming.html&#34;&gt;here&lt;/a&gt; as well as other blog posts, such as the one recommended to me by &lt;a href=&#34;https://twitter.com/dmi3k&#34;&gt;@dmi3k&lt;/a&gt; &lt;a href=&#34;http://www.win-vector.com/blog/2017/06/non-standard-evaluation-and-function-composition-in-r/&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Have fun with &lt;code&gt;dplyr 0.70&lt;/code&gt;!&lt;/p&gt;
+&lt;/div&gt;
+</description>
+    </item>
     
     <item>
       <title>Make ggplot2 purrr</title>
@@ -15,11 +203,7 @@
       <pubDate>Wed, 29 Mar 2017 06:45:48 +0200</pubDate>
       
       <guid>/blog/2017-03-29-make-ggplot2-purrr/</guid>
-      <description>&lt;!-- BLOGDOWN-BODY-BEFORE
-
-/BLOGDOWN-BODY-BEFORE --&gt;
-
-&lt;p&gt;&lt;em&gt;Update&lt;/em&gt;: I’ve included another way of saving a separate plot by group in this article, as pointed out by &lt;a href=&#34;https://twitter.com/monitus/status/849033025631297536&#34;&gt;&lt;code&gt;@monitus&lt;/code&gt;&lt;/a&gt;. Actually, this is the preferred solution; using &lt;code&gt;dplyr::do()&lt;/code&gt; is deprecated, according to Hadley Wickham &lt;a href=&#34;https://twitter.com/hadleywickham/status/719542847045636096&#34;&gt;himself&lt;/a&gt;.&lt;/p&gt;
+      <description>&lt;p&gt;&lt;em&gt;Update&lt;/em&gt;: I’ve included another way of saving a separate plot by group in this article, as pointed out by &lt;a href=&#34;https://twitter.com/monitus/status/849033025631297536&#34;&gt;&lt;code&gt;@monitus&lt;/code&gt;&lt;/a&gt;. Actually, this is the preferred solution; using &lt;code&gt;dplyr::do()&lt;/code&gt; is deprecated, according to Hadley Wickham &lt;a href=&#34;https://twitter.com/hadleywickham/status/719542847045636096&#34;&gt;himself&lt;/a&gt;.&lt;/p&gt;
 &lt;p&gt;I’ll be honest: the title is a bit misleading. I will not use &lt;code&gt;purrr&lt;/code&gt; that much in this blog post. Actually, I will use one single &lt;code&gt;purrr&lt;/code&gt; function, at the very end. I use &lt;code&gt;dplyr&lt;/code&gt; much more. However &lt;em&gt;Make ggplot2 purrr&lt;/em&gt; sounds better than &lt;em&gt;Make ggplot dplyr&lt;/em&gt; or whatever the verb for &lt;code&gt;dplyr&lt;/code&gt; would be.&lt;/p&gt;
 &lt;p&gt;Also, this blog post was inspired by a stackoverflow question and in particular one of the &lt;a href=&#34;http://stackoverflow.com/a/29035145/1298051&#34;&gt;answers&lt;/a&gt;. So I don’t bring anything new to the table, but I found this stackoverflow answer so useful and so underrated (only 16 upvotes as I’m writing this!) that I wanted to write something about it.&lt;/p&gt;
 &lt;p&gt;Basically the idea of this blog post is to show how to create graphs using &lt;code&gt;ggplot2&lt;/code&gt;, but by grouping by a factor variable beforehand. To illustrate this idea, let’s use the data from the &lt;a href=&#34;http://www.rug.nl/ggdc/productivity/pwt/&#34;&gt;Penn World Tables 9.0&lt;/a&gt;. The easiest way to get this data is to install the package called &lt;code&gt;pwt9&lt;/code&gt; with:&lt;/p&gt;
@@ -47,11 +231,11 @@ small_pwt &amp;lt;- pwt9.0 %&amp;gt;%
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;ggplot(data = small_pwt) + theme_tufte() +
   geom_line(aes(y = avh, x = year)) +
   facet_wrap(~country)&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;&lt;img src=&#34;#####../content/blog/2017-03-29-make-ggplot2-purrr_files/figure-html/unnamed-chunk-6-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;./blog/2017-03-29-make-ggplot2-purrr_files/figure-html/unnamed-chunk-6-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;ggplot(data = small_pwt) + theme_tufte() +
   geom_line(aes(y = avh, x = year)) +
   facet_grid(country~.)&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;&lt;img src=&#34;#####../content/blog/2017-03-29-make-ggplot2-purrr_files/figure-html/unnamed-chunk-7-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;./blog/2017-03-29-make-ggplot2-purrr_files/figure-html/unnamed-chunk-7-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;As you can see, for this particular example, &lt;code&gt;facet_grid()&lt;/code&gt; is not very useful, but do notice its argument, &lt;code&gt;country~.&lt;/code&gt;, which is different from &lt;code&gt;facet_wrap()&lt;/code&gt;’s argument. This way, I get the graphs stacked horizontally. If I had used &lt;code&gt;facet_grid(~country)&lt;/code&gt; the graphs would be side by side and completely unreadable.&lt;/p&gt;
 &lt;p&gt;Now, let’s go to the meat of this post: what if you would like to have one single graph for each country? You’d probably think of using &lt;code&gt;dplyr::group_by()&lt;/code&gt; to form the groups and then the graphs. This is the way to go, but you also have to use &lt;code&gt;dplyr::do()&lt;/code&gt;. This is because as far as I understand, &lt;code&gt;ggplot2&lt;/code&gt; is not &lt;code&gt;dplyr&lt;/code&gt;-aware, and using an arbitrary function with groups is only possible with &lt;code&gt;dplyr::do()&lt;/code&gt;.&lt;/p&gt;
 &lt;p&gt;&lt;em&gt;Update&lt;/em&gt;: As explained in the intro above, I also added the solution that uses &lt;code&gt;tidyr::nest()&lt;/code&gt;:&lt;/p&gt;
@@ -80,27 +264,27 @@ plots &amp;lt;- small_pwt %&amp;gt;%
   group_by(country) %&amp;gt;%
   nest() %&amp;gt;%
   head()&lt;/code&gt;&lt;/pre&gt;
-&lt;pre&gt;&lt;code&gt;## # A tibble: 6 × 2
+&lt;pre&gt;&lt;code&gt;## # A tibble: 6 x 2
 ##                    country               data
 ##                      &amp;lt;ord&amp;gt;             &amp;lt;list&amp;gt;
-## 1              Switzerland &amp;lt;tibble [65 × 46]&amp;gt;
-## 2                  Germany &amp;lt;tibble [65 × 46]&amp;gt;
-## 3                   France &amp;lt;tibble [65 × 46]&amp;gt;
-## 4                   Greece &amp;lt;tibble [65 × 46]&amp;gt;
-## 5               Luxembourg &amp;lt;tibble [65 × 46]&amp;gt;
-## 6 United States of America &amp;lt;tibble [65 × 46]&amp;gt;&lt;/code&gt;&lt;/pre&gt;
+## 1              Switzerland &amp;lt;tibble [65 x 46]&amp;gt;
+## 2                  Germany &amp;lt;tibble [65 x 46]&amp;gt;
+## 3                   France &amp;lt;tibble [65 x 46]&amp;gt;
+## 4                   Greece &amp;lt;tibble [65 x 46]&amp;gt;
+## 5               Luxembourg &amp;lt;tibble [65 x 46]&amp;gt;
+## 6 United States of America &amp;lt;tibble [65 x 46]&amp;gt;&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;This is why I love lists in R; we get a &lt;code&gt;tibble&lt;/code&gt; where each element of the column &lt;code&gt;data&lt;/code&gt; is itself a &lt;code&gt;tibble&lt;/code&gt;. We can now apply any function that we know works on lists.&lt;/p&gt;
 &lt;p&gt;What might be surprising though, is the object that is created by this code. Let’s take a look at &lt;code&gt;plots&lt;/code&gt;:&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;print(plots)&lt;/code&gt;&lt;/pre&gt;
-&lt;pre&gt;&lt;code&gt;## # A tibble: 6 × 3
+&lt;pre&gt;&lt;code&gt;## # A tibble: 6 x 3
 ##                    country               data     plot
 ##                      &amp;lt;ord&amp;gt;             &amp;lt;list&amp;gt;   &amp;lt;list&amp;gt;
-## 1              Switzerland &amp;lt;tibble [65 × 46]&amp;gt; &amp;lt;S3: gg&amp;gt;
-## 2                  Germany &amp;lt;tibble [65 × 46]&amp;gt; &amp;lt;S3: gg&amp;gt;
-## 3                   France &amp;lt;tibble [65 × 46]&amp;gt; &amp;lt;S3: gg&amp;gt;
-## 4                   Greece &amp;lt;tibble [65 × 46]&amp;gt; &amp;lt;S3: gg&amp;gt;
-## 5               Luxembourg &amp;lt;tibble [65 × 46]&amp;gt; &amp;lt;S3: gg&amp;gt;
-## 6 United States of America &amp;lt;tibble [65 × 46]&amp;gt; &amp;lt;S3: gg&amp;gt;&lt;/code&gt;&lt;/pre&gt;
+## 1              Switzerland &amp;lt;tibble [65 x 46]&amp;gt; &amp;lt;S3: gg&amp;gt;
+## 2                  Germany &amp;lt;tibble [65 x 46]&amp;gt; &amp;lt;S3: gg&amp;gt;
+## 3                   France &amp;lt;tibble [65 x 46]&amp;gt; &amp;lt;S3: gg&amp;gt;
+## 4                   Greece &amp;lt;tibble [65 x 46]&amp;gt; &amp;lt;S3: gg&amp;gt;
+## 5               Luxembourg &amp;lt;tibble [65 x 46]&amp;gt; &amp;lt;S3: gg&amp;gt;
+## 6 United States of America &amp;lt;tibble [65 x 46]&amp;gt; &amp;lt;S3: gg&amp;gt;&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;As &lt;code&gt;dplyr::do()&lt;/code&gt;’s documentation tells us, the return values get stored inside a list. And this is exactly what we get back; a list of plots! Lists are a very flexible and useful class, and you cannot spell &lt;em&gt;list&lt;/em&gt; without &lt;code&gt;purrr&lt;/code&gt; (at least not when you’re a ne&lt;code&gt;R&lt;/code&gt;d).&lt;/p&gt;
 &lt;p&gt;Here are the final lines that use &lt;code&gt;purrr::map2()&lt;/code&gt; to save all these plots at once inside your working directory:&lt;/p&gt;
 &lt;p&gt;&lt;em&gt;Update&lt;/em&gt;: I have changed the code below which does not require your data frame to be ordered according to the variable &lt;code&gt;country_list&lt;/code&gt;.&lt;/p&gt;
@@ -110,14 +294,6 @@ map2(paste0(plots$country, &amp;quot;.pdf&amp;quot;), plots$plot, ggsave)&lt;/co
 &lt;p&gt;As I said before, if you do not re-order the countries inside the data frame, the names of the files and the plots will not match. Try running all the code without re-ordering, you’ll see!&lt;/p&gt;
 &lt;p&gt;I hope you found this post useful. You can follow me on &lt;a href=&#34;https://www.twitter.com/brodriguesco&#34;&gt;twitter&lt;/a&gt; for blog updates.&lt;/p&gt;
 &lt;p&gt;&lt;em&gt;Update&lt;/em&gt;: Many thanks to the readers of this article and for their useful suggestions. I love the R community; everyday I learn something new and useful!&lt;/p&gt;
-
-
-&lt;!-- BLOGDOWN-HEAD
-
-
-
-
-/BLOGDOWN-HEAD --&gt;
 </description>
     </item>
     
@@ -127,21 +303,14 @@ map2(paste0(plots$country, &amp;quot;.pdf&amp;quot;), plots$plot, ggsave)&lt;/co
       <pubDate>Mon, 27 Mar 2017 09:23:56 +0200</pubDate>
       
       <guid>/blog/2017-03-27-introducing_brotools/</guid>
-      <description>&lt;!-- BLOGDOWN-BODY-BEFORE
+      <description>&lt;!-- BLOGDOWN-HEAD --&gt;
+&lt;!-- /BLOGDOWN-HEAD --&gt;
 
-/BLOGDOWN-BODY-BEFORE --&gt;
-
+&lt;!-- BLOGDOWN-BODY-BEFORE --&gt;
+&lt;!-- /BLOGDOWN-BODY-BEFORE --&gt;
 &lt;p&gt;I’m happy to announce my first R package, called &lt;code&gt;brotools&lt;/code&gt;. This is a package that contains functions that are specific to my needs but that you might find also useful. I blogged about some of these functions, so if you follow my blog you might already be familiar with some of them. It is not on CRAN and might very well never be. The code is hosted on &lt;a href=&#34;https://bitbucket.org/b-rodrigues/brotools&#34;&gt;bitbucket&lt;/a&gt; and you can install the package with&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;devtools::install_bitbucket(&amp;quot;b-rodrigues/brotools&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;Hope you’ll find the &lt;code&gt;brotools&lt;/code&gt; useful!&lt;/p&gt;
-
-
-&lt;!-- BLOGDOWN-HEAD
-
-
-
-
-/BLOGDOWN-HEAD --&gt;
 </description>
     </item>
     
@@ -151,10 +320,11 @@ map2(paste0(plots$country, &amp;quot;.pdf&amp;quot;), plots$plot, ggsave)&lt;/co
       <pubDate>Fri, 24 Mar 2017 12:00:00 +0100</pubDate>
       
       <guid>/blog/2017-03-24-lesser_known_purrr/</guid>
-      <description>&lt;!-- BLOGDOWN-BODY-BEFORE
+      <description>&lt;!-- BLOGDOWN-HEAD --&gt;
+&lt;!-- /BLOGDOWN-HEAD --&gt;
 
-/BLOGDOWN-BODY-BEFORE --&gt;
-
+&lt;!-- BLOGDOWN-BODY-BEFORE --&gt;
+&lt;!-- /BLOGDOWN-BODY-BEFORE --&gt;
 &lt;p&gt;&lt;code&gt;purrr&lt;/code&gt; is a package that extends R’s functional programming capabilities. It brings a lot of new stuff to the table and in this post I show you some of the most useful (at least to me) functions included in &lt;code&gt;purrr&lt;/code&gt;.&lt;/p&gt;
 &lt;div id=&#34;getting-rid-of-loops-with-map&#34; class=&#34;section level2&#34;&gt;
 &lt;h2&gt;Getting rid of loops with &lt;code&gt;map()&lt;/code&gt;&lt;/h2&gt;
@@ -447,14 +617,6 @@ reduce(list_df, dplyr::full_join)&lt;/code&gt;&lt;/pre&gt;
 ## 6 -0.2925257 -1.1521319  0.03012394  1.11661021  1.2673687&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;Hope you enjoyed this list of useful functions! If you enjoy the content of my blog, you can follow me on &lt;a href=&#34;https://www.twitter.com/brodriguesco&#34;&gt;twitter&lt;/a&gt;.&lt;/p&gt;
 &lt;/div&gt;
-
-
-&lt;!-- BLOGDOWN-HEAD
-
-
-
-
-/BLOGDOWN-HEAD --&gt;
 </description>
     </item>
     
@@ -464,10 +626,11 @@ reduce(list_df, dplyr::full_join)&lt;/code&gt;&lt;/pre&gt;
       <pubDate>Wed, 08 Mar 2017 12:00:00 +0100</pubDate>
       
       <guid>/blog/2017-02-17-lesser_known_tricks/</guid>
-      <description>&lt;!-- BLOGDOWN-BODY-BEFORE
+      <description>&lt;!-- BLOGDOWN-HEAD --&gt;
+&lt;!-- /BLOGDOWN-HEAD --&gt;
 
-/BLOGDOWN-BODY-BEFORE --&gt;
-
+&lt;!-- BLOGDOWN-BODY-BEFORE --&gt;
+&lt;!-- /BLOGDOWN-BODY-BEFORE --&gt;
 &lt;p&gt;In this blog post I share some lesser-known (at least I believe they are) tricks that use mainly functions from &lt;code&gt;dplyr&lt;/code&gt;.&lt;/p&gt;
 &lt;div id=&#34;removing-unneeded-columns&#34; class=&#34;section level2&#34;&gt;
 &lt;h2&gt;Removing unneeded columns&lt;/h2&gt;
@@ -598,15 +761,6 @@ head(mtcars)&lt;/code&gt;&lt;/pre&gt;
     select(am, gear, carb) %&amp;gt;%
     purrr::by_row(sum, .collate = &amp;quot;cols&amp;quot;, .to = &amp;quot;sum_am_gear_carb&amp;quot;) -&amp;gt; mtcars2
 head(mtcars2)&lt;/code&gt;&lt;/pre&gt;
-&lt;pre&gt;&lt;code&gt;## # A tibble: 6 × 4
-##      am  gear  carb sum_am_gear_carb
-##   &amp;lt;dbl&amp;gt; &amp;lt;dbl&amp;gt; &amp;lt;dbl&amp;gt;            &amp;lt;dbl&amp;gt;
-## 1     1     4     4                9
-## 2     1     4     4                9
-## 3     1     4     1                6
-## 4     0     3     1                4
-## 5     0     3     2                5
-## 6     0     3     1                4&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;For this, I had to use &lt;code&gt;purrr&lt;/code&gt;’s &lt;code&gt;by_row()&lt;/code&gt; function. You can then add this column to your original data frame:&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;mtcars &amp;lt;- cbind(mtcars, &amp;quot;sum_am_gear_carb&amp;quot; = mtcars2$sum_am_gear_carb)
 head(mtcars)&lt;/code&gt;&lt;/pre&gt;
@@ -631,9 +785,8 @@ head(mtcars)&lt;/code&gt;&lt;/pre&gt;
     group_by(cyl) %&amp;gt;% 
     do(models = lm(spam_mpg ~ drat + wt, data = .)) %&amp;gt;% 
     broom::tidy(models)&lt;/code&gt;&lt;/pre&gt;
-&lt;pre&gt;&lt;code&gt;## Source: local data frame [9 x 6]
-## Groups: cyl [3]
-## 
+&lt;pre&gt;&lt;code&gt;## # A tibble: 9 x 6
+## # Groups:   cyl [3]
 ##     cyl        term   estimate  std.error  statistic     p.value
 ##   &amp;lt;dbl&amp;gt;       &amp;lt;chr&amp;gt;      &amp;lt;dbl&amp;gt;      &amp;lt;dbl&amp;gt;      &amp;lt;dbl&amp;gt;       &amp;lt;dbl&amp;gt;
 ## 1     4 (Intercept) 33.2493403 17.0987286  1.9445504 0.087727622
@@ -648,7 +801,7 @@ head(mtcars)&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;&lt;code&gt;do()&lt;/code&gt; is useful when you want to use any R function (user defined functions work too!) with &lt;code&gt;dplyr&lt;/code&gt; functions. First I grouped the observations by &lt;code&gt;cyl&lt;/code&gt; and then ran a linear model for each group. Then I converted the output to a tidy data frame using &lt;code&gt;broom::tidy()&lt;/code&gt;.&lt;/p&gt;
 &lt;/div&gt;
 &lt;div id=&#34;using-dplyr-functions-inside-your-own-functions&#34; class=&#34;section level2&#34;&gt;
-&lt;h2&gt;Using &lt;code&gt;dplyr()&lt;/code&gt; functions inside your own functions&lt;/h2&gt;
+&lt;h2&gt;Using &lt;code&gt;dplyr&lt;/code&gt; functions inside your own functions&lt;/h2&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;extract_vars &amp;lt;- function(data, some_string){
     
   data %&amp;gt;%
@@ -694,14 +847,6 @@ extract_vars(mtcars, &amp;quot;spam&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;About this last point, you can read more about it &lt;a href=&#34;http://www.brodrigues.co/blog/2016-07-18-data-frame-columns-as-arguments-to-dplyr-functions/&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
 &lt;p&gt;Hope you liked this small list of tricks!&lt;/p&gt;
 &lt;/div&gt;
-
-
-&lt;!-- BLOGDOWN-HEAD
-
-
-
-
-/BLOGDOWN-HEAD --&gt;
 </description>
     </item>
     
@@ -711,10 +856,11 @@ extract_vars(mtcars, &amp;quot;spam&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
       <pubDate>Fri, 17 Feb 2017 12:51:00 +0100</pubDate>
       
       <guid>/blog/2017-02-17-how_to_use_jailbreakr/</guid>
-      <description>&lt;!-- BLOGDOWN-BODY-BEFORE
+      <description>&lt;!-- BLOGDOWN-HEAD --&gt;
+&lt;!-- /BLOGDOWN-HEAD --&gt;
 
-/BLOGDOWN-BODY-BEFORE --&gt;
-
+&lt;!-- BLOGDOWN-BODY-BEFORE --&gt;
+&lt;!-- /BLOGDOWN-BODY-BEFORE --&gt;
 &lt;div id=&#34;what-is-jailbreakr&#34; class=&#34;section level2&#34;&gt;
 &lt;h2&gt;What is &lt;code&gt;jailbreakr&lt;/code&gt;&lt;/h2&gt;
 &lt;p&gt;The &lt;code&gt;jailbreakr&lt;/code&gt; package is probably one of the most interesting packages I came across recently. This package makes it possible to extract messy data from spreadsheets. What is meant by messy? I am sure you already had to deal with spreadsheets that contained little tables inside a single sheet for example. As far as I know, there is no simple way of extracting these tables without having to fiddle around a lot. This is now over with &lt;code&gt;jailbreakr&lt;/code&gt;. Well not entirely, because &lt;code&gt;jailbreakr&lt;/code&gt; is still in development, but it works well already. If you want to know more about the planned features, you can watch the following &lt;a href=&#34;https://channel9.msdn.com/Events/useR-international-R-User-conference/useR2016/jailbreakr-Get-out-of-Excel-free&#34;&gt;video&lt;/a&gt; by Jenny Bryan, one of the package’s authors.&lt;/p&gt;
@@ -946,14 +1092,6 @@ head(dataset1)&lt;/code&gt;&lt;/pre&gt;
 ## [6,] 37.5&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;Et voilà! We went from a messy spreadsheet to a tidy dataset in a matter of minutes. Even though this package is still in early development and not all the features that are planned are available, the basics are there and can save you a lot of pain!&lt;/p&gt;
 &lt;/div&gt;
-
-
-&lt;!-- BLOGDOWN-HEAD
-
-
-
-
-/BLOGDOWN-HEAD --&gt;
 </description>
     </item>
     
@@ -1733,71 +1871,6 @@ know exactly how to start; well you could start by writing a unit test that retu
 then try to write the code to make that unit test pass. This is called test-driven development.&lt;/p&gt;
 
 &lt;p&gt;I hope that this post motivated you to write unit tests and make you a better R programmer!&lt;/p&gt;
-
-&lt;p&gt;&lt;/body&gt;&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Bootstrapping standard errors for difference-in-differences estimation with R</title>
-      <link>/blog/2015-11-11-bootstrapping-did-with-r/</link>
-      <pubDate>Wed, 11 Nov 2015 00:00:00 +0000</pubDate>
-      
-      <guid>/blog/2015-11-11-bootstrapping-did-with-r/</guid>
-      <description>&lt;!-- MathJax scripts --&gt;
-
-&lt;script type=&#34;text/javascript&#34; async
-  src=&#34;https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML&#34;&gt;
-&lt;/script&gt;
-
-&lt;p&gt;&lt;body&gt;
-&lt;p&gt;I’m currently working on a paper (with my colleague Vincent Vergnat who is also a Phd candidate at BETA) where I want to estimate the causal impact of the birth of a child on hourly and daily wages as well as yearly worked hours. For this we are using non-parametric difference-in-differences (henceforth DiD) and thus have to bootstrap the standard errors. In this post, I show how this is possible using the function &lt;code&gt;boot&lt;/code&gt;.&lt;/p&gt;
-&lt;p&gt;For this we are going to replicate the example from Wooldridge’s &lt;em&gt;Econometric Analysis of Cross Section and Panel Data&lt;/em&gt; and more specifically the example on page 415. You can download the data for R &lt;a href=&#34;./assets/files/kielmc.RData&#34;&gt;here&lt;/a&gt;. The question we are going to try to answer is &lt;em&gt;how much does the price of housing decrease due to the presence of an incinerator in the neighborhood?&lt;/em&gt;&lt;/p&gt;
-&lt;p&gt;First put the data in a folder and set the correct working directory and load the &lt;code&gt;boot&lt;/code&gt; library.&lt;/p&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(boot)
-setwd(&amp;quot;/home/path/to/data/kiel data/&amp;quot;)
-load(&amp;quot;kielmc.RData&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;Now you need to write a function that takes the data as an argument, as well as an indices argument. This argument is used by the &lt;code&gt;boot&lt;/code&gt; function to select samples. This function should return the statistic you’re interested in, in our case, the DiD estimate.&lt;/p&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;run_DiD &amp;lt;- function(my_data, indices){
-    d &amp;lt;- my_data[indices,]
-    return(
-        mean(d$rprice[d$year==1981 &amp;amp; d$nearinc==1]) -
-        mean(d$rprice[d$year==1981 &amp;amp; d$nearinc==0]) -
-        (mean(d$rprice[d$year==1978 &amp;amp; d$nearinc==1]) -
-        mean(d$rprice[d$year==1978 &amp;amp; d$nearinc==0]))
-    )
-}&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;You’re almost done! To bootstrap your DiD estimate you just need to use the boot function. If you have cpu with multiple cores (which you should, single core machines are quite outdated by now) you can even parallelize the bootstrapping.&lt;/p&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;boot_est &amp;lt;- boot(data, run_DiD, R=1000, parallel=&amp;quot;multicore&amp;quot;, ncpus = 2)&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;Now you should just take a look at your estimates:&lt;/p&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;boot_est&lt;/code&gt;&lt;/pre&gt;
-&lt;pre&gt;&lt;code&gt;
-ORDINARY NONPARAMETRIC BOOTSTRAP&lt;/p&gt;
-
-&lt;p&gt;Call:
-boot(data = data, statistic = run_DiD, R = 1000, parallel = &amp;quot;multicore&amp;quot;,
- ncpus = 2)&lt;/p&gt;
-
-&lt;p&gt;Bootstrap Statistics :
- original    bias    std. error
-t1* -11863.9 -553.3393    8580.435&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;These results are very similar to the ones in the book, only the standard error is higher.&lt;/p&gt;&lt;/p&gt;
-
-&lt;p&gt;You can get confidence intervals like this:&lt;/p&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;quantile(boot_est$t, c(0.025, 0.975))&lt;/code&gt;&lt;/pre&gt;
-&lt;pre&gt;&lt;code&gt;##       2.5%      97.5% 
-## -30186.397   3456.133&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;or a t-statistic:&lt;/p&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;boot_est$t0/sd(boot_est$t)&lt;/code&gt;&lt;/pre&gt;
-&lt;pre&gt;&lt;code&gt;## [1] -1.382669&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;Or the density of the replications:&lt;/p&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;plot(density(boot_est$t))&lt;/code&gt;&lt;/pre&gt;
-
-&lt;div style=&#34;text-align:center;&#34;&gt;
-    &lt;img src=&#34;./img/density_did.png&#34; width=&#34;670&#34; height=&#34;450&#34; /&gt;&lt;/a&gt;
-&lt;/div&gt;
-
-&lt;p&gt;Just as in the book, we find that the DiD estimate is not significant to the 5% level.&lt;/p&gt;
 
 &lt;p&gt;&lt;/body&gt;&lt;/p&gt;
 </description>
