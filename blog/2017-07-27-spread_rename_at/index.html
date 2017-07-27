@@ -2,22 +2,22 @@
 <html lang="en">
   <head>
     <meta charset="utf-8"  lang="en-us">
-    <title>Read a lot of datasets at once with R - Econometrics and Free Software</title>
+    <title>tidyr::spread() and dplyr::rename_at() in action - Econometrics and Free Software</title>
     <meta name="generator" content="Hugo 0.20.5" />
 
     
     <meta name="description" content="A blog about econometrics, free software, and R">
     
-    <link rel="canonical" href="../../blog/2016-07-26-read-a-lot-of-datasets-at-once-with-r/">
+    <link rel="canonical" href="../../blog/2017-07-27-spread_rename_at/">
     
     <meta name="author" content="Bruno Rodrigues">
     
     <meta name="generator" content="Hugo 0.20.5" />
 
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta property="og:url" content="/blog/2016-07-26-read-a-lot-of-datasets-at-once-with-r/">
+    <meta property="og:url" content="/blog/2017-07-27-spread_rename_at/">
     <meta property="og:title" content="Econometrics and Free Software">
-    <meta property="og:image" content="/map[width:50 height:50 alt:Logo url:logo.png]">
+    <meta property="og:image" content="/map[url:logo.png width:50 height:50 alt:Logo]">
     <meta name="apple-mobile-web-app-title" content="Econometrics and Free Software">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -151,68 +151,122 @@
       </div>
       <div class="col-lg-9 col-md-9 col-sm-8">
         <div>
-           <h1 id="main">Read a lot of datasets at once with R</h1>
-           <span class="article-date">July 26, 2016</span>
+           <h1 id="main">tidyr::spread() and dplyr::rename_at() in action</h1>
+           <span class="article-date">July 27, 2017</span>
         </div>
-        <p>I often have to read a lot of datasets at once using R. So I’ve wrote the following function to solve this issue:</p>
-<pre class="r"><code>read_list &lt;- function(list_of_datasets, read_func){
+        <!-- BLOGDOWN-HEAD -->
+<!-- /BLOGDOWN-HEAD -->
 
-        read_and_assign &lt;- function(dataset, read_func){
-                dataset_name &lt;- as.name(dataset)
-                dataset_name &lt;- read_func(dataset)
-        }
+<!-- BLOGDOWN-BODY-BEFORE -->
+<!-- /BLOGDOWN-BODY-BEFORE -->
+<p>I was recently confronted to a situation that required going from a long dataset to a wide dataset, but with a small twist: there were two datasets, which I had to merge into one. You might wonder what kinda crappy twist that is, right? Well, let’s take a look at the data:</p>
+<pre class="r"><code>data1; data2</code></pre>
+<pre><code>## # A tibble: 20 x 4
+##    country       date       variable_1 value
+##      &lt;chr&gt;      &lt;chr&gt;            &lt;chr&gt; &lt;int&gt;
+##  1      lu 01/01/2005            maybe    22
+##  2      lu 01/07/2005            maybe    13
+##  3      lu 01/01/2006            maybe    40
+##  4      lu 01/07/2006            maybe    25
+##  5      lu 01/01/2005    totally_agree    42
+##  6      lu 01/07/2005    totally_agree    17
+##  7      lu 01/01/2006    totally_agree    25
+##  8      lu 01/07/2006    totally_agree    16
+##  9      lu 01/01/2005 totally_disagree    39
+## 10      lu 01/07/2005 totally_disagree    17
+## 11      lu 01/01/2006 totally_disagree    23
+## 12      lu 01/07/2006 totally_disagree    21
+## 13      lu 01/01/2005   kinda_disagree    69
+## 14      lu 01/07/2005   kinda_disagree    12
+## 15      lu 01/01/2006   kinda_disagree    10
+## 16      lu 01/07/2006   kinda_disagree     9
+## 17      lu 01/01/2005      kinda_agree    38
+## 18      lu 01/07/2005      kinda_agree    31
+## 19      lu 01/01/2006      kinda_agree    19
+## 20      lu 01/07/2006      kinda_agree    12</code></pre>
+<pre><code>## # A tibble: 20 x 4
+##    country       date       variable_2 value
+##      &lt;chr&gt;      &lt;chr&gt;            &lt;chr&gt; &lt;int&gt;
+##  1      lu 01/01/2005      kinda_agree    22
+##  2      lu 01/07/2005      kinda_agree    13
+##  3      lu 01/01/2006      kinda_agree    40
+##  4      lu 01/07/2006      kinda_agree    25
+##  5      lu 01/01/2005    totally_agree    42
+##  6      lu 01/07/2005    totally_agree    17
+##  7      lu 01/01/2006    totally_agree    25
+##  8      lu 01/07/2006    totally_agree    16
+##  9      lu 01/01/2005 totally_disagree    39
+## 10      lu 01/07/2005 totally_disagree    17
+## 11      lu 01/01/2006 totally_disagree    23
+## 12      lu 01/07/2006 totally_disagree    21
+## 13      lu 01/01/2005            maybe    69
+## 14      lu 01/07/2005            maybe    12
+## 15      lu 01/01/2006            maybe    10
+## 16      lu 01/07/2006            maybe     9
+## 17      lu 01/01/2005   kinda_disagree    38
+## 18      lu 01/07/2005   kinda_disagree    31
+## 19      lu 01/01/2006   kinda_disagree    19
+## 20      lu 01/07/2006   kinda_disagree    12</code></pre>
+<p>As explained in <a href="http://vita.had.co.nz/papers/tidy-data.html">Hadley (2014)</a>, this is how you should keep your data… But for a particular purpose, I had to transform these datasets. What I was asked to do was to merge these into a single wide data frame. Doing this for one dataset is easy:</p>
+<pre class="r"><code>data1 %&gt;%
+  spread(variable_1, value)</code></pre>
+<pre><code>## # A tibble: 4 x 7
+##   country       date kinda_agree kinda_disagree maybe totally_agree
+## *   &lt;chr&gt;      &lt;chr&gt;       &lt;int&gt;          &lt;int&gt; &lt;int&gt;         &lt;int&gt;
+## 1      lu 01/01/2005          38             69    22            42
+## 2      lu 01/01/2006          19             10    40            25
+## 3      lu 01/07/2005          31             12    13            17
+## 4      lu 01/07/2006          12              9    25            16
+## # ... with 1 more variables: totally_disagree &lt;int&gt;</code></pre>
+<p>But because <code>data1</code> and <code>data2</code> have the same levels for <code>variable_1</code> and <code>variable_2</code>, this would not work. So the solution I found online, in this <a href="https://stackoverflow.com/questions/43578723/conditional-replacement-of-column-name-in-tibble-using-dplyr">SO thread</a> was to use <code>tidyr::spread()</code> with <code>dplyr::rename_at()</code> like this:</p>
+<pre class="r"><code>data1 &lt;- data1 %&gt;%
+  spread(variable_1, value) %&gt;%
+  rename_at(vars(-country, -date), funs(paste0(&quot;variable1:&quot;, .)))
 
-        # invisible is used to suppress the unneeded output
-        output &lt;- invisible(
-                sapply(list_of_datasets,
-                           read_and_assign, read_func = read_func, simplify = FALSE, USE.NAMES = TRUE))
+glimpse(data1)</code></pre>
+<pre><code>## Observations: 4
+## Variables: 7
+## $ country                    &lt;chr&gt; &quot;lu&quot;, &quot;lu&quot;, &quot;lu&quot;, &quot;lu&quot;
+## $ date                       &lt;chr&gt; &quot;01/01/2005&quot;, &quot;01/01/2006&quot;, &quot;01/07/...
+## $ variable1:kinda_agree      &lt;int&gt; 38, 19, 31, 12
+## $ variable1:kinda_disagree   &lt;int&gt; 69, 10, 12, 9
+## $ variable1:maybe            &lt;int&gt; 22, 40, 13, 25
+## $ variable1:totally_agree    &lt;int&gt; 42, 25, 17, 16
+## $ variable1:totally_disagree &lt;int&gt; 39, 23, 17, 21</code></pre>
+<pre class="r"><code>data2 &lt;- data2 %&gt;%
+  spread(variable_2, value) %&gt;%
+  rename_at(vars(-country, -date), funs(paste0(&quot;variable2:&quot;, .)))
 
-        # Remove the extension at the end of the data set names
-        names_of_datasets &lt;- c(unlist(strsplit(list_of_datasets, &quot;[.]&quot;))[c(T, F)])
-        names(output) &lt;- names_of_datasets
-        return(output)
-}</code></pre>
-<p>You need to supply a list of datasets as well as the function to read the datasets to <code>read_list</code>. So for example to read in <code>.csv</code> files, you could use <code>read.csv()</code> (or <code>read_csv()</code> from the <code>readr</code> package, which I prefer to use), or <code>read_dta()</code> from the package <code>haven</code> for STATA files, and so on.</p>
-<p>Now imagine you have some data in your working directory. First start by saving the name of the datasets in a variable:</p>
-<pre class="r"><code>data_files &lt;- list.files(pattern = &quot;.csv&quot;)
-
-print(data_files)</code></pre>
-<pre><code>## [1] &quot;data_1.csv&quot; &quot;data_2.csv&quot; &quot;data_3.csv&quot;</code></pre>
-<p>Now you can read all the data sets and save them in a list with <code>read_list()</code>:</p>
-<pre class="r"><code>library(&quot;readr&quot;)
-library(&quot;tibble&quot;)
-
-list_of_data_sets &lt;- read_list(data_files, read_csv)
-
-
-glimpse(list_of_data_sets)</code></pre>
-<pre><code>## List of 3
-##  $ data_1:Classes 'tbl_df', 'tbl' and 'data.frame':  19 obs. of  3 variables:
-##   ..$ col1: chr [1:19] &quot;0,018930679&quot; &quot;0,8748013128&quot; &quot;0,1025635934&quot; &quot;0,6246140983&quot; ...
-##   ..$ col2: chr [1:19] &quot;0,0377725807&quot; &quot;0,5959457638&quot; &quot;0,4429121533&quot; &quot;0,558387159&quot; ...
-##   ..$ col3: chr [1:19] &quot;0,6241767189&quot; &quot;0,031324594&quot; &quot;0,2238059868&quot; &quot;0,2773350732&quot; ...
-##  $ data_2:Classes 'tbl_df', 'tbl' and 'data.frame':  19 obs. of  3 variables:
-##   ..$ col1: chr [1:19] &quot;0,9098418493&quot; &quot;0,1127788509&quot; &quot;0,5818891392&quot; &quot;0,1011773532&quot; ...
-##   ..$ col2: chr [1:19] &quot;0,7455905887&quot; &quot;0,4015039612&quot; &quot;0,6625796605&quot; &quot;0,029955339&quot; ...
-##   ..$ col3: chr [1:19] &quot;0,327232932&quot; &quot;0,2784035673&quot; &quot;0,8092386735&quot; &quot;0,1216045306&quot; ...
-##  $ data_3:Classes 'tbl_df', 'tbl' and 'data.frame':  19 obs. of  3 variables:
-##   ..$ col1: chr [1:19] &quot;0,9236124896&quot; &quot;0,6303271761&quot; &quot;0,6413583054&quot; &quot;0,5573887416&quot; ...
-##   ..$ col2: chr [1:19] &quot;0,2114708388&quot; &quot;0,6984538266&quot; &quot;0,0469865249&quot; &quot;0,9271510226&quot; ...
-##   ..$ col3: chr [1:19] &quot;0,4941919971&quot; &quot;0,7391538511&quot; &quot;0,3876723797&quot; &quot;0,2815014394&quot; ...</code></pre>
-<p>If you prefer not to have the datasets in a list, but rather import them into the global environment, you can change the above function like so:</p>
-<pre class="r"><code>read_list &lt;- function(list_of_datasets, read_func){
-
-        read_and_assign &lt;- function(dataset, read_func){
-                assign(dataset, read_func(dataset), envir = .GlobalEnv)
-        }
-
-        # invisible is used to suppress the unneeded output
-        output &lt;- invisible(
-                sapply(list_of_datasets,
-                           read_and_assign, read_func = read_func, simplify = FALSE, USE.NAMES = TRUE))
-
-}</code></pre>
-<p>But I personnally don’t like this second option, but I put it here for completeness.</p>
+glimpse(data2)</code></pre>
+<pre><code>## Observations: 4
+## Variables: 7
+## $ country                    &lt;chr&gt; &quot;lu&quot;, &quot;lu&quot;, &quot;lu&quot;, &quot;lu&quot;
+## $ date                       &lt;chr&gt; &quot;01/01/2005&quot;, &quot;01/01/2006&quot;, &quot;01/07/...
+## $ variable2:kinda_agree      &lt;int&gt; 22, 40, 13, 25
+## $ variable2:kinda_disagree   &lt;int&gt; 38, 19, 31, 12
+## $ variable2:maybe            &lt;int&gt; 69, 10, 12, 9
+## $ variable2:totally_agree    &lt;int&gt; 42, 25, 17, 16
+## $ variable2:totally_disagree &lt;int&gt; 39, 23, 17, 21</code></pre>
+<p><code>rename_at()</code> needs variables which you pass to <code>vars()</code>, a helper function to select variables, and a function that will do the renaming, passed to <code>funs()</code>. The function I use is simply <code>paste0()</code>, which pastes a string, for example “variable1:” with the name of the columns, given by the single ‘.’, a dummy argument. Now these datasets can be merged:</p>
+<pre class="r"><code>data1 %&gt;%
+  full_join(data2) %&gt;%
+  glimpse()</code></pre>
+<pre><code>## Joining, by = c(&quot;country&quot;, &quot;date&quot;)</code></pre>
+<pre><code>## Observations: 4
+## Variables: 12
+## $ country                    &lt;chr&gt; &quot;lu&quot;, &quot;lu&quot;, &quot;lu&quot;, &quot;lu&quot;
+## $ date                       &lt;chr&gt; &quot;01/01/2005&quot;, &quot;01/01/2006&quot;, &quot;01/07/...
+## $ variable1:kinda_agree      &lt;int&gt; 38, 19, 31, 12
+## $ variable1:kinda_disagree   &lt;int&gt; 69, 10, 12, 9
+## $ variable1:maybe            &lt;int&gt; 22, 40, 13, 25
+## $ variable1:totally_agree    &lt;int&gt; 42, 25, 17, 16
+## $ variable1:totally_disagree &lt;int&gt; 39, 23, 17, 21
+## $ variable2:kinda_agree      &lt;int&gt; 22, 40, 13, 25
+## $ variable2:kinda_disagree   &lt;int&gt; 38, 19, 31, 12
+## $ variable2:maybe            &lt;int&gt; 69, 10, 12, 9
+## $ variable2:totally_agree    &lt;int&gt; 42, 25, 17, 16
+## $ variable2:totally_disagree &lt;int&gt; 39, 23, 17, 21</code></pre>
+<p>Hope this post helps you understand the difference between long and wide datasets better, as well as <code>dplyr::rename_at()</code>!</p>
 
       </div>
     </div>
