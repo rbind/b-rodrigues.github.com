@@ -12,6 +12,17 @@
     
     
     <item>
+      <title>Why I find tidyeval useful</title>
+      <link>/blog/2017-08-27-why_tidyeval/</link>
+      <pubDate>Thu, 27 Jul 2017 00:00:00 +0000</pubDate>
+      
+      <guid>/blog/2017-08-27-why_tidyeval/</guid>
+      <description>First thing’s first: maybe you shouldn’t care about tidyeval. Maybe you don’t need it. If you exclusively work interactively, I don’t think that learning about tidyeval is important. I can only speak for me, and explain to you why I personally find tidyeval useful.
+I wanted to write this blog post after reading this twitter thread and specifically this question.
+Mara Averick then wrote this blogpost linking to 6 other blog posts that give some tidyeval examples.</description>
+    </item>
+    
+    <item>
       <title>tidyr::spread() and dplyr::rename_at() in action</title>
       <link>/blog/2017-07-27-spread_rename_at/</link>
       <pubDate>Thu, 27 Jul 2017 00:00:00 +0000</pubDate>
@@ -276,10 +287,10 @@ Consult the original source code if you want to read the authors&amp;#39; commen
     
     <item>
       <title>index</title>
-      <link>/index/</link>
+      <link>/</link>
       <pubDate>Sat, 01 Jan 2000 19:50:00 +0200</pubDate>
       
-      <guid>/index/</guid>
+      <guid>/</guid>
       <description>Welcome  Hi! My name is Bruno Rodrigues, and I&amp;rsquo;m a research assistant at STATEC.
 I program mostly in R and love sharing my knowledge, that&amp;rsquo;s why I started this blog. I share my posts also on R-bloggers. In my posts, I discuss new packages I discovered or new ways of using packages.
 If you were one of my students, and need some of the materials I taught, just drop me an email.</description>

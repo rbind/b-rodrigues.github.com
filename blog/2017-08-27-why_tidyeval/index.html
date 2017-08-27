@@ -2,20 +2,20 @@
 <html lang="en">
   <head>
     <meta charset="utf-8"  lang="en-us">
-    <title>Merge a list of datasets together - Econometrics and Free Software</title>
+    <title>Why I find tidyeval useful - Econometrics and Free Software</title>
     <meta name="generator" content="Hugo 0.25.1" />
 
     
     <meta name="description" content="A blog about econometrics, free software, and R">
     
-    <link rel="canonical" href="../../blog/2016-07-30-merge-a-list-of-datasets-together/">
+    <link rel="canonical" href="../../blog/2017-08-27-why_tidyeval/">
     
     <meta name="author" content="Bruno Rodrigues">
     
     <meta name="generator" content="Hugo 0.25.1" />
 
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta property="og:url" content="/blog/2016-07-30-merge-a-list-of-datasets-together/">
+    <meta property="og:url" content="/blog/2017-08-27-why_tidyeval/">
     <meta property="og:title" content="Econometrics and Free Software">
     <meta property="og:image" content="/map[url:logo.png width:50 height:50 alt:Logo]">
     <meta name="apple-mobile-web-app-title" content="Econometrics and Free Software">
@@ -153,69 +153,25 @@
       </div>
       <div class="col-lg-9 col-md-9 col-sm-8">
         <div>
-           <h1 id="main">Merge a list of datasets together</h1>
-           <span class="article-date">July 30, 2016</span>
+           <h1 id="main">Why I find tidyeval useful</h1>
+           <span class="article-date">July 27, 2017</span>
         </div>
-        <p><a href="http://www.brodrigues.co/2016/07/26/read-a-lot-of-datasets-at-once-with-r">Last week</a> I showed how to read a lot of datasets at once with R, and this week I’ll continue from there and show a very simple function that uses this list of read datasets and merges them all together.</p>
-<p>First we’ll use <code>read_list()</code> to read all the datasets at once (for more details read <a href="http://www.brodrigues.co/2016/07/26/read-a-lot-of-datasets-at-once-with-r">last week’s post</a>):</p>
-<pre class="r"><code>library(&quot;readr&quot;)
-library(&quot;tibble&quot;)
-
-data_files &lt;- list.files(pattern = &quot;.csv&quot;)
-
-print(data_files)</code></pre>
-<pre><code>## [1] &quot;data_1.csv&quot; &quot;data_2.csv&quot; &quot;data_3.csv&quot;</code></pre>
-<pre class="r"><code>list_of_data_sets &lt;- read_list(data_files, read_csv)
-
-glimpse(list_of_data_sets)</code></pre>
-<pre><code>## List of 3
-##  $ data_1:Classes 'tbl_df', 'tbl' and 'data.frame':  19 obs. of  3 variables:
-##   ..$ col1: chr [1:19] &quot;0,018930679&quot; &quot;0,8748013128&quot; &quot;0,1025635934&quot; &quot;0,6246140983&quot; ...
-##   ..$ col2: chr [1:19] &quot;0,0377725807&quot; &quot;0,5959457638&quot; &quot;0,4429121533&quot; &quot;0,558387159&quot; ...
-##   ..$ col3: chr [1:19] &quot;0,6241767189&quot; &quot;0,031324594&quot; &quot;0,2238059868&quot; &quot;0,2773350732&quot; ...
-##  $ data_2:Classes 'tbl_df', 'tbl' and 'data.frame':  19 obs. of  3 variables:
-##   ..$ col1: chr [1:19] &quot;0,9098418493&quot; &quot;0,1127788509&quot; &quot;0,5818891392&quot; &quot;0,1011773532&quot; ...
-##   ..$ col2: chr [1:19] &quot;0,7455905887&quot; &quot;0,4015039612&quot; &quot;0,6625796605&quot; &quot;0,029955339&quot; ...
-##   ..$ col3: chr [1:19] &quot;0,327232932&quot; &quot;0,2784035673&quot; &quot;0,8092386735&quot; &quot;0,1216045306&quot; ...
-##  $ data_3:Classes 'tbl_df', 'tbl' and 'data.frame':  19 obs. of  3 variables:
-##   ..$ col1: chr [1:19] &quot;0,9236124896&quot; &quot;0,6303271761&quot; &quot;0,6413583054&quot; &quot;0,5573887416&quot; ...
-##   ..$ col2: chr [1:19] &quot;0,2114708388&quot; &quot;0,6984538266&quot; &quot;0,0469865249&quot; &quot;0,9271510226&quot; ...
-##   ..$ col3: chr [1:19] &quot;0,4941919971&quot; &quot;0,7391538511&quot; &quot;0,3876723797&quot; &quot;0,2815014394&quot; ...</code></pre>
-<p>You see that all these datasets have the same column names. We can now merge them using this simple function:</p>
-<pre class="r"><code>multi_join &lt;- function(list_of_loaded_data, join_func, ...){
-
-    require(&quot;dplyr&quot;)
-
-    output &lt;- Reduce(function(x, y) {join_func(x, y, ...)}, list_of_loaded_data)
-
-    return(output)
-}</code></pre>
-<p>This function uses <code>Reduce()</code>. <code>Reduce()</code> is a very important function that can be found in all functional programming languages. What does <code>Reduce()</code> do? Let’s take a look at the following example:</p>
-<pre class="r"><code>Reduce(`+`, c(1, 2, 3, 4, 5))</code></pre>
-<pre><code>## [1] 15</code></pre>
-<p><code>Reduce()</code> has several arguments, but you need to specify at least two: a function, here <code>+</code> and a list, here <code>c(1, 2, 3, 4, 5)</code>. The next code block shows what <code>Reduce()</code> basically does:</p>
-<pre><code>0 + c(1, 2, 3, 4, 5)
-0 + 1 + c(2, 3, 4, 5)
-0 + 1 + 2 + c(3, 4, 5)
-0 + 1 + 2 + 3 + c(4, 5)
-0 + 1 + 2 + 3 + 4 + c(5)
-0 + 1 + 2 + 3 + 4 + 5</code></pre>
-<p><code>0</code> had to be added as in “init”. You can also specify this “init” to <code>Reduce()</code>:</p>
-<pre class="r"><code>Reduce(`+`, c(1, 2, 3, 4, 5), init = 20)</code></pre>
-<pre><code>## [1] 35</code></pre>
-<p>So what <code>multi_join()</code> does, is the same operation as in the example above, but where the function is a user supplied join or merge function, and the list of datasets is the one read with <code>read_list()</code>.</p>
-<p>Let’s see what happens when we use <code>multi_join()</code> on our list:</p>
-<pre class="r"><code>merged_data &lt;- multi_join(list_of_data_sets, full_join)</code></pre>
-<pre class="r"><code>class(merged_data)</code></pre>
-<pre><code>## [1] &quot;tbl_df&quot;     &quot;tbl&quot;        &quot;data.frame&quot;</code></pre>
-<pre class="r"><code>glimpse(merged_data)</code></pre>
-<pre><code>## Observations: 57
-## Variables: 3
-## $ col1 &lt;chr&gt; &quot;0,018930679&quot;, &quot;0,8748013128&quot;, &quot;0,1025635934&quot;, &quot;0,6246140...
-## $ col2 &lt;chr&gt; &quot;0,0377725807&quot;, &quot;0,5959457638&quot;, &quot;0,4429121533&quot;, &quot;0,558387...
-## $ col3 &lt;chr&gt; &quot;0,6241767189&quot;, &quot;0,031324594&quot;, &quot;0,2238059868&quot;, &quot;0,2773350...</code></pre>
-<p>You should make sure that all the data frames have the same column names but you can also join data frames with different column names if you give the argument <code>by</code> to the join function. This is possible thanks to <code>...</code> that allows you to pass further argument to <code>join_func()</code>.</p>
-<p>This function was inspired by the one found on the blog <a href="http://novicemetrics.blogspot.lu/2011/04/merging-multiple-data-files-into-one.html">Coffee and Econometrics in the Morning</a>.</p>
+        <p>First thing’s first: maybe you shouldn’t care about <code>tidyeval</code>. Maybe you don’t need it. If you exclusively work interactively, I don’t think that learning about <code>tidyeval</code> is important. I can only speak for me, and explain to you why I personally find <code>tidyeval</code> useful.</p>
+<p>I wanted to write this blog post after reading this <a href="https://twitter.com/dataandme/status/901429535266267136">twitter thread</a> and specifically <a href="https://twitter.com/Kwarizmi/status/901457435948236801">this question</a>.</p>
+<p><a href="https://twitter.com/dataandme">Mara Averick</a> then wrote <a href="http://maraaverick.rbind.io/2017/08/tidyeval-resource-roundup/">this blogpost</a> linking to 6 other blog posts that give some <code>tidyeval</code> examples. Reading them, plus the <a href="http://dplyr.tidyverse.org/articles/programming.html">Programming with dplyr</a> vignette should help you get started with <code>tidyeval</code>.</p>
+<p>But maybe now you know how to use it, but not why and when you should use it… Basically, whenever you want to write a function that looks something like this:</p>
+<pre class="r"><code>my_function(my_data, one_column_inside_data)</code></pre>
+<p>is when you want to use the power of <code>tidyeval</code>.</p>
+<p>I work at <a href="http://www.statistiques.public.lu/en/index.html">STATEC</a>, Luxembourg’s national institute of statistics. I work on all kinds of different projects, and when data gets updated (for example because a new round of data collection for some survey finished), I run my own scripts on the fresh data to make the data nice and tidy for analysis. Because surveys get updated, sometimes column names change a little bit, and this can cause some issues.</p>
+<p>Very recently, a dataset I work with got updated. Data collection was finished, so I just loaded my hombrewed package written for this project, changed the path from last year’s script to this year’s fresh data path, ran the code, and watched as the folders got populated with new <code>ggplot2</code> graphs and LaTeX tables with descriptive statistics and regression results. This is then used to generate this year’s report. However, by looking at the graphs, I noticed something weird; some graphs were showing some very strange patterns. It turns out that one column got its name changed, and also one of its values got changed too.</p>
+<p>Last year, this column, let’s call it <code>spam</code>, had values <code>1</code> for <code>good</code> and <code>0</code> for <code>bad</code>. This year the column is called <code>Spam</code> and the values are <code>1</code> and <code>2</code>. When I found out that this was the source of the problem, I just had to change the arguments of my functions from</p>
+<pre class="r"><code>generate_spam_plot(dataset = data2016, column = spam, value = 1)
+generate_spam_plot(dataset = data2016, column = spam, value = 0)</code></pre>
+<p>to</p>
+<pre class="r"><code>generate_spam_plot(dataset = data2017, column = Spam, value = 1)
+generate_spam_plot(dataset = data2017, column = Spam, value = 2)</code></pre>
+<p>without needing to change anything else. This is why I use <code>tidyeval</code>; without it, writing a function such as <code>genereta_spam_plot</code> would not be easy. It would be possible, but not easy.</p>
+<p>If you want to know more about <code>tidyeval</code> and working programmatically with R, I shamelessly invite you to read a book I’ve been working on: <a href="http://www.brodrigues.co/fput/" class="uri">http://www.brodrigues.co/fput/</a> It’s still a WIP, but maybe you’ll find it useful. I plan on finishing it by the end of the year, but there’s already some content to keep you busy!</p>
 
       </div>
     </div>

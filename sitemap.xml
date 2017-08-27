@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  
+  <url>
+    <loc>/blog/2017-08-27-why_tidyeval/</loc>
+    <lastmod>2017-07-27T00:00:00+00:00</lastmod>
+  </url>
   
   <url>
     <loc>/blog/2017-07-27-spread_rename_at/</loc>
@@ -137,7 +143,7 @@
   </url>
   
   <url>
-    <loc>/index/</loc>
+    <loc>/</loc>
     <lastmod>2000-01-01T19:50:00+02:00</lastmod>
   </url>
   
