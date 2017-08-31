@@ -10,7 +10,7 @@ menu:
 ## Functional programming and unit testing for data munging with R
 
 I am currently writing a book about functional programming, unit
-testing and package development with R. You can read it for free [here](http://www.brodrigues.co/fput) and
+testing and package development with R. You can read it for free [here](https://b-rodrigues.github.io/fput/) and
 you can buy a digital copy at [leanpub](http://www.leanpub.com/fput).
 
 ## Gumbel Linux
