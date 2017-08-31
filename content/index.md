@@ -22,7 +22,7 @@ If you were one of my students, and need some of the materials I taught, just dr
 You can follow me on [twitter](https://twitter.com/brodriguesco) for blog updates.
 
 I'm writing a book as a hobby about functional programming, unit testing and package
-development with R. You can read it for [free](https://www.brodrigues.co/fput).
+development with R. You can read it for [free](https://b-rodrigues.github.io/fput/).
 
 You can also download my package, called [brotools](https://bitbucket.org/b-rodrigues/brotools),
 which contains some functions I use daily. You might find them useful too!
