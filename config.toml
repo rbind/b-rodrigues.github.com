@@ -1,4 +1,4 @@
-baseurl = "https://b-rodrigues.github.io/"
+baseurl = "http://guard-walrus-32111.netlify.com/"
 relativeurls = true
 languageCode = "en-us"
 title = "Econometrics and Free Software"
