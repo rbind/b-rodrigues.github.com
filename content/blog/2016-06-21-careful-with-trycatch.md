@@ -1,0 +1,92 @@
+---
+date: 2016-03-31T00:00:00+00:00
+title: "Careful with tryCatch"
+tags: [R]
+menu:
+  main:
+    parent: Blog
+    identifier: /blog/trycatch_R
+    weight: 11
+---
+
+<!-- MathJax scripts -->
+<script type="text/javascript" async
+  src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+
+
+
+<p><code>tryCatch</code> is one of the functions that allows the users to handle errors in a simple way. With it, you can do things like: <code>if(error), then(do this)</code>.</p>
+<p>Take the following example:</p>
+<pre class="r"><code>sqrt(&quot;a&quot;)
+Error in sqrt(&quot;a&quot;) : non-numeric argument to mathematical function</code></pre>
+<p>Now maybe you’d want something to happen when such an error happens. You can achieve that with <code>tryCatch</code>:</p>
+<pre class="r"><code>tryCatch(sqrt(&quot;a&quot;), error=function(e) print(&quot;You can't take the square root of a character, silly!&quot;))</code></pre>
+<pre><code>## [1] &quot;You can't take the square root of a character, silly!&quot;</code></pre>
+<p>Why am I interested in <code>tryCatch</code>?</p>
+<p>I am currently working with dates, specifically birthdays of people in my data sets. For a given mother, the birthday of her child is given in three distinct columns: a column for the child’s birth year, birth month and birth day respectively. I’ve wanted to put everything in a single column and convert the birthday to unix time (I have a very good reason to do that, but I won’t bore you with the details).</p>
+<p>Let’s create some data:</p>
+<pre class="r"><code>mother &lt;- as.data.frame(list(month=12, day=1, year=1988))</code></pre>
+<p>In my data, there’s a lot more columns of course, such as the mother’s wage, education level, etc, but for illustration purposes, this is all that’s needed.</p>
+<p>Now, to create this birthday column:</p>
+<pre class="r"><code>mother$birth1 &lt;- as.POSIXct(paste0(as.character(mother$year), 
+                                   &quot;-&quot;, as.character(mother$month), 
+                                   &quot;-&quot;, as.character(mother$day)), 
+                            origin=&quot;1970-01-01&quot;)</code></pre>
+<p>and to convert it to unix time:</p>
+<pre class="r"><code>mother$birth1 &lt;- as.numeric(as.POSIXct(paste0(as.character(mother$year), 
+                                              &quot;-&quot;, as.character(mother$month), 
+                                              &quot;-&quot;, as.character(mother$day)),
+                                       origin=&quot;1970-01-01&quot;))
+
+print(mother)</code></pre>
+<pre><code>##   month day year    birth1
+## 1    12   1 1988 596934000</code></pre>
+<p>Now let’s see what happens in this other example here:</p>
+<pre class="r"><code>mother2 &lt;- as.data.frame(list(month=2, day=30, year=1988))
+
+mother2$birth1 &lt;- as.POSIXct(paste0(as.character(mother2$year), 
+                                    &quot;-&quot;, as.character(mother2$month), 
+                                    &quot;-&quot;, as.character(mother2$day)), 
+                             origin=&quot;1970-01-01&quot;)</code></pre>
+<p>This is what happens:</p>
+<pre><code>Error in as.POSIXlt.character(x, tz, ...) : 
+  character string is not in a standard unambiguous format</code></pre>
+<p>This error is to be expected; there is no 30th of February! It turns out that in some rare cases, weird dates like this exist in my data. Probably some encoding errors. Not a problem I thought, I could use <code>tryCatch</code> and return <code>NA</code> in the case of an error.</p>
+<pre class="r"><code>mother2 &lt;- as.data.frame(list(month=2, day=30, year=1988))
+
+mother2$birth1 &lt;- tryCatch(as.POSIXct(paste0(as.character(mother2$year), 
+                                    &quot;-&quot;, as.character(mother2$month), 
+                                    &quot;-&quot;, as.character(mother2$day)), 
+                             origin=&quot;1970-01-01&quot;), error=function(e) NA)
+
+print(mother2)</code></pre>
+<pre><code>##   month day year birth1
+## 1     2  30 1988     NA</code></pre>
+<p>Pretty great, right? Well, no. Take a look at what happens in this case:</p>
+<pre class="r"><code>mother &lt;- as.data.frame(list(month=c(12, 2), day=c(1, 30), year=c(1988, 1987)))
+print(mother)</code></pre>
+<pre><code>##   month day year
+## 1    12   1 1988
+## 2     2  30 1987</code></pre>
+<p>We’d expect to have a correct date for the first mother and an <code>NA</code> for the second. However, this is what happens</p>
+<pre class="r"><code>mother$birth1 &lt;- tryCatch(as.POSIXct(paste0(as.character(mother$year), 
+                                    &quot;-&quot;, as.character(mother$month), 
+                                    &quot;-&quot;, as.character(mother$day)), 
+                             origin=&quot;1970-01-01&quot;), error=function(e) NA)
+
+print(mother)</code></pre>
+<pre><code>##   month day year birth1
+## 1    12   1 1988     NA
+## 2     2  30 1987     NA</code></pre>
+<p>As you can see, we now have an <code>NA</code> for both mothers! That’s actually to be expected. Indeed, this little example illustrates it well:</p>
+<pre class="r"><code>sqrt(c(4, 9, &quot;haha&quot;))</code></pre>
+<pre><code>Error in sqrt(c(4, 9, &quot;haha&quot;)) : 
+  non-numeric argument to mathematical function</code></pre>
+<p>But you’d like to have this:</p>
+<pre><code>[1]  2  3 NA</code></pre>
+<p>So you could make the same mistake as myself and use tryCatch:</p>
+<pre class="r"><code>tryCatch(sqrt(c(4, 9, &quot;haha&quot;)), error=function(e) NA)</code></pre>
+<pre><code>## [1] NA</code></pre>
+<p>But you only get <code>NA</code> in return. That’s actually completely normal, but it took me off-guard and I spent quite some time to figure out what was happening. Especially because I had written unit tests to test my function <code>create_birthdays()</code> that was doing the above computations and all tests were passing! The problem was that in my tests, I only had a single individual, so for a wrong date, having <code>NA</code> for this individual was expected behaviour. But in a panel, only some individuals have a weird date like the 30th of February, but because of those, the whole column was filled with <code>NA</code>’s! What I’m doing now is trying to either remove these weird birthdays (there are mothers whose children were born on the 99-99-9999. Documentation is lacking, but this probably means <code>missing value</code>), or tyring to figure out how to only get <code>NA</code>’s for the “weird” dates. I guess that the answer lies with <code>dplyr</code>’s <code>group_by()</code> and <code>mutate()</code> to compute this birthdays for each individual separately.</p>
+

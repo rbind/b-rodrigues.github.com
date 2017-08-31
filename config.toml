@@ -1,0 +1,45 @@
+baseurl = "https://b-rodrigues.github.io/"
+relativeurls = true
+languageCode = "en-us"
+title = "Econometrics and Free Software"
+theme = "hugo-darkdoc-theme"
+googleAnalytics = ""
+disqusShortname = ""
+ignoreFiles = ["\\.Rmd$", "_files$", "_cache$"]
+
+[social]
+    bitbucket = "b-rodrigues"
+	github  = "b-rodrigues"
+	twitter  = "brodriguesco"
+
+[permalinks]
+    post = "/:year/:month/:day/:slug/"
+
+[[menu.main]]
+    name = "About Me"
+    url = "/about/"
+[[menu.main]]
+    name = "Blog"
+    url = "/blog/"
+
+[taxonomies]
+    tag = "tags"
+    category = "categories"
+    series = "series"
+
+[params]
+    description = "A blog about econometrics, free software, and R"
+    author = "Bruno Rodrigues"
+    email = "contact@brodrigues.co"
+
+    # options for highlight.js (version, additional languages, and theme)
+    highlightjsVersion = "9.9.0"
+    highlightjsLang = ["r", "yaml"]
+    highlightjsTheme = "github"
+
+    [params.logo]
+    url = "logo.png"
+    width = 50
+    height = 50
+    alt = "Logo"
+

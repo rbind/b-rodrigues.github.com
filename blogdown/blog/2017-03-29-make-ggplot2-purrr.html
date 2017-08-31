@@ -1,0 +1,115 @@
+---
+date: 2017-03-29T06:45:48+02:00
+title: "Make ggplot2 purrr"
+tags: [R]
+menu:
+  main:
+    parent: Blog
+    identifier: /blog/ggplot2_purrr
+    weight: 1
+---
+
+
+<!-- BLOGDOWN-BODY-BEFORE
+
+/BLOGDOWN-BODY-BEFORE -->
+
+<p><em>Update</em>: I’ve included another way of saving a separate plot by group in this article, as pointed out by <a href="https://twitter.com/monitus/status/849033025631297536"><code>@monitus</code></a>. Actually, this is the preferred solution; using <code>dplyr::do()</code> is deprecated, according to Hadley Wickham <a href="https://twitter.com/hadleywickham/status/719542847045636096">himself</a>.</p>
+<p>I’ll be honest: the title is a bit misleading. I will not use <code>purrr</code> that much in this blog post. Actually, I will use one single <code>purrr</code> function, at the very end. I use <code>dplyr</code> much more. However <em>Make ggplot2 purrr</em> sounds better than <em>Make ggplot dplyr</em> or whatever the verb for <code>dplyr</code> would be.</p>
+<p>Also, this blog post was inspired by a stackoverflow question and in particular one of the <a href="http://stackoverflow.com/a/29035145/1298051">answers</a>. So I don’t bring anything new to the table, but I found this stackoverflow answer so useful and so underrated (only 16 upvotes as I’m writing this!) that I wanted to write something about it.</p>
+<p>Basically the idea of this blog post is to show how to create graphs using <code>ggplot2</code>, but by grouping by a factor variable beforehand. To illustrate this idea, let’s use the data from the <a href="http://www.rug.nl/ggdc/productivity/pwt/">Penn World Tables 9.0</a>. The easiest way to get this data is to install the package called <code>pwt9</code> with:</p>
+<pre class="r"><code>install.packages(&quot;pwt9&quot;)</code></pre>
+<p>and then load the data with:</p>
+<pre class="r"><code>data(&quot;pwt9.0&quot;)</code></pre>
+<p>Now, let’s load the needed packages. I am also using <code>ggthemes</code> which makes themeing your ggplots very easy. I’ll be making <a href="https://en.wikipedia.org/wiki/Edward_Tufte">Tufte</a>-style plots.</p>
+<pre class="r"><code>library(ggplot2)
+library(ggthemes)
+library(dplyr)
+library(tidyr)
+library(purrr)
+library(pwt9)</code></pre>
+<p>First let’s select a list of countries:</p>
+<pre class="r"><code>country_list &lt;- c(&quot;France&quot;, &quot;Germany&quot;, &quot;United States of America&quot;, &quot;Luxembourg&quot;, &quot;Switzerland&quot;, &quot;Greece&quot;)
+
+small_pwt &lt;- pwt9.0 %&gt;%
+  filter(country %in% country_list)</code></pre>
+<p>Let’s us also order the countries in the data frame as I have written them in <code>country_list</code>:</p>
+<pre class="r"><code>small_pwt &lt;- small_pwt %&gt;%
+  mutate(country = factor(country, levels = country_list, ordered = TRUE))</code></pre>
+<p>You might be wondering why this is important. At the end of the article, we are going to save the plots to disk. If we do not re-order the countries inside the data frame as in <code>country_list</code>, the name of the files will not correspond to the correct plots!</p>
+<p><em>Update</em>: While this can still be interesting to know, especially if you want to order the bars of a barplot made with <code>ggplot2</code>, I included a suggestion by <a href="https://twitter.com/expersso/status/846986357792739328"><code>@expersso</code></a> that does not require your data to be ordered!</p>
+<p>Now when you want to plot the same variable by countries, say <code>avh</code> (<em>Average annual hours worked by persons engaged</em>), the usual way to do this is with one of <code>facet_wrap()</code> or <code>facet_grid()</code>:</p>
+<pre class="r"><code>ggplot(data = small_pwt) + theme_tufte() +
+  geom_line(aes(y = avh, x = year)) +
+  facet_wrap(~country)</code></pre>
+<p><img src="#####../content/blog/2017-03-29-make-ggplot2-purrr_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<pre class="r"><code>ggplot(data = small_pwt) + theme_tufte() +
+  geom_line(aes(y = avh, x = year)) +
+  facet_grid(country~.)</code></pre>
+<p><img src="#####../content/blog/2017-03-29-make-ggplot2-purrr_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<p>As you can see, for this particular example, <code>facet_grid()</code> is not very useful, but do notice its argument, <code>country~.</code>, which is different from <code>facet_wrap()</code>’s argument. This way, I get the graphs stacked horizontally. If I had used <code>facet_grid(~country)</code> the graphs would be side by side and completely unreadable.</p>
+<p>Now, let’s go to the meat of this post: what if you would like to have one single graph for each country? You’d probably think of using <code>dplyr::group_by()</code> to form the groups and then the graphs. This is the way to go, but you also have to use <code>dplyr::do()</code>. This is because as far as I understand, <code>ggplot2</code> is not <code>dplyr</code>-aware, and using an arbitrary function with groups is only possible with <code>dplyr::do()</code>.</p>
+<p><em>Update</em>: As explained in the intro above, I also added the solution that uses <code>tidyr::nest()</code>:</p>
+<pre class="r"><code># Ancient, deprecated way of doing this
+plots &lt;- small_pwt %&gt;%
+  group_by(country) %&gt;%
+  do(plot = ggplot(data = .) + theme_tufte() +
+       geom_line(aes(y = avh, x = year)) +
+       ggtitle(unique(.$country)) +
+       ylab(&quot;Year&quot;) +
+       xlab(&quot;Average annual hours worked by persons engaged&quot;))</code></pre>
+<p>And this is the approach that uses <code>tidyr::nest()</code>:</p>
+<pre class="r"><code># Preferred approach
+plots &lt;- small_pwt %&gt;%
+  group_by(country) %&gt;%
+  nest() %&gt;%
+  mutate(plot = map2(data, country, ~ggplot(data = .x) + theme_tufte() +
+       geom_line(aes(y = avh, x = year)) +
+       ggtitle(.y) +
+       ylab(&quot;Year&quot;) +
+       xlab(&quot;Average annual hours worked by persons engaged&quot;)))</code></pre>
+<p>If you know <code>dplyr</code> at least a little bit, the above lines should be easy for you to understand. But notice how we get the title of the graphs, with <code>ggtitle(unique(.$country))</code>, which was actually the point of the stackoverflow question.</p>
+<p><em>Update:</em> The modern version uses <code>tidyr::nest()</code>. Its documentation tells us:</p>
+<p><em>There are many possible ways one could choose to nest columns inside a data frame. <code>nest()</code> creates a list of data frames containing all the nested variables: this seems to be the most useful form in practice.</em> Let’s take a closer look at what it does exactly:</p>
+<pre class="r"><code>small_pwt %&gt;%
+  group_by(country) %&gt;%
+  nest() %&gt;%
+  head()</code></pre>
+<pre><code>## # A tibble: 6 × 2
+##                    country               data
+##                      &lt;ord&gt;             &lt;list&gt;
+## 1              Switzerland &lt;tibble [65 × 46]&gt;
+## 2                  Germany &lt;tibble [65 × 46]&gt;
+## 3                   France &lt;tibble [65 × 46]&gt;
+## 4                   Greece &lt;tibble [65 × 46]&gt;
+## 5               Luxembourg &lt;tibble [65 × 46]&gt;
+## 6 United States of America &lt;tibble [65 × 46]&gt;</code></pre>
+<p>This is why I love lists in R; we get a <code>tibble</code> where each element of the column <code>data</code> is itself a <code>tibble</code>. We can now apply any function that we know works on lists.</p>
+<p>What might be surprising though, is the object that is created by this code. Let’s take a look at <code>plots</code>:</p>
+<pre class="r"><code>print(plots)</code></pre>
+<pre><code>## # A tibble: 6 × 3
+##                    country               data     plot
+##                      &lt;ord&gt;             &lt;list&gt;   &lt;list&gt;
+## 1              Switzerland &lt;tibble [65 × 46]&gt; &lt;S3: gg&gt;
+## 2                  Germany &lt;tibble [65 × 46]&gt; &lt;S3: gg&gt;
+## 3                   France &lt;tibble [65 × 46]&gt; &lt;S3: gg&gt;
+## 4                   Greece &lt;tibble [65 × 46]&gt; &lt;S3: gg&gt;
+## 5               Luxembourg &lt;tibble [65 × 46]&gt; &lt;S3: gg&gt;
+## 6 United States of America &lt;tibble [65 × 46]&gt; &lt;S3: gg&gt;</code></pre>
+<p>As <code>dplyr::do()</code>’s documentation tells us, the return values get stored inside a list. And this is exactly what we get back; a list of plots! Lists are a very flexible and useful class, and you cannot spell <em>list</em> without <code>purrr</code> (at least not when you’re a ne<code>R</code>d).</p>
+<p>Here are the final lines that use <code>purrr::map2()</code> to save all these plots at once inside your working directory:</p>
+<p><em>Update</em>: I have changed the code below which does not require your data frame to be ordered according to the variable <code>country_list</code>.</p>
+<pre class="r"><code># file_names &lt;- paste0(country_list, &quot;.pdf&quot;)
+
+map2(paste0(plots$country, &quot;.pdf&quot;), plots$plot, ggsave)</code></pre>
+<p>As I said before, if you do not re-order the countries inside the data frame, the names of the files and the plots will not match. Try running all the code without re-ordering, you’ll see!</p>
+<p>I hope you found this post useful. You can follow me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog updates.</p>
+<p><em>Update</em>: Many thanks to the readers of this article and for their useful suggestions. I love the R community; everyday I learn something new and useful!</p>
+
+
+<!-- BLOGDOWN-HEAD
+
+
+
+
+/BLOGDOWN-HEAD -->

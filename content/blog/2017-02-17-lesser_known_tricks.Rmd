@@ -1,0 +1,143 @@
+---
+date: 2017-03-08T12:00:00+01:00
+title: "Lesser known dplyr tricks"
+tags: [R]
+menu:
+  main:
+    parent: Blog
+    identifier: /blog/lesserknowntricks
+    weight: 2
+---
+
+```{r, include=FALSE}
+library("dplyr")
+data(mtcars)
+```
+
+
+In this blog post I share some lesser-known (at least I believe they are) tricks that use mainly functions from `dplyr`.
+
+## Removing unneeded columns
+
+Did you know that you can use `-` in front of a column name to remove it from a data frame?
+
+```{r}
+mtcars %>% 
+    select(-disp) %>% 
+    head()
+```
+
+## Re-ordering columns
+
+Still using `select()`, it is easy te re-order columns in your data frame:
+
+```{r}
+mtcars %>% 
+    select(cyl, disp, hp, everything()) %>% 
+    head()
+```
+
+As its name implies `everything()` simply means all the other columns.
+
+## Renaming columns with `rename()`
+
+```{r}
+mtcars <- rename(mtcars, spam_mpg = mpg)
+mtcars <- rename(mtcars, spam_disp = disp)
+mtcars <- rename(mtcars, spam_hp = hp)
+
+head(mtcars)
+```
+      
+## Selecting columns with a regexp
+
+It is easy to select the columns that start with "spam" with some helper functions:
+
+```{r}
+mtcars %>% 
+    select(contains("spam")) %>% 
+    head()
+```
+
+take also a look at `starts_with()`, `ends_with()`, `contains()`, `matches()`, `num_range()`, `one_of()` and `everything()`.
+
+## Create new columns with `mutate()` and `if_else()`
+
+```{r}
+mtcars %>% 
+    mutate(vs_new = if_else(
+        vs == 1, 
+        "one", 
+        "zero", 
+        NA_character_)) %>% 
+    head()
+```
+
+You might want to create a new variable conditionally on several values of another column:
+
+```{r}
+mtcars %>% 
+    mutate(carb_new = case_when(.$carb == 1 ~ "one",
+                                .$carb == 2 ~ "two",
+                                .$carb == 4 ~ "four",
+                                 TRUE ~ "other")) %>% 
+    head(15)
+```
+
+Mind the `.$` before the variable `carb`. There is a [github issue](https://github.com/hadley/dplyr/issues/1965) 
+about this, and it is already fixed in the development version of `dplyr`, which means that in the next version
+of `dplyr`, `case_when()` will work as any other specialized `dplyr` function inside `mutate()`.
+
+## Apply a function to certain columns only, by rows
+
+```{r, include=FALSE}
+mtcars %>%
+    select(am, gear, carb) %>%
+    purrrlyr::by_row(sum, .collate = "cols", .to = "sum_am_gear_carb") -> mtcars2
+head(mtcars2)
+```
+
+```{r, eval=FALSE}
+mtcars %>%
+    select(am, gear, carb) %>%
+    purrr::by_row(sum, .collate = "cols", .to = "sum_am_gear_carb") -> mtcars2
+head(mtcars2)
+```
+For this, I had to use `purrr`'s `by_row()` function. You can then add this column to your original data frame:
+
+```{r}
+mtcars <- cbind(mtcars, "sum_am_gear_carb" = mtcars2$sum_am_gear_carb)
+head(mtcars)
+```
+
+## Use `do()` to do any arbitrary operation
+
+```{r}
+mtcars %>% 
+    group_by(cyl) %>% 
+    do(models = lm(spam_mpg ~ drat + wt, data = .)) %>% 
+    broom::tidy(models)
+```
+
+`do()` is useful when you want to use any R function (user defined functions work too!) with `dplyr` functions.
+First I grouped the observations by `cyl` and then ran a linear model for each group. Then I converted the output
+to a tidy data frame using `broom::tidy()`.
+
+## Using `dplyr` functions inside your own functions
+
+```{r}
+extract_vars <- function(data, some_string){
+    
+  data %>%
+    select_(lazyeval::interp(~contains(some_string))) -> data
+    
+  return(data)
+}
+
+extract_vars(mtcars, "spam")
+```
+
+About this last point, you can read more about it [here](http://www.brodrigues.co/blog/2016-07-18-data-frame-columns-as-arguments-to-dplyr-functions/). 
+
+Hope you liked this small list of tricks!
+

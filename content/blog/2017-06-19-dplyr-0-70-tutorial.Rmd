@@ -1,0 +1,247 @@
+---
+date: 2017-07-02
+title: "Lesser known dplyr 0.7* tricks"
+tags: [R]
+menu:
+  main:
+    parent: Blog
+    identifier: /blog/lesserknowndplyr07tricks
+    weight: 2
+---
+
+This blog post is an update to an older [one](http://www.brodrigues.co/blog/2017-02-17-lesser_known_tricks/)
+I wrote in March.
+In the post from March, `dplyr` was at version 0.50, but since then a major update introduced some
+changes that make some of the tips in that post obsolete. So here I revisit the blog post from March
+by using `dplyr` 0.70.
+
+## Create new columns with `mutate()` and `case_when()`
+
+The basic things such as selecting columns, renaming them, filtering, etc did not change with this new
+version. What did change however is creating new columns using `case_when()`.
+First, load `dplyr` and the `mtcars` dataset:
+
+```{r, include=FALSE}
+library("dplyr")
+data(mtcars)
+```
+
+```{r, eval=FALSE}
+library("dplyr")
+data(mtcars)
+```
+
+This was how it was done in version 0.50 (notice the '.$' symbol before the variable 'carb'):
+
+```{r}
+mtcars %>%
+    mutate(carb_new = case_when(.$carb == 1 ~ "one",
+                                .$carb == 2 ~ "two",
+                                .$carb == 4 ~ "four",
+                                 TRUE ~ "other")) %>%
+    head(5)
+```
+
+This has been simplified to:
+
+```{r}
+mtcars %>%
+    mutate(carb_new = case_when(carb == 1 ~ "one",
+                                carb == 2 ~ "two",
+                                carb == 4 ~ "four",
+                                TRUE ~ "other")) %>%
+    head(5)
+```
+
+No need for `.$` anymore.
+
+## Apply a function to certain columns only, by rows, with `purrrlyr`
+
+`dplyr` wasn't the only package to get an overhaul, `purrr` also got the same treatment.
+
+In the past, I applied a function to certains columns like this:
+
+```{r, eval=FALSE}
+mtcars %>%
+    select(am, gear, carb) %>%
+    purrr::by_row(sum, .collate = "cols", .to = "sum_am_gear_carb") -> mtcars2
+head(mtcars2)
+```
+
+Now, `by_row()` does not exist in `purrr` anymore, but instead a new package called `purrrlyr`
+was introduced with functions that don't really fit inside `purrr` nor `dplyr`:
+
+```{r}
+mtcars %>%
+    select(am, gear, carb) %>%
+    purrrlyr::by_row(sum, .collate = "cols", .to = "sum_am_gear_carb") -> mtcars2
+head(mtcars2)
+```
+
+Think of `purrrlyr` as `purrr`s and `dplyr`s love child.
+
+## Using `dplyr` functions inside your own functions, or what is `tidyeval`
+
+Programming with `dplyr` has been simplified a lot. Before version `0.70`, one needed to use
+`dplyr` in conjuction with `lazyeval` to use `dplyr` functions inside one's own fuctions. It was
+not always very easy, especially if you mixed columns and values inside your functions. Here's the
+example from the March blog post:
+
+
+```{r, eval=FALSE}
+extract_vars <- function(data, some_string){
+
+  data %>%
+    select_(lazyeval::interp(~contains(some_string))) -> data
+
+  return(data)
+}
+
+extract_vars(mtcars, "spam")
+```
+
+More examples are available in [this other blog post](http://www.brodrigues.co/blog/2016-07-18-data-frame-columns-as-arguments-to-dplyr-functions/).
+
+I will revisit them now with `dplyr`'s new `tidyeval` syntax. I'd recommend you read the *Tidy evaluation*
+vignette [here](https://cran.r-project.org/web/packages/rlang/vignettes/tidy-evaluation.html). This vignette
+is part of the `rlang` package, which gets used under the hood by `dplyr` for all your programming needs.
+Here is the function I called `simpleFunction()`, written with the old `dplyr` syntax:
+
+```{r}
+simpleFunction <- function(dataset, col_name){
+  dataset %>%
+    group_by_(col_name) %>%
+    summarise(mean_mpg = mean(mpg)) -> dataset
+  return(dataset)
+}
+
+
+simpleFunction(mtcars, "cyl")
+```
+
+With the new synax, it must be rewritten a little bit:
+
+```{r}
+simpleFunction <- function(dataset, col_name){
+  col_name <- enquo(col_name)
+  dataset %>%
+    group_by(!!col_name) %>%
+    summarise(mean_mpg = mean(mpg)) -> dataset
+  return(dataset)
+}
+
+
+simpleFunction(mtcars, cyl)
+```
+
+What has changed? Forget the underscore versions of the usual functions such as `select_()`,
+`group_by_()`, etc. Now, you must quote the column name using `enquo()` (or just `quo()` if working
+interactively, outside a function), which returns a **quosure**. This **quosure** can then be
+evaluated using `!!` in front of the quosure and inside the usual `dplyr` functions.
+
+Let's look at another example:
+
+```{r}
+simpleFunction <- function(dataset, col_name, value){
+  filter_criteria <- lazyeval::interp(~y == x, .values=list(y = as.name(col_name), x = value))
+  dataset %>%
+    filter_(filter_criteria) %>%
+    summarise(mean_cyl = mean(cyl)) -> dataset
+  return(dataset)
+}
+
+
+simpleFunction(mtcars, "am", 1)
+```
+
+As you can see, it's a bit more complicated, as you needed to use `lazyeval::interp()` to make it work.
+With the improved `dplyr`, here's how it's done:
+
+```{r}
+simpleFunction <- function(dataset, col_name, value){
+  col_name <- enquo(col_name)
+  dataset %>%
+    filter((!!col_name) == value) %>%
+    summarise(mean_cyl = mean(cyl)) -> dataset
+  return(dataset)
+}
+
+
+simpleFunction(mtcars, am, 1)
+```
+
+Much, much easier! There is something that you must pay attention to though. Notice that I've written:
+
+```{r, eval=FALSE}
+filter((!!col_name) == value)
+```
+
+and not:
+
+```{r, eval=FALSE}
+filter(!!col_name == value)
+```
+
+I have enclosed `!!col_name` inside parentheses. I struggled with this, but thanks to help
+from [\@dmi3k](https://twitter.com/dmi3k/status/880374506291953664) and
+[\@_lionelhenry](https://twitter.com/_lionelhenry/status/880380691078361090) I was able to understand
+what was happening (isn't the #rstats community on twitter great?).
+
+One last thing: let's make this function a bit more general. I hard-coded the variable `cyl` inside the
+body of the function, but maybe you'd like the mean of another variable? Easy:
+
+```{r}
+simpleFunction <- function(dataset, group_col, mean_col, value){
+  group_col <- enquo(group_col)
+  mean_col <- enquo(mean_col)
+  dataset %>%
+    filter((!!group_col) == value) %>%
+    summarise(mean((!!mean_col))) -> dataset
+  return(dataset)
+}
+
+
+simpleFunction(mtcars, am, cyl, 1)
+```
+
+*«That's very nice Bruno, but `mean((cyl))` in the output looks ugly as sin»* you might think, and you'd be
+right. It is possible to set the name of the column in the output using `:=` instead of `=`:
+
+```{r}
+simpleFunction <- function(dataset, group_col, mean_col, value){
+  group_col <- enquo(group_col)
+  mean_col <- enquo(mean_col)
+  mean_name <- paste0("mean_", mean_col)[2]
+  dataset %>%
+    filter((!!group_col) == value) %>%
+    summarise(!!mean_name := mean((!!mean_col))) -> dataset
+  return(dataset)
+}
+
+
+simpleFunction(mtcars, am, cyl, 1)
+```
+To get the name of the column I added this line:
+
+```{r, eval=FALSE}
+mean_name <- paste0("mean_", mean_col)[2]
+```
+
+To see what it does, try the following inside an R interpreter (remember to us `quo()` instead of `enquo()`
+outside functions!):
+
+```{R}
+paste0("mean_", quo(cyl))
+```
+
+`enquo()` quotes the input, and with `paste0()` it gets converted to a string that can be used as a column
+name. However, the `~` is in the way and the output of `paste0()` is a vector of two strings: the correct
+name is contained in the second element, hence the `[2]`. There might be a more elegant way of doing that,
+but for now this has been working well for me.
+
+That was it folks! I do recommend you read the *Programming with dplyr* vignette
+[here](https://cran.r-project.org/web/packages/dplyr/vignettes/programming.html) as well as other blog posts,
+such as the one recommended to me by [\@dmi3k](https://twitter.com/dmi3k)
+[here](http://www.win-vector.com/blog/2017/06/non-standard-evaluation-and-function-composition-in-r/).
+
+Have fun with `dplyr 0.70`!

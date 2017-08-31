@@ -1,0 +1,177 @@
+---
+date: 2017-03-24T12:00:00+01:00
+title: "Lesser known purrr tricks"
+tags: [R]
+menu:
+  main:
+    parent: Blog
+    identifier: /blog/lesserknownpurrr
+    weight: 2
+---
+
+```{r, include=FALSE}
+library("purrr")
+set.seed(1)
+mat1 <- matrix(rnorm(10), nrow = 2)
+set.seed(2)
+mat2 <- matrix(rnorm(10), nrow = 2)
+set.seed(3)
+mat3 <- matrix(rnorm(10), nrow = 2)
+```
+
+`purrr` is a package that extends R's functional programming capabilities. It brings a lot of new stuff to
+the table and in this post I show you some of the most useful (at least to me) functions included in `purrr`.
+
+## Getting rid of loops with `map()`
+
+```{r}
+library(purrr)
+
+numbers <- list(11, 12, 13, 14)
+
+map_dbl(numbers, sqrt)
+```
+
+You might wonder why this might be preferred to a for loop? It's a lot less verbose, and you do not need to
+initialise any kind of structure to hold the result. If you google "create empty list in R" you will see that
+this is very common. However, with the `map()` family of functions, there is no need for an initial structure.
+`map_dbl()` returns an atomic list of real numbers, but if you use `map()` you will get a list back. Try them all out!
+
+## Map conditionally
+
+#### map_if()
+
+```{r}
+# Create a helper function that returns TRUE if a number is even
+is_even <- function(x){
+  !as.logical(x %% 2)
+}
+
+map_if(numbers, is_even, sqrt)
+```
+
+#### map_at()
+
+```{r}
+map_at(numbers, c(1,3), sqrt)
+```
+
+`map_if()` and `map_at()` have a further argument than `map()`; in the case of `map_if()`, a predicate function (
+a function that returns `TRUE` or `FALSE`) and a vector of positions for `map_at()`. This allows you to map your
+function only when certain conditions are met, which is also something that a lot of people google for.
+
+## Map a function with multiple arguments
+
+```{r}
+numbers2 <- list(1, 2, 3, 4)
+
+map2(numbers, numbers2, `+`)
+```
+
+You can map two lists to a function which takes two arguments using `map_2()`. You can even map an arbitrary number
+of lists to any function using `pmap()`.
+
+By the way, try this in: ``` `+`(1,3)``` and see what happens.
+
+## Don't stop execution of your function if something goes wrong
+
+```{r}
+possible_sqrt <- possibly(sqrt, otherwise = NA_real_)
+
+numbers_with_error <- list(1, 2, 3, "spam", 4)
+
+map(numbers_with_error, possible_sqrt)
+```
+
+Another very common issue is to keep running your loop even when something goes wrong. In most cases the loop simply stops
+at the error, but you would like it to continue and see where it failed. Try to google "skip error in a loop"
+or some variation of it and you'll see that a lot of people really just want that.
+This is possible by combining `map()` and `possibly()`. Most solutions involve the use of
+`tryCatch()` which I personally do not find very easy to use.
+
+## Don't stop execution of your function if something goes wrong and capture the error
+
+```{r}
+safe_sqrt <- safely(sqrt, otherwise = NA_real_)
+
+map(numbers_with_error, safe_sqrt)
+```
+
+`safely()` is very similar to `possibly()` but it returns a list of lists. An element is thus a list of the result
+and the accompagnying error message. If there is no error, the error component is `NULL` if there is an error, it
+returns the error message.
+
+## Transpose a list
+
+```{r}
+safe_result_list <- map(numbers_with_error, safe_sqrt)
+
+transpose(safe_result_list)
+```
+
+Here we transposed the above list. This means that we still have a list of lists, but where the first list holds
+all the results (which you can then access with `safe_result_list$result`) and the second list holds all the errors
+(which you can access with `safe_result_list$error`). This can be quite useful!
+
+## Apply a function to a lower depth of a list
+
+```{r}
+transposed_list <- transpose(safe_result_list)
+
+transposed_list %>%
+    at_depth(2, is_null)
+```
+
+Sometimes working with lists of lists can be tricky, especially when we want to apply a function to the sub-lists. This
+is easily done with `at_depth()`!
+
+## Set names of list elements
+
+```{r}
+name_element <- c("sqrt()", "ok?")
+
+set_names(transposed_list, name_element)
+```
+
+## Reduce a list to a single value
+
+```{r}
+reduce(numbers, `*`)
+```
+
+`reduce()` applies the function `*` iteratively to the list of numbers. There's also `accumulate()`:
+
+```{r}
+accumulate(numbers, `*`)
+```
+
+which keeps the intermediary results.
+
+This function is very general, and you can reduce anything:
+
+Matrices:
+```{r, eval = FALSE}
+mat1 <- matrix(rnorm(10), nrow = 2)
+mat2 <- matrix(rnorm(10), nrow = 2)
+mat3 <- matrix(rnorm(10), nrow = 2)
+```
+
+```{r}
+list_mat <- list(mat1, mat2, mat3)
+
+reduce(list_mat, `+`)
+```
+
+even data frames:
+
+```{r}
+df1 <- as.data.frame(mat1)
+df2 <- as.data.frame(mat2)
+df3 <- as.data.frame(mat3)
+
+list_df <- list(df1, df2, df3)
+
+reduce(list_df, dplyr::full_join)
+```
+
+Hope you enjoyed this list of useful functions! If you enjoy the content of my blog, you can follow me on [twitter](https://www.twitter.com/brodriguesco).

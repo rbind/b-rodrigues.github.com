@@ -1,0 +1,232 @@
+---
+date: 2017-03-08T12:00:00+01:00
+title: "Lesser known dplyr tricks"
+tags: [R]
+menu:
+  main:
+    parent: Blog
+    identifier: /blog/lesserknowntricks
+    weight: 2
+---
+
+<!-- BLOGDOWN-HEAD -->
+<!-- /BLOGDOWN-HEAD -->
+
+<!-- BLOGDOWN-BODY-BEFORE -->
+<!-- /BLOGDOWN-BODY-BEFORE -->
+<p>In this blog post I share some lesser-known (at least I believe they are) tricks that use mainly functions from <code>dplyr</code>.</p>
+<div id="removing-unneeded-columns" class="section level2">
+<h2>Removing unneeded columns</h2>
+<p>Did you know that you can use <code>-</code> in front of a column name to remove it from a data frame?</p>
+<pre class="r"><code>mtcars %&gt;% 
+    select(-disp) %&gt;% 
+    head()</code></pre>
+<pre><code>##                    mpg cyl  hp drat    wt  qsec vs am gear carb
+## Mazda RX4         21.0   6 110 3.90 2.620 16.46  0  1    4    4
+## Mazda RX4 Wag     21.0   6 110 3.90 2.875 17.02  0  1    4    4
+## Datsun 710        22.8   4  93 3.85 2.320 18.61  1  1    4    1
+## Hornet 4 Drive    21.4   6 110 3.08 3.215 19.44  1  0    3    1
+## Hornet Sportabout 18.7   8 175 3.15 3.440 17.02  0  0    3    2
+## Valiant           18.1   6 105 2.76 3.460 20.22  1  0    3    1</code></pre>
+</div>
+<div id="re-ordering-columns" class="section level2">
+<h2>Re-ordering columns</h2>
+<p>Still using <code>select()</code>, it is easy te re-order columns in your data frame:</p>
+<pre class="r"><code>mtcars %&gt;% 
+    select(cyl, disp, hp, everything()) %&gt;% 
+    head()</code></pre>
+<pre><code>##                   cyl disp  hp  mpg drat    wt  qsec vs am gear carb
+## Mazda RX4           6  160 110 21.0 3.90 2.620 16.46  0  1    4    4
+## Mazda RX4 Wag       6  160 110 21.0 3.90 2.875 17.02  0  1    4    4
+## Datsun 710          4  108  93 22.8 3.85 2.320 18.61  1  1    4    1
+## Hornet 4 Drive      6  258 110 21.4 3.08 3.215 19.44  1  0    3    1
+## Hornet Sportabout   8  360 175 18.7 3.15 3.440 17.02  0  0    3    2
+## Valiant             6  225 105 18.1 2.76 3.460 20.22  1  0    3    1</code></pre>
+<p>As its name implies <code>everything()</code> simply means all the other columns.</p>
+</div>
+<div id="renaming-columns-with-rename" class="section level2">
+<h2>Renaming columns with <code>rename()</code></h2>
+<pre class="r"><code>mtcars &lt;- rename(mtcars, spam_mpg = mpg)
+mtcars &lt;- rename(mtcars, spam_disp = disp)
+mtcars &lt;- rename(mtcars, spam_hp = hp)
+
+head(mtcars)</code></pre>
+<pre><code>##                   spam_mpg cyl spam_disp spam_hp drat    wt  qsec vs am
+## Mazda RX4             21.0   6       160     110 3.90 2.620 16.46  0  1
+## Mazda RX4 Wag         21.0   6       160     110 3.90 2.875 17.02  0  1
+## Datsun 710            22.8   4       108      93 3.85 2.320 18.61  1  1
+## Hornet 4 Drive        21.4   6       258     110 3.08 3.215 19.44  1  0
+## Hornet Sportabout     18.7   8       360     175 3.15 3.440 17.02  0  0
+## Valiant               18.1   6       225     105 2.76 3.460 20.22  1  0
+##                   gear carb
+## Mazda RX4            4    4
+## Mazda RX4 Wag        4    4
+## Datsun 710           4    1
+## Hornet 4 Drive       3    1
+## Hornet Sportabout    3    2
+## Valiant              3    1</code></pre>
+</div>
+<div id="selecting-columns-with-a-regexp" class="section level2">
+<h2>Selecting columns with a regexp</h2>
+<p>It is easy to select the columns that start with “spam” with some helper functions:</p>
+<pre class="r"><code>mtcars %&gt;% 
+    select(contains(&quot;spam&quot;)) %&gt;% 
+    head()</code></pre>
+<pre><code>##                   spam_mpg spam_disp spam_hp
+## Mazda RX4             21.0       160     110
+## Mazda RX4 Wag         21.0       160     110
+## Datsun 710            22.8       108      93
+## Hornet 4 Drive        21.4       258     110
+## Hornet Sportabout     18.7       360     175
+## Valiant               18.1       225     105</code></pre>
+<p>take also a look at <code>starts_with()</code>, <code>ends_with()</code>, <code>contains()</code>, <code>matches()</code>, <code>num_range()</code>, <code>one_of()</code> and <code>everything()</code>.</p>
+</div>
+<div id="create-new-columns-with-mutate-and-if_else" class="section level2">
+<h2>Create new columns with <code>mutate()</code> and <code>if_else()</code></h2>
+<pre class="r"><code>mtcars %&gt;% 
+    mutate(vs_new = if_else(
+        vs == 1, 
+        &quot;one&quot;, 
+        &quot;zero&quot;, 
+        NA_character_)) %&gt;% 
+    head()</code></pre>
+<pre><code>##   spam_mpg cyl spam_disp spam_hp drat    wt  qsec vs am gear carb vs_new
+## 1     21.0   6       160     110 3.90 2.620 16.46  0  1    4    4   zero
+## 2     21.0   6       160     110 3.90 2.875 17.02  0  1    4    4   zero
+## 3     22.8   4       108      93 3.85 2.320 18.61  1  1    4    1    one
+## 4     21.4   6       258     110 3.08 3.215 19.44  1  0    3    1    one
+## 5     18.7   8       360     175 3.15 3.440 17.02  0  0    3    2   zero
+## 6     18.1   6       225     105 2.76 3.460 20.22  1  0    3    1    one</code></pre>
+<p>You might want to create a new variable conditionally on several values of another column:</p>
+<pre class="r"><code>mtcars %&gt;% 
+    mutate(carb_new = case_when(.$carb == 1 ~ &quot;one&quot;,
+                                .$carb == 2 ~ &quot;two&quot;,
+                                .$carb == 4 ~ &quot;four&quot;,
+                                 TRUE ~ &quot;other&quot;)) %&gt;% 
+    head(15)</code></pre>
+<pre><code>##    spam_mpg cyl spam_disp spam_hp drat    wt  qsec vs am gear carb
+## 1      21.0   6     160.0     110 3.90 2.620 16.46  0  1    4    4
+## 2      21.0   6     160.0     110 3.90 2.875 17.02  0  1    4    4
+## 3      22.8   4     108.0      93 3.85 2.320 18.61  1  1    4    1
+## 4      21.4   6     258.0     110 3.08 3.215 19.44  1  0    3    1
+## 5      18.7   8     360.0     175 3.15 3.440 17.02  0  0    3    2
+## 6      18.1   6     225.0     105 2.76 3.460 20.22  1  0    3    1
+## 7      14.3   8     360.0     245 3.21 3.570 15.84  0  0    3    4
+## 8      24.4   4     146.7      62 3.69 3.190 20.00  1  0    4    2
+## 9      22.8   4     140.8      95 3.92 3.150 22.90  1  0    4    2
+## 10     19.2   6     167.6     123 3.92 3.440 18.30  1  0    4    4
+## 11     17.8   6     167.6     123 3.92 3.440 18.90  1  0    4    4
+## 12     16.4   8     275.8     180 3.07 4.070 17.40  0  0    3    3
+## 13     17.3   8     275.8     180 3.07 3.730 17.60  0  0    3    3
+## 14     15.2   8     275.8     180 3.07 3.780 18.00  0  0    3    3
+## 15     10.4   8     472.0     205 2.93 5.250 17.98  0  0    3    4
+##    carb_new
+## 1      four
+## 2      four
+## 3       one
+## 4       one
+## 5       two
+## 6       one
+## 7      four
+## 8       two
+## 9       two
+## 10     four
+## 11     four
+## 12    other
+## 13    other
+## 14    other
+## 15     four</code></pre>
+<p>Mind the <code>.$</code> before the variable <code>carb</code>. There is a <a href="https://github.com/hadley/dplyr/issues/1965">github issue</a> about this, and it is already fixed in the development version of <code>dplyr</code>, which means that in the next version of <code>dplyr</code>, <code>case_when()</code> will work as any other specialized <code>dplyr</code> function inside <code>mutate()</code>.</p>
+</div>
+<div id="apply-a-function-to-certain-columns-only-by-rows" class="section level2">
+<h2>Apply a function to certain columns only, by rows</h2>
+<pre class="r"><code>mtcars %&gt;%
+    select(am, gear, carb) %&gt;%
+    purrr::by_row(sum, .collate = &quot;cols&quot;, .to = &quot;sum_am_gear_carb&quot;) -&gt; mtcars2
+head(mtcars2)</code></pre>
+<p>For this, I had to use <code>purrr</code>’s <code>by_row()</code> function. You can then add this column to your original data frame:</p>
+<pre class="r"><code>mtcars &lt;- cbind(mtcars, &quot;sum_am_gear_carb&quot; = mtcars2$sum_am_gear_carb)
+head(mtcars)</code></pre>
+<pre><code>##                   spam_mpg cyl spam_disp spam_hp drat    wt  qsec vs am
+## Mazda RX4             21.0   6       160     110 3.90 2.620 16.46  0  1
+## Mazda RX4 Wag         21.0   6       160     110 3.90 2.875 17.02  0  1
+## Datsun 710            22.8   4       108      93 3.85 2.320 18.61  1  1
+## Hornet 4 Drive        21.4   6       258     110 3.08 3.215 19.44  1  0
+## Hornet Sportabout     18.7   8       360     175 3.15 3.440 17.02  0  0
+## Valiant               18.1   6       225     105 2.76 3.460 20.22  1  0
+##                   gear carb sum_am_gear_carb
+## Mazda RX4            4    4                9
+## Mazda RX4 Wag        4    4                9
+## Datsun 710           4    1                6
+## Hornet 4 Drive       3    1                4
+## Hornet Sportabout    3    2                5
+## Valiant              3    1                4</code></pre>
+</div>
+<div id="use-do-to-do-any-arbitrary-operation" class="section level2">
+<h2>Use <code>do()</code> to do any arbitrary operation</h2>
+<pre class="r"><code>mtcars %&gt;% 
+    group_by(cyl) %&gt;% 
+    do(models = lm(spam_mpg ~ drat + wt, data = .)) %&gt;% 
+    broom::tidy(models)</code></pre>
+<pre><code>## # A tibble: 9 x 6
+## # Groups:   cyl [3]
+##     cyl        term   estimate  std.error  statistic     p.value
+##   &lt;dbl&gt;       &lt;chr&gt;      &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;       &lt;dbl&gt;
+## 1     4 (Intercept) 33.2493403 17.0987286  1.9445504 0.087727622
+## 2     4        drat  1.3244329  3.4519717  0.3836743 0.711215433
+## 3     4          wt -5.2400608  2.2150213 -2.3656932 0.045551615
+## 4     6 (Intercept) 30.6544931  7.5141648  4.0795609 0.015103868
+## 5     6        drat -0.4435744  1.1740862 -0.3778039 0.724768945
+## 6     6          wt -2.9902720  1.5685053 -1.9064468 0.129274249
+## 7     8 (Intercept) 29.6519180  7.0878976  4.1834574 0.001527613
+## 8     8        drat -1.4698722  1.6285054 -0.9025897 0.386081744
+## 9     8          wt -2.4518017  0.7985112 -3.0704664 0.010651044</code></pre>
+<p><code>do()</code> is useful when you want to use any R function (user defined functions work too!) with <code>dplyr</code> functions. First I grouped the observations by <code>cyl</code> and then ran a linear model for each group. Then I converted the output to a tidy data frame using <code>broom::tidy()</code>.</p>
+</div>
+<div id="using-dplyr-functions-inside-your-own-functions" class="section level2">
+<h2>Using <code>dplyr</code> functions inside your own functions</h2>
+<pre class="r"><code>extract_vars &lt;- function(data, some_string){
+    
+  data %&gt;%
+    select_(lazyeval::interp(~contains(some_string))) -&gt; data
+    
+  return(data)
+}
+
+extract_vars(mtcars, &quot;spam&quot;)</code></pre>
+<pre><code>##                     spam_mpg spam_disp spam_hp
+## Mazda RX4               21.0     160.0     110
+## Mazda RX4 Wag           21.0     160.0     110
+## Datsun 710              22.8     108.0      93
+## Hornet 4 Drive          21.4     258.0     110
+## Hornet Sportabout       18.7     360.0     175
+## Valiant                 18.1     225.0     105
+## Duster 360              14.3     360.0     245
+## Merc 240D               24.4     146.7      62
+## Merc 230                22.8     140.8      95
+## Merc 280                19.2     167.6     123
+## Merc 280C               17.8     167.6     123
+## Merc 450SE              16.4     275.8     180
+## Merc 450SL              17.3     275.8     180
+## Merc 450SLC             15.2     275.8     180
+## Cadillac Fleetwood      10.4     472.0     205
+## Lincoln Continental     10.4     460.0     215
+## Chrysler Imperial       14.7     440.0     230
+## Fiat 128                32.4      78.7      66
+## Honda Civic             30.4      75.7      52
+## Toyota Corolla          33.9      71.1      65
+## Toyota Corona           21.5     120.1      97
+## Dodge Challenger        15.5     318.0     150
+## AMC Javelin             15.2     304.0     150
+## Camaro Z28              13.3     350.0     245
+## Pontiac Firebird        19.2     400.0     175
+## Fiat X1-9               27.3      79.0      66
+## Porsche 914-2           26.0     120.3      91
+## Lotus Europa            30.4      95.1     113
+## Ford Pantera L          15.8     351.0     264
+## Ferrari Dino            19.7     145.0     175
+## Maserati Bora           15.0     301.0     335
+## Volvo 142E              21.4     121.0     109</code></pre>
+<p>About this last point, you can read more about it <a href="http://www.brodrigues.co/blog/2016-07-18-data-frame-columns-as-arguments-to-dplyr-functions/">here</a>.</p>
+<p>Hope you liked this small list of tricks!</p>
+</div>

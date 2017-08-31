@@ -1,0 +1,165 @@
+---
+date: 2016-07-18T00:00:00+00:00
+title: "Data frame columns as arguments to dplyr functions"
+tags: [R]
+menu:
+  main:
+    parent: Blog
+    identifier: /blog/dplyrfunc_R
+    weight: 11
+---
+
+<!-- MathJax scripts -->
+<script type="text/javascript" async
+  src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+
+
+<p>Suppose that you would like to create a function which does a series of computations on a data frame. You would like to pass a column as this function’s argument. Something like:</p>
+
+<pre class="r"><code>data(cars)
+convertToKmh &lt;- function(dataset, col_name){
+  dataset$col_name &lt;- dataset$speed * 1.609344
+  return(dataset)
+}</code></pre>
+<p>This example is obviously not very interesting (you don’t need a function for this), but it will illustrate the point. You would like to append a column called <code>speed_in_kmh</code> with the speed in kilometers per hour to this dataset, but this is what happens:</p>
+<pre class="r"><code>head(convertToKmh(cars, &quot;speed_in_kmh&quot;))</code></pre>
+<pre><code>##   speed dist  col_name
+1     4    2  6.437376
+2     4   10  6.437376
+3     7    4 11.265408
+4     7   22 11.265408
+5     8   16 12.874752
+6     9   10 14.484096</code></pre>
+<p>Your column is not called <code>speed_in_kmh</code> but <code>col_name</code>! It turns out that there is a very simple solution:</p>
+<pre class="r"><code>convertToKmh &lt;- function(dataset, col\_name){
+  dataset[col_name] &lt;- dataset$speed * 1.609344
+  return(dataset)
+}
+
+head(convertToKmh(cars, &quot;speed\_in\_kmh&quot;))</code></pre>
+<pre><code>##   speed dist speed\_in\_kmh
+1     4    2     6.437376
+2     4   10     6.437376
+3     7    4    11.265408
+4     7   22    11.265408
+5     8   16    12.874752
+6     9   10    14.484096</code></pre>
+<p>You can access columns with <code>[]</code> instead of <code>$</code>.</p>
+<p>But sometimes you want to do more complex things and for example have a function that groups by a variable and then computes new variables, filters by another and so on. You would like to avoid having to hard code these variables in your function, because then why write a function and of course you would like to use <code>dplyr</code> to do it.</p>
+<p>I often use <code>dplyr</code> functions in my functions. For illustration purposes, consider this very simple function:</p>
+<pre class="r"><code>simpleFunction &lt;- function(dataset, col_name){
+  require(&quot;dplyr&quot;)
+  dataset %&gt;% 
+    group\_by(col\_name) %&gt;%
+    summarise(mean_speed = mean(speed)) -&gt; dataset
+  return(dataset)
+}
+
+simpleFunction(cars, &quot;dist&quot;)</code></pre>
+<p>This function takes a dataset as an argument, as well as a column name. However, this does not work. You get this error:</p>
+<pre><code>Error: unknown variable to group by : col_name </code></pre>
+<p>The variable <code>col\_name</code> is passed to <code>simpleFunction()</code> as a string, but <code>group\_by()</code> requires a variable name. So why not try to convert <code>col\_name</code> to a name?</p>
+<pre class="r"><code>simpleFunction &lt;- function(dataset, col_name){
+  require(&quot;dplyr&quot;)
+  col\_name &lt;- as.name(col_name)
+  dataset %&gt;% 
+    group\_by(col\_name) %&gt;%
+    summarise(mean_speed = mean(speed)) -&gt; dataset
+  return(dataset)
+}
+
+simpleFunction(cars, &quot;dist&quot;)</code></pre>
+<p>You get the same error as before:</p>
+<pre><code>Error: unknown variable to group by : col_name </code></pre>
+<p>So how can you pass a column name to <code>group\_by()</code>? Well, there is another version of <code>group\_by()</code> called <code>group\_by\_()</code> that uses standard evaluation. You can learn more about it <a href="https://cran.r-project.org/web/packages/dplyr/vignettes/nse.html">here</a>. Let’s take a look at what happens when we use <code>group\_by\_()</code>:</p>
+<pre class="r"><code>simpleFunction &lt;- function(dataset, col_name){
+  require(&quot;dplyr&quot;)
+  dataset %&gt;% 
+    group\_by\_(col_name) %&gt;%
+    summarise(mean_speed = mean(speed)) -&gt; dataset
+  return(dataset)
+}
+
+simpleFunction(cars, &quot;dist&quot;)</code></pre>
+<pre><code>A tibble: 35 x 2
+ dist mean\_speed
+&lt;dbl&gt;      &lt;dbl&gt;
+1      2        4.0
+2      4        7.0
+3     10        6.5
+4     14       12.0
+5     16        8.0
+6     17       11.0
+7     18       10.0
+8     20       13.5
+9     22        7.0
+10    24       12.0
+ ... with 25 more rows</code></pre>
+<p>We can even use a formula instead of a string:</p>
+<pre class="r"><code>simpleFunction(cars, ~dist)</code></pre>
+<pre><code> A tibble: 35 x 2
+    dist mean_speed
+   &lt;dbl&gt;      &lt;dbl&gt;
+1      2        4.0
+2      4        7.0
+3     10        6.5
+4     14       12.0
+5     16        8.0
+6     17       11.0
+7     18       10.0
+8     20       13.5
+9     22        7.0
+10    24       12.0
+... with 25 more rows</code></pre>
+<p>What if you want to pass column names and constants, for example to filter without hardcoding anything?</p>
+<p>Trying to do it naively will only yield pain and despair:</p>
+<pre class="r"><code>simpleFunction &lt;- function(dataset, col_name, value){
+  require(&quot;dplyr&quot;)
+  dataset %&gt;% 
+    filter\_(col\_name == value) %&gt;%
+    summarise(mean_speed = mean(speed)) -&gt; dataset
+  return(dataset)
+}</code></pre>
+<pre><code>&gt; simpleFunction(cars, &quot;dist&quot;, 10)
+
+  mean_speed
+1        NaN
+
+&gt; simpleFunction(cars, dist, 10)
+
+ Error in col_name == value : 
+  comparison (1) is possible only for atomic and list types 
+  
+&gt; simpleFunction(cars, ~dist, 10)
+
+  mean_speed
+1        NaN
+</code></pre>
+<p>To solve this issue, we need to know a little bit about two concepts, <em>lazy evaluation</em> and <em>non-standard evaluation</em>. I recommend you read <a href="http://adv-r.had.co.nz/Computing-on-the-language.html">the following document</a> from Hadley Wickham’s book <em>Advanced R</em> as well as the part on lazy evaluation <a href="http://adv-r.had.co.nz/Functions.html#function-arguments">here</a>.</p>
+<p>A nice package called <code>lazyeval</code> can help us out. We would like to make R understand that the column name is not <code>col_name</code> but the string inside it <code>&quot;dist&quot;</code>, and now we would like to use <code>filter()</code> for <code>dist</code> equal to <code>10</code>.</p>
+<p>In the <code>lazyeval</code> package, you’ll find the function <code>interp()</code>. <code>interp()</code> allows you to</p>
+<blockquote>
+<p>build an expression up from a mixture of constants and variables.</p>
+</blockquote>
+<p>Take a look at this example:</p>
+<pre class="r"><code>library(lazyeval)
+interp(~x+y, x = 2)</code></pre>
+<pre><code>## ~2 + y</code></pre>
+<p>What you get back is this nice formula that you can then use within functions. To see why this is useful, let’s look at the above example again, and make it work using <code>interp()</code>:</p>
+<pre class="r"><code>simpleFunction &lt;- function(dataset, col_name, value){
+  require(&quot;dplyr&quot;)
+  require(&quot;lazyeval&quot;)
+  filter\_criteria &lt;- interp(~y == x, .values=list(y = as.name(col_name), x = value))
+  dataset %&gt;% 
+    filter\_(filter_criteria) %&gt;%
+    summarise(mean_speed = mean(speed)) -&gt; dataset
+  return(dataset)
+}
+
+
+simpleFunction(cars, &quot;dist&quot;, 10)</code></pre>
+<pre><code>  mean\_speed
+1        6.5</code></pre>
+<p>And now it works! For some reason, you have to pass the column name as a string though.</p>
+<p>Sources: apart from the documents above, the following stackoverflow threads helped me out quite a lot: <a href="http://stackoverflow.com/questions/28973056/in-r-pass-column-name-as-argument-and-use-it-in-function-with-dplyrmutate-a">In R: pass column name as argument and use it in function with dplyr::mutate() and lazyeval::interp()</a> and <a href="http://stackoverflow.com/questions/26492280/non-standard-evaluation-nse-in-dplyrs-filter-pulling-data-from-mysql">Non-standard evaluation (NSE) in dplyr’s filter_ &amp; pulling data from MySQL</a>.</p>

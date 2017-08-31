@@ -1,0 +1,22 @@
+---
+date: 2017-03-27T09:23:56+02:00
+title: "Introducing brotools"
+tags: [R]
+menu:
+  main:
+    parent: Blog
+    identifier: /blog/intro_brotools
+    weight: 2
+---
+
+I'm happy to announce my first R package, called `brotools`. This is a package that contains
+functions that are specific to my needs but that you might find also useful. I blogged about some
+of these functions, so if you follow my blog you might already be familiar with some of them. It is 
+not on CRAN and might very well never be. The code is hosted on [bitbucket](https://bitbucket.org/b-rodrigues/brotools)
+and you can install the package with 
+
+```{r, eval=FALSE}
+devtools::install_bitbucket("b-rodrigues/brotools")
+```
+
+Hope you'll find the `brotools` useful!

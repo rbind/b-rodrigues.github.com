@@ -1,0 +1,68 @@
+---
+date: 2017-07-27
+title: "tidyr::spread() and dplyr::rename_at() in action"
+tags: [R]
+menu:
+  main:
+    parent: Blog
+    identifier: /blog/spread_rename_at
+    weight: 1
+---
+
+I was recently confronted to a situation that required going from a long dataset to a wide dataset,
+but with a small twist: there were two datasets, which I had to merge into one. You might wonder
+what kinda crappy twist that is, right? Well, let's take a look at the data:
+
+```{r, include=FALSE}
+library("dplyr")
+library("tidyr")
+data1 <- readr::read_csv("test_data1.csv")
+data2 <- readr::read_csv("test_data2.csv")
+```
+
+```{r}
+data1; data2
+```
+
+As explained in [Hadley (2014)](http://vita.had.co.nz/papers/tidy-data.html), this is how you should keep your data... But for a particular
+purpose, I had to transform these datasets. What I was asked to do was to merge these into a single
+wide data frame. Doing this for one dataset is easy:
+
+```{r}
+data1 %>%
+  spread(variable_1, value)
+```
+
+But because `data1` and `data2` have the same levels for `variable_1` and `variable_2`, this would not
+work. So the solution I found online, in this [SO thread](https://stackoverflow.com/questions/43578723/conditional-replacement-of-column-name-in-tibble-using-dplyr) was to use `tidyr::spread()` with
+`dplyr::rename_at()` like this:
+
+```{r}
+data1 <- data1 %>%
+  spread(variable_1, value) %>%
+  rename_at(vars(-country, -date), funs(paste0("variable1:", .)))
+
+glimpse(data1)
+```
+
+```{r}
+data2 <- data2 %>%
+  spread(variable_2, value) %>%
+  rename_at(vars(-country, -date), funs(paste0("variable2:", .)))
+
+glimpse(data2)
+```
+
+`rename_at()` needs variables which you pass to `vars()`, a helper function to select variables, and
+a function that will do the renaming, passed to `funs()`. The function I use is simply `paste0()`,
+which pastes a string, for example "variable1:" with the name of the columns, given by the single '.',
+a dummy argument. Now these datasets can be merged:
+
+```{r}
+data1 %>%
+  full_join(data2) %>%
+  glimpse()
+```
+
+Hope this post helps you understand the difference between long and wide datasets better, as well
+as `dplyr::rename_at()`!
