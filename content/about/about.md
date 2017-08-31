@@ -16,7 +16,7 @@ July 2016. I'm part of the [research division](http://www.statistiques.public.lu
 and my main mission is assisting the researchers with data issues.
 
 My hobbies are boxing, lifting weights, cycling, cooking and reading.
-I try doing this things while listening to [FIP](http://www.fipradio.fr/player) [Nightwave Plaza](https://plaza.one/).
+I try doing this things while listening to [FIP](http://www.fipradio.fr/player) or [Nightwave Plaza](https://plaza.one/).
 I also enjoy learning about the R programming language and sharing my knowledge.
 That's why I made this blog and why I am currently writing a book about functional programming, unit
 testing and package development with R. You can read it for free [here](https://b-rodrigues.github.io/fput/) and
