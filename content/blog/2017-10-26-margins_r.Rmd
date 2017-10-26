@@ -11,15 +11,14 @@ menu:
 
 Model interpretation is essential in the social sciences. If one wants to know the effect of
 variable `x` on the dependent variable `y`, marginal effects are an easy way to get the answer.
-STATA includes a `margins` command that has been ported by [Thomas J. Leeper](http://thomasleeper.com/)
+STATA includes a `margins` command that has been ported to R
+by [Thomas J. Leeper](http://thomasleeper.com/)
 of the London School of Economics and Political Science. 
 You can find the source code of the package 
 [on github](https://github.com/leeper/margins). In this short blog post, I demo some of the 
 functionality of `margins`.
 
 First, let's load some packages:
-
-```{r}
 
 ```{r, include=FALSE}
 library(ggplot2)
@@ -106,7 +105,6 @@ one could estimate a logit model, using `glm()`.
 
 ```{r}
 logit_participation = glm(lfp ~ ., data = Participation, family = "binomial")
-
 ```
 
 Now that we ran the regression, we can take a look at the results. I like to use `broom::tidy()` 
@@ -143,7 +141,6 @@ function `plot()` but if you've been using `ggplot2` and want this graph to have
 the others made with `ggplot2` you first need to save the summary in a variable.
 Let's overwrite this `effects_logit_participation` variable with its summary:
 
-
 ```{r}
 effects_logit_participation = summary(effects_logit_participation)
 ```
@@ -158,7 +155,6 @@ ggplot(data = effects_logit_participation) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45))
 ```
-
 
 So an infinitesimal increase, in say, non-labour income (`lnnlinc`) of 0.001 is associated with a
 decrease of the probability of labour force participation by 0.001*17 percentage points.
