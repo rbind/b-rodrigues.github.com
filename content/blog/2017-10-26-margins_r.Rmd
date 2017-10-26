@@ -11,7 +11,7 @@ menu:
 
 Model interpretation is essential in the social sciences. If one wants to know the effect of
 variable `x` on the dependent variable `y`, marginal effects are an easy way to get the answer.
-STATA includes a `margin` command that has been ported by [Thomas J. Leeper](http://thomasleeper.com/)
+STATA includes a `margins` command that has been ported by [Thomas J. Leeper](http://thomasleeper.com/)
 of the London School of Economics and Political Science. 
 You can find the source code of the package 
 [on github](https://github.com/leeper/margins). In this short blog post, I demo some of the 
@@ -100,9 +100,9 @@ Davidson, R. and James G. MacKinnon (2004) Econometric Theory and Methods, New Y
 Journal of Applied Econometrics data archive : http://qed.econ.queensu.ca/jae/.
 ```
 
-The variable of interest is `lfp`: whether the individual participates in the labour force. To know
-which variables are relevant in the decision to participate in the labour force, one could estimate
-a logit model, using `glm()`.
+The variable of interest is `lfp`: whether the individual participates in the labour force or not.
+To know which variables are relevant in the decision to participate in the labour force, 
+one could estimate a logit model, using `glm()`.
 
 ```{r}
 logit_participation = glm(lfp ~ ., data = Participation, family = "binomial")
