@@ -11,7 +11,7 @@ type: index
     <img src="/img/profile.jpg" width="213" height="213"/>
 </div>
 
-Hi! My name is Bruno Rodrigues, and I'm a research assistant at [STATEC](http://www.statistiques.public.lu/en/actors/statec/organisation/red/index.html).
+Hi! My name is Bruno Rodrigues, and I'm a research assistant at the research division of [STATEC](http://www.statistiques.public.lu/en/actors/statec/organisation/red/index.html).
 
 I program mostly in R and love sharing my knowledge, that's why I started this blog. 
 I share my posts also on [R-bloggers](http://www.r-bloggers.com). In my posts, I discuss 
