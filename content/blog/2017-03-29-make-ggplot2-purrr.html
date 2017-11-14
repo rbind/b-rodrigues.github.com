@@ -10,6 +10,7 @@ menu:
 ---
 
 
+
 <p><em>Update</em>: I’ve included another way of saving a separate plot by group in this article, as pointed out by <a href="https://twitter.com/monitus/status/849033025631297536"><code>@monitus</code></a>. Actually, this is the preferred solution; using <code>dplyr::do()</code> is deprecated, according to Hadley Wickham <a href="https://twitter.com/hadleywickham/status/719542847045636096">himself</a>.</p>
 <p>I’ll be honest: the title is a bit misleading. I will not use <code>purrr</code> that much in this blog post. Actually, I will use one single <code>purrr</code> function, at the very end. I use <code>dplyr</code> much more. However <em>Make ggplot2 purrr</em> sounds better than <em>Make ggplot dplyr</em> or whatever the verb for <code>dplyr</code> would be.</p>
 <p>Also, this blog post was inspired by a stackoverflow question and in particular one of the <a href="http://stackoverflow.com/a/29035145/1298051">answers</a>. So I don’t bring anything new to the table, but I found this stackoverflow answer so useful and so underrated (only 16 upvotes as I’m writing this!) that I wanted to write something about it.</p>

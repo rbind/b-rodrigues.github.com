@@ -10,7 +10,7 @@ menu:
 ---
 
 ```{r, include=FALSE}
-path_to_data <- "/home/cbrunos/Documents/blogdown_blog/static/assets/Investment_total_factors_nace2.xlsx"
+path_to_data <- "/home/cbrunos/Documents/blog/static/assets/Investment_total_factors_nace2.xlsx"
 ```
 
 ## What is `jailbreakr`
@@ -46,11 +46,11 @@ If you get the following error:
 devtools::install_github("hadley/xml2")
 Downloading GitHub repo hadley/xml2@master
 from URL https://api.github.com/repos/hadley/xml2/zipball/master
-Error in system(full, intern = quiet, ignore.stderr = quiet, ...) : 
+Error in system(full, intern = quiet, ignore.stderr = quiet, ...) :
     error in running command
 ```
  and if you're on a GNU+Linux distribution try to run the following command:
- 
+
 ```{r, eval = FALSE}
 options(unzip = "internal")
 ```
@@ -91,7 +91,7 @@ tot_sheet <- which(sheets == "TOT")
 
 print(tot_sheet)
 ```
-As you can see, the sheet we want is not the second, but the third! Let us import this sheet into R now 
+As you can see, the sheet we want is not the second, but the third! Let us import this sheet into R now
 (this might take more time than you think; on my computer it takes around 10 seconds):
 
 ```{r, eval = FALSE}

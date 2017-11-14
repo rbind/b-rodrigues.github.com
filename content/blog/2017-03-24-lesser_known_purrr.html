@@ -9,11 +9,8 @@ menu:
     weight: 2
 ---
 
-<!-- BLOGDOWN-HEAD -->
-<!-- /BLOGDOWN-HEAD -->
 
-<!-- BLOGDOWN-BODY-BEFORE -->
-<!-- /BLOGDOWN-BODY-BEFORE -->
+
 <p><code>purrr</code> is a package that extends R’s functional programming capabilities. It brings a lot of new stuff to the table and in this post I show you some of the most useful (at least to me) functions included in <code>purrr</code>.</p>
 <div id="getting-rid-of-loops-with-map" class="section level2">
 <h2>Getting rid of loops with <code>map()</code></h2>
@@ -140,7 +137,7 @@ map(numbers_with_error, safe_sqrt)</code></pre>
 ## [1] NA
 ## 
 ## [[4]]$error
-## &lt;simpleError in .f(...): non-numeric argument to mathematical function&gt;
+## &lt;simpleError in sqrt(x = x): non-numeric argument to mathematical function&gt;
 ## 
 ## 
 ## [[5]]
@@ -184,7 +181,7 @@ transpose(safe_result_list)</code></pre>
 ## NULL
 ## 
 ## $error[[4]]
-## &lt;simpleError in .f(...): non-numeric argument to mathematical function&gt;
+## &lt;simpleError in sqrt(x = x): non-numeric argument to mathematical function&gt;
 ## 
 ## $error[[5]]
 ## NULL</code></pre>
@@ -196,6 +193,7 @@ transpose(safe_result_list)</code></pre>
 
 transposed_list %&gt;%
     at_depth(2, is_null)</code></pre>
+<pre><code>## Warning: at_depth() is deprecated, please use `modify_depth()` instead</code></pre>
 <pre><code>## $result
 ## $result[[1]]
 ## [1] FALSE
@@ -263,7 +261,7 @@ set_names(transposed_list, name_element)</code></pre>
 ## NULL
 ## 
 ## $`ok?`[[4]]
-## &lt;simpleError in .f(...): non-numeric argument to mathematical function&gt;
+## &lt;simpleError in sqrt(x = x): non-numeric argument to mathematical function&gt;
 ## 
 ## $`ok?`[[5]]
 ## NULL</code></pre>

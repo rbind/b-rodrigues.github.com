@@ -1,0 +1,121 @@
+---
+date: 2017-11-14
+title: "Functional peace of mind"
+tags: [R]
+menu:
+  main:
+    parent: Blog
+    identifier: /blog/peace_r
+    weight: 1
+---
+
+I think what I enjoy the most about functional programming is the peace of mind that comes with it.
+With functional programming, there's a lot of stuff you don't need to think about. You can write
+functions that are general enough so that they solve a variety of problems. For example, imagine
+for a second that R does not have the `sum()` function anymore. If you want to compute the sum of,
+say, the first 100 integers, you could write a loop that would do that for you:
+
+```{r}
+numbers = 0
+
+for (i in 1:100){
+  numbers = numbers + i
+}
+
+print(numbers)
+```
+
+The problem with this approach, is that you cannot reuse any of the code there, even if you put it
+inside a function. For instance, what if you want to merge 4 datasets together? You would need
+something like this:
+
+```{r, include=FALSE}
+library(dplyr)
+data(mtcars)
+```
+
+```{r, eval=FALSE}
+library(dplyr)
+data(mtcars)
+```
+
+```{r}
+mtcars1 = mtcars %>%
+  mutate(id = "1")
+
+mtcars2 = mtcars %>%
+  mutate(id = "2")
+
+mtcars3 = mtcars %>%
+  mutate(id = "3")
+
+mtcars4 = mtcars %>%
+  mutate(id = "4")
+
+datasets = list(mtcars1, mtcars2, mtcars3, mtcars4)
+
+temp = datasets[[1]]
+
+for(i in 1:3){
+  temp = full_join(temp, datasets[[i+1]])
+}
+
+glimpse(temp)
+```
+
+Of course, the logic is very similar as before, but you need to think carefully about the structure
+holding your elements (which can be numbers, datasets, characters, etc...) as well as be careful
+about indexing correctly... and depending on the type of objects you are working on, you might need
+to tweak the code further.
+
+How would a functional programming approach make this easier? Of course, you could use
+`purrr::reduce()` to solve these problems. However, since I assumed that `sum()` does not exist,
+I will also assume that `purrr::reduce()` does not exist either and write my own, clumsy
+implementation. Here's the code:
+
+```{r}
+my_reduce = function(a_list, a_func, init = NULL, ...){
+
+  if(is.null(init)){
+    init = `[[`(a_list, 1)
+    a_list = tail(a_list, -1)
+  }
+
+  car = `[[`(a_list, 1)
+  cdr = tail(a_list, -1)
+  init = a_func(init, car, ...)
+
+  if(length(cdr) != 0){
+    my_reduce(cdr, a_func, init, ...)
+  }
+  else {
+    init
+  }
+}
+```
+
+This can look much more complicated than before, but the idea is quite simple; *if you know about
+recursive functions* (recursive functions are functions that call themselves). I won't explain how
+the function works, because it is not the main point of the article (but if
+you're curious, I encourage you to play around with it). The point is that now, I can do the following:
+
+```{r}
+my_reduce(list(1,2,3,4,5), `+`)
+
+my_reduce(datasets, full_join) %>% glimpse
+```
+
+And if I need to merge another dataset, I don't need to change anything at all. Plus, because `my_reduce()` 
+is very general, I can even use it for situation I didn't write it for in the first place:
+
+```{r}
+my_reduce(list("a", "b", "c", "d", "e"), paste)
+```
+
+Of course, `paste()` is vectorized, so you could just as well do `paste(1, 2, 3, 4, 5)`, but again, I want
+to insist on the fact that writing or using such functions allows you to abstract over a lot of thing.
+There is nothing specific to any type of object in `my_reduce()`, whereas the loops have to be tailored
+for the kind of object you're working with. As long as the `a_func` argument is a binary operator
+that combines the elements inside `a_list`, it's going to work. And I don't need to think about
+indexing, about having temporary variables or thinking about the structure that will hold my
+results.

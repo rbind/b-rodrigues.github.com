@@ -9,11 +9,8 @@ menu:
     weight: 1
 ---
 
-<!-- BLOGDOWN-HEAD -->
-<!-- /BLOGDOWN-HEAD -->
 
-<!-- BLOGDOWN-BODY-BEFORE -->
-<!-- /BLOGDOWN-BODY-BEFORE -->
+
 <p>I was recently confronted to a situation that required going from a long dataset to a wide dataset, but with a small twist: there were two datasets, which I had to merge into one. You might wonder what kinda crappy twist that is, right? Well, let’s take a look at the data:</p>
 <pre class="r"><code>data1; data2</code></pre>
 <pre><code>## # A tibble: 20 x 4
@@ -81,13 +78,13 @@ menu:
 glimpse(data1)</code></pre>
 <pre><code>## Observations: 4
 ## Variables: 7
-## $ country                    &lt;chr&gt; &quot;lu&quot;, &quot;lu&quot;, &quot;lu&quot;, &quot;lu&quot;
-## $ date                       &lt;chr&gt; &quot;01/01/2005&quot;, &quot;01/01/2006&quot;, &quot;01/07/...
-## $ variable1:kinda_agree      &lt;int&gt; 38, 19, 31, 12
-## $ variable1:kinda_disagree   &lt;int&gt; 69, 10, 12, 9
-## $ variable1:maybe            &lt;int&gt; 22, 40, 13, 25
-## $ variable1:totally_agree    &lt;int&gt; 42, 25, 17, 16
-## $ variable1:totally_disagree &lt;int&gt; 39, 23, 17, 21</code></pre>
+## $ country                      &lt;chr&gt; &quot;lu&quot;, &quot;lu&quot;, &quot;lu&quot;, &quot;lu&quot;
+## $ date                         &lt;chr&gt; &quot;01/01/2005&quot;, &quot;01/01/2006&quot;, &quot;01/0...
+## $ `variable1:kinda_agree`      &lt;int&gt; 38, 19, 31, 12
+## $ `variable1:kinda_disagree`   &lt;int&gt; 69, 10, 12, 9
+## $ `variable1:maybe`            &lt;int&gt; 22, 40, 13, 25
+## $ `variable1:totally_agree`    &lt;int&gt; 42, 25, 17, 16
+## $ `variable1:totally_disagree` &lt;int&gt; 39, 23, 17, 21</code></pre>
 <pre class="r"><code>data2 &lt;- data2 %&gt;%
   spread(variable_2, value) %&gt;%
   rename_at(vars(-country, -date), funs(paste0(&quot;variable2:&quot;, .)))
@@ -95,13 +92,13 @@ glimpse(data1)</code></pre>
 glimpse(data2)</code></pre>
 <pre><code>## Observations: 4
 ## Variables: 7
-## $ country                    &lt;chr&gt; &quot;lu&quot;, &quot;lu&quot;, &quot;lu&quot;, &quot;lu&quot;
-## $ date                       &lt;chr&gt; &quot;01/01/2005&quot;, &quot;01/01/2006&quot;, &quot;01/07/...
-## $ variable2:kinda_agree      &lt;int&gt; 22, 40, 13, 25
-## $ variable2:kinda_disagree   &lt;int&gt; 38, 19, 31, 12
-## $ variable2:maybe            &lt;int&gt; 69, 10, 12, 9
-## $ variable2:totally_agree    &lt;int&gt; 42, 25, 17, 16
-## $ variable2:totally_disagree &lt;int&gt; 39, 23, 17, 21</code></pre>
+## $ country                      &lt;chr&gt; &quot;lu&quot;, &quot;lu&quot;, &quot;lu&quot;, &quot;lu&quot;
+## $ date                         &lt;chr&gt; &quot;01/01/2005&quot;, &quot;01/01/2006&quot;, &quot;01/0...
+## $ `variable2:kinda_agree`      &lt;int&gt; 22, 40, 13, 25
+## $ `variable2:kinda_disagree`   &lt;int&gt; 38, 19, 31, 12
+## $ `variable2:maybe`            &lt;int&gt; 69, 10, 12, 9
+## $ `variable2:totally_agree`    &lt;int&gt; 42, 25, 17, 16
+## $ `variable2:totally_disagree` &lt;int&gt; 39, 23, 17, 21</code></pre>
 <p><code>rename_at()</code> needs variables which you pass to <code>vars()</code>, a helper function to select variables, and a function that will do the renaming, passed to <code>funs()</code>. The function I use is simply <code>paste0()</code>, which pastes a string, for example “variable1:” with the name of the columns, given by the single ‘.’, a dummy argument. Now these datasets can be merged:</p>
 <pre class="r"><code>data1 %&gt;%
   full_join(data2) %&gt;%
@@ -109,16 +106,16 @@ glimpse(data2)</code></pre>
 <pre><code>## Joining, by = c(&quot;country&quot;, &quot;date&quot;)</code></pre>
 <pre><code>## Observations: 4
 ## Variables: 12
-## $ country                    &lt;chr&gt; &quot;lu&quot;, &quot;lu&quot;, &quot;lu&quot;, &quot;lu&quot;
-## $ date                       &lt;chr&gt; &quot;01/01/2005&quot;, &quot;01/01/2006&quot;, &quot;01/07/...
-## $ variable1:kinda_agree      &lt;int&gt; 38, 19, 31, 12
-## $ variable1:kinda_disagree   &lt;int&gt; 69, 10, 12, 9
-## $ variable1:maybe            &lt;int&gt; 22, 40, 13, 25
-## $ variable1:totally_agree    &lt;int&gt; 42, 25, 17, 16
-## $ variable1:totally_disagree &lt;int&gt; 39, 23, 17, 21
-## $ variable2:kinda_agree      &lt;int&gt; 22, 40, 13, 25
-## $ variable2:kinda_disagree   &lt;int&gt; 38, 19, 31, 12
-## $ variable2:maybe            &lt;int&gt; 69, 10, 12, 9
-## $ variable2:totally_agree    &lt;int&gt; 42, 25, 17, 16
-## $ variable2:totally_disagree &lt;int&gt; 39, 23, 17, 21</code></pre>
+## $ country                      &lt;chr&gt; &quot;lu&quot;, &quot;lu&quot;, &quot;lu&quot;, &quot;lu&quot;
+## $ date                         &lt;chr&gt; &quot;01/01/2005&quot;, &quot;01/01/2006&quot;, &quot;01/0...
+## $ `variable1:kinda_agree`      &lt;int&gt; 38, 19, 31, 12
+## $ `variable1:kinda_disagree`   &lt;int&gt; 69, 10, 12, 9
+## $ `variable1:maybe`            &lt;int&gt; 22, 40, 13, 25
+## $ `variable1:totally_agree`    &lt;int&gt; 42, 25, 17, 16
+## $ `variable1:totally_disagree` &lt;int&gt; 39, 23, 17, 21
+## $ `variable2:kinda_agree`      &lt;int&gt; 22, 40, 13, 25
+## $ `variable2:kinda_disagree`   &lt;int&gt; 38, 19, 31, 12
+## $ `variable2:maybe`            &lt;int&gt; 69, 10, 12, 9
+## $ `variable2:totally_agree`    &lt;int&gt; 42, 25, 17, 16
+## $ `variable2:totally_disagree` &lt;int&gt; 39, 23, 17, 21</code></pre>
 <p>Hope this post helps you understand the difference between long and wide datasets better, as well as <code>dplyr::rename_at()</code>!</p>
