@@ -1,0 +1,69 @@
+---
+date: 2017-12-27
+title: "Building formulae"
+tags: [R]
+menu:
+  main:
+    parent: Blog
+    identifier: /blog/build_formulae
+    weight: 1
+---
+
+[This](https://stackoverflow.com/questions/47957081/k-fold-cross-validation-in-purr-and-model)
+Stackoverflow question made me think about how to build formulae. For example, you might want to
+programmatically build linear model formulae and then map these models on data. For example,
+suppose the following (output suppressed):
+
+```{r, eval = FALSE}
+data(mtcars)
+
+lm(mpg ~ hp, data = mtcars)
+lm(mpg ~I(hp^2), data = mtcars)
+lm(mpg ~I(hp^3), data = mtcars)
+lm(mpg ~I(hp^4), data = mtcars)
+lm(mpg ~I(hp^5), data = mtcars)
+lm(mpg ~I(hp^6), data = mtcars)
+```
+
+To avoid doing this, one can write a function that builds the formulae:
+
+```{r}
+create_form = function(power){
+  rhs = substitute(I(hp^pow), list(pow=power))
+  rlang::new_formula(quote(mpg), rhs)
+}
+```
+
+If you are not familiar with `substitute()`, try the following to understand what it does:
+
+```{r}
+substitute(y ~ x, list(x = 1))
+```
+
+Then using `rlang::new_formula()` I build a formula by providing the left hand side, which is
+`quote(mpg)` here, and the right hand side, which I built using `substitute()`. Now I can create a
+list of formulae:
+
+```{r, include=FALSE}
+library(tidyverse)
+```
+
+```{r}
+library(tidyverse)
+
+list_formulae = map(seq(1, 6), create_form)
+
+str(list_formulae)
+```
+
+As you can see, `power` got replaced by 1, 2, 3,... and each element of the list is a nice formula.
+Exactly what `lm()` needs. So now it's easy to map `lm()` to this list of formulae:
+
+```{r}
+data(mtcars)
+
+map(list_formulae, lm, data = mtcars)
+```
+
+This is still a new topic for me there might be more elegant ways to do that, using tidyeval to remove
+the hardcoding of the columns in `create_form()`. I might continue exploring this.

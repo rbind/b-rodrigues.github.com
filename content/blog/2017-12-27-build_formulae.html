@@ -1,0 +1,112 @@
+---
+date: 2017-12-27
+title: "Building formulae"
+tags: [R]
+menu:
+  main:
+    parent: Blog
+    identifier: /blog/build_formulae
+    weight: 1
+---
+
+
+
+<p><a href="https://stackoverflow.com/questions/47957081/k-fold-cross-validation-in-purr-and-model">This</a> Stackoverflow question made me think about how to build formulae. For example, you might want to programmatically build linear model formulae and then map these models on data. For example, suppose the following (output suppressed):</p>
+<pre class="r"><code>data(mtcars)
+
+lm(mpg ~ hp, data = mtcars)
+lm(mpg ~I(hp^2), data = mtcars)
+lm(mpg ~I(hp^3), data = mtcars)
+lm(mpg ~I(hp^4), data = mtcars)
+lm(mpg ~I(hp^5), data = mtcars)
+lm(mpg ~I(hp^6), data = mtcars)</code></pre>
+<p>To avoid doing this, one can write a function that builds the formulae:</p>
+<pre class="r"><code>create_form = function(power){
+  rhs = substitute(I(hp^pow), list(pow=power))
+  rlang::new_formula(quote(mpg), rhs)
+}</code></pre>
+<p>If you are not familiar with <code>substitute()</code>, try the following to understand what it does:</p>
+<pre class="r"><code>substitute(y ~ x, list(x = 1))</code></pre>
+<pre><code>## y ~ 1</code></pre>
+<p>Then using <code>rlang::new_formula()</code> I build a formula by providing the left hand side, which is <code>quote(mpg)</code> here, and the right hand side, which I built using <code>substitute()</code>. Now I can create a list of formulae:</p>
+<pre class="r"><code>library(tidyverse)
+
+list_formulae = map(seq(1, 6), create_form)
+
+str(list_formulae)</code></pre>
+<pre><code>## List of 6
+##  $ :Class &#39;formula&#39;  language mpg ~ I(hp^1L)
+##   .. ..- attr(*, &quot;.Environment&quot;)=&lt;environment: 0x562acd8cf670&gt; 
+##  $ :Class &#39;formula&#39;  language mpg ~ I(hp^2L)
+##   .. ..- attr(*, &quot;.Environment&quot;)=&lt;environment: 0x562acd833300&gt; 
+##  $ :Class &#39;formula&#39;  language mpg ~ I(hp^3L)
+##   .. ..- attr(*, &quot;.Environment&quot;)=&lt;environment: 0x562acfbb7e30&gt; 
+##  $ :Class &#39;formula&#39;  language mpg ~ I(hp^4L)
+##   .. ..- attr(*, &quot;.Environment&quot;)=&lt;environment: 0x562acfc10ac8&gt; 
+##  $ :Class &#39;formula&#39;  language mpg ~ I(hp^5L)
+##   .. ..- attr(*, &quot;.Environment&quot;)=&lt;environment: 0x562acfc4a1b0&gt; 
+##  $ :Class &#39;formula&#39;  language mpg ~ I(hp^6L)
+##   .. ..- attr(*, &quot;.Environment&quot;)=&lt;environment: 0x562acfc682a0&gt;</code></pre>
+<p>As you can see, <code>power</code> got replaced by 1, 2, 3,… and each element of the list is a nice formula. Exactly what <code>lm()</code> needs. So now it’s easy to map <code>lm()</code> to this list of formulae:</p>
+<pre class="r"><code>data(mtcars)
+
+map(list_formulae, lm, data = mtcars)</code></pre>
+<pre><code>## [[1]]
+## 
+## Call:
+## .f(formula = .x[[i]], data = ..1)
+## 
+## Coefficients:
+## (Intercept)      I(hp^1)  
+##    30.09886     -0.06823  
+## 
+## 
+## [[2]]
+## 
+## Call:
+## .f(formula = .x[[i]], data = ..1)
+## 
+## Coefficients:
+## (Intercept)      I(hp^2)  
+##  24.3887252   -0.0001649  
+## 
+## 
+## [[3]]
+## 
+## Call:
+## .f(formula = .x[[i]], data = ..1)
+## 
+## Coefficients:
+## (Intercept)      I(hp^3)  
+##   2.242e+01   -4.312e-07  
+## 
+## 
+## [[4]]
+## 
+## Call:
+## .f(formula = .x[[i]], data = ..1)
+## 
+## Coefficients:
+## (Intercept)      I(hp^4)  
+##   2.147e+01   -1.106e-09  
+## 
+## 
+## [[5]]
+## 
+## Call:
+## .f(formula = .x[[i]], data = ..1)
+## 
+## Coefficients:
+## (Intercept)      I(hp^5)  
+##   2.098e+01   -2.801e-12  
+## 
+## 
+## [[6]]
+## 
+## Call:
+## .f(formula = .x[[i]], data = ..1)
+## 
+## Coefficients:
+## (Intercept)      I(hp^6)  
+##   2.070e+01   -7.139e-15</code></pre>
+<p>This is still a new topic for me there might be more elegant ways to do that, using tidyeval to remove the hardcoding of the columns in <code>create_form()</code>. I might continue exploring this.</p>
