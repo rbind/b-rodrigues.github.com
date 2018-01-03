@@ -1,0 +1,140 @@
+---
+date: 2018-01-03
+title: "It's lists all the way down"
+tags: [R]
+menu:
+  main:
+    parent: Blog
+    identifier: /blog/lists_all_the_way
+    weight: 1
+---
+
+Today, I had the opportunity to help someone over at the R for Data Science Slack group (read more
+about this group [here](https://medium.com/@kierisi/r4ds-the-next-iteration-d51e0a1b0b82)) and I
+thought that the question asked could make for an interesting blog post, so here it is!
+
+Disclaimer: the way I'm doing things here is totally not optimal, but I want to illustrate how to map
+functions over nested lists. But I show the optimal way at the end, so for the people that are
+familiar with `purrr` don't get mad at me.
+
+Suppose you have to do certain data transformation tasks on a data frame, and you write a nice function
+that does that for you:
+
+```{r, include=FALSE}
+library(tidyverse)
+```
+
+```{r, eval=FALSE}
+library(tidyverse)
+```
+
+```{r}
+data(mtcars)
+
+nice_function = function(df, param1, param2){
+  df = df %>%
+    filter(cyl == param1, am == param2) %>%
+    mutate(result = mpg * param1 * (2 - param2))
+
+  return(df)
+}
+
+nice_function(mtcars, 4, 0)
+```
+
+This might seem like a silly function and not a nice function, but it will illustrate the point I want
+to make (and the question that was asked) very well. This function is completely useless, but bear
+with me. Now, suppose that you want to do these operations for each value of `cyl` and `am` (of course
+you can do that without using `nice_function()`...). First, you might want to fix the value of `am`
+to 0, and then loop over the values of `cyl`. But as I have explained in this
+[other blog post](http://blog.rdata.lu/post/2017-12-21-skip-errors-in-r-by-not-writing-loops/) I
+prefer using the `map()` functions included in `purrr`. For example:
+
+```{r}
+values_cyl = c(4, 6, 8)
+
+(result = map(values_cyl, nice_function, df = mtcars, param2 = 0))
+```
+
+What you get here is a list for each value in `values_cyl`; so one list for `4`, one for `6` and
+one for `8`. Suppose now that you are feeling adventurous, and want to loop over the values of `am` too:
+
+```{r}
+values_am = c(0, 1)
+```
+
+So first, we need to map a function to each element of `values_am`. But which function? Well, for
+*given* value of `am`, our problem is the same as before; we need to map `nice_function()` to each
+value of `cyl`. So, that's what we're going to do:
+
+```{r}
+(result = map(values_am, ~map(values_cyl, nice_function, df = mtcars, param2 = .)))
+```
+
+We now have a list of size 2 (for each value of `am`) where each element is itself a list of size
+3 (for each value of `cyl`) where each element is a data frame. Are you still with me? Also, notice
+that the second map is given as a formula (notice the `~` in front of the second map). This creates
+an anonymous function, where the parameter is given by the `.` (think of the `.` as being the `x`
+in `f(x)`). So the `.` is the stand-in for the values contained inside `values_am`.
+
+The people that are familiar with the `map()` functions must be fuming right now; there is a way
+to avoid this nested hell. I will talk about it soon, but first I want to play around with this list of lists.
+
+If you have a list of data frames, you can bind their rows together with `reduce(list_of_dfs, rbind)`.
+You would like to this here, but because your lists of data frames are contained inside another list...
+you guessed it, you have to map over it!
+
+```{r}
+(result2 = map(result, ~reduce(., rbind)))
+```
+
+Here again, I pass `reduce()` as a formula to `map()` to create an anonymous function. Again, the `.`
+is used as the stand-in for each element contained in `result`; a list of data frames, where `reduce(., rbind)`
+knows what to do. Now that we have this we can use `reduce()` with `rbind()` again to get a single
+data frame:
+
+```{r}
+(result3 = reduce(result2, rbind))
+```
+
+Of course, since `reduce(list_of_dfs, rbind)` is such a common operation, you could have simply used
+`dplyr::bind_rows`, which does exactly this:
+
+```{r}
+(result2 = map(result, bind_rows))
+```
+
+and then:
+
+```{r}
+(result3 = bind_rows(result2))
+```
+
+Of course, things are even simpler: you can avoid this deeply nested monstrosity by using `map_df()`
+instead of `map()`! `map_df()` works just like `map()` but return a data frame (hence the `_df`
+in the name) instead of a list:
+
+```{r}
+(result_df = map_df(values_am, ~map_df(values_cyl, nice_function, df = mtcars, param2 = .)))
+```
+
+If you look at the source code of `map_df()` you see that `dplyr::bind_rows` gets called in the end:
+
+```{r}
+map_df
+```
+
+So moraly of the story? There are a lot of variants of the common `purrr::map()` function (as well
+as of `dplyr` verbs, such as `filter_at`, `select_if`, etc...) and learning about them can save you
+from a lot of pain! However, if you need to apply function to nested lists this is still possible;
+you just have to think about the structure of the nested list a bit. There is also another function
+that you might want to study, `modify_depth()` which solves related issues but I will end the
+blog post here. I might talk about it in a future blog post.
+
+Also, if you want to learn more about R and the tidyverse, do read the link I posted in the introduction
+of the post and join the R4ds slack group! There are a lot of very nice people there that want to help you
+get better with your R-fu. Also, this is where I got the inspiration to write this blog post and I
+am thankful to the people there for the discussions; I feel comfortable with R, but I still learn
+new tips and tricks every day!
+
+If you enjoy these blog posts, you can follow me on [twitter](https://twitter.com/brodriguesco).
