@@ -302,7 +302,7 @@ nice_function(mtcars, 4, 0)</code></pre>
 ## 30 19.7   6 145.0 175 3.62 2.770 15.50  0  1    5    6  118.2
 ## 31 15.8   8 351.0 264 4.22 3.170 14.50  0  1    5    4  126.4
 ## 32 15.0   8 301.0 335 3.54 3.570 14.60  0  1    5    8  120.0</code></pre>
-<p>If you look at the source code of <code>map_df()</code> you see that <code>dplyr::bind_rows</code> gets called in the end:</p>
+<p>If you look at the source code of <code>map_df()</code> you see that <code>dplyr::bind_rows</code> gets called at the end:</p>
 <pre class="r"><code>map_df</code></pre>
 <pre><code>## function (.x, .f, ..., .id = NULL) 
 ## {
@@ -314,6 +314,6 @@ nice_function(mtcars, 4, 0)</code></pre>
 ##     dplyr::bind_rows(res, .id = .id)
 ## }
 ## &lt;environment: namespace:purrr&gt;</code></pre>
-<p>So moraly of the story? There are a lot of variants of the common <code>purrr::map()</code> function (as well as of <code>dplyr</code> verbs, such as <code>filter_at</code>, <code>select_if</code>, etc…) and learning about them can save you from a lot of pain! However, if you need to apply function to nested lists this is still possible; you just have to think about the structure of the nested list a bit. There is also another function that you might want to study, <code>modify_depth()</code> which solves related issues but I will end the blog post here. I might talk about it in a future blog post.</p>
+<p>So moral of the story? There are a lot of variants of the common <code>purrr::map()</code> functions (as well as of <code>dplyr</code> verbs, such as <code>filter_at</code>, <code>select_if</code>, etc…) and learning about them can save you from a lot of pain! However, if you need to apply a function to nested lists this is still possible; you just have to think about the structure of the nested list for a bit. There is also another function that you might want to study, <code>modify_depth()</code> which solves related issues but I will end the blog post here. I might talk about it in a future blog post.</p>
 <p>Also, if you want to learn more about R and the tidyverse, do read the link I posted in the introduction of the post and join the R4ds slack group! There are a lot of very nice people there that want to help you get better with your R-fu. Also, this is where I got the inspiration to write this blog post and I am thankful to the people there for the discussions; I feel comfortable with R, but I still learn new tips and tricks every day!</p>
-<p>If you enjoy these blog posts, you can follow me on <a href="https://twitter.com/brodriguesco">twitter</a>.</p>
+<p>If you enjoy these blog posts, you can follow me on <a href="https://twitter.com/brodriguesco">twitter</a>. And happy new yeaR!</p>
