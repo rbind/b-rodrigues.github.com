@@ -118,16 +118,16 @@ in the name) instead of a list:
 (result_df = map_df(values_am, ~map_df(values_cyl, nice_function, df = mtcars, param2 = .)))
 ```
 
-If you look at the source code of `map_df()` you see that `dplyr::bind_rows` gets called in the end:
+If you look at the source code of `map_df()` you see that `dplyr::bind_rows` gets called at the end:
 
 ```{r}
 map_df
 ```
 
-So moraly of the story? There are a lot of variants of the common `purrr::map()` function (as well
+So moral of the story? There are a lot of variants of the common `purrr::map()` functions (as well
 as of `dplyr` verbs, such as `filter_at`, `select_if`, etc...) and learning about them can save you
-from a lot of pain! However, if you need to apply function to nested lists this is still possible;
-you just have to think about the structure of the nested list a bit. There is also another function
+from a lot of pain! However, if you need to apply a function to nested lists this is still possible;
+you just have to think about the structure of the nested list for a bit. There is also another function
 that you might want to study, `modify_depth()` which solves related issues but I will end the
 blog post here. I might talk about it in a future blog post.
 
@@ -137,4 +137,5 @@ get better with your R-fu. Also, this is where I got the inspiration to write th
 am thankful to the people there for the discussions; I feel comfortable with R, but I still learn
 new tips and tricks every day!
 
-If you enjoy these blog posts, you can follow me on [twitter](https://twitter.com/brodriguesco).
+If you enjoy these blog posts, you can follow me on [twitter](https://twitter.com/brodriguesco). 
+And happy new yeaR!
