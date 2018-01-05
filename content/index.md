@@ -13,11 +13,11 @@ type: index
 
 Hi! My name is Bruno Rodrigues, and I'm a research assistant at the research division of [STATEC](http://www.statistiques.public.lu/en/actors/statec/organisation/red/index.html).
 
-I program mostly in R and love sharing my knowledge, that's why I started this blog. 
-I share my posts also on [R-bloggers](http://www.r-bloggers.com). In my posts, I discuss 
-new packages I discovered or new ways of using packages. 
+I program mostly in R and love sharing my knowledge, that's why I started this blog.
+I share my posts also on [R-bloggers](http://www.r-bloggers.com). In my posts, I discuss
+new packages I discovered or new ways of using packages.
 
-If you were one of my students, and need some of the materials I taught, just drop me an [email](mailto:contact@brodrigues.co).
+If you were one of my students, and need some of the materials I taught, just drop me an [email](mailto:bruno@brodrigues.co).
 
 You can follow me on [twitter](https://twitter.com/brodriguesco) for blog updates.
 
