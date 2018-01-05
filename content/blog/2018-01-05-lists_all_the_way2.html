@@ -41,7 +41,7 @@ nice_function(mtcars, 4, 0)</code></pre>
 <pre class="r"><code>values_cyl = c(4, 6, 8)
 
 values_am = c(0, 1)</code></pre>
-<p>Now that we’re here, we would like to apply <code>nice_function()</code> to each element of <code>values_cyl</code> and <code>values_am</code>. In essence, loop over these values. But because loops are not really easy to manipulate, (as explained, in part, <a href="http://blog.rdata.lu/post/2017-12-21-skip-errors-in-r-by-not-writing-loops/">here</a>) I use the <code>map*</code> family of function included in <code>purrr</code> (When I teach R, I only show loops in the <em>advanced topics</em> chapter of my notes). So let’s “loop” over <code>values_cyl</code> and <code>values_am</code> with <code>map()</code> (and not <code>map_df()</code>; there is a reason for this, bear with me):</p>
+<p>Now that we’re here, we would like to apply <code>nice_function()</code> to each element of <code>values_cyl</code> and <code>values_am</code>. In essence, loop over these values. But because loops are not really easy to manipulate, (as explained, in part, <a href="http://blog.rdata.lu/post/2017-12-21-skip-errors-in-r-by-not-writing-loops/">here</a>) I use the <code>map*</code> family of functions included in <code>purrr</code> (When I teach R, I only show loops in the <em>advanced topics</em> chapter of my notes). So let’s “loop” over <code>values_cyl</code> and <code>values_am</code> with <code>map()</code> (and not <code>map_df()</code>; there is a reason for this, bear with me):</p>
 <pre class="r"><code>(result = map(values_am, ~map(values_cyl, nice_function, df = mtcars, param2 = .)))</code></pre>
 <pre><code>## [[1]]
 ## [[1]][[1]]
@@ -95,8 +95,8 @@ values_am = c(0, 1)</code></pre>
 ##    mpg cyl disp  hp drat   wt qsec vs am gear carb result
 ## 1 15.8   8  351 264 4.22 3.17 14.5  0  1    5    4  126.4
 ## 2 15.0   8  301 335 3.54 3.57 14.6  0  1    5    8  120.0</code></pre>
-<p>Until now, nothing new compared to my previous post (so if you have a hard time to follow what I’m doing, go read it <a href="http://www.brodrigues.co/blog/2018-01-03-lists_all_the_way/">here</a>).</p>
-<p>As far as I know, there is no way, in this example, to avoid this nested map call. However, suppose now that you want to apply a function to each single data frame contained in the list <code>result</code>. Of course, here, you could simply use <code>bind_rows()</code> to have a single data frame and then apply your function to it. But suppose that you want to keep this list structure; at the end, I will give and example of why you might want that, using another <code>purrr</code> function, <code>walk()</code> and Thomas’ J. Leeper brililant <a href="https://github.com/leeper/rio"><code>rio</code></a> package.</p>
+<p>Until now, nothing new compared to my previous post (so if you have a hard time to follow what I’m doing here, go read it <a href="http://www.brodrigues.co/blog/2018-01-03-lists_all_the_way/">here</a>).</p>
+<p>As far as I know, there is no way, in this example, to avoid this nested map call. However, suppose now that you want to apply a function to each single data frame contained in the list <code>result</code>. Of course, here, you could simply use <code>bind_rows()</code> to have a single data frame and then apply your function to it. But suppose that you want to keep this list structure; at the end, I will give an example of why you might want that, using another <code>purrr</code> function, <code>walk()</code> and Thomas’ J. Leeper brilliant <a href="https://github.com/leeper/rio"><code>rio</code></a> package.</p>
 <p>So suppose you want to use this function here:</p>
 <pre class="r"><code>double_col = function(dataset, col){
   col = enquo(col)
@@ -247,7 +247,7 @@ values_am = c(0, 1)</code></pre>
 ##    mpg cyl disp  hp drat   wt qsec vs am gear carb result double_disp
 ## 1 15.8   8  351 264 4.22 3.17 14.5  0  1    5    4  126.4         702
 ## 2 15.0   8  301 335 3.54 3.57 14.6  0  1    5    8  120.0         602</code></pre>
-<p>So how does it work? <code>modify_depth()</code> needs a list and a <code>.depth</code> argument, which corresponds to where you you mant to apply your function. The following lines of code might help you understand:</p>
+<p>So how does it work? <code>modify_depth()</code> needs a list and a <code>.depth</code> argument, which corresponds to where you you want to apply your function. The following lines of code might help you understand:</p>
 <pre class="r"><code># Depth of 1:
 
 result[[1]]</code></pre>
@@ -281,13 +281,13 @@ result[[1]]</code></pre>
 <p>In this example, a depth of 1 corresponds to a list of three data frame. Can you use your function <code>double_col()</code> on a list of three data frames? No, because the domain of <code>double_col()</code> is the set of data frames, not the set of lists of data frames. So you need to go deeper:</p>
 <pre class="r"><code># Depth of 2:
 
-result[[1]][[1]]</code></pre>
+result[[1]][[1]] # or try result[[1]][[2]] or result[[1]][[3]]</code></pre>
 <pre><code>##    mpg cyl  disp hp drat    wt  qsec vs am gear carb result double_disp
 ## 1 24.4   4 146.7 62 3.69 3.190 20.00  1  0    4    2  195.2       293.4
 ## 2 22.8   4 140.8 95 3.92 3.150 22.90  1  0    4    2  182.4       281.6
 ## 3 21.5   4 120.1 97 3.70 2.465 20.01  1  0    3    1  172.0       240.2</code></pre>
 <p>At the depth of 2, you’re dealing with data frames! So you can use your function <code>double_col()</code>. With a depth of 2, one might not see the added value of <code>modify_depth()</code> over nested map calls, but if you have to go even deeper, nested map calls are very confusing and verbose.</p>
-<p>Now for the last part; why doing all this, and not simply binding all the rows, apply <code>double_col()</code> and call it a day? Well, suppose that there is a reason you have these data frames inside lists; for example, the first element, i.e., <code>result[[1]]</code> might be data for, say, Portugal, for 3 different years. <code>result[[2]]</code> however, is data for France, for the same years. Suppose also that you have to give this data, after having worked on it, to a colleague (or to another institution) in the Excel format; one Excel workbook per country, one sheet per year. This example might seem contrived, but I have been confronted to this exact situation very often. Well, if you bind all the rows together, how are you going to save the data in the workbooks like you are required to?</p>
+<p>Now for the last part; why doing all this, and not simply bind all the rows, apply <code>double_col()</code> and call it a day? Well, suppose that there is a reason you have these data frames inside lists; for example, the first element, i.e., <code>result[[1]]</code> might be data for, say, Portugal, for 3 different years. <code>result[[2]]</code> however, is data for France, for the same years. Suppose also that you have to give this data, after having worked on it, to a colleague (or to another institution) in the Excel format; one Excel workbook per country, one sheet per year. This example might seem contrived, but I have been confronted to this exact situation very often. Well, if you bind all the rows together, how are you going to save the data in the workbooks like you are required to?</p>
 <p>Well, thanks to <code>rio</code>, one line of code is enough:</p>
 <pre class="r"><code>library(rio)
 
