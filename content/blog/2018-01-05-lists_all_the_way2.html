@@ -293,4 +293,10 @@ result[[1]][[1]]</code></pre>
 
 walk2(result, list(&quot;portugal.xlsx&quot;, &quot;france.xlsx&quot;), export)</code></pre>
 <p>I know what you’re thinking; <em>Bruno, that’s two lines of code!</em>. Yes, but I had to load <code>rio</code>. Also, <code>walk()</code> (and <code>walk2()</code>) are basically the same as <code>map()</code>, but you use <code>walk()</code> over <code>map()</code> when you are only interested in the side effect of the function you are applying over your list; here, <code>export()</code> which is <code>rio</code>’s function to write data to disk. The side effect of this function is… writing data to disk! You could have used <code>map2()</code> just the same, but I wanted to show you <code>walk2()</code> (however, you cannot replace <code>map()</code> by <code>walk()</code> in most cases; try it and see what happens).</p>
+<p>Here’s what it looks like:</p>
+<div class="figure">
+<img src="/img/deeper_xlsx.gif" />
+
+</div>
+<p>I have two Excel workbooks, (one per list), where each sheet is a data frame!</p>
 <p>If you enjoy these blog posts, you can follow me on <a href="https://twitter.com/brodriguesco">twitter</a>.</p>

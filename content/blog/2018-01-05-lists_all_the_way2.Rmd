@@ -164,4 +164,10 @@ which is `rio`'s function to write data to disk. The side effect of this functio
 You could have used `map2()` just the same, but I wanted to show you `walk2()` (however, you cannot
 replace `map()` by `walk()` in most cases; try it and see what happens).
 
+Here's what it looks like:
+
+![](/img/deeper_xlsx.gif)
+
+I have two Excel workbooks, (one per list), where each sheet is a data frame!
+
 If you enjoy these blog posts, you can follow me on [twitter](https://twitter.com/brodriguesco).
