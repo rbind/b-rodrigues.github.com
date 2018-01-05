@@ -68,7 +68,7 @@ values_am = c(0, 1)
 Now that we're here, we would like to apply `nice_function()` to each element of `values_cyl` and
 `values_am`. In essence, loop over these values. But because loops are not really easy to manipulate,
 (as explained, in part, [here](http://blog.rdata.lu/post/2017-12-21-skip-errors-in-r-by-not-writing-loops/))
-I use the `map*` family of function included in `purrr` (When I teach R, I only show loops in the
+I use the `map*` family of functions included in `purrr` (When I teach R, I only show loops in the
 *advanced topics* chapter of my notes). So let's "loop" over `values_cyl` and `values_am` with `map()`
 (and not `map_df()`; there is a reason for this, bear with me):
 
@@ -77,14 +77,14 @@ I use the `map*` family of function included in `purrr` (When I teach R, I only 
 ```
 
 Until now, nothing new compared to my previous post (so if you have a hard time to follow what I'm
-doing, go read it [here](http://www.brodrigues.co/blog/2018-01-03-lists_all_the_way/)).
+doing here, go read it [here](http://www.brodrigues.co/blog/2018-01-03-lists_all_the_way/)).
 
 As far as I know, there is no way, in this example, to avoid this nested map call. However,
 suppose now that you want to apply a function to each single data frame contained in the list `result`.
 Of course, here, you could simply use `bind_rows()` to have a single data frame and then apply your
-function to it. But suppose that you want to keep this list structure; at the end, I will give and
+function to it. But suppose that you want to keep this list structure; at the end, I will give an
 example of why you might want that, using another `purrr` function, `walk()` and Thomas' J. Leeper
-brililant [`rio`](https://github.com/leeper/rio) package.
+brilliant [`rio`](https://github.com/leeper/rio) package.
 
 So suppose you want to use this function here:
 
@@ -133,14 +133,14 @@ of data frames, not the set of lists of data frames. So you need to go deeper:
 ```{r}
 # Depth of 2:
 
-result[[1]][[1]]
+result[[1]][[1]] # or try result[[1]][[2]] or result[[1]][[3]]
 ```
 
 At the depth of 2, you're dealing with data frames! So you can use your function `double_col()`.
 With a depth of 2, one might not see the added value of `modify_depth()` over nested map calls, but
 if you have to go even deeper, nested map calls are very confusing and verbose.
 
-Now for the last part; why doing all this, and not simply binding all the rows, apply `double_col()`
+Now for the last part; why doing all this, and not simply bind all the rows, apply `double_col()`
 and call it a day? Well, suppose that there is a reason you have these data frames inside lists; for
 example, the first element, i.e., `result[[1]]` might be data for, say, Portugal, for 3 different years.
 `result[[2]]` however, is data for France, for the same years. Suppose also that you have to give
