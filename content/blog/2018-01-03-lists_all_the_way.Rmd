@@ -9,6 +9,8 @@ menu:
     weight: 1
 ---
 
+*There's a part 2 to this post: read it [here](http://www.brodrigues.co/blog/2018-01-05-lists_all_the_way2/).*
+
 Today, I had the opportunity to help someone over at the R for Data Science Slack group (read more
 about this group [here](https://medium.com/@kierisi/r4ds-the-next-iteration-d51e0a1b0b82)) and I
 thought that the question asked could make for an interesting blog post, so here it is!
@@ -137,5 +139,5 @@ get better with your R-fu. Also, this is where I got the inspiration to write th
 am thankful to the people there for the discussions; I feel comfortable with R, but I still learn
 new tips and tricks every day!
 
-If you enjoy these blog posts, you can follow me on [twitter](https://twitter.com/brodriguesco). 
+If you enjoy these blog posts, you can follow me on [twitter](https://twitter.com/brodriguesco).
 And happy new yeaR!
