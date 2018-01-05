@@ -118,7 +118,7 @@ but there's an easier solution, which is using `modify_depth()`:
 ```
 
 So how does it work? `modify_depth()` needs a list and a `.depth` argument, which corresponds to
-where you you mant to apply your function. The following lines of code might help you understand:
+where you you want to apply your function. The following lines of code might help you understand:
 
 ```{r}
 # Depth of 1:
