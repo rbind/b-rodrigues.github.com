@@ -8,7 +8,7 @@ type: index
 
 
 <div style="float: left;margin: 0px 80px 50px 0px">
-    <img src="/img/profile.jpg" width="213" height="213"/>
+    <img src="/img/profile.jpg" width="395" height="647"/>
 </div>
 
 Hi! My name is Bruno Rodrigues, and I'm a research assistant at the research division of [STATEC](http://www.statistiques.public.lu/en/actors/statec/organisation/red/index.html).
