@@ -1,0 +1,79 @@
+---
+date: 2018-01-19
+title: "Mapping a list of functions to a list of datasets with a list of columns as arguments"
+tags: [R]
+menu:
+  main:
+    parent: Blog
+    identifier: /blog/mapping_functions_with_any_cols
+    weight: 1
+---
+
+
+
+<p>This week I had the opportunity to teach R at my workplace, again. This course was the “advanced R” course, and unlike the one I taught at the end of last year, I had one more day (so 3 days in total) where I could show my colleagues the joys of the <code>tidyverse</code> and R.</p>
+<p>To finish the section on programming with R, which was the very last section of the whole 3 day course I wanted to blow their minds; I had already shown them packages from the <code>tidyverse</code> in the previous days, such as <code>dplyr</code>, <code>purrr</code> and <code>stringr</code>, among others. I taught them how to use <code>ggplot2</code>, <code>broom</code> and <code>modelr</code>. They also liked <code>janitor</code> and <code>rio</code> very much. I noticed that it took them a bit more time and effort for them to digest <code>purrr::map()</code> and <code>purrr::reduce()</code>, but they all seemed to see how powerful these functions were. To finish on a very high note, I showed them the ultimate <code>purrr::map()</code> use case.</p>
+<p>Consider the following; imagine you have a situation where you are working on a list of datasets. These datasets might be the same, but for different years, or for different countries, or they might be completely different datasets entirely. If you used <code>rio::import_list()</code> to read them into R, you will have them in a nice list. Let’s consider the following list as an example:</p>
+<pre class="r"><code>library(tidyverse)</code></pre>
+<pre class="r"><code>data(mtcars)
+data(iris)
+
+data_list = list(mtcars, iris)</code></pre>
+<p>I made the choice to have completely different datasets. Now, I would like to map some functions to the columns of these datasets. If I only worked on one, for example on <code>mtcars</code>, I would do something like:</p>
+<pre class="r"><code>my_summarise_f = function(dataset, cols, funcs){
+  dataset %&gt;%
+    summarise_at(vars(!!!cols), funs(!!!funcs))
+}</code></pre>
+<p>And then I would use my function like so:</p>
+<pre class="r"><code>mtcars %&gt;%
+  my_summarise_f(quos(mpg, drat, hp), quos(mean, sd, max))</code></pre>
+<pre><code>##   mpg_mean drat_mean  hp_mean   mpg_sd   drat_sd    hp_sd mpg_max drat_max
+## 1 20.09062  3.596563 146.6875 6.026948 0.5346787 68.56287    33.9     4.93
+##   hp_max
+## 1    335</code></pre>
+<p><code>my_summarise_f()</code> takes a dataset, a list of columns and a list of functions as arguments and uses tidy evaluation to apply <code>mean()</code>, <code>sd()</code>, and <code>max()</code> to the columns <code>mpg</code>, <code>drat</code> and <code>hp</code> of <code>mtcars</code>. That’s pretty useful, but not useful enough! Now I want to apply this to the list of datasets I defined above. For this, let’s define the list of columns I want to work on:</p>
+<pre class="r"><code>cols_mtcars = quos(mpg, drat, hp)
+cols_iris = quos(Sepal.Length, Sepal.Width)
+
+cols_list = list(cols_mtcars, cols_iris)</code></pre>
+<p>Now, let’s use some <code>purrr</code> magic to apply the functions I want to the columns I have defined in <code>list_cols</code>:</p>
+<pre class="r"><code>map2(data_list,
+     cols_list,
+     my_summarise_f, funcs = quos(mean, sd, max))</code></pre>
+<pre><code>## [[1]]
+##   mpg_mean drat_mean  hp_mean   mpg_sd   drat_sd    hp_sd mpg_max drat_max
+## 1 20.09062  3.596563 146.6875 6.026948 0.5346787 68.56287    33.9     4.93
+##   hp_max
+## 1    335
+## 
+## [[2]]
+##   Sepal.Length_mean Sepal.Width_mean Sepal.Length_sd Sepal.Width_sd
+## 1          5.843333         3.057333       0.8280661      0.4358663
+##   Sepal.Length_max Sepal.Width_max
+## 1              7.9             4.4</code></pre>
+<p>That’s pretty useful, but not useful enough! I want to also use different functions to different datasets!</p>
+<p>Well, let’s define a list of functions then:</p>
+<pre class="r"><code>funcs_mtcars = quos(mean, sd, max)
+funcs_iris = quos(median, min)
+
+funcs_list = list(funcs_mtcars, funcs_iris)</code></pre>
+<p>Because there is no <code>map3()</code>, we need to use <code>pmap()</code>:</p>
+<pre class="r"><code>pmap(
+  list(
+    dataset = data_list,
+    cols = cols_list,
+    funcs = funcs_list
+  ),
+  my_summarise_f)</code></pre>
+<pre><code>## [[1]]
+##   mpg_mean drat_mean  hp_mean   mpg_sd   drat_sd    hp_sd mpg_max drat_max
+## 1 20.09062  3.596563 146.6875 6.026948 0.5346787 68.56287    33.9     4.93
+##   hp_max
+## 1    335
+## 
+## [[2]]
+##   Sepal.Length_median Sepal.Width_median Sepal.Length_min Sepal.Width_min
+## 1                 5.8                  3              4.3               2</code></pre>
+<p>Now I’m satisfied! Let me tell you, this blew their minds 😄!</p>
+<p>To be able to use things like that, I told them to always solve a problem for a single example, and from there, try to generalize their solution using functional programming tools found in <code>purrr</code>.</p>
+<p>If you found this blog post useful, you might want to follow me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates.</p>

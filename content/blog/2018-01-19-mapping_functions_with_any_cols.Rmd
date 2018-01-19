@@ -1,0 +1,112 @@
+---
+date: 2018-01-19
+title: "Mapping a list of functions to a list of datasets with a list of columns as arguments"
+tags: [R]
+menu:
+  main:
+    parent: Blog
+    identifier: /blog/mapping_functions_with_any_cols
+    weight: 1
+---
+
+This week I had the opportunity to teach R at my workplace, again. This course was the "advanced
+R" course, and unlike the one I taught at the end of last year, I had one more day (so 3 days in total)
+where I could show my colleagues the joys of the `tidyverse` and R.
+
+To finish the section on programming with R, which was the very last section of the whole 3 day course
+I wanted to blow their minds; I had already shown them packages from the `tidyverse` in the previous
+days, such as `dplyr`, `purrr` and `stringr`, among others. I taught them how to use `ggplot2`, `broom`
+and `modelr`. They also liked `janitor` and `rio` very much. I noticed that it took them a bit more
+time and effort for them to digest `purrr::map()` and `purrr::reduce()`, but they all seemed to see
+how powerful these functions were. To finish on a very high note, I showed them the ultimate
+`purrr::map()` use case.
+
+Consider the following; imagine you have a situation where you are working on a list of datasets.
+These datasets might be the same, but for different years, or for different countries, or they might
+be completely different datasets entirely. If you used `rio::import_list()` to read them into R,
+you will have them in a nice list. Let's consider the following list as an example:
+
+```{r, include=FALSE}
+library(tidyverse)
+```
+
+```{r, eval = FALSE}
+library(tidyverse)
+```
+
+```{r}
+data(mtcars)
+data(iris)
+
+data_list = list(mtcars, iris)
+```
+
+I made the choice to have completely different datasets. Now, I would like to map some functions
+to the columns of these datasets. If I only worked on one, for example on `mtcars`, I would do
+something like:
+
+```{r}
+my_summarise_f = function(dataset, cols, funcs){
+  dataset %>%
+    summarise_at(vars(!!!cols), funs(!!!funcs))
+}
+```
+
+And then I would use my function like so:
+
+```{r}
+mtcars %>%
+  my_summarise_f(quos(mpg, drat, hp), quos(mean, sd, max))
+```
+
+`my_summarise_f()` takes a dataset, a list of columns and a list of functions as arguments and uses
+tidy evaluation to apply `mean()`, `sd()`, and `max()` to the columns `mpg`, `drat` and `hp`
+of `mtcars`. That's pretty useful, but not useful enough! Now I want to apply this to the list of
+datasets I defined above. For this, let's define the list of columns I want to work on:
+
+```{r}
+cols_mtcars = quos(mpg, drat, hp)
+cols_iris = quos(Sepal.Length, Sepal.Width)
+
+cols_list = list(cols_mtcars, cols_iris)
+```
+
+Now, let's use some `purrr` magic to apply the functions I want to the columns I have defined in
+`list_cols`:
+
+```{r}
+map2(data_list,
+     cols_list,
+     my_summarise_f, funcs = quos(mean, sd, max))
+```
+
+That's pretty useful, but not useful enough! I want to also use different functions to different datasets!
+
+Well, let's define a list of functions then:
+
+```{r}
+funcs_mtcars = quos(mean, sd, max)
+funcs_iris = quos(median, min)
+
+funcs_list = list(funcs_mtcars, funcs_iris)
+```
+
+Because there is no `map3()`, we need to use `pmap()`:
+
+```{r}
+pmap(
+  list(
+    dataset = data_list,
+    cols = cols_list,
+    funcs = funcs_list
+  ),
+  my_summarise_f)
+```
+
+Now I'm satisfied! Let me tell you, this blew their minds `r emojifont::emoji('smile')`!
+
+To be able to use things like that, I told them to always solve a problem for a single example, and
+from there, try to generalize their solution using functional programming tools found in `purrr`.
+
+If you found this blog post useful, you might want to follow me on [twitter](https://www.twitter.com/brodriguesco)
+for blog post updates.
