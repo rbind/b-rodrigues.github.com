@@ -12,7 +12,7 @@ menu:
 In this blog post, I am going to train a random forest on census data from the US to predict
 the probability that someone is looking for a job. To this end, I downloaded the US 1990 census
 data from the UCI [Machine Learning Repository](https://archive.ics.uci.edu/ml/datasets/US+Census+Data+%281990%29).
-Having a background in economics, I am always quite interest by such datasets. I downloaded the raw
+Having a background in economics, I am always quite interested by such datasets. I downloaded the raw
 data which is around 820mb uncompressed. You can download it from this folder
 [here](https://archive.ics.uci.edu/ml/machine-learning-databases/census1990-mld/).
 
