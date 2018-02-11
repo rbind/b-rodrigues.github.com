@@ -83,8 +83,8 @@ seem complicated, but by breaking it up, it'll be clear:
 
 * `^[A-Z]+`: matches one or more uppercase letter, at the beginning of the line (hence the `^`)
 * `\\d{1,}`: matches one or more digits
-* `[A-Z]\\s+`: matches one or more uppercase letter, followed by one or more spaces
-* `(\\d{1,}|[A-Z])\\s+`: matches one or more digits OR (the `|`) matches one or more uppercase letter, followed by one or more spaces
+* `[A-Z]\\s+`: matches one uppercase letter, followed by one or more spaces
+* `(\\d{1,}|[A-Z])\\s+`: matches one or more digits OR (the `|`) matches one uppercase letter, followed by one or more spaces
 
 This regular expression matches only the variable names. By using `^` I only limit myself to the
 uppercase letters at the start of the line, which already removes a lot of unneeded lines from the
