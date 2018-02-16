@@ -11,7 +11,7 @@ menu:
 
 
 
-<p>In this blog post, I am going to train a random forest on census data from the US to predict the probability that someone is looking for a job. To this end, I downloaded the US 1990 census data from the UCI <a href="https://archive.ics.uci.edu/ml/datasets/US+Census+Data+%281990%29">Machine Learning Repository</a>. Having a background in economics, I am always quite interest by such datasets. I downloaded the raw data which is around 820mb uncompressed. You can download it from this folder <a href="https://archive.ics.uci.edu/ml/machine-learning-databases/census1990-mld/">here</a>.</p>
+<p>In this blog post, I am going to train a random forest on census data from the US to predict the probability that someone is looking for a job. To this end, I downloaded the US 1990 census data from the UCI <a href="https://archive.ics.uci.edu/ml/datasets/US+Census+Data+%281990%29">Machine Learning Repository</a>. Having a background in economics, I am always quite interested by such datasets. I downloaded the raw data which is around 820mb uncompressed. You can download it from this folder <a href="https://archive.ics.uci.edu/ml/machine-learning-databases/census1990-mld/">here</a>.</p>
 <p>Before training a random forest on it, some preprocessing is needed. First problem: the columns in the data do not have names. Actually, training a random forest on unamed variables is possible, but I like my columns to have names. The names are on a separate file, called <code>USCensus1990raw.attributes.txt</code>. This is how this file looks like:</p>
 <pre><code>VAR:        TYP:   DES:    LEN:   CAT:    VARIABLE/CATEGORY LABEL:
 __________________________________________________________________________________
@@ -65,8 +65,8 @@ column_names = str_extract_all(attributes_raw, &quot;^[A-Z]+(\\d{1,}|[A-Z])\\s+&
 <ul>
 <li><code>^[A-Z]+</code>: matches one or more uppercase letter, at the beginning of the line (hence the <code>^</code>)</li>
 <li><code>\\d{1,}</code>: matches one or more digits</li>
-<li><code>[A-Z]\\s+</code>: matches one or more uppercase letter, followed by one or more spaces</li>
-<li><code>(\\d{1,}|[A-Z])\\s+</code>: matches one or more digits OR (the <code>|</code>) matches one or more uppercase letter, followed by one or more spaces</li>
+<li><code>[A-Z]\\s+</code>: matches one uppercase letter, followed by one or more spaces</li>
+<li><code>(\\d{1,}|[A-Z])\\s+</code>: matches one or more digits OR (the <code>|</code>) matches one uppercase letter, followed by one or more spaces</li>
 </ul>
 <p>This regular expression matches only the variable names. By using <code>^</code> I only limit myself to the uppercase letters at the start of the line, which already removes a lot of unneeded lines from the text. Then, by matching numbers or letters, followed by spaces, I avoid matching strings such as <code>VAR:</code>. There’s probably a shorter way to write this regular expression, but since this one works, I stopped looking for another solution.</p>
 <p>Now that I have a vector called <code>column_names</code>, I can baptize the columns in my dataset:</p>
