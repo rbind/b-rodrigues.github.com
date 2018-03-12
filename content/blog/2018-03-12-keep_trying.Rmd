@@ -1,0 +1,94 @@
+---
+date: 2018-03-03
+title: "Keep trying that api call with purrr::possibly()"
+tags: [R]
+menu:
+  main:
+    parent: Blog
+    identifier: /blog/api_call
+    weight: 1
+---
+
+Sometimes you need to call an api to get some result from a web service, but sometimes this call might
+fail. You might get an error 500 for example, or maybe you're making too many calls too fast. Regarding
+this last point, I really encourage you to read [Ethics in Web Scraping](https://towardsdatascience.com/ethics-in-web-scraping-b96b18136f01).
+
+In this blog post I will show you how you can keep trying to make this api call using `purrr::possibly()`.
+
+For this, let's use this function that will simulate an api call:
+
+```{r}
+get_data = function(){
+  number = rbinom(1, 1, 0.9)
+  ifelse(number == 0, "OK", stop("Error: too many calls!"))
+}
+```
+
+This function simply returns a random draw from a binomial distribution. If this number equals 0
+with probability 0.1, the function returns "OK", if not, it throws an error. Because the probability
+of success is only 10%, your api call might be unsuccessful:
+
+```{r, eval = FALSE}
+get_data()
+```
+
+```
+Error in ifelse(number == 0, "OK", stop("Error: too many calls!")) :
+  Error: too many calls!
+```
+
+How to keep trying until it works? For this, we're going to use `purrr::possibly()`; this function
+takes another function as argument and either returns the result, or another output in case of error,
+that the user can define:
+
+```{r}
+possibly_get_data = purrr::possibly(get_data, otherwise = NULL)
+```
+
+Let's try it:
+
+```{r}
+set.seed(12)
+possibly_get_data()
+```
+
+With `set.seed(12)`, the function returns a number different from 0, and thus throws an error: but
+because we're wrapping the function around `purrr::possibly()`, the function now returns `NULL`. The
+first step is done; now we can use this to our advantage:
+
+```{r}
+definitely_get_data = function(func, n_tries, sleep, ...){
+
+  possibly_func = purrr::possibly(func, otherwise = NULL)
+
+  result = NULL
+  try_number = 1
+
+  while(is.null(result) && try_number <= n_tries){
+    print(paste("Try number: ", try_number))
+    try_number = try_number + 1
+    result = possibly_func(...)
+    Sys.sleep(sleep)
+  }
+
+  return(result)
+}
+```
+
+`definitely_get_data()` is a function that takes any function as argument, as well as a user provided
+number of tries (as well as `...` to pass further arguments to `func()`). Remember, if `func()` fails,
+it will return `NULL`; the while loop ensures that while the result is `NULL`, and the number of tries
+is below what you provided, the function will keep getting called. I didn't talk about `sleep`; this
+argument is provided to `Sys.sleep()` which introduces a break between calls that is equal to `sleep`
+seconds. This ensures you don't make too many calls too fast. Let's try it out:
+
+```{r}
+set.seed(123)
+definitely_get_data(get_data, 10, 1)
+```
+
+It took 5 tries to get the result! However, if after 10 tries `get_data()` fails to return
+what you need it will stop (but you can increase the number of tries...).
+
+If you found this blog post useful, you might want to follow me on [twitter](https://www.twitter.com/brodriguesco)
+for blog post updates.
