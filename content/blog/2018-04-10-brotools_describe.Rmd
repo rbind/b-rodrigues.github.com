@@ -1,0 +1,56 @@
+---
+date: 2018-04-10
+title: "Get basic summary statistics for all the variables in a data frame"
+tags: [R]
+menu:
+  main:
+    parent: Blog
+    identifier: /blog/brotools_describe
+    weight: 1
+---
+
+I have added a new function to my `{brotools}` package, called `describe()`, 
+which takes a data frame as an argument, and returns another data frame with descriptive
+statistics. It is very much inspired by the [`{skmir}`](https://github.com/ropenscilabs/skimr)
+package but also by 
+[`assist::describe()`](https://github.com/bjornerstedt/assist/blob/master/R/describe.R) (click 
+on the packages to be redirected to the respective Github repos)
+but I wanted to write my own for two reasons: first, as an exercice, and second
+I really only needed the function `skim_to_wide()` from `{skimr}`. So instead of installing a 
+whole package for a single function, I decided to write my own (since I use `{brotools}` daily).
+
+Below you can see it in action:
+
+```{r, include=FALSE}
+library(dplyr)
+data(starwars)
+```
+
+```{r, eval=FALSE}
+library(dplyr)
+data(starwars)
+```
+
+```{r}
+brotools::describe(starwars)
+```
+
+As you can see, the object that is returned by `describe()` is a `tibble`.
+
+For now, this function does not handle dates, but it's in the pipeline. 
+
+You can also only describe certain columns:
+
+```{r}
+brotools::describe(starwars, height, mass, name)
+```
+
+If you want to try it out,
+you can install `{brotools}` from Github:
+
+```
+devtools::install_github("b-rodrigues/brotools")
+```
+
+If you found this blog post useful, you might want to follow me on [twitter](https://www.twitter.com/brodriguesco)
+for blog post updates.
