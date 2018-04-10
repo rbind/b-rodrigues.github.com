@@ -73,26 +73,26 @@ plots &lt;- small_pwt %&gt;%
   nest() %&gt;%
   head()</code></pre>
 <pre><code>## # A tibble: 6 x 2
-##                    country               data
-##                      &lt;ord&gt;             &lt;list&gt;
-## 1              Switzerland &lt;tibble [65 x 46]&gt;
-## 2                  Germany &lt;tibble [65 x 46]&gt;
-## 3                   France &lt;tibble [65 x 46]&gt;
-## 4                   Greece &lt;tibble [65 x 46]&gt;
-## 5               Luxembourg &lt;tibble [65 x 46]&gt;
-## 6 United States of America &lt;tibble [65 x 46]&gt;</code></pre>
+##   country                  data              
+##   &lt;ord&gt;                    &lt;list&gt;            
+## 1 Switzerland              &lt;tibble [65 × 46]&gt;
+## 2 Germany                  &lt;tibble [65 × 46]&gt;
+## 3 France                   &lt;tibble [65 × 46]&gt;
+## 4 Greece                   &lt;tibble [65 × 46]&gt;
+## 5 Luxembourg               &lt;tibble [65 × 46]&gt;
+## 6 United States of America &lt;tibble [65 × 46]&gt;</code></pre>
 <p>This is why I love lists in R; we get a <code>tibble</code> where each element of the column <code>data</code> is itself a <code>tibble</code>. We can now apply any function that we know works on lists.</p>
 <p>What might be surprising though, is the object that is created by this code. Let’s take a look at <code>plots</code>:</p>
 <pre class="r"><code>print(plots)</code></pre>
 <pre><code>## # A tibble: 6 x 3
-##                    country               data     plot
-##                      &lt;ord&gt;             &lt;list&gt;   &lt;list&gt;
-## 1              Switzerland &lt;tibble [65 x 46]&gt; &lt;S3: gg&gt;
-## 2                  Germany &lt;tibble [65 x 46]&gt; &lt;S3: gg&gt;
-## 3                   France &lt;tibble [65 x 46]&gt; &lt;S3: gg&gt;
-## 4                   Greece &lt;tibble [65 x 46]&gt; &lt;S3: gg&gt;
-## 5               Luxembourg &lt;tibble [65 x 46]&gt; &lt;S3: gg&gt;
-## 6 United States of America &lt;tibble [65 x 46]&gt; &lt;S3: gg&gt;</code></pre>
+##   country                  data               plot    
+##   &lt;ord&gt;                    &lt;list&gt;             &lt;list&gt;  
+## 1 Switzerland              &lt;tibble [65 × 46]&gt; &lt;S3: gg&gt;
+## 2 Germany                  &lt;tibble [65 × 46]&gt; &lt;S3: gg&gt;
+## 3 France                   &lt;tibble [65 × 46]&gt; &lt;S3: gg&gt;
+## 4 Greece                   &lt;tibble [65 × 46]&gt; &lt;S3: gg&gt;
+## 5 Luxembourg               &lt;tibble [65 × 46]&gt; &lt;S3: gg&gt;
+## 6 United States of America &lt;tibble [65 × 46]&gt; &lt;S3: gg&gt;</code></pre>
 <p>As <code>dplyr::do()</code>’s documentation tells us, the return values get stored inside a list. And this is exactly what we get back; a list of plots! Lists are a very flexible and useful class, and you cannot spell <em>list</em> without <code>purrr</code> (at least not when you’re a ne<code>R</code>d).</p>
 <p>Here are the final lines that use <code>purrr::map2()</code> to save all these plots at once inside your working directory:</p>
 <p><em>Update</em>: I have changed the code below which does not require your data frame to be ordered according to the variable <code>country_list</code>.</p>

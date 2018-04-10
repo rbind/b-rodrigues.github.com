@@ -61,12 +61,12 @@ head(mtcars2)</code></pre>
 <pre><code>## # A tibble: 6 x 4
 ##      am  gear  carb sum_am_gear_carb
 ##   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;            &lt;dbl&gt;
-## 1     1     4     4                9
-## 2     1     4     4                9
-## 3     1     4     1                6
-## 4     0     3     1                4
-## 5     0     3     2                5
-## 6     0     3     1                4</code></pre>
+## 1    1.    4.    4.               9.
+## 2    1.    4.    4.               9.
+## 3    1.    4.    1.               6.
+## 4    0.    3.    1.               4.
+## 5    0.    3.    2.               5.
+## 6    0.    3.    1.               4.</code></pre>
 <p>Think of <code>purrrlyr</code> as <code>purrr</code>s and <code>dplyr</code>s love child.</p>
 </div>
 <div id="using-dplyr-functions-inside-your-own-functions-or-what-is-tidyeval" class="section level2">
@@ -95,9 +95,9 @@ simpleFunction(mtcars, &quot;cyl&quot;)</code></pre>
 <pre><code>## # A tibble: 3 x 2
 ##     cyl mean_mpg
 ##   &lt;dbl&gt;    &lt;dbl&gt;
-## 1     4 26.66364
-## 2     6 19.74286
-## 3     8 15.10000</code></pre>
+## 1    4.     26.7
+## 2    6.     19.7
+## 3    8.     15.1</code></pre>
 <p>With the new synax, it must be rewritten a little bit:</p>
 <pre class="r"><code>simpleFunction &lt;- function(dataset, col_name){
   col_name &lt;- enquo(col_name)
@@ -112,9 +112,9 @@ simpleFunction(mtcars, cyl)</code></pre>
 <pre><code>## # A tibble: 3 x 2
 ##     cyl mean_mpg
 ##   &lt;dbl&gt;    &lt;dbl&gt;
-## 1     4 26.66364
-## 2     6 19.74286
-## 3     8 15.10000</code></pre>
+## 1    4.     26.7
+## 2    6.     19.7
+## 3    8.     15.1</code></pre>
 <p>What has changed? Forget the underscore versions of the usual functions such as <code>select_()</code>, <code>group_by_()</code>, etc. Now, you must quote the column name using <code>enquo()</code> (or just <code>quo()</code> if working interactively, outside a function), which returns a <strong>quosure</strong>. This <strong>quosure</strong> can then be evaluated using <code>!!</code> in front of the quosure and inside the usual <code>dplyr</code> functions.</p>
 <p>Let’s look at another example:</p>
 <pre class="r"><code>simpleFunction &lt;- function(dataset, col_name, value){
@@ -159,8 +159,8 @@ simpleFunction(mtcars, am, 1)</code></pre>
 
 
 simpleFunction(mtcars, am, cyl, 1)</code></pre>
-<pre><code>##   mean((cyl))
-## 1    5.076923</code></pre>
+<pre><code>##   mean(cyl)
+## 1  5.076923</code></pre>
 <p><em>«That’s very nice Bruno, but <code>mean((cyl))</code> in the output looks ugly as sin»</em> you might think, and you’d be right. It is possible to set the name of the column in the output using <code>:=</code> instead of <code>=</code>:</p>
 <pre class="r"><code>simpleFunction &lt;- function(dataset, group_col, mean_col, value){
   group_col &lt;- enquo(group_col)

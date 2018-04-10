@@ -14,62 +14,62 @@ menu:
 <p>I was recently confronted to a situation that required going from a long dataset to a wide dataset, but with a small twist: there were two datasets, which I had to merge into one. You might wonder what kinda crappy twist that is, right? Well, let’s take a look at the data:</p>
 <pre class="r"><code>data1; data2</code></pre>
 <pre><code>## # A tibble: 20 x 4
-##    country       date       variable_1 value
-##      &lt;chr&gt;      &lt;chr&gt;            &lt;chr&gt; &lt;int&gt;
-##  1      lu 01/01/2005            maybe    22
-##  2      lu 01/07/2005            maybe    13
-##  3      lu 01/01/2006            maybe    40
-##  4      lu 01/07/2006            maybe    25
-##  5      lu 01/01/2005    totally_agree    42
-##  6      lu 01/07/2005    totally_agree    17
-##  7      lu 01/01/2006    totally_agree    25
-##  8      lu 01/07/2006    totally_agree    16
-##  9      lu 01/01/2005 totally_disagree    39
-## 10      lu 01/07/2005 totally_disagree    17
-## 11      lu 01/01/2006 totally_disagree    23
-## 12      lu 01/07/2006 totally_disagree    21
-## 13      lu 01/01/2005   kinda_disagree    69
-## 14      lu 01/07/2005   kinda_disagree    12
-## 15      lu 01/01/2006   kinda_disagree    10
-## 16      lu 01/07/2006   kinda_disagree     9
-## 17      lu 01/01/2005      kinda_agree    38
-## 18      lu 01/07/2005      kinda_agree    31
-## 19      lu 01/01/2006      kinda_agree    19
-## 20      lu 01/07/2006      kinda_agree    12</code></pre>
+##    country date       variable_1       value
+##    &lt;chr&gt;   &lt;chr&gt;      &lt;chr&gt;            &lt;int&gt;
+##  1 lu      01/01/2005 maybe               22
+##  2 lu      01/07/2005 maybe               13
+##  3 lu      01/01/2006 maybe               40
+##  4 lu      01/07/2006 maybe               25
+##  5 lu      01/01/2005 totally_agree       42
+##  6 lu      01/07/2005 totally_agree       17
+##  7 lu      01/01/2006 totally_agree       25
+##  8 lu      01/07/2006 totally_agree       16
+##  9 lu      01/01/2005 totally_disagree    39
+## 10 lu      01/07/2005 totally_disagree    17
+## 11 lu      01/01/2006 totally_disagree    23
+## 12 lu      01/07/2006 totally_disagree    21
+## 13 lu      01/01/2005 kinda_disagree      69
+## 14 lu      01/07/2005 kinda_disagree      12
+## 15 lu      01/01/2006 kinda_disagree      10
+## 16 lu      01/07/2006 kinda_disagree       9
+## 17 lu      01/01/2005 kinda_agree         38
+## 18 lu      01/07/2005 kinda_agree         31
+## 19 lu      01/01/2006 kinda_agree         19
+## 20 lu      01/07/2006 kinda_agree         12</code></pre>
 <pre><code>## # A tibble: 20 x 4
-##    country       date       variable_2 value
-##      &lt;chr&gt;      &lt;chr&gt;            &lt;chr&gt; &lt;int&gt;
-##  1      lu 01/01/2005      kinda_agree    22
-##  2      lu 01/07/2005      kinda_agree    13
-##  3      lu 01/01/2006      kinda_agree    40
-##  4      lu 01/07/2006      kinda_agree    25
-##  5      lu 01/01/2005    totally_agree    42
-##  6      lu 01/07/2005    totally_agree    17
-##  7      lu 01/01/2006    totally_agree    25
-##  8      lu 01/07/2006    totally_agree    16
-##  9      lu 01/01/2005 totally_disagree    39
-## 10      lu 01/07/2005 totally_disagree    17
-## 11      lu 01/01/2006 totally_disagree    23
-## 12      lu 01/07/2006 totally_disagree    21
-## 13      lu 01/01/2005            maybe    69
-## 14      lu 01/07/2005            maybe    12
-## 15      lu 01/01/2006            maybe    10
-## 16      lu 01/07/2006            maybe     9
-## 17      lu 01/01/2005   kinda_disagree    38
-## 18      lu 01/07/2005   kinda_disagree    31
-## 19      lu 01/01/2006   kinda_disagree    19
-## 20      lu 01/07/2006   kinda_disagree    12</code></pre>
+##    country date       variable_2       value
+##    &lt;chr&gt;   &lt;chr&gt;      &lt;chr&gt;            &lt;int&gt;
+##  1 lu      01/01/2005 kinda_agree         22
+##  2 lu      01/07/2005 kinda_agree         13
+##  3 lu      01/01/2006 kinda_agree         40
+##  4 lu      01/07/2006 kinda_agree         25
+##  5 lu      01/01/2005 totally_agree       42
+##  6 lu      01/07/2005 totally_agree       17
+##  7 lu      01/01/2006 totally_agree       25
+##  8 lu      01/07/2006 totally_agree       16
+##  9 lu      01/01/2005 totally_disagree    39
+## 10 lu      01/07/2005 totally_disagree    17
+## 11 lu      01/01/2006 totally_disagree    23
+## 12 lu      01/07/2006 totally_disagree    21
+## 13 lu      01/01/2005 maybe               69
+## 14 lu      01/07/2005 maybe               12
+## 15 lu      01/01/2006 maybe               10
+## 16 lu      01/07/2006 maybe                9
+## 17 lu      01/01/2005 kinda_disagree      38
+## 18 lu      01/07/2005 kinda_disagree      31
+## 19 lu      01/01/2006 kinda_disagree      19
+## 20 lu      01/07/2006 kinda_disagree      12</code></pre>
 <p>As explained in <a href="http://vita.had.co.nz/papers/tidy-data.html">Hadley (2014)</a>, this is how you should keep your data… But for a particular purpose, I had to transform these datasets. What I was asked to do was to merge these into a single wide data frame. Doing this for one dataset is easy:</p>
 <pre class="r"><code>data1 %&gt;%
   spread(variable_1, value)</code></pre>
 <pre><code>## # A tibble: 4 x 7
-##   country       date kinda_agree kinda_disagree maybe totally_agree
-## *   &lt;chr&gt;      &lt;chr&gt;       &lt;int&gt;          &lt;int&gt; &lt;int&gt;         &lt;int&gt;
-## 1      lu 01/01/2005          38             69    22            42
-## 2      lu 01/01/2006          19             10    40            25
-## 3      lu 01/07/2005          31             12    13            17
-## 4      lu 01/07/2006          12              9    25            16
-## # ... with 1 more variables: totally_disagree &lt;int&gt;</code></pre>
+##   country date       kinda_agree kinda_disagree maybe totally_agree
+##   &lt;chr&gt;   &lt;chr&gt;            &lt;int&gt;          &lt;int&gt; &lt;int&gt;         &lt;int&gt;
+## 1 lu      01/01/2005          38             69    22            42
+## 2 lu      01/01/2006          19             10    40            25
+## 3 lu      01/07/2005          31             12    13            17
+## 4 lu      01/07/2006          12              9    25            16
+## # ... with 1 more variable: totally_disagree &lt;int&gt;</code></pre>
 <p>But because <code>data1</code> and <code>data2</code> have the same levels for <code>variable_1</code> and <code>variable_2</code>, this would not work. So the solution I found online, in this <a href="https://stackoverflow.com/questions/43578723/conditional-replacement-of-column-name-in-tibble-using-dplyr">SO thread</a> was to use <code>tidyr::spread()</code> with <code>dplyr::rename_at()</code> like this:</p>
 <pre class="r"><code>data1 &lt;- data1 %&gt;%
   spread(variable_1, value) %&gt;%
