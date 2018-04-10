@@ -26,7 +26,7 @@ You can follow me on [twitter](https://twitter.com/brodriguesco) for blog update
 I'm writing a book as a hobby about functional programming, unit testing and package
 development with R. You can read it for [free](https://b-rodrigues.github.io/fput/).
 
-You can also download my package, called [brotools](https://bitbucket.org/b-rodrigues/brotools),
+You can also download my package, called [brotools](https://github.com/b-rodrigues/brotools),
 which contains some functions I use daily. You might find them useful too!
 
 # Blog posts
