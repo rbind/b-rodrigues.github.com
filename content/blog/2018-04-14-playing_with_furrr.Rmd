@@ -197,7 +197,7 @@ devtools::install_github("DavisVaughan/furrr")
 If you are not comfortable with `map()` (and thus `future_map()`) but still want to impute in parallel, there is this
 very nice script [here](https://github.com/gerkovink/parlMICE) to do just that. I created a package around this script,
 called [parlMICE](https://github.com/b-rodrigues/parlMICE) (the same name as the script), to make installation and
-usage easier. You can install it with like so:
+usage easier. You can install it like so:
 
 ```{r, eval = FALSE}
 devtools::install_github("b-rodrigues/parlMICE")
