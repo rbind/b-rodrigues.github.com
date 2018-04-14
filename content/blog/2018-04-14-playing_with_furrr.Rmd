@@ -1,0 +1,207 @@
+---
+date: 2018-04-14
+title: "Imputing missing values in parallel using {furrr}"
+tags: [R]
+menu:
+  main:
+    parent: Blog
+    identifier: /blog/playing_furrr
+    weight: 1
+---
+
+Today I saw this tweet on my timeline:
+
+```{r, echo=FALSE}
+blogdown::shortcode("tweet", "984828716181319680")
+```
+
+and as a heavy `{purrr}` user, as well as the happy owner of a 6-core AMD Ryzen 5 1600X cpu,
+I was very excited to try out `{furrr}`. For those unfamiliar with `{purrr}`, you can
+read some of my previous blog posts on it [here](http://www.brodrigues.co/blog/2017-03-24-lesser_known_purrr/),
+[here](http://www.brodrigues.co/blog/2017-03-29-make-ggplot2-purrr/) or
+[here](http://www.brodrigues.co/blog/2018-01-19-mapping_functions_with_any_cols/).
+
+To summarize very quickly: `{purrr}` contains so-called higher order functions, which are functions
+that take other functions as argument. One such function is `map()`. Consider the following simple example:
+
+```{r}
+numbers <- seq(1, 10)
+```
+
+If you want the square root of this numbers, you can of course simply use the `sqrt()` function,
+because it is vectorized:
+
+```{r}
+sqrt(numbers)
+```
+
+But in a lot of situations, the solution is not so simple. Sometimes you have to loop over the
+values. This is what we would need to do if `sqrt()` was not vectorized:
+
+```{r}
+sqrt_numbers <- rep(0, 10)
+
+for(i in length(numbers)){
+  sqrt_numbers[i] <- sqrt(numbers[i])
+}
+```
+
+First, you need to initialize a container, and then you have to populate the `sqrt_numbers` list with the results.
+Using, `{purrr}` is way easier:
+
+```{r, include=FALSE}
+library(tidyverse)
+library(mice)
+```
+
+```{r}
+library(tidyverse)
+map(numbers, sqrt)
+```
+
+`map()` is only one of the nice functions that are bundled inside `{purrr}`. Mastering `{purrr}` can really make you a much
+more efficient R programmer. Anyways, recently, I have been playing around with imputation and the `{mice}` package.
+`{mice}` comes with an example dataset called `boys`, let's take a look at it:
+
+```{r, warning = FALSE}
+library(mice)
+
+data(boys)
+
+brotools::describe(boys) %>%
+  select(variable, type, n_missing, everything())
+```
+
+In the code above I use the `describe()` function from my personal package to get some summary
+statistics of the `boys` dataset (you can read more about this function
+[here](http://www.brodrigues.co/blog/2018-04-10-brotools_describe)). I am especially interested in the number of
+missing values, which is why I re-order the columns. If I did not re-order the columns, it would not appear in
+the output on my blog.
+
+We see that some columns have a lot of missing values. Using the `mice` function, it is very
+easy to impute them:
+
+```{r, cache = TRUE}
+start <- Sys.time()
+imp_boys <- mice(boys, m = 10, maxit = 100, printFlag = FALSE)
+end <- Sys.time() - start
+
+print(end)
+```
+
+Imputation on a single core took around 3 minutes on my computer. This might seem ok, but if you
+have a larger data set with more variables, 3 minutes can become 3 hours. And if you increase `maxit`,
+which helps convergence, or the number of imputations, 3 hours can become 30 hours. With a 6-core CPU
+this could potentially be brought down to 5 hours (in theory). Let's see if we can go faster,
+but first let's take a look at the imputed data.
+
+The `mice()` function returns a `mids` object. If you want to look at the data, you have to use
+the `complete()` function (careful, there is also a `complete()` function in the `{tidyr}` package,
+so to avoid problems, I suggest you explicitely call `mice::complete()`):
+
+```{r, warning = FALSE}
+imp_boys <- mice::complete(imp_boys, "long")
+
+brotools::describe(imp_boys) %>%
+  select(variable, type, n_missing, everything())
+```
+
+As expected, no more missing values. The "long" argument inside `mice::complete()` is needed if you want the `complete()`
+function to return a long dataset. Doing the above "manually" using `{purrr}` is possible with the following
+code:
+
+```{r, cache = TRUE}
+start <- Sys.time()
+imp_boys_purrr <- map(rep(1, 10), ~mice(data = boys, m = ., maxit = 100, printFlag = FALSE))
+end <- Sys.time() - start
+
+print(end)
+```
+
+What this does is map the function `~mice(data = boys, m = ., maxit = 100, printFlag = FALSE)`
+to a list of `1`s, and creates 10 imputed data sets. `m = .` means that `m` will be equal to whatever is inside
+the list we are mapping our function over, so `1`, then `1` then another `1` etc....
+It took around the same amount of time as using `mice()` directly.
+
+`imp_boys_purrr` is now a list of 10 `mids` objects. We thus need to map `mice::complete()`
+to `imp_boys_purrr` to get the data:
+
+```{r}
+imp_boys_purrr_complete <- map(imp_boys_purrr, mice::complete)
+```
+
+Now, `imp_boys_purrr_complete` is a list of 10 datasets. Let's map `brotools::describe()` to it:
+
+```{r, warning = FALSE}
+map(imp_boys_purrr_complete, brotools::describe)
+```
+
+Before merging this 10 datasets together into one, it would be nice to have a column with the id of the datasets.
+This can easily be done with a variant of `purrr::map()`, called `map2()`:
+
+```{r}
+imp_boys_purrr <- map2(.x = seq(1,10), .y = imp_boys_purrr_complete, ~mutate(.y, imp_id = as.character(.x)))
+```
+
+`map2()` applies a function, say `f()`, to 2 lists sequentially: `f(x_1, y_1)`, then `f(x_2, y_2)`, etc...
+So here I map `mutate()` to create a new column, `imp_id` in each dataset. Now let's bind the rows and
+take a look at the data:
+
+```{r, warning = FALSE}
+imp_boys_purrr <- bind_rows(imp_boys_purrr)
+
+imp_boys_purrr %>%
+  brotools::describe() %>%
+  select(variable, type, n_missing, everything())
+```
+
+You may ask yourself why I am bothering with all this. This will become apparent now. We can now use
+the code we wrote to get our 10 imputed datasets using `purrr::map()` and simply use `furrr::future_map()`
+to parallelize the imputation process:
+
+```{r, cache = TRUE}
+library(furrr)
+plan(multiprocess)
+
+start <- Sys.time()
+imp_boys_future <- future_map(rep(1, 10), ~mice(data = boys, m = ., maxit = 100, printFlag = FALSE))
+end <- Sys.time() - start
+
+print(end)
+```
+
+Boooom! Much faster! And simply by loading `{furrr}`, then using `plan(multiprocess)` to run the code in
+parallel (if you forget that, the code will run on a single core) and using `future_map()` instead of `map()`.
+
+Let's take a look at the data:
+
+```{r, warning = FALSE}
+imp_boys_future_complete <- map(imp_boys_future, mice::complete)
+
+imp_boys_future <- map2(.x = seq(1,10), .y = imp_boys_future_complete, ~mutate(.y, imp_id = as.character(.x)))
+
+imp_boys_future <- bind_rows(imp_boys_future)
+
+imp_boys_future %>%
+  brotools::describe() %>%
+  select(variable, type, n_missing, everything())
+```
+
+So imputation went from 3.4 minutes (around 200 seconds) to 30 seconds. How cool is that? If you want to play around
+with `{furrr}` you must install it from Github, as it is not yet available on CRAN:
+
+```{r, eval = FALSE}
+devtools::install_github("DavisVaughan/furrr")
+```
+
+If you are not comfortable with `map()` (and thus `future_map()`) but still want to impute in parallel, there is this
+very nice script [here](https://github.com/gerkovink/parlMICE) to do just that. I created a package around this script,
+called [parlMICE](https://github.com/b-rodrigues/parlMICE) (the same name as the script), to make installation and
+usage easier. You can install it with like so:
+
+```{r, eval = FALSE}
+devtools::install_github("b-rodrigues/parlMICE")
+```
+
+If you found this blog post useful, you might want to follow me on [twitter](https://www.twitter.com/brodriguesco)
+for blog post updates.
