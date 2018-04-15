@@ -6,7 +6,7 @@ menu:
   main:
     parent: Blog
     identifier: /blog/import_30gb
-    weight: 1
+    weight: 2
 ---
 
 

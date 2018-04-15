@@ -328,6 +328,6 @@ imp_boys_future %&gt;%
 ## # ... with 2 more variables: q75 &lt;dbl&gt;, n_unique &lt;int&gt;</code></pre>
 <p>So imputation went from 3.4 minutes (around 200 seconds) to 30 seconds. How cool is that? If you want to play around with <code>{furrr}</code> you must install it from Github, as it is not yet available on CRAN:</p>
 <pre class="r"><code>devtools::install_github(&quot;DavisVaughan/furrr&quot;)</code></pre>
-<p>If you are not comfortable with <code>map()</code> (and thus <code>future_map()</code>) but still want to impute in parallel, there is this very nice script <a href="https://github.com/gerkovink/parlMICE">here</a> to do just that. I created a package around this script, called <a href="https://github.com/b-rodrigues/parlMICE">parlMICE</a> (the same name as the script), to make installation and usage easier. You can install it with like so:</p>
+<p>If you are not comfortable with <code>map()</code> (and thus <code>future_map()</code>) but still want to impute in parallel, there is this very nice script <a href="https://github.com/gerkovink/parlMICE">here</a> to do just that. I created a package around this script, called <a href="https://github.com/b-rodrigues/parlMICE">parlMICE</a> (the same name as the script), to make installation and usage easier. You can install it like so:</p>
 <pre class="r"><code>devtools::install_github(&quot;b-rodrigues/parlMICE&quot;)</code></pre>
 <p>If you found this blog post useful, you might want to follow me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates.</p>

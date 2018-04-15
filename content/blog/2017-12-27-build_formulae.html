@@ -6,7 +6,7 @@ menu:
   main:
     parent: Blog
     identifier: /blog/build_formulae
-    weight: 1
+    weight: 2
 ---
 
 
@@ -36,17 +36,17 @@ list_formulae = map(seq(1, 6), create_form)
 str(list_formulae)</code></pre>
 <pre><code>## List of 6
 ##  $ :Class &#39;formula&#39;  language mpg ~ I(hp^1L)
-##   .. ..- attr(*, &quot;.Environment&quot;)=&lt;environment: 0x564194c6e330&gt; 
+##   .. ..- attr(*, &quot;.Environment&quot;)=&lt;environment: 0x561228f1b310&gt; 
 ##  $ :Class &#39;formula&#39;  language mpg ~ I(hp^2L)
-##   .. ..- attr(*, &quot;.Environment&quot;)=&lt;environment: 0x564194c63e78&gt; 
+##   .. ..- attr(*, &quot;.Environment&quot;)=&lt;environment: 0x561228f34198&gt; 
 ##  $ :Class &#39;formula&#39;  language mpg ~ I(hp^3L)
-##   .. ..- attr(*, &quot;.Environment&quot;)=&lt;environment: 0x564194ab6a18&gt; 
+##   .. ..- attr(*, &quot;.Environment&quot;)=&lt;environment: 0x561228e0efc0&gt; 
 ##  $ :Class &#39;formula&#39;  language mpg ~ I(hp^4L)
-##   .. ..- attr(*, &quot;.Environment&quot;)=&lt;environment: 0x564194ab4bf8&gt; 
+##   .. ..- attr(*, &quot;.Environment&quot;)=&lt;environment: 0x561228e0d088&gt; 
 ##  $ :Class &#39;formula&#39;  language mpg ~ I(hp^5L)
-##   .. ..- attr(*, &quot;.Environment&quot;)=&lt;environment: 0x564194ab2970&gt; 
+##   .. ..- attr(*, &quot;.Environment&quot;)=&lt;environment: 0x561228e0b5b0&gt; 
 ##  $ :Class &#39;formula&#39;  language mpg ~ I(hp^6L)
-##   .. ..- attr(*, &quot;.Environment&quot;)=&lt;environment: 0x564194ab0208&gt;</code></pre>
+##   .. ..- attr(*, &quot;.Environment&quot;)=&lt;environment: 0x561228e07c98&gt;</code></pre>
 <p>As you can see, <code>power</code> got replaced by 1, 2, 3,… and each element of the list is a nice formula. Exactly what <code>lm()</code> needs. So now it’s easy to map <code>lm()</code> to this list of formulae:</p>
 <pre class="r"><code>data(mtcars)
 

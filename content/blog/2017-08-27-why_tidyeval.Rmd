@@ -6,7 +6,7 @@ menu:
   main:
     parent: Blog
     identifier: /blog/why_tidyeval
-    weight: 1
+    weight: 2
 ---
 
 First thing's first: maybe you shouldn't care about `tidyeval`. Maybe you don't need it. If you

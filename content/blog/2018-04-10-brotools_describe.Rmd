@@ -6,7 +6,7 @@ menu:
   main:
     parent: Blog
     identifier: /blog/brotools_describe
-    weight: 1
+    weight: 2
 ---
 
 I have added a new function to my `{brotools}` package, called `describe()`, 

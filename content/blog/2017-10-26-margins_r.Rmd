@@ -6,7 +6,7 @@ menu:
   main:
     parent: Blog
     identifier: /blog/margins_r
-    weight: 1
+    weight: 3
 ---
 
 Model interpretation is essential in the social sciences. If one wants to know the effect of

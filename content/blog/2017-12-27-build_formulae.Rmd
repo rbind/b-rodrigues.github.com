@@ -6,7 +6,7 @@ menu:
   main:
     parent: Blog
     identifier: /blog/build_formulae
-    weight: 1
+    weight: 2
 ---
 
 [This](https://stackoverflow.com/questions/47957081/k-fold-cross-validation-in-purr-and-model)

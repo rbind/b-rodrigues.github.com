@@ -6,7 +6,7 @@ menu:
   main:
     parent: Blog
     identifier: /blog/peace_r
-    weight: 1
+    weight: 2
 ---
 
 I think what I enjoy the most about functional programming is the peace of mind that comes with it.

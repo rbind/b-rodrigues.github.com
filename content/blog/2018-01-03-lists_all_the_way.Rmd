@@ -6,7 +6,7 @@ menu:
   main:
     parent: Blog
     identifier: /blog/lists_all_the_way
-    weight: 1
+    weight: 2
 ---
 
 *There's a part 2 to this post: read it [here](http://www.brodrigues.co/blog/2018-01-05-lists_all_the_way2/).*

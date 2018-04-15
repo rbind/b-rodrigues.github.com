@@ -6,7 +6,7 @@ menu:
   main:
     parent: Blog
     identifier: /blog/spread_rename_at
-    weight: 1
+    weight: 2
 ---
 
 I was recently confronted to a situation that required going from a long dataset to a wide dataset,

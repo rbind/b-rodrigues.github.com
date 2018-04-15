@@ -6,7 +6,7 @@ menu:
   main:
     parent: Blog
     identifier: /blog/api_call
-    weight: 1
+    weight: 2
 ---
 
 Sometimes you need to call an api to get some result from a web service, but sometimes this call might

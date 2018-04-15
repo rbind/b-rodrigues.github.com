@@ -6,7 +6,7 @@ menu:
   main:
     parent: Blog
     identifier: /blog/sparkling_bash
-    weight: 1
+    weight: 2
 ---
 
 This is going to be the type of blog posts that would perhaps be better as a gist, but it is easier

@@ -6,7 +6,7 @@ menu:
   main:
     parent: Blog
     identifier: /blog/sparkling_bash
-    weight: 1
+    weight: 2
 ---
 
 
@@ -67,17 +67,17 @@ library(h2o)</code></pre>
 ## H2O is not running yet, starting it now...
 ## 
 ## Note:  In case of errors look at the following log files:
-##     /tmp/RtmpMdiWv2/h2o_cbrunos_started_from_r.out
-##     /tmp/RtmpMdiWv2/h2o_cbrunos_started_from_r.err
+##     /tmp/Rtmph48vf9/h2o_cbrunos_started_from_r.out
+##     /tmp/Rtmph48vf9/h2o_cbrunos_started_from_r.err
 ## 
 ## 
 ## Starting H2O JVM and connecting: .. Connection successful!
 ## 
 ## R is connected to the H2O cluster: 
-##     H2O cluster uptime:         1 seconds 897 milliseconds 
+##     H2O cluster uptime:         1 seconds 944 milliseconds 
 ##     H2O cluster version:        3.16.0.2 
-##     H2O cluster version age:    4 months and 11 days !!! 
-##     H2O cluster name:           H2O_started_from_R_cbrunos_dbi123 
+##     H2O cluster version age:    4 months and 15 days !!! 
+##     H2O cluster name:           H2O_started_from_R_cbrunos_bpn152 
 ##     H2O cluster total nodes:    1 
 ##     H2O cluster total memory:   6.98 GB 
 ##     H2O cluster total cores:    12 
@@ -90,7 +90,7 @@ library(h2o)</code></pre>
 ##     H2O API Extensions:         XGBoost, Algos, AutoML, Core V3, Core V4 
 ##     R Version:                  R version 3.4.4 (2018-03-15)</code></pre>
 <pre><code>## Warning in h2o.clusterInfo(): 
-## Your H2O cluster version is too old (4 months and 11 days)!
+## Your H2O cluster version is too old (4 months and 15 days)!
 ## Please download and install the latest version from http://h2o.ai/download/</code></pre>
 <p>I left all the startup messages because they’re quite helpful. Especially that bit telling you to start <code>H2O</code> with <code>h2o.init()</code>. If something’s wrong, <code>h2o.init()</code> will give you helpful information.</p>
 <p>Now that all this is loaded, I can start working on the data (the steps below are explained in detail in my <a href="http://www.brodrigues.co/blog/2018-02-16-importing_30gb_of_data/">previous blog post</a>):</p>

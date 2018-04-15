@@ -6,7 +6,7 @@ menu:
   main:
     parent: Blog
     identifier: /blog/mapping_functions_with_any_cols
-    weight: 1
+    weight: 2
 ---
 
 This week I had the opportunity to teach R at my workplace, again. This course was the "advanced

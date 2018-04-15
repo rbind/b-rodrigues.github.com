@@ -6,7 +6,7 @@ menu:
   main:
     parent: Blog
     identifier: /blog/teaching_tidyverse
-    weight: 1
+    weight: 2
 ---
 
 End October I tweeted this:

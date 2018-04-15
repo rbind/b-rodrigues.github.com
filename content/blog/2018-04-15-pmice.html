@@ -1,0 +1,18 @@
+---
+date: 2018-04-15
+title: "{pmice}, an experimental package for missing data imputation in parallel using {mice} and {furrr}"
+tags: [R]
+menu:
+  main:
+    parent: Blog
+    identifier: /blog/playing_furrr
+    weight: 1
+---
+
+
+
+<p>Yesterday I wrote <a href="http://www.brodrigues.co/blog/2018-04-14-playing_with_furrr/">this blog post</a> which showed how one could use <code>{furrr}</code> and <code>{mice}</code> to impute missing data in parallel, thus speeding up the process tremendously.</p>
+<p>To make using this snippet of code easier, I quickly cobbled together an experimental package called <code>{pmice}</code> that you can install from Github:</p>
+<pre class="r"><code>devtools::install_github(&quot;b-rodrigues/pmice&quot;)</code></pre>
+<p>For now, it returns a list of <code>mids</code> objects and not a <code>mids</code> object like <code>mice::mice()</code> does, but I’ll be working on it. Contributions welcome!</p>
+<p>If you found this blog post useful, you might want to follow me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates.</p>
