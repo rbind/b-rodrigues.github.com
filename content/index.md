@@ -11,7 +11,8 @@ type: index
     <img src="/img/profile.jpg" width="180 " height="294"/>
 </div>
 
-Hi! My name is Bruno Rodrigues, and I'm a research assistant at the research division of [STATEC](http://www.statistiques.public.lu/en/actors/statec/organisation/red/index.html).
+Hi! My name is Bruno Rodrigues, and I'm a senior advisor at [PwC Luxembourg](https://www.pwc.lu/). 
+I mostly work on data related projects using R and Python.
 
 I'm an economist by training, but am interested in any subject that deals with statistics in general!
 
