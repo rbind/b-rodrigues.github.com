@@ -129,13 +129,80 @@ called <code>&quot;Country&quot;</code> to the data frame.</p>
 reshaping). I then convert the <code>&quot;Share&quot;</code> column into a numeric (it goes from something that looks
 like <code>&quot;12.3 %&quot;</code> into <code>12.3</code>) and then I can create a nice plot. But first let’s take a loot at
 the data:</p>
-<pre class="r"><code>glimpse(diabetes)</code></pre>
-<pre><code>## Observations: 72
-## Variables: 4
-## $ Condition &lt;fct&gt; Diabetes, Overweight, Obesity, Physical inactivity, ...
-## $ Country   &lt;chr&gt; &quot;Luxembourg&quot;, &quot;Luxembourg&quot;, &quot;Luxembourg&quot;, &quot;Luxembour...
-## $ Sex       &lt;chr&gt; &quot;Males&quot;, &quot;Males&quot;, &quot;Males&quot;, &quot;Males&quot;, &quot;Males&quot;, &quot;Males&quot;...
-## $ Share     &lt;dbl&gt; 8.3, 70.7, 28.3, 28.2, 9.5, 69.9, 25.3, 21.2, 8.4, 6...</code></pre>
+<pre class="r"><code>diabetes</code></pre>
+<pre><code>##              Condition                  Country     Sex Share
+## 1             Diabetes               Luxembourg   Males   8.3
+## 2           Overweight               Luxembourg   Males  70.7
+## 3              Obesity               Luxembourg   Males  28.3
+## 4  Physical inactivity               Luxembourg   Males  28.2
+## 5             Diabetes                   France   Males   9.5
+## 6           Overweight                   France   Males  69.9
+## 7              Obesity                   France   Males  25.3
+## 8  Physical inactivity                   France   Males  21.2
+## 9             Diabetes                  Germany   Males   8.4
+## 10          Overweight                  Germany   Males  67.0
+## 11             Obesity                  Germany   Males  24.1
+## 12 Physical inactivity                  Germany   Males  20.1
+## 13            Diabetes United States Of America   Males   9.8
+## 14          Overweight United States Of America   Males  74.1
+## 15             Obesity United States Of America   Males  33.7
+## 16 Physical inactivity United States Of America   Males  27.6
+## 17            Diabetes                 Portugal   Males  10.7
+## 18          Overweight                 Portugal   Males  65.0
+## 19             Obesity                 Portugal   Males  21.4
+## 20 Physical inactivity                 Portugal   Males  33.5
+## 21            Diabetes           United Kingdom   Males   8.4
+## 22          Overweight           United Kingdom   Males  71.1
+## 23             Obesity           United Kingdom   Males  28.5
+## 24 Physical inactivity           United Kingdom   Males  35.4
+## 25            Diabetes               Luxembourg Females   5.3
+## 26          Overweight               Luxembourg Females  51.5
+## 27             Obesity               Luxembourg Females  21.3
+## 28 Physical inactivity               Luxembourg Females  31.7
+## 29            Diabetes                   France Females   6.6
+## 30          Overweight                   France Females  58.6
+## 31             Obesity                   France Females  26.1
+## 32 Physical inactivity                   France Females  31.2
+## 33            Diabetes                  Germany Females   6.4
+## 34          Overweight                  Germany Females  52.7
+## 35             Obesity                  Germany Females  21.4
+## 36 Physical inactivity                  Germany Females  26.5
+## 37            Diabetes United States Of America Females   8.3
+## 38          Overweight United States Of America Females  65.3
+## 39             Obesity United States Of America Females  36.3
+## 40 Physical inactivity United States Of America Females  42.1
+## 41            Diabetes                 Portugal Females   7.8
+## 42          Overweight                 Portugal Females  55.0
+## 43             Obesity                 Portugal Females  22.8
+## 44 Physical inactivity                 Portugal Females  40.8
+## 45            Diabetes           United Kingdom Females   6.9
+## 46          Overweight           United Kingdom Females  62.4
+## 47             Obesity           United Kingdom Females  31.1
+## 48 Physical inactivity           United Kingdom Females  44.3
+## 49            Diabetes               Luxembourg   Total   6.8
+## 50          Overweight               Luxembourg   Total  61.0
+## 51             Obesity               Luxembourg   Total  24.8
+## 52 Physical inactivity               Luxembourg   Total  30.0
+## 53            Diabetes                   France   Total   8.0
+## 54          Overweight                   France   Total  64.1
+## 55             Obesity                   France   Total  25.7
+## 56 Physical inactivity                   France   Total  26.4
+## 57            Diabetes                  Germany   Total   7.4
+## 58          Overweight                  Germany   Total  59.7
+## 59             Obesity                  Germany   Total  22.7
+## 60 Physical inactivity                  Germany   Total  23.4
+## 61            Diabetes United States Of America   Total   9.1
+## 62          Overweight United States Of America   Total  69.6
+## 63             Obesity United States Of America   Total  35.0
+## 64 Physical inactivity United States Of America   Total  35.0
+## 65            Diabetes                 Portugal   Total   9.2
+## 66          Overweight                 Portugal   Total  59.8
+## 67             Obesity                 Portugal   Total  22.1
+## 68 Physical inactivity                 Portugal   Total  37.3
+## 69            Diabetes           United Kingdom   Total   7.7
+## 70          Overweight           United Kingdom   Total  66.7
+## 71             Obesity           United Kingdom   Total  29.8
+## 72 Physical inactivity           United Kingdom   Total  40.0</code></pre>
 <p>Now let’s go for the plot:</p>
 <pre class="r"><code>ggplot(diabetes) + theme_fivethirtyeight() + scale_fill_hc() +
     geom_bar(aes(y = Share, x = Sex, fill = Country), 

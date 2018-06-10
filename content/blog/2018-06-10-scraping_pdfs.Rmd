@@ -164,7 +164,7 @@ like `"12.3 %"` into `12.3`) and then I can create a nice plot. But first let's 
 the data:
 
 ```{r, cache=TRUE}
-glimpse(diabetes)
+diabetes
 ```
 
 Now let's go for the plot:
