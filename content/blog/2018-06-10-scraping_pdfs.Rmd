@@ -35,7 +35,7 @@ simple plot.
 
 Let's first start by loading the needed packages:
 
-```{r}
+```{r, cache=TRUE}
 library("pdftools")
 library("glue")
 library("tidyverse")
@@ -58,7 +58,7 @@ This is not in the original links; the original links look like this (for exampl
 So because I'm interested in several countries, I created a vector with the country codes 
 of the countries I'm interested in. Now, using the `glue()` function, something magical happens:
 
-```{r}
+```{r, cache=TRUE}
 (urls <- glue(url))
 ```
 
@@ -67,13 +67,13 @@ contained in the variable `country`.
 
 I use the same trick to create the names of the pdfs that I will download:
 
-```{r}
+```{r, cache=TRUE}
 pdf_names <- glue("report_{country}.pdf")
 ```
 
 And now I can download them:
 
-```{r}
+```{r, cache=TRUE}
 walk2(urls, pdf_names, download.file, mode = "wb")
 ```
 
@@ -84,19 +84,19 @@ side effect; it downloads files. `map2()` is used for functions without side eff
 Now, I can finally use the `pdf_text()` function from the `pdftools` function to get the text
 from the pdfs:
 
-```{r}
+```{r, cache=TRUE}
 raw_text <- map(pdf_names, pdf_text)
 ```
 
 `raw_text` is a list of where each element is the text from one of the pdfs. Let's take a look:
 
-```{r}
+```{r, cache=TRUE}
 str(raw_text)
 ```
 
 Let's take a look at one of these elements, which is nothing but a very long character:
 
-```{r}
+```{r, cache=TRUE}
 raw_text[[1]]
 ```
 
@@ -109,7 +109,7 @@ of operations are needed, so what I do is put all these operations into a functi
 to each element of `raw_text`:
 
 
-```{r}
+```{r, cache=TRUE}
 clean_table <- function(table){
     table <- str_split(table, "\n", simplify = TRUE)
     country_name <- table[1, 1] %>% 
@@ -152,7 +152,7 @@ called `"Country"` to the data frame.
 
 Now, I can map this useful function to the list of raw text extracted from the pdfs:
 
-```{r, warning=FALSE}
+```{r, warning=FALSE, cache=TRUE}
 diabetes <- map_df(raw_text, clean_table) %>% 
     gather(Sex, Share, Males, Females, Total) %>% 
     mutate(Share = as.numeric(str_extract(Share, "\\d{1,}\\.\\d{1,}")))
@@ -162,7 +162,7 @@ I reshape the data with the `gather()` function (see what the data looks like be
 reshaping). I then convert the `"Share"` column into a numeric (it goes from something that looks
 like `"12.3 %"` into `12.3`) and then I can create a nice plot:
 
-```{r}
+```{r, cache=TRUE}
 ggplot(diabetes) + theme_fivethirtyeight() + scale_fill_hc() +
     geom_bar(aes(y = Share, x = Sex, fill = Country), 
              stat = "identity", position = "dodge") +
