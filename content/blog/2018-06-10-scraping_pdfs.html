@@ -127,12 +127,21 @@ called <code>&quot;Country&quot;</code> to the data frame.</p>
     mutate(Share = as.numeric(str_extract(Share, &quot;\\d{1,}\\.\\d{1,}&quot;)))</code></pre>
 <p>I reshape the data with the <code>gather()</code> function (see what the data looks like before and after
 reshaping). I then convert the <code>&quot;Share&quot;</code> column into a numeric (it goes from something that looks
-like <code>&quot;12.3 %&quot;</code> into <code>12.3</code>) and then I can create a nice plot:</p>
+like <code>&quot;12.3 %&quot;</code> into <code>12.3</code>) and then I can create a nice plot. But first let’s take a loot at
+the data:</p>
+<pre class="r"><code>glimpse(diabetes)</code></pre>
+<pre><code>## Observations: 72
+## Variables: 4
+## $ Condition &lt;fct&gt; Diabetes, Overweight, Obesity, Physical inactivity, ...
+## $ Country   &lt;chr&gt; &quot;Luxembourg&quot;, &quot;Luxembourg&quot;, &quot;Luxembourg&quot;, &quot;Luxembour...
+## $ Sex       &lt;chr&gt; &quot;Males&quot;, &quot;Males&quot;, &quot;Males&quot;, &quot;Males&quot;, &quot;Males&quot;, &quot;Males&quot;...
+## $ Share     &lt;dbl&gt; 8.3, 70.7, 28.3, 28.2, 9.5, 69.9, 25.3, 21.2, 8.4, 6...</code></pre>
+<p>Now let’s go for the plot:</p>
 <pre class="r"><code>ggplot(diabetes) + theme_fivethirtyeight() + scale_fill_hc() +
     geom_bar(aes(y = Share, x = Sex, fill = Country), 
              stat = &quot;identity&quot;, position = &quot;dodge&quot;) +
     facet_wrap(~Condition)</code></pre>
-<p><img src="/blog/2018-06-10-scraping_pdfs_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+<p><img src="/blog/2018-06-10-scraping_pdfs_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
 <p>That was a whole lot of work for such a simple plot!</p>
 <p>If you found this blog post useful, you might want to follow me on <a href="https://www.twitter.com/brodriguesco">twitter</a>
 for blog post updates.</p>
