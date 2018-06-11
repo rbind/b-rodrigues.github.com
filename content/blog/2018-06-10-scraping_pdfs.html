@@ -127,7 +127,7 @@ called <code>&quot;Country&quot;</code> to the data frame.</p>
     mutate(Share = as.numeric(str_extract(Share, &quot;\\d{1,}\\.\\d{1,}&quot;)))</code></pre>
 <p>I reshape the data with the <code>gather()</code> function (see what the data looks like before and after
 reshaping). I then convert the <code>&quot;Share&quot;</code> column into a numeric (it goes from something that looks
-like <code>&quot;12.3 %&quot;</code> into <code>12.3</code>) and then I can create a nice plot. But first let’s take a loot at
+like <code>&quot;12.3 %&quot;</code> into <code>12.3</code>) and then I can create a nice plot. But first let’s take a look at
 the data:</p>
 <pre class="r"><code>diabetes</code></pre>
 <pre><code>##              Condition                  Country     Sex Share

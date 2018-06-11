@@ -160,7 +160,7 @@ diabetes <- map_df(raw_text, clean_table) %>%
 
 I reshape the data with the `gather()` function (see what the data looks like before and after 
 reshaping). I then convert the `"Share"` column into a numeric (it goes from something that looks
-like `"12.3 %"` into `12.3`) and then I can create a nice plot. But first let's take a loot at 
+like `"12.3 %"` into `12.3`) and then I can create a nice plot. But first let's take a look at 
 the data:
 
 ```{r, cache=TRUE}
