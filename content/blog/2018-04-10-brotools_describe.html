@@ -11,39 +11,46 @@ menu:
 
 
 
-<p>I have added a new function to my <code>{brotools}</code> package, called <code>describe()</code>, which takes a data frame as an argument, and returns another data frame with descriptive statistics. It is very much inspired by the <a href="https://github.com/ropenscilabs/skimr"><code>{skmir}</code></a> package but also by <a href="https://github.com/bjornerstedt/assist/blob/master/R/describe.R"><code>assist::describe()</code></a> (click on the packages to be redirected to the respective Github repos) but I wanted to write my own for two reasons: first, as an exercice, and second I really only needed the function <code>skim_to_wide()</code> from <code>{skimr}</code>. So instead of installing a whole package for a single function, I decided to write my own (since I use <code>{brotools}</code> daily).</p>
+<p>I have added a new function to my <code>{brotools}</code> package, called <code>describe()</code>,
+which takes a data frame as an argument, and returns another data frame with descriptive
+statistics. It is very much inspired by the <a href="https://github.com/ropenscilabs/skimr"><code>{skmir}</code></a>
+package but also by
+<a href="https://github.com/bjornerstedt/assist/blob/master/R/describe.R"><code>assist::describe()</code></a> (click
+on the packages to be redirected to the respective Github repos)
+but I wanted to write my own for two reasons: first, as an exercice, and second
+I really only needed the function <code>skim_to_wide()</code> from <code>{skimr}</code>. So instead of installing a
+whole package for a single function, I decided to write my own (since I use <code>{brotools}</code> daily).</p>
 <p>Below you can see it in action:</p>
 <pre class="r"><code>library(dplyr)
 data(starwars)</code></pre>
 <pre class="r"><code>brotools::describe(starwars)</code></pre>
-<pre><code>## # A tibble: 13 x 12
-##    variable   type     mean    sd mode        min   max   q25 median   q75
-##    &lt;chr&gt;      &lt;chr&gt;   &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;     &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;
-##  1 birth_year Numeric  87.6 155   &lt;NA&gt;       8.00   896  35.0   52.0  72.0
-##  2 height     Numeric 174    34.8 &lt;NA&gt;      66.0    264 167    180   191  
-##  3 mass       Numeric  97.3 169   &lt;NA&gt;      15.0   1358  55.6   79.0  84.5
-##  4 eye_color  Charac…  NA    NA   blue      NA       NA  NA     NA    NA  
-##  5 gender     Charac…  NA    NA   male      NA       NA  NA     NA    NA  
-##  6 hair_color Charac…  NA    NA   blond     NA       NA  NA     NA    NA  
-##  7 homeworld  Charac…  NA    NA   Tatooine  NA       NA  NA     NA    NA  
-##  8 name       Charac…  NA    NA   Luke Sky… NA       NA  NA     NA    NA  
-##  9 skin_color Charac…  NA    NA   fair      NA       NA  NA     NA    NA  
-## 10 species    Charac…  NA    NA   Human     NA       NA  NA     NA    NA  
-## 11 films      List     NA    NA   &lt;NA&gt;      NA       NA  NA     NA    NA  
-## 12 starships  List     NA    NA   &lt;NA&gt;      NA       NA  NA     NA    NA  
-## 13 vehicles   List     NA    NA   &lt;NA&gt;      NA       NA  NA     NA    NA  
+<pre><code>## # A tibble: 10 x 13
+##    variable  type   nobs  mean    sd mode     min   max   q25 median   q75
+##    &lt;chr&gt;     &lt;chr&gt; &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;
+##  1 birth_ye… Nume…    87  87.6 155.  19         8   896  35       52  72  
+##  2 height    Nume…    87 174.   34.8 172       66   264 167      180 191  
+##  3 mass      Nume…    87  97.3 169.  77        15  1358  55.6     79  84.5
+##  4 eye_color Char…    87  NA    NA   blue      NA    NA  NA       NA  NA  
+##  5 gender    Char…    87  NA    NA   male      NA    NA  NA       NA  NA  
+##  6 hair_col… Char…    87  NA    NA   blond     NA    NA  NA       NA  NA  
+##  7 homeworld Char…    87  NA    NA   Tatoo…    NA    NA  NA       NA  NA  
+##  8 name      Char…    87  NA    NA   Luke …    NA    NA  NA       NA  NA  
+##  9 skin_col… Char…    87  NA    NA   fair      NA    NA  NA       NA  NA  
+## 10 species   Char…    87  NA    NA   Human     NA    NA  NA       NA  NA  
 ## # ... with 2 more variables: n_missing &lt;int&gt;, n_unique &lt;int&gt;</code></pre>
 <p>As you can see, the object that is returned by <code>describe()</code> is a <code>tibble</code>.</p>
 <p>For now, this function does not handle dates, but it’s in the pipeline.</p>
 <p>You can also only describe certain columns:</p>
 <pre class="r"><code>brotools::describe(starwars, height, mass, name)</code></pre>
-<pre><code>## # A tibble: 3 x 12
-##   variable type      mean    sd mode          min   max   q25 median   q75
-##   &lt;chr&gt;    &lt;chr&gt;    &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;       &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;
-## 1 height   Numeric  174    34.8 &lt;NA&gt;         66.0   264 167    180   191  
-## 2 mass     Numeric   97.3 169   &lt;NA&gt;         15.0  1358  55.6   79.0  84.5
-## 3 name     Charact…  NA    NA   Luke Skywa…  NA      NA  NA     NA    NA  
+<pre><code>## # A tibble: 3 x 13
+##   variable type    nobs  mean    sd mode      min   max   q25 median   q75
+##   &lt;chr&gt;    &lt;chr&gt;  &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;
+## 1 height   Numer…    87 174.   34.8 172        66   264 167      180 191  
+## 2 mass     Numer…    87  97.3 169.  77         15  1358  55.6     79  84.5
+## 3 name     Chara…    87  NA    NA   Luke S…    NA    NA  NA       NA  NA  
 ## # ... with 2 more variables: n_missing &lt;int&gt;, n_unique &lt;int&gt;</code></pre>
-<p>If you want to try it out, you can install <code>{brotools}</code> from Github:</p>
+<p>If you want to try it out,
+you can install <code>{brotools}</code> from Github:</p>
 <pre><code>devtools::install_github(&quot;b-rodrigues/brotools&quot;)</code></pre>
-<p>If you found this blog post useful, you might want to follow me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates.</p>
+<p>If you found this blog post useful, you might want to follow me on <a href="https://www.twitter.com/brodriguesco">twitter</a>
+for blog post updates.</p>

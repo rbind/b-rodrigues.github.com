@@ -11,7 +11,14 @@ menu:
 
 
 
-<p>Model interpretation is essential in the social sciences. If one wants to know the effect of variable <code>x</code> on the dependent variable <code>y</code>, marginal effects are an easy way to get the answer. STATA includes a <code>margins</code> command that has been ported to R by <a href="http://thomasleeper.com/">Thomas J. Leeper</a> of the London School of Economics and Political Science. You can find the source code of the package <a href="https://github.com/leeper/margins">on github</a>. In this short blog post, I demo some of the functionality of <code>margins</code>.</p>
+<p>Model interpretation is essential in the social sciences. If one wants to know the effect of
+variable <code>x</code> on the dependent variable <code>y</code>, marginal effects are an easy way to get the answer.
+STATA includes a <code>margins</code> command that has been ported to R
+by <a href="http://thomasleeper.com/">Thomas J. Leeper</a>
+of the London School of Economics and Political Science.
+You can find the source code of the package
+<a href="https://github.com/leeper/margins">on github</a>. In this short blog post, I demo some of the
+functionality of <code>margins</code>.</p>
 <p>First, let’s load some packages:</p>
 <pre class="r"><code>library(ggplot2)
 library(tibble)
@@ -70,9 +77,13 @@ References
 Davidson, R. and James G. MacKinnon (2004) Econometric Theory and Methods, New York, Oxford University Press, http://www.econ.queensu.ca/ETM/, chapter 11.
 
 Journal of Applied Econometrics data archive : http://qed.econ.queensu.ca/jae/.</code></pre>
-<p>The variable of interest is <code>lfp</code>: whether the individual participates in the labour force or not. To know which variables are relevant in the decision to participate in the labour force, one could estimate a logit model, using <code>glm()</code>.</p>
+<p>The variable of interest is <code>lfp</code>: whether the individual participates in the labour force or not.
+To know which variables are relevant in the decision to participate in the labour force,
+one could estimate a logit model, using <code>glm()</code>.</p>
 <pre class="r"><code>logit_participation = glm(lfp ~ ., data = Participation, family = &quot;binomial&quot;)</code></pre>
-<p>Now that we ran the regression, we can take a look at the results. I like to use <code>broom::tidy()</code> to look at the results of regressions, as <code>tidy()</code> returns a nice <code>data.frame</code>, but you could use <code>summary()</code> if you’re only interested in reading the output:</p>
+<p>Now that we ran the regression, we can take a look at the results. I like to use <code>broom::tidy()</code>
+to look at the results of regressions, as <code>tidy()</code> returns a nice
+<code>data.frame</code>, but you could use <code>summary()</code> if you’re only interested in reading the output:</p>
 <pre class="r"><code>tidy(logit_participation)</code></pre>
 <pre><code>##          term    estimate  std.error  statistic      p.value
 ## 1 (Intercept) 10.37434616 2.16685216  4.7877499 1.686617e-06
@@ -82,11 +93,11 @@ Journal of Applied Econometrics data archive : http://qed.econ.queensu.ca/jae/.<
 ## 5         nyc -1.33072362 0.18017027 -7.3859224 1.514000e-13
 ## 6         noc -0.02198573 0.07376636 -0.2980454 7.656685e-01
 ## 7  foreignyes  1.31040497 0.19975784  6.5599678 5.381941e-11</code></pre>
-<p>From the results above, one can only interpret the sign of the coefficients. To know how much a variable influences the labour force participation, one has to use <code>margins()</code>:</p>
-<pre class="r"><code>effects_logit_participation = margins(logit_participation) </code></pre>
-<pre><code>## Warning in warn_for_weights(model): &#39;weights&#39; used in model estimation are
-## currently ignored!</code></pre>
-<pre class="r"><code>print(effects_logit_participation)</code></pre>
+<p>From the results above, one can only interpret the sign of the coefficients. To know how much a
+variable influences the labour force participation, one has to use <code>margins()</code>:</p>
+<pre class="r"><code>effects_logit_participation = margins(logit_participation) 
+
+print(effects_logit_participation)</code></pre>
 <pre><code>## Average marginal effects</code></pre>
 <pre><code>## glm(formula = lfp ~ ., family = &quot;binomial&quot;, data = Participation)</code></pre>
 <pre><code>##  lnnlinc     age     educ     nyc       noc foreignyes
@@ -103,7 +114,10 @@ Journal of Applied Econometrics data archive : http://qed.econ.queensu.ca/jae/.<
 <p>And it is also possible to plot the effects with base graphics:</p>
 <pre class="r"><code>plot(effects_logit_participation)</code></pre>
 <p><img src="/blog/2017-10-26-margins_r_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
-<p>This uses the basic R plotting capabilities, which is useful because it is a simple call to the function <code>plot()</code> but if you’ve been using <code>ggplot2</code> and want this graph to have the same look as the others made with <code>ggplot2</code> you first need to save the summary in a variable. Let’s overwrite this <code>effects_logit_participation</code> variable with its summary:</p>
+<p>This uses the basic R plotting capabilities, which is useful because it is a simple call to the
+function <code>plot()</code> but if you’ve been using <code>ggplot2</code> and want this graph to have the same look as
+the others made with <code>ggplot2</code> you first need to save the summary in a variable.
+Let’s overwrite this <code>effects_logit_participation</code> variable with its summary:</p>
 <pre class="r"><code>effects_logit_participation = summary(effects_logit_participation)</code></pre>
 <p>And now it is possible to use <code>ggplot2</code> to create the same plot:</p>
 <pre class="r"><code>ggplot(data = effects_logit_participation) +
@@ -113,7 +127,8 @@ Journal of Applied Econometrics data archive : http://qed.econ.queensu.ca/jae/.<
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45))</code></pre>
 <p><img src="/blog/2017-10-26-margins_r_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
-<p>So an infinitesimal increase, in say, non-labour income (<code>lnnlinc</code>) of 0.001 is associated with a decrease of the probability of labour force participation by 0.001*17 percentage points.</p>
+<p>So an infinitesimal increase, in say, non-labour income (<code>lnnlinc</code>) of 0.001 is associated with a
+decrease of the probability of labour force participation by 0.001*17 percentage points.</p>
 <p>You can also extract the marginal effects of a single variable, with <code>dydx()</code>:</p>
 <pre class="r"><code>head(dydx(Participation, logit_participation, &quot;lnnlinc&quot;))</code></pre>
 <pre><code>##   dydx_lnnlinc
@@ -134,4 +149,7 @@ dydx(my_subjects, logit_participation, &quot;lnnlinc&quot;)</code></pre>
 <pre><code>##   dydx_lnnlinc
 ## 1  -0.09228119
 ## 2  -0.17953451</code></pre>
-<p>I used the <code>tribble()</code> function from the <code>tibble</code> package to create this test data set, row by row. Then, using <code>dydx()</code>, I get the marginal effect of variable <code>lnnlinc</code> for these two individuals. No doubt that this package will be a huge help convincing more social scientists to try out R and make a potential transition from STATA easier.</p>
+<p>I used the <code>tribble()</code> function from the <code>tibble</code> package to create this test data set, row by
+row. Then, using <code>dydx()</code>, I get the marginal effect of variable <code>lnnlinc</code> for these two individuals.
+No doubt that this package will be a huge help convincing more social scientists to try out R and
+make a potential transition from STATA easier.</p>

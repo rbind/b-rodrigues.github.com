@@ -11,19 +11,44 @@ menu:
 
 
 
-<p>First thing’s first: maybe you shouldn’t care about <code>tidyeval</code>. Maybe you don’t need it. If you exclusively work interactively, I don’t think that learning about <code>tidyeval</code> is important. I can only speak for me, and explain to you why I personally find <code>tidyeval</code> useful.</p>
-<p>I wanted to write this blog post after reading this <a href="https://twitter.com/dataandme/status/901429535266267136">twitter thread</a> and specifically <a href="https://twitter.com/Kwarizmi/status/901457435948236801">this question</a>.</p>
-<p><a href="https://twitter.com/dataandme">Mara Averick</a> then wrote <a href="http://maraaverick.rbind.io/2017/08/tidyeval-resource-roundup/">this blogpost</a> linking to 6 other blog posts that give some <code>tidyeval</code> examples. Reading them, plus the <a href="http://dplyr.tidyverse.org/articles/programming.html">Programming with dplyr</a> vignette should help you get started with <code>tidyeval</code>.</p>
-<p>But maybe now you know how to use it, but not why and when you should use it… Basically, whenever you want to write a function that looks something like this:</p>
+<p>First thing’s first: maybe you shouldn’t care about <code>tidyeval</code>. Maybe you don’t need it. If you
+exclusively work interactively, I don’t think that learning about <code>tidyeval</code> is important. I can
+only speak for me, and explain to you why I personally find <code>tidyeval</code> useful.</p>
+<p>I wanted to write this blog post after reading this
+<a href="https://twitter.com/dataandme/status/901429535266267136">twitter thread</a>
+and specifically <a href="https://twitter.com/Kwarizmi/status/901457435948236801">this question</a>.</p>
+<p><a href="https://twitter.com/dataandme">Mara Averick</a> then wrote
+<a href="http://maraaverick.rbind.io/2017/08/tidyeval-resource-roundup/">this blogpost</a> linking to 6 other blog
+posts that give some <code>tidyeval</code> examples. Reading them, plus the
+<a href="http://dplyr.tidyverse.org/articles/programming.html">Programming with dplyr</a> vignette should help you
+get started with <code>tidyeval</code>.</p>
+<p>But maybe now you know how to use it, but not why and when you should use it… Basically, whenever
+you want to write a function that looks something like this:</p>
 <pre class="r"><code>my_function(my_data, one_column_inside_data)</code></pre>
 <p>is when you want to use the power of <code>tidyeval</code>.</p>
-<p>I work at <a href="http://www.statistiques.public.lu/en/index.html">STATEC</a>, Luxembourg’s national institute of statistics. I work on all kinds of different projects, and when data gets updated (for example because a new round of data collection for some survey finished), I run my own scripts on the fresh data to make the data nice and tidy for analysis. Because surveys get updated, sometimes column names change a little bit, and this can cause some issues.</p>
-<p>Very recently, a dataset I work with got updated. Data collection was finished, so I just loaded my hombrewed package written for this project, changed the path from last year’s script to this year’s fresh data path, ran the code, and watched as the folders got populated with new <code>ggplot2</code> graphs and LaTeX tables with descriptive statistics and regression results. This is then used to generate this year’s report. However, by looking at the graphs, I noticed something weird; some graphs were showing some very strange patterns. It turns out that one column got its name changed, and also one of its values got changed too.</p>
-<p>Last year, this column, let’s call it <code>spam</code>, had values <code>1</code> for <code>good</code> and <code>0</code> for <code>bad</code>. This year the column is called <code>Spam</code> and the values are <code>1</code> and <code>2</code>. When I found out that this was the source of the problem, I just had to change the arguments of my functions from</p>
+<p>I work at <a href="http://www.statistiques.public.lu/en/index.html">STATEC</a>,
+Luxembourg’s national institute of statistics. I work on all kinds of different projects, and when
+data gets updated (for example because a new round of data collection for some survey finished),
+I run my own scripts on the fresh data to make the data nice and tidy for analysis. Because surveys
+get updated, sometimes column names change a little bit, and this can cause some issues.</p>
+<p>Very recently, a dataset I work with got updated. Data collection was finished, so I
+just loaded my hombrewed package written for this project, changed the path from last year’s script
+to this year’s fresh data path, ran the code, and watched as the folders got populated with new
+<code>ggplot2</code> graphs and LaTeX tables with descriptive statistics and regression
+results. This is then used to generate this year’s report. However, by looking at the graphs, I
+noticed something weird; some graphs were showing some very strange patterns. It turns out that one
+column got its name changed, and also one of its values got changed too.</p>
+<p>Last year, this column, let’s call it <code>spam</code>, had values <code>1</code> for <code>good</code> and <code>0</code> for <code>bad</code>.
+This year the column is called <code>Spam</code> and the values are <code>1</code> and <code>2</code>. When I found out that this was
+the source of the problem, I just had to change the arguments of my functions from</p>
 <pre class="r"><code>generate_spam_plot(dataset = data2016, column = spam, value = 1)
 generate_spam_plot(dataset = data2016, column = spam, value = 0)</code></pre>
 <p>to</p>
 <pre class="r"><code>generate_spam_plot(dataset = data2017, column = Spam, value = 1)
 generate_spam_plot(dataset = data2017, column = Spam, value = 2)</code></pre>
-<p>without needing to change anything else. This is why I use <code>tidyeval</code>; without it, writing a function such as <code>genereta_spam_plot</code> would not be easy. It would be possible, but not easy.</p>
-<p>If you want to know more about <code>tidyeval</code> and working programmatically with R, I shamelessly invite you to read a book I’ve been working on: <a href="https://b-rodrigues.github.io/fput/" class="uri">https://b-rodrigues.github.io/fput/</a> It’s still a WIP, but maybe you’ll find it useful. I plan on finishing it by the end of the year, but there’s already some content to keep you busy!</p>
+<p>without needing to change anything else. This is why I use <code>tidyeval</code>; without it, writing a
+function such as <code>genereta_spam_plot</code> would not be easy. It would be possible, but not easy.</p>
+<p>If you want to know more about <code>tidyeval</code> and working programmatically with R, I shamelessly
+invite you to read a book I’ve been working on: <a href="https://b-rodrigues.github.io/fput/" class="uri">https://b-rodrigues.github.io/fput/</a>
+It’s still a WIP, but maybe you’ll find it useful. I plan on finishing it by the end of the year,
+but there’s already some content to keep you busy!</p>

@@ -11,7 +11,9 @@ menu:
 
 
 
-<p>I was recently confronted to a situation that required going from a long dataset to a wide dataset, but with a small twist: there were two datasets, which I had to merge into one. You might wonder what kinda crappy twist that is, right? Well, let’s take a look at the data:</p>
+<p>I was recently confronted to a situation that required going from a long dataset to a wide dataset,
+but with a small twist: there were two datasets, which I had to merge into one. You might wonder
+what kinda crappy twist that is, right? Well, let’s take a look at the data:</p>
 <pre class="r"><code>data1; data2</code></pre>
 <pre><code>## # A tibble: 20 x 4
 ##    country date       variable_1       value
@@ -59,7 +61,9 @@ menu:
 ## 18 lu      01/07/2005 kinda_disagree      31
 ## 19 lu      01/01/2006 kinda_disagree      19
 ## 20 lu      01/07/2006 kinda_disagree      12</code></pre>
-<p>As explained in <a href="http://vita.had.co.nz/papers/tidy-data.html">Hadley (2014)</a>, this is how you should keep your data… But for a particular purpose, I had to transform these datasets. What I was asked to do was to merge these into a single wide data frame. Doing this for one dataset is easy:</p>
+<p>As explained in <a href="http://vita.had.co.nz/papers/tidy-data.html">Hadley (2014)</a>, this is how you should keep your data… But for a particular
+purpose, I had to transform these datasets. What I was asked to do was to merge these into a single
+wide data frame. Doing this for one dataset is easy:</p>
 <pre class="r"><code>data1 %&gt;%
   spread(variable_1, value)</code></pre>
 <pre><code>## # A tibble: 4 x 7
@@ -70,7 +74,9 @@ menu:
 ## 3 lu      01/07/2005          31             12    13            17
 ## 4 lu      01/07/2006          12              9    25            16
 ## # ... with 1 more variable: totally_disagree &lt;int&gt;</code></pre>
-<p>But because <code>data1</code> and <code>data2</code> have the same levels for <code>variable_1</code> and <code>variable_2</code>, this would not work. So the solution I found online, in this <a href="https://stackoverflow.com/questions/43578723/conditional-replacement-of-column-name-in-tibble-using-dplyr">SO thread</a> was to use <code>tidyr::spread()</code> with <code>dplyr::rename_at()</code> like this:</p>
+<p>But because <code>data1</code> and <code>data2</code> have the same levels for <code>variable_1</code> and <code>variable_2</code>, this would not
+work. So the solution I found online, in this <a href="https://stackoverflow.com/questions/43578723/conditional-replacement-of-column-name-in-tibble-using-dplyr">SO thread</a> was to use <code>tidyr::spread()</code> with
+<code>dplyr::rename_at()</code> like this:</p>
 <pre class="r"><code>data1 &lt;- data1 %&gt;%
   spread(variable_1, value) %&gt;%
   rename_at(vars(-country, -date), funs(paste0(&quot;variable1:&quot;, .)))
@@ -99,7 +105,10 @@ glimpse(data2)</code></pre>
 ## $ `variable2:maybe`            &lt;int&gt; 69, 10, 12, 9
 ## $ `variable2:totally_agree`    &lt;int&gt; 42, 25, 17, 16
 ## $ `variable2:totally_disagree` &lt;int&gt; 39, 23, 17, 21</code></pre>
-<p><code>rename_at()</code> needs variables which you pass to <code>vars()</code>, a helper function to select variables, and a function that will do the renaming, passed to <code>funs()</code>. The function I use is simply <code>paste0()</code>, which pastes a string, for example “variable1:” with the name of the columns, given by the single ‘.’, a dummy argument. Now these datasets can be merged:</p>
+<p><code>rename_at()</code> needs variables which you pass to <code>vars()</code>, a helper function to select variables, and
+a function that will do the renaming, passed to <code>funs()</code>. The function I use is simply <code>paste0()</code>,
+which pastes a string, for example “variable1:” with the name of the columns, given by the single ‘.’,
+a dummy argument. Now these datasets can be merged:</p>
 <pre class="r"><code>data1 %&gt;%
   full_join(data2) %&gt;%
   glimpse()</code></pre>
@@ -118,4 +127,5 @@ glimpse(data2)</code></pre>
 ## $ `variable2:maybe`            &lt;int&gt; 69, 10, 12, 9
 ## $ `variable2:totally_agree`    &lt;int&gt; 42, 25, 17, 16
 ## $ `variable2:totally_disagree` &lt;int&gt; 39, 23, 17, 21</code></pre>
-<p>Hope this post helps you understand the difference between long and wide datasets better, as well as <code>dplyr::rename_at()</code>!</p>
+<p>Hope this post helps you understand the difference between long and wide datasets better, as well
+as <code>dplyr::rename_at()</code>!</p>

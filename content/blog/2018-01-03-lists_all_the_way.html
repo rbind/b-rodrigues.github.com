@@ -12,9 +12,14 @@ menu:
 
 
 <p><em>There’s a part 2 to this post: read it <a href="http://www.brodrigues.co/blog/2018-01-05-lists_all_the_way2/">here</a>.</em></p>
-<p>Today, I had the opportunity to help someone over at the R for Data Science Slack group (read more about this group <a href="https://medium.com/@kierisi/r4ds-the-next-iteration-d51e0a1b0b82">here</a>) and I thought that the question asked could make for an interesting blog post, so here it is!</p>
-<p>Disclaimer: the way I’m doing things here is totally not optimal, but I want to illustrate how to map functions over nested lists. But I show the optimal way at the end, so for the people that are familiar with <code>purrr</code> don’t get mad at me.</p>
-<p>Suppose you have to do certain data transformation tasks on a data frame, and you write a nice function that does that for you:</p>
+<p>Today, I had the opportunity to help someone over at the R for Data Science Slack group (read more
+about this group <a href="https://medium.com/@kierisi/r4ds-the-next-iteration-d51e0a1b0b82">here</a>) and I
+thought that the question asked could make for an interesting blog post, so here it is!</p>
+<p>Disclaimer: the way I’m doing things here is totally not optimal, but I want to illustrate how to map
+functions over nested lists. But I show the optimal way at the end, so for the people that are
+familiar with <code>purrr</code> don’t get mad at me.</p>
+<p>Suppose you have to do certain data transformation tasks on a data frame, and you write a nice function
+that does that for you:</p>
 <pre class="r"><code>library(tidyverse)</code></pre>
 <pre class="r"><code>data(mtcars)
 
@@ -31,7 +36,13 @@ nice_function(mtcars, 4, 0)</code></pre>
 ## 1 24.4   4 146.7 62 3.69 3.190 20.00  1  0    4    2  195.2
 ## 2 22.8   4 140.8 95 3.92 3.150 22.90  1  0    4    2  182.4
 ## 3 21.5   4 120.1 97 3.70 2.465 20.01  1  0    3    1  172.0</code></pre>
-<p>This might seem like a silly function and not a nice function, but it will illustrate the point I want to make (and the question that was asked) very well. This function is completely useless, but bear with me. Now, suppose that you want to do these operations for each value of <code>cyl</code> and <code>am</code> (of course you can do that without using <code>nice_function()</code>…). First, you might want to fix the value of <code>am</code> to 0, and then loop over the values of <code>cyl</code>. But as I have explained in this <a href="http://blog.rdata.lu/post/2017-12-21-skip-errors-in-r-by-not-writing-loops/">other blog post</a> I prefer using the <code>map()</code> functions included in <code>purrr</code>. For example:</p>
+<p>This might seem like a silly function and not a nice function, but it will illustrate the point I want
+to make (and the question that was asked) very well. This function is completely useless, but bear
+with me. Now, suppose that you want to do these operations for each value of <code>cyl</code> and <code>am</code> (of course
+you can do that without using <code>nice_function()</code>…). First, you might want to fix the value of <code>am</code>
+to 0, and then loop over the values of <code>cyl</code>. But as I have explained in this
+<a href="http://blog.rdata.lu/post/2017-12-21-skip-errors-in-r-by-not-writing-loops/">other blog post</a> I
+prefer using the <code>map()</code> functions included in <code>purrr</code>. For example:</p>
 <pre class="r"><code>values_cyl = c(4, 6, 8)
 
 (result = map(values_cyl, nice_function, df = mtcars, param2 = 0))</code></pre>
@@ -62,9 +73,12 @@ nice_function(mtcars, 4, 0)</code></pre>
 ## 10 15.2   8 304.0 150 3.15 3.435 17.30  0  0    3    2  243.2
 ## 11 13.3   8 350.0 245 3.73 3.840 15.41  0  0    3    4  212.8
 ## 12 19.2   8 400.0 175 3.08 3.845 17.05  0  0    3    2  307.2</code></pre>
-<p>What you get here is a list for each value in <code>values_cyl</code>; so one list for <code>4</code>, one for <code>6</code> and one for <code>8</code>. Suppose now that you are feeling adventurous, and want to loop over the values of <code>am</code> too:</p>
+<p>What you get here is a list for each value in <code>values_cyl</code>; so one list for <code>4</code>, one for <code>6</code> and
+one for <code>8</code>. Suppose now that you are feeling adventurous, and want to loop over the values of <code>am</code> too:</p>
 <pre class="r"><code>values_am = c(0, 1)</code></pre>
-<p>So first, we need to map a function to each element of <code>values_am</code>. But which function? Well, for <em>given</em> value of <code>am</code>, our problem is the same as before; we need to map <code>nice_function()</code> to each value of <code>cyl</code>. So, that’s what we’re going to do:</p>
+<p>So first, we need to map a function to each element of <code>values_am</code>. But which function? Well, for
+<em>given</em> value of <code>am</code>, our problem is the same as before; we need to map <code>nice_function()</code> to each
+value of <code>cyl</code>. So, that’s what we’re going to do:</p>
 <pre class="r"><code>(result = map(values_am, ~map(values_cyl, nice_function, df = mtcars, param2 = .)))</code></pre>
 <pre><code>## [[1]]
 ## [[1]][[1]]
@@ -118,9 +132,16 @@ nice_function(mtcars, 4, 0)</code></pre>
 ##    mpg cyl disp  hp drat   wt qsec vs am gear carb result
 ## 1 15.8   8  351 264 4.22 3.17 14.5  0  1    5    4  126.4
 ## 2 15.0   8  301 335 3.54 3.57 14.6  0  1    5    8  120.0</code></pre>
-<p>We now have a list of size 2 (for each value of <code>am</code>) where each element is itself a list of size 3 (for each value of <code>cyl</code>) where each element is a data frame. Are you still with me? Also, notice that the second map is given as a formula (notice the <code>~</code> in front of the second map). This creates an anonymous function, where the parameter is given by the <code>.</code> (think of the <code>.</code> as being the <code>x</code> in <code>f(x)</code>). So the <code>.</code> is the stand-in for the values contained inside <code>values_am</code>.</p>
-<p>The people that are familiar with the <code>map()</code> functions must be fuming right now; there is a way to avoid this nested hell. I will talk about it soon, but first I want to play around with this list of lists.</p>
-<p>If you have a list of data frames, you can bind their rows together with <code>reduce(list_of_dfs, rbind)</code>. You would like to this here, but because your lists of data frames are contained inside another list… you guessed it, you have to map over it!</p>
+<p>We now have a list of size 2 (for each value of <code>am</code>) where each element is itself a list of size
+3 (for each value of <code>cyl</code>) where each element is a data frame. Are you still with me? Also, notice
+that the second map is given as a formula (notice the <code>~</code> in front of the second map). This creates
+an anonymous function, where the parameter is given by the <code>.</code> (think of the <code>.</code> as being the <code>x</code>
+in <code>f(x)</code>). So the <code>.</code> is the stand-in for the values contained inside <code>values_am</code>.</p>
+<p>The people that are familiar with the <code>map()</code> functions must be fuming right now; there is a way
+to avoid this nested hell. I will talk about it soon, but first I want to play around with this list of lists.</p>
+<p>If you have a list of data frames, you can bind their rows together with <code>reduce(list_of_dfs, rbind)</code>.
+You would like to this here, but because your lists of data frames are contained inside another list…
+you guessed it, you have to map over it!</p>
 <pre class="r"><code>(result2 = map(result, ~reduce(., rbind)))</code></pre>
 <pre><code>## [[1]]
 ##     mpg cyl  disp  hp drat    wt  qsec vs am gear carb result
@@ -159,7 +180,10 @@ nice_function(mtcars, 4, 0)</code></pre>
 ## 11 19.7   6 145.0 175 3.62 2.770 15.50  0  1    5    6  118.2
 ## 12 15.8   8 351.0 264 4.22 3.170 14.50  0  1    5    4  126.4
 ## 13 15.0   8 301.0 335 3.54 3.570 14.60  0  1    5    8  120.0</code></pre>
-<p>Here again, I pass <code>reduce()</code> as a formula to <code>map()</code> to create an anonymous function. Again, the <code>.</code> is used as the stand-in for each element contained in <code>result</code>; a list of data frames, where <code>reduce(., rbind)</code> knows what to do. Now that we have this we can use <code>reduce()</code> with <code>rbind()</code> again to get a single data frame:</p>
+<p>Here again, I pass <code>reduce()</code> as a formula to <code>map()</code> to create an anonymous function. Again, the <code>.</code>
+is used as the stand-in for each element contained in <code>result</code>; a list of data frames, where <code>reduce(., rbind)</code>
+knows what to do. Now that we have this we can use <code>reduce()</code> with <code>rbind()</code> again to get a single
+data frame:</p>
 <pre class="r"><code>(result3 = reduce(result2, rbind))</code></pre>
 <pre><code>##     mpg cyl  disp  hp drat    wt  qsec vs am gear carb result
 ## 1  24.4   4 146.7  62 3.69 3.190 20.00  1  0    4    2  195.2
@@ -194,7 +218,8 @@ nice_function(mtcars, 4, 0)</code></pre>
 ## 30 19.7   6 145.0 175 3.62 2.770 15.50  0  1    5    6  118.2
 ## 31 15.8   8 351.0 264 4.22 3.170 14.50  0  1    5    4  126.4
 ## 32 15.0   8 301.0 335 3.54 3.570 14.60  0  1    5    8  120.0</code></pre>
-<p>Of course, since <code>reduce(list_of_dfs, rbind)</code> is such a common operation, you could have simply used <code>dplyr::bind_rows</code>, which does exactly this:</p>
+<p>Of course, since <code>reduce(list_of_dfs, rbind)</code> is such a common operation, you could have simply used
+<code>dplyr::bind_rows</code>, which does exactly this:</p>
 <pre class="r"><code>(result2 = map(result, bind_rows))</code></pre>
 <pre><code>## [[1]]
 ##     mpg cyl  disp  hp drat    wt  qsec vs am gear carb result
@@ -268,7 +293,9 @@ nice_function(mtcars, 4, 0)</code></pre>
 ## 30 19.7   6 145.0 175 3.62 2.770 15.50  0  1    5    6  118.2
 ## 31 15.8   8 351.0 264 4.22 3.170 14.50  0  1    5    4  126.4
 ## 32 15.0   8 301.0 335 3.54 3.570 14.60  0  1    5    8  120.0</code></pre>
-<p>Of course, things are even simpler: you can avoid this deeply nested monstrosity by using <code>map_df()</code> instead of <code>map()</code>! <code>map_df()</code> works just like <code>map()</code> but return a data frame (hence the <code>_df</code> in the name) instead of a list:</p>
+<p>Of course, things are even simpler: you can avoid this deeply nested monstrosity by using <code>map_df()</code>
+instead of <code>map()</code>! <code>map_df()</code> works just like <code>map()</code> but return a data frame (hence the <code>_df</code>
+in the name) instead of a list:</p>
 <pre class="r"><code>(result_df = map_df(values_am, ~map_df(values_cyl, nice_function, df = mtcars, param2 = .)))</code></pre>
 <pre><code>##     mpg cyl  disp  hp drat    wt  qsec vs am gear carb result
 ## 1  24.4   4 146.7  62 3.69 3.190 20.00  1  0    4    2  195.2
@@ -314,7 +341,18 @@ nice_function(mtcars, 4, 0)</code></pre>
 ##     res &lt;- map(.x, .f, ...)
 ##     dplyr::bind_rows(res, .id = .id)
 ## }
+## &lt;bytecode: 0x55dad486e6a0&gt;
 ## &lt;environment: namespace:purrr&gt;</code></pre>
-<p>So moral of the story? There are a lot of variants of the common <code>purrr::map()</code> functions (as well as of <code>dplyr</code> verbs, such as <code>filter_at</code>, <code>select_if</code>, etc…) and learning about them can save you from a lot of pain! However, if you need to apply a function to nested lists this is still possible; you just have to think about the structure of the nested list for a bit. There is also another function that you might want to study, <code>modify_depth()</code> which solves related issues but I will end the blog post here. I might talk about it in a future blog post.</p>
-<p>Also, if you want to learn more about R and the tidyverse, do read the link I posted in the introduction of the post and join the R4ds slack group! There are a lot of very nice people there that want to help you get better with your R-fu. Also, this is where I got the inspiration to write this blog post and I am thankful to the people there for the discussions; I feel comfortable with R, but I still learn new tips and tricks every day!</p>
-<p>If you enjoy these blog posts, you can follow me on <a href="https://twitter.com/brodriguesco">twitter</a>. And happy new yeaR!</p>
+<p>So moral of the story? There are a lot of variants of the common <code>purrr::map()</code> functions (as well
+as of <code>dplyr</code> verbs, such as <code>filter_at</code>, <code>select_if</code>, etc…) and learning about them can save you
+from a lot of pain! However, if you need to apply a function to nested lists this is still possible;
+you just have to think about the structure of the nested list for a bit. There is also another function
+that you might want to study, <code>modify_depth()</code> which solves related issues but I will end the
+blog post here. I might talk about it in a future blog post.</p>
+<p>Also, if you want to learn more about R and the tidyverse, do read the link I posted in the introduction
+of the post and join the R4ds slack group! There are a lot of very nice people there that want to help you
+get better with your R-fu. Also, this is where I got the inspiration to write this blog post and I
+am thankful to the people there for the discussions; I feel comfortable with R, but I still learn
+new tips and tricks every day!</p>
+<p>If you enjoy these blog posts, you can follow me on <a href="https://twitter.com/brodriguesco">twitter</a>.
+And happy new yeaR!</p>

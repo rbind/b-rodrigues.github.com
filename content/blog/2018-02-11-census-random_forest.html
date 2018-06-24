@@ -11,8 +11,16 @@ menu:
 
 
 
-<p>In this blog post, I am going to train a random forest on census data from the US to predict the probability that someone is looking for a job. To this end, I downloaded the US 1990 census data from the UCI <a href="https://archive.ics.uci.edu/ml/datasets/US+Census+Data+%281990%29">Machine Learning Repository</a>. Having a background in economics, I am always quite interested by such datasets. I downloaded the raw data which is around 820mb uncompressed. You can download it from this folder <a href="https://archive.ics.uci.edu/ml/machine-learning-databases/census1990-mld/">here</a>.</p>
-<p>Before training a random forest on it, some preprocessing is needed. First problem: the columns in the data do not have names. Actually, training a random forest on unamed variables is possible, but I like my columns to have names. The names are on a separate file, called <code>USCensus1990raw.attributes.txt</code>. This is how this file looks like:</p>
+<p>In this blog post, I am going to train a random forest on census data from the US to predict
+the probability that someone is looking for a job. To this end, I downloaded the US 1990 census
+data from the UCI <a href="https://archive.ics.uci.edu/ml/datasets/US+Census+Data+%281990%29">Machine Learning Repository</a>.
+Having a background in economics, I am always quite interested by such datasets. I downloaded the raw
+data which is around 820mb uncompressed. You can download it from this folder
+<a href="https://archive.ics.uci.edu/ml/machine-learning-databases/census1990-mld/">here</a>.</p>
+<p>Before training a random forest on it, some preprocessing is needed. First problem: the columns
+in the data do not have names. Actually, training a random forest on unamed variables is possible,
+but I like my columns to have names. The names are on a separate file, called <code>USCensus1990raw.attributes.txt</code>.
+This is how this file looks like:</p>
 <pre><code>VAR:        TYP:   DES:    LEN:   CAT:    VARIABLE/CATEGORY LABEL:
 __________________________________________________________________________________
 HISPANIC     C       X      3             Detailed Hispanic Origin Code See Append
@@ -50,7 +58,8 @@ IMMIGR       C       X      2             Yr. of Entry
                                   08      1960 to 1964
                                   09      1950 to 1959
                                   10      Before 1950</code></pre>
-<p>The variable names are always written in upper case and sometimes end with some numbers. Regular expressions will help extract these column names:</p>
+<p>The variable names are always written in upper case and sometimes end with some numbers.
+Regular expressions will help extract these column names:</p>
 <pre class="r"><code>library(tidyverse)
 
 census_raw = import(&quot;USCensus1990raw.data.txt&quot;)
@@ -61,20 +70,29 @@ column_names = str_extract_all(attributes_raw, &quot;^[A-Z]+(\\d{1,}|[A-Z])\\s+&
   flatten %&gt;%
   str_trim %&gt;%
   tolower</code></pre>
-<p>Using <code>readLines</code> I load this text file into R. Then with <code>stringr::str_extract_all</code>, I can extract the variable names from this text file. The regular expression, <code>^[A-Z]+(\\d{1,}|[A-Z])\\s+</code> can seem complicated, but by breaking it up, it’ll be clear:</p>
+<p>Using <code>readLines</code> I load this text file into R. Then with <code>stringr::str_extract_all</code>, I can extract
+the variable names from this text file. The regular expression, <code>^[A-Z]+(\\d{1,}|[A-Z])\\s+</code> can
+seem complicated, but by breaking it up, it’ll be clear:</p>
 <ul>
 <li><code>^[A-Z]+</code>: matches one or more uppercase letter, at the beginning of the line (hence the <code>^</code>)</li>
 <li><code>\\d{1,}</code>: matches one or more digits</li>
 <li><code>[A-Z]\\s+</code>: matches one uppercase letter, followed by one or more spaces</li>
 <li><code>(\\d{1,}|[A-Z])\\s+</code>: matches one or more digits OR (the <code>|</code>) matches one uppercase letter, followed by one or more spaces</li>
 </ul>
-<p>This regular expression matches only the variable names. By using <code>^</code> I only limit myself to the uppercase letters at the start of the line, which already removes a lot of unneeded lines from the text. Then, by matching numbers or letters, followed by spaces, I avoid matching strings such as <code>VAR:</code>. There’s probably a shorter way to write this regular expression, but since this one works, I stopped looking for another solution.</p>
+<p>This regular expression matches only the variable names. By using <code>^</code> I only limit myself to the
+uppercase letters at the start of the line, which already removes a lot of unneeded lines from the
+text. Then, by matching numbers or letters, followed by spaces, I avoid matching strings such as
+<code>VAR:</code>. There’s probably a shorter way to write this regular expression, but since this one works,
+I stopped looking for another solution.</p>
 <p>Now that I have a vector called <code>column_names</code>, I can baptize the columns in my dataset:</p>
 <pre class="r"><code>colnames(census_raw) &lt;- column_names</code></pre>
-<p>I also add a column called <code>caseid</code> to the dataset, but it’s actually not really needed. But it made me look for and find <code>rownames_to_column()</code>, which can be useful:</p>
+<p>I also add a column called <code>caseid</code> to the dataset, but it’s actually not really needed. But it
+made me look for and find <code>rownames_to_column()</code>, which can be useful:</p>
 <pre class="r"><code>census = census_raw %&gt;%
   rownames_to_column(&quot;caseid&quot;)</code></pre>
-<p>Now I select the variables I need. I use <code>dplyr::select()</code> to select the columns I need (actually, I will remove some of these later for the purposes of the blog post, but will continue exploring them. Maybe write a part 2?):</p>
+<p>Now I select the variables I need. I use <code>dplyr::select()</code> to select the columns I need (actually,
+I will remove some of these later for the purposes of the blog post, but will continue exploring
+them. Maybe write a part 2?):</p>
 <pre class="r"><code>census %&lt;&gt;%
   select(caseid, age, citizen, class, disabl1, disabl2, lang1, looking, fertil, hour89, hours, immigr,
          industry, means, occup, powpuma, powstate, pwgt1, race, ragechld, rearning,
@@ -98,8 +116,13 @@ column_names = str_extract_all(attributes_raw, &quot;^[A-Z]+(\\d{1,}|[A-Z])\\s+&
   as_tibble
 
 export(census, &quot;regression_data.rds&quot;)</code></pre>
-<p>So the variable I want to predict is <code>looking</code> which has 2 levels (I removed the level <code>0</code>, which stands for <code>NA</code>). I convert all the variables that are supposed to be factors into factors using <code>mutate_at()</code> and then reselect a subsample of the columns. <code>census</code> is now a tibble with 39 columns and 2458285 rows. I will train the forest on a subsample only, because with cross validation it would take forever on the whole dataset.</p>
-<p>I run the training on another script, that I will then run using the <code>Rscript</code> command instead of running it from Spacemacs (yes, I don’t use RStudio at home but Spacemacs + ESS). Here’s the script:</p>
+<p>So the variable I want to predict is <code>looking</code> which has 2 levels (I removed the level <code>0</code>, which
+stands for <code>NA</code>). I convert all the variables that are supposed to be factors into factors using
+<code>mutate_at()</code> and then reselect a subsample of the columns. <code>census</code> is now a tibble with 39
+columns and 2458285 rows. I will train the forest on a subsample only, because with cross validation
+it would take forever on the whole dataset.</p>
+<p>I run the training on another script, that I will then run using the <code>Rscript</code> command instead of
+running it from Spacemacs (yes, I don’t use RStudio at home but Spacemacs + ESS). Here’s the script:</p>
 <pre class="r"><code>library(caret)
 library(doParallel)
 library(rio)
@@ -109,24 +132,39 @@ reg_data = import(&quot;regression_data.rds&quot;)</code></pre>
 <pre class="r"><code>reg_data$looking      n   percent
 1                1  75792 0.1089562
 2                2 619827 0.8910438</code></pre>
-<p>90% of the individuals in the sample are not looking for a new job. For training purposes, I will only use 50000 observations instead of the whole sample. I’m already thinking about writing another blog post where I show how to use the whole data. But 50000 observations should be more than enough to have a pretty nice model. However, having 90% of observations belonging to a single class can cause problems with the model; the model might predict that everyone should belong to class 2 and in doing so, the model would be 90% accurate! Let’s ignore this for now, but later I am going to tackle this issue with a procedure calleds SMOTE.</p>
+<p>90% of the individuals in the sample are not looking for a new job. For training purposes, I will
+only use 50000 observations instead of the whole sample. I’m already thinking about writing another
+blog post where I show how to use the whole data. But 50000 observations should be more than enough
+to have a pretty nice model. However, having 90% of observations belonging to a single class can
+cause problems with the model; the model might predict that everyone should belong to class 2 and in
+doing so, the model would be 90% accurate! Let’s ignore this for now, but later I am going to
+tackle this issue with a procedure calleds SMOTE.</p>
 <pre class="r"><code>set.seed(1234)
 sample_df = sample_n(reg_data, 50000)</code></pre>
-<p>Now, using <code>caret::trainIndex()</code>, I partition the data into a training sample and a testing sample:</p>
+<p>Now, using <code>caret::trainIndex()</code>, I partition the data into a training sample and a testing
+sample:</p>
 <pre class="r"><code>trainIndex = createDataPartition(sample_df$looking, p = 0.8,
                                  list = FALSE,
                                  times = 1)
 
 train_data = sample_df[trainIndex, ]
 test_data = sample_df[-trainIndex, ]</code></pre>
-<p>I also save the testing data to disk, because when the training is done I’ll lose my R session (remember, I’ll run the training using Rscript):</p>
+<p>I also save the testing data to disk, because when the training is done I’ll lose my R session
+(remember, I’ll run the training using Rscript):</p>
 <pre class="r"><code>saveRDS(test_data, &quot;test_data.rds&quot;)</code></pre>
-<p>Before training the model, I’ll change some options; I’ll do 5-fold cross validation that I repeat 5 times. This will further split the training set into training/testing sets which will increase my confidence in the metrics that I get from the training. This will ensure that the best model really is the best, and not a fluke resulting from the splitting of the data that I did beforehand. Then, I will test the best model on the testing data from above:</p>
+<p>Before training the model, I’ll change some options; I’ll do 5-fold cross validation that I repeat
+5 times. This will further split the training set into training/testing sets which will increase
+my confidence in the metrics that I get from the training. This will ensure that the best model
+really is the best, and not a fluke resulting from the splitting of the data that I did beforehand.
+Then, I will test the best model on the testing data from above:</p>
 <pre class="r"><code>fitControl &lt;- trainControl(
   method = &quot;repeatedcv&quot;,
   number = 5,
   repeats = 5)</code></pre>
-<p>A very nice feature from the <code>caret</code> package is the possibility to make the training in parallel. For this, load the <code>doParallel</code> package (which I did above), and then register the number of cores you want to use for training with <code>makeCluster()</code>. You can replace <code>detectCores()</code> by the number of cores you want to use:</p>
+<p>A very nice feature from the <code>caret</code> package is the possibility to make the training in parallel.
+For this, load the <code>doParallel</code> package (which I did above), and then register the number of cores
+you want to use for training with <code>makeCluster()</code>. You can replace <code>detectCores()</code> by the number of
+cores you want to use:</p>
 <pre class="r"><code>cl = makeCluster(detectCores())
 registerDoParallel(cl)</code></pre>
 <p>Finally, we can train the model:</p>
@@ -135,7 +173,8 @@ registerDoParallel(cl)</code></pre>
                   trainControl = fitControl)</code></pre>
 <p>Because it takes around 1 and a half hours to train, I save the model to disk using <code>saveRDS()</code>:</p>
 <pre class="r"><code>saveRDS(fit_caret, &quot;model_unbalanced.rds&quot;)</code></pre>
-<p>The picture below shows all the cores from my computer running and RAM usage being around 20gb during the training process:</p>
+<p>The picture below shows all the cores from my computer running and RAM usage being around 20gb during
+the training process:</p>
 <p><img src="/img/training_cpu.png" /><!-- --></p>
 <p>And this the results of training the random forest on the unbalanced data:</p>
 <pre class="r"><code>model_unbalanced = readRDS(&quot;model_unbalanced.rds&quot;)
@@ -173,8 +212,16 @@ Accuracy : 0.9739
       Balanced Accuracy : 0.91336
 
        &#39;Positive&#39; Class : 1</code></pre>
-<p>If someone really is looking for a job, the model is able to predict it correctly 92% of the times and 98% of the times if that person is not looking for a job. It’s slightly better than simply saying than no one is looking for a job, which would be right 90% of the times, but not great either.</p>
-<p>To train to make the model more accurate in predicting class 1, I will resample the training set, but by downsampling class 2 and upsampling class 1. This can be done with the function <code>SMOTE()</code> from the <code>{DMwR}</code> package. However, the testing set should have the same distribution as the population, so I should not apply <code>SMOTE()</code> to the testing set. I will resplit the data, but this time with a 95/5 % percent split; this way I have 5% of the original dataset used for testing, I can use <code>SMOTE()</code> on the 95% remaining training set. Because <code>SMOTE</code>ing takes some time, I save the <em>SMOTE</em>d training set using <code>readRDS()</code> for later use:</p>
+<p>If someone really is looking for a job, the model is able to predict it correctly 92% of the times
+and 98% of the times if that person is not looking for a job. It’s slightly better than simply saying
+than no one is looking for a job, which would be right 90% of the times, but not great either.</p>
+<p>To train to make the model more accurate in predicting class 1, I will resample the training set, but by
+downsampling class 2 and upsampling class 1. This can be done with the function <code>SMOTE()</code> from the
+<code>{DMwR}</code> package. However, the testing set should have the same distribution as the population,
+so I should not apply <code>SMOTE()</code> to the testing set. I will resplit the data, but this time with a 95/5 % percent
+split; this way I have 5% of the original dataset used for testing, I can use <code>SMOTE()</code> on the
+95% remaining training set. Because <code>SMOTE</code>ing takes some time, I save the <em>SMOTE</em>d training set
+using <code>readRDS()</code> for later use:</p>
 <pre class="r"><code>reg_data = import(&quot;regression_data.rds&quot;)
 
 
@@ -194,7 +241,8 @@ train_data = reg_data[trainIndex, ]
 train_smote = DMwR::SMOTE(looking ~ ., train_data, perc.over = 100, perc.under=200)
 
 saveRDS(train_smote, &quot;train_smote.rds&quot;)</code></pre>
-<p>The testing set has 34780 observations and below you can see the distribution of the target variable, <code>looking</code>:</p>
+<p>The testing set has 34780 observations and below you can see the distribution of the target variable,
+<code>looking</code>:</p>
 <pre class="r"><code>janitor::tabyl(test_data$looking)
   test_data$looking     n   percent
 1                 1  3789 0.1089419
@@ -235,7 +283,11 @@ Accuracy : 0.9539
 
        &#39;Positive&#39; Class : 1</code></pre>
 <p><img src="/img/plot_acc_smote.png" /><!-- --></p>
-<p>The balanced accuracy is higher, but unlike what I expected (and hoped), this model is worse in predicting class 1! I will be trying one last thing; since I have a lot of data at my disposal, I will simply sample 25000 observations where the target variable <code>looking</code> equals 1, and then sample another 25000 observations where the target variable equals 2 (without using <code>SMOTE()</code>). Then I’ll simply bind the rows and train the model on that:</p>
+<p>The balanced accuracy is higher, but unlike what I expected (and hoped), this model is worse in
+predicting class 1! I will be trying one last thing; since I have a lot of data at my disposal,
+I will simply sample 25000 observations where the target variable <code>looking</code> equals 1, and then sample
+another 25000 observations where the target variable equals 2 (without using <code>SMOTE()</code>). Then I’ll
+simply bind the rows and train the model on that:</p>
 <pre class="r"><code>reg_data = import(&quot;regression_data.rds&quot;)
 
 
@@ -319,7 +371,9 @@ Accuracy : 0.9421
        &#39;Positive&#39; Class : 1</code></pre>
 <p><img src="/img/plot_acc_smote.png" /><!-- --></p>
 <p>Looks like it’s not much better than using <code>SMOTE()</code>!</p>
-<p>There are several ways I could achieve better predictions; tuning the model is one possibility, or perhaps going with another type of model altogether. I will certainly come back to this dataset in future blog posts!</p>
+<p>There are several ways I could achieve better predictions; tuning the model is one possibility,
+or perhaps going with another type of model altogether. I will certainly come back to this dataset
+in future blog posts!</p>
 <p>Using the best model, let’s take a look at which variables are the most important for predicting job search:</p>
 <pre class="r"><code>&gt; varImp(model_unbalanced)
 rf variable importance
@@ -351,5 +405,11 @@ rspouse6    0.6330</code></pre>
 <pre class="r"><code>plot(varImp(model_unbalanced))</code></pre>
 <p><img src="/img/varimp.png" /><!-- --></p>
 <p>To make sense of this, we have to read the description of the features <a href="https://archive.ics.uci.edu/ml/machine-learning-databases/census1990-mld/USCensus1990raw.attributes.txt">here</a>.</p>
-<p><code>rlabor3</code> is the most important variable, and means that the individual is unemployed. <code>rlabor6</code> means not in the labour force. Then the age of the individual as well as the individual’s income play a role. <code>tmpabsnt</code> is a variable that equals 1 if the individual is temporary absent from work, due to a layoff. All these variables having an influence on the probability of looking for a job make sense, but looks like a very simple model focusing on just a couple of variables would make as good a job as the random forest.</p>
-<p>If you found this blog post useful, you might want to follow me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates.</p>
+<p><code>rlabor3</code> is the most important variable, and means that the individual is unemployed. <code>rlabor6</code>
+means not in the labour force. Then the age of the individual as well as the individual’s income
+play a role. <code>tmpabsnt</code> is a variable that equals 1 if the individual is temporary absent from work,
+due to a layoff. All these variables having an influence on the probability of looking
+for a job make sense, but looks like a very simple model focusing on just a couple of variables
+would make as good a job as the random forest.</p>
+<p>If you found this blog post useful, you might want to follow me on <a href="https://www.twitter.com/brodriguesco">twitter</a>
+for blog post updates.</p>

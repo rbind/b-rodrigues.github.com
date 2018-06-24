@@ -133,7 +133,9 @@ head(mtcars)</code></pre>
 ## 13    other
 ## 14    other
 ## 15     four</code></pre>
-<p>Mind the <code>.$</code> before the variable <code>carb</code>. There is a <a href="https://github.com/hadley/dplyr/issues/1965">github issue</a> about this, and it is already fixed in the development version of <code>dplyr</code>, which means that in the next version of <code>dplyr</code>, <code>case_when()</code> will work as any other specialized <code>dplyr</code> function inside <code>mutate()</code>.</p>
+<p>Mind the <code>.$</code> before the variable <code>carb</code>. There is a <a href="https://github.com/hadley/dplyr/issues/1965">github issue</a>
+about this, and it is already fixed in the development version of <code>dplyr</code>, which means that in the next version
+of <code>dplyr</code>, <code>case_when()</code> will work as any other specialized <code>dplyr</code> function inside <code>mutate()</code>.</p>
 </div>
 <div id="apply-a-function-to-certain-columns-only-by-rows" class="section level2">
 <h2>Apply a function to certain columns only, by rows</h2>
@@ -169,16 +171,18 @@ head(mtcars)</code></pre>
 ## # Groups:   cyl [3]
 ##     cyl term        estimate std.error statistic p.value
 ##   &lt;dbl&gt; &lt;chr&gt;          &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;
-## 1    4. (Intercept)   33.2      17.1       1.94  0.0877 
-## 2    4. drat           1.32      3.45      0.384 0.711  
-## 3    4. wt            -5.24      2.22     -2.37  0.0456 
-## 4    6. (Intercept)   30.7       7.51      4.08  0.0151 
-## 5    6. drat          -0.444     1.17     -0.378 0.725  
-## 6    6. wt            -2.99      1.57     -1.91  0.129  
-## 7    8. (Intercept)   29.7       7.09      4.18  0.00153
-## 8    8. drat          -1.47      1.63     -0.903 0.386  
-## 9    8. wt            -2.45      0.799    -3.07  0.0107</code></pre>
-<p><code>do()</code> is useful when you want to use any R function (user defined functions work too!) with <code>dplyr</code> functions. First I grouped the observations by <code>cyl</code> and then ran a linear model for each group. Then I converted the output to a tidy data frame using <code>broom::tidy()</code>.</p>
+## 1     4 (Intercept)   33.2      17.1       1.94  0.0877 
+## 2     4 drat           1.32      3.45      0.384 0.711  
+## 3     4 wt            -5.24      2.22     -2.37  0.0456 
+## 4     6 (Intercept)   30.7       7.51      4.08  0.0151 
+## 5     6 drat          -0.444     1.17     -0.378 0.725  
+## 6     6 wt            -2.99      1.57     -1.91  0.129  
+## 7     8 (Intercept)   29.7       7.09      4.18  0.00153
+## 8     8 drat          -1.47      1.63     -0.903 0.386  
+## 9     8 wt            -2.45      0.799    -3.07  0.0107</code></pre>
+<p><code>do()</code> is useful when you want to use any R function (user defined functions work too!) with <code>dplyr</code> functions.
+First I grouped the observations by <code>cyl</code> and then ran a linear model for each group. Then I converted the output
+to a tidy data frame using <code>broom::tidy()</code>.</p>
 </div>
 <div id="using-dplyr-functions-inside-your-own-functions" class="section level2">
 <h2>Using <code>dplyr</code> functions inside your own functions</h2>

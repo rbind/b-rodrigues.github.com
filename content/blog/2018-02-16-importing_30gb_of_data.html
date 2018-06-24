@@ -11,9 +11,25 @@ menu:
 
 
 
-<p>Disclaimer: the first part of this blog post draws heavily from <a href="http://bconnelly.net/working-with-csvs-on-the-command-line/">Working with CSVs on the Command Line</a>, which is a beautiful resource that lists very nice tips and tricks to work with CSV files before having to load them into R, or any other statistical software. I highly recommend it! Also, if you find this interesting, read also <a href="https://www.datascienceatthecommandline.com/">Data Science at the Command Line</a> another great resource!</p>
-<p>In this blog post I am going to show you how to analyze 30GB of data. 30GB of data does not qualify as big data, but it’s large enough that you cannot simply import it into R and start working on it, unless you have a machine with <em>a lot</em> of RAM.</p>
-<p>Let’s start by downloading some data. I am going to import and analyze (very briefly) the airline dataset that you can download from Microsoft <a href="https://packages.revolutionanalytics.com/datasets/">here</a>. I downloaded the file <code>AirOnTimeCSV.zip</code> from <code>AirOnTime87to12</code>. Once you decompress it, you’ll end up with 303 csv files, each around 80MB. Before importing them into R, I will use command line tools to bind the rows together. But first, let’s make sure that the datasets all have the same columns. I am using Linux, and if you are too, or if you are using macOS, you can follow along. Windows users that installed the Linux Subsystem can also use the commands I am going to show! First, I’ll use the <code>head</code> command in bash. If you’re familiar with <code>head()</code> from R, the <code>head</code> command in bash works exactly the same:</p>
+<p>Disclaimer: the first part of this blog post draws heavily from <a href="http://bconnelly.net/working-with-csvs-on-the-command-line/">Working with CSVs on the Command
+Line</a>, which is a beautiful resource
+that lists very nice tips and tricks to work with CSV files before having to load them into R, or
+any other statistical software. I highly recommend it! Also, if you find this interesting, read
+also <a href="https://www.datascienceatthecommandline.com/">Data Science at the Command Line</a> another great
+resource!</p>
+<p>In this blog post I am going to show you how to analyze 30GB of data. 30GB of data does not qualify
+as big data, but it’s large enough that you cannot simply import it into R and start working on it,
+unless you have a machine with <em>a lot</em> of RAM.</p>
+<p>Let’s start by downloading some data. I am going to import and analyze (very briefly) the airline
+dataset that you can download from Microsoft
+<a href="https://packages.revolutionanalytics.com/datasets/">here</a>. I downloaded the file
+<code>AirOnTimeCSV.zip</code> from <code>AirOnTime87to12</code>. Once you decompress it, you’ll end up with 303 csv
+files, each around 80MB. Before importing them into R, I will use command line tools to bind the
+rows together. But first, let’s make sure that the datasets all have the same columns. I am using
+Linux, and if you are too, or if you are using macOS, you can follow along. Windows users that
+installed the Linux Subsystem can also use the commands I am going to show! First, I’ll use
+the <code>head</code> command in bash. If you’re familiar with <code>head()</code> from R, the <code>head</code>
+command in bash works exactly the same:</p>
 <pre><code>[18-02-15 21:12] brodriguesco in /Documents/AirOnTimeCSV ➤ head -5 airOT198710.csv
 &quot;YEAR&quot;,&quot;MONTH&quot;,&quot;DAY_OF_MONTH&quot;,&quot;DAY_OF_WEEK&quot;,&quot;FL_DATE&quot;,&quot;UNIQUE_CARRIER&quot;,&quot;TAIL_NUM&quot;,&quot;FL_NUM&quot;,
 1987,10,1,4,1987-10-01,&quot;AA&quot;,&quot;&quot;,&quot;1&quot;,12478,&quot;JFK&quot;,&quot;NY&quot;,12892,&quot;LAX&quot;,&quot;CA&quot;,&quot;0900&quot;,&quot;0901&quot;,1.00,
@@ -27,20 +43,44 @@ menu:
 2012,12,2,7,2012-12-02,&quot;AA&quot;,&quot;N327AA&quot;,&quot;1&quot;,12478,&quot;JFK&quot;,&quot;NY&quot;,12892,&quot;LAX&quot;,&quot;CA&quot;,&quot;0900&quot;,&quot;0853&quot;,
 2012,12,3,1,2012-12-03,&quot;AA&quot;,&quot;N319AA&quot;,&quot;1&quot;,12478,&quot;JFK&quot;,&quot;NY&quot;,12892,&quot;LAX&quot;,&quot;CA&quot;,&quot;0900&quot;,&quot;0856&quot;
 2012,12,4,2,2012-12-04,&quot;AA&quot;,&quot;N329AA&quot;,&quot;1&quot;,12478,&quot;JFK&quot;,&quot;NY&quot;,12892,&quot;LAX&quot;,&quot;CA&quot;,&quot;0900&quot;,&quot;1006&quot;</code></pre>
-<p>Why do that in bash instead of R? This way, I don’t need to import the data into R before checking its contents!</p>
-<p>It does look like the structure did not change. Before importing the data into R, I am going to bind the rows of the datasets using other command line tools. Again, the reason I don’t import all the files into R is because I would need around 30GB of RAM to do so. So it’s easier to do it with bash:</p>
+<p>Why do that in bash instead of R? This way, I don’t need to import the data into R before checking
+its contents!</p>
+<p>It does look like the structure did not change. Before importing the data into R, I am going to
+bind the rows of the datasets using other command line tools. Again, the reason I don’t import all the files
+into R is because I would need around 30GB of RAM to do so. So it’s easier
+to do it with bash:</p>
 <pre><code>head -1 airOT198710.csv &gt; combined.csv
 for file in $(ls airOT*); do cat $file | sed &quot;1 d&quot; &gt;&gt; combined.csv; done</code></pre>
-<p>On the first line I use <code>head</code> again to only copy the column names (the first line of the first file) into a new file called <code>combined.csv</code>.</p>
-<p>This <code>&gt;</code> operator looks like the now well known pipe operator in R, <code>%&gt;%</code>, but in bash, <code>%&gt;%</code> is actually <code>|</code>, not <code>&gt;</code>. <code>&gt;</code> redirects the output of the left hand side to a file on the right hand side, not to another command. On the second line, I loop over the files. I list the files with <code>ls</code>, and because I want only to loop over those that are named <code>airOTxxxxx</code> I use a regular expression, <code>airOT*</code> to only list those. The second part is <code>do cat $file</code>. <code>do</code> is self-explanatory, and <code>cat</code> stands for <code>catenate</code>. Think of it as <code>head</code>, but on all rows instead of just 5; it prints <code>$file</code> to the terminal. <code>$file</code> one element of the list of files I am looping over. But because I don’t want to see the contents of <code>$file</code> on my terminal, I redirect the output with the pipe, <code>|</code> to another command, <code>sed</code>. <code>sed</code> has an option, <code>&quot;1 d&quot;</code>, and what this does is filtering out the first line, containing the header, from <code>$file</code> before appending it with <code>&gt;&gt;</code> to <code>combined.csv</code>. If you found this interesting, read more about it <a href="http://bconnelly.net/working-with-csvs-on-the-command-line/#combining-rows-from-two-or-more-csvs">here</a>.</p>
-<p>This creates a 30GB CSV file that you can then import. But how? There seems to be different ways to import and work with larger than memory data in R using your personal computer. I chose to use <code>{sparklyr}</code>, an R package that allows you to work with Apache Spark from R. Apache Spark is a <em>fast and general engine for large-scale data processing</em>, and <code>{sparklyr}</code> not only offers bindings to it, but also provides a complete <code>{dplyr}</code> backend. Let’s start:</p>
+<p>On the first line I use <code>head</code> again to only copy the column names (the first line of the first
+file) into a new file called <code>combined.csv</code>.</p>
+<p>This <code>&gt;</code> operator looks like the now well known pipe operator in R, <code>%&gt;%</code>, but in
+bash, <code>%&gt;%</code> is actually <code>|</code>, not <code>&gt;</code>. <code>&gt;</code> redirects the output of the left hand side to a file on
+the right hand side, not to another command. On the second line, I loop over the files. I
+list the files with <code>ls</code>, and because I want only to loop over those that are named <code>airOTxxxxx</code> I
+use a regular expression, <code>airOT*</code> to only list those. The second part is <code>do cat $file</code>. <code>do</code> is
+self-explanatory, and <code>cat</code> stands for <code>catenate</code>. Think of it as <code>head</code>, but on all rows instead
+of just 5; it prints <code>$file</code> to the terminal. <code>$file</code> one element of the list of files I am looping over.
+But because I don’t want to see the contents of <code>$file</code> on my terminal, I redirect the output with
+the pipe, <code>|</code> to another command, <code>sed</code>. <code>sed</code> has an option, <code>&quot;1 d&quot;</code>, and what this does is filtering
+out the first line, containing the header, from <code>$file</code> before appending it with
+<code>&gt;&gt;</code> to <code>combined.csv</code>. If you found this interesting, read more about it
+<a href="http://bconnelly.net/working-with-csvs-on-the-command-line/#combining-rows-from-two-or-more-csvs">here</a>.</p>
+<p>This creates a 30GB CSV file that you can then import. But how? There seems to be different ways to
+import and work with larger than memory data in R using your personal computer. I chose to use
+<code>{sparklyr}</code>, an R package that allows you to work with Apache Spark from R. Apache Spark is a <em>fast
+and general engine for large-scale data processing</em>, and <code>{sparklyr}</code> not only offers bindings to it,
+but also provides a complete <code>{dplyr}</code> backend. Let’s start:</p>
 <pre class="r"><code>library(sparklyr)
 library(tidyverse)
 
 spark_dir = &quot;/my_2_to_disk/spark/&quot;</code></pre>
-<p>I first load <code>{sparklyr}</code> and the <code>{tidyverse}</code> and also define a <code>spark_dir</code>. This is because Spark creates a lot of temporary files that I want to save there instead of my root partition, which is on my SSD. My root partition only has around 20GO of space left, so whenever I tried to import the data I would get the following error:</p>
+<p>I first load <code>{sparklyr}</code> and the <code>{tidyverse}</code> and also define a <code>spark_dir</code>. This is because
+Spark creates a lot of temporary files that I want to save there instead of my root partition,
+which is on my SSD. My root partition only has around 20GO of space left, so whenever I tried to
+import the data I would get the following error:</p>
 <pre><code>java.io.IOException: No space left on device</code></pre>
-<p>In order to avoid this error, I define this directory on my 2TO hard disk. I then define the temporary directory using the two lines below:</p>
+<p>In order to avoid this error, I define this directory on my 2TO hard disk.
+I then define the temporary directory using the two lines below:</p>
 <pre class="r"><code>config = spark_config()
 
 config$`sparklyr.shell.driver-java-options` &lt;-  paste0(&quot;-Djava.io.tmpdir=&quot;, spark_dir)</code></pre>
@@ -50,19 +90,23 @@ config$`sparklyr.shell.driver-java-options` &lt;-  paste0(&quot;-Djava.io.tmpdir
 <pre class="r"><code>config$`sparklyr.shell.driver-memory` &lt;- &quot;4G&quot;
 config$`sparklyr.shell.executor-memory` &lt;- &quot;4G&quot;
 config$`spark.yarn.executor.memoryOverhead` &lt;- &quot;512&quot;</code></pre>
-<p>Finally, I can load the data. Because I am working on my machine, I <em>connect</em> to a <code>&quot;local&quot;</code> Spark instance. Then, using <code>spark_read_csv()</code>, I specify the Spark connection, <code>sc</code>, I give a name to the data that will be inside the database and the path to it:</p>
+<p>Finally, I can load the data. Because I am working on my machine, I <em>connect</em> to a <code>&quot;local&quot;</code> Spark
+instance. Then, using <code>spark_read_csv()</code>, I specify the Spark connection, <code>sc</code>, I give a name to the
+data that will be inside the database and the path to it:</p>
 <pre class="r"><code>sc = spark_connect(master = &quot;local&quot;, config = config)
 
 air = spark_read_csv(sc, name = &quot;air&quot;, path = &quot;combined.csv&quot;)</code></pre>
 <p>On my machine, this took around 25 minutes, and RAM usage was around 6GO.</p>
-<p>It is possible to use standard <code>{dplyr}</code> verbs with <code>{sparklyr}</code> objects, so if I want the mean delay at departure per day, I can simply write:</p>
+<p>It is possible to use standard <code>{dplyr}</code> verbs with <code>{sparklyr}</code> objects, so if I want the mean
+delay at departure per day, I can simply write:</p>
 <pre class="r"><code>tic = Sys.time()
 mean_dep_delay = air %&gt;%
   group_by(YEAR, MONTH, DAY_OF_MONTH) %&gt;%
   summarise(mean_delay = mean(DEP_DELAY))
 (toc = Sys.time() - tic)
 Time difference of 0.05634999 secs</code></pre>
-<p>That’s amazing, only 0.06 seconds to compute these means! Wait a minute, that’s weird… I mean my computer is brand new and quite powerful but still… Let’s take a look at <code>mean_dep_delay</code>:</p>
+<p>That’s amazing, only 0.06 seconds to compute these means! Wait a minute, that’s weird… I mean my computer
+is brand new and quite powerful but still… Let’s take a look at <code>mean_dep_delay</code>:</p>
 <pre class="r"><code>head(mean_dep_delay)</code></pre>
 <pre class="r"><code># Source:   lazy query [?? x 4]
 # Database: spark_connection
@@ -80,14 +124,19 @@ Warning messages:
 Use `AVG(x, na.rm = TRUE)` to silence this warning
 2: Missing values are always removed in SQL.
 Use `AVG(x, na.rm = TRUE)` to silence this warning</code></pre>
-<p>Surprisingly, this takes around 5 minutes to print? Why? Look at the class of <code>mean_dep_delay</code>: it’s a lazy query that only gets evaluated once I need it. Look at the first line; <code>lazy query [?? x 4]</code>. This means that I don’t even know how many rows are in <code>mean_dep_delay</code>! The contents of <code>mean_dep_delay</code> only get computed once I explicitly ask for them. I do so with the <code>collect()</code> function, which transfers the Spark object into R’s memory:</p>
+<p>Surprisingly, this takes around 5 minutes to print? Why? Look at the class of <code>mean_dep_delay</code>:
+it’s a lazy query that only gets evaluated once I need it. Look at the first line; <code>lazy query [?? x 4]</code>.
+This means that I don’t even know how many rows are in <code>mean_dep_delay</code>!
+The contents of <code>mean_dep_delay</code> only get computed once I explicitly ask for them. I do so
+with the <code>collect()</code> function, which transfers the Spark object into R’s memory:</p>
 <pre class="r"><code>tic = Sys.time()
 r_mean_dep_delay = collect(mean_dep_delay)
 (toc = Sys.time() - tic)
 Time difference of 5.2399 mins</code></pre>
 <p>Also, because it took such a long time to compute: I save it to disk:</p>
 <pre class="r"><code>saveRDS(r_mean_dep_delay, &quot;mean_dep_delay.rds&quot;)</code></pre>
-<p>So now that I <em>transferred</em> this sparklyr table to a standard tibble in R, I can create a nice plot of departure delays:</p>
+<p>So now that I <em>transferred</em> this sparklyr table to a standard tibble in R, I can create a nice plot
+of departure delays:</p>
 <pre class="r"><code>library(lubridate)
 
 dep_delay =  r_mean_dep_delay %&gt;%
@@ -98,4 +147,5 @@ ggplot(dep_delay, aes(date, mean_delay)) + geom_smooth()</code></pre>
 <pre><code>## `geom_smooth()` using method = &#39;gam&#39;</code></pre>
 <p><img src="/blog/2018-02-16-importing_30gb_of_data_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
 <p>That’s it for now, but in a future blog post I will continue to explore this data!</p>
-<p>If you found this blog post useful, you might want to follow me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates.</p>
+<p>If you found this blog post useful, you might want to follow me on <a href="https://www.twitter.com/brodriguesco">twitter</a>
+for blog post updates.</p>

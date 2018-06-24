@@ -11,10 +11,16 @@ menu:
 
 
 
-<p>This blog post is an update to an older <a href="http://www.brodrigues.co/blog/2017-02-17-lesser_known_tricks/">one</a> I wrote in March. In the post from March, <code>dplyr</code> was at version 0.50, but since then a major update introduced some changes that make some of the tips in that post obsolete. So here I revisit the blog post from March by using <code>dplyr</code> 0.70.</p>
+<p>This blog post is an update to an older <a href="http://www.brodrigues.co/blog/2017-02-17-lesser_known_tricks/">one</a>
+I wrote in March.
+In the post from March, <code>dplyr</code> was at version 0.50, but since then a major update introduced some
+changes that make some of the tips in that post obsolete. So here I revisit the blog post from March
+by using <code>dplyr</code> 0.70.</p>
 <div id="create-new-columns-with-mutate-and-case_when" class="section level2">
 <h2>Create new columns with <code>mutate()</code> and <code>case_when()</code></h2>
-<p>The basic things such as selecting columns, renaming them, filtering, etc did not change with this new version. What did change however is creating new columns using <code>case_when()</code>. First, load <code>dplyr</code> and the <code>mtcars</code> dataset:</p>
+<p>The basic things such as selecting columns, renaming them, filtering, etc did not change with this new
+version. What did change however is creating new columns using <code>case_when()</code>.
+First, load <code>dplyr</code> and the <code>mtcars</code> dataset:</p>
 <pre class="r"><code>library(&quot;dplyr&quot;)
 data(mtcars)</code></pre>
 <p>This was how it was done in version 0.50 (notice the ‘.$’ symbol before the variable ‘carb’):</p>
@@ -53,7 +59,8 @@ data(mtcars)</code></pre>
     select(am, gear, carb) %&gt;%
     purrr::by_row(sum, .collate = &quot;cols&quot;, .to = &quot;sum_am_gear_carb&quot;) -&gt; mtcars2
 head(mtcars2)</code></pre>
-<p>Now, <code>by_row()</code> does not exist in <code>purrr</code> anymore, but instead a new package called <code>purrrlyr</code> was introduced with functions that don’t really fit inside <code>purrr</code> nor <code>dplyr</code>:</p>
+<p>Now, <code>by_row()</code> does not exist in <code>purrr</code> anymore, but instead a new package called <code>purrrlyr</code>
+was introduced with functions that don’t really fit inside <code>purrr</code> nor <code>dplyr</code>:</p>
 <pre class="r"><code>mtcars %&gt;%
     select(am, gear, carb) %&gt;%
     purrrlyr::by_row(sum, .collate = &quot;cols&quot;, .to = &quot;sum_am_gear_carb&quot;) -&gt; mtcars2
@@ -61,17 +68,20 @@ head(mtcars2)</code></pre>
 <pre><code>## # A tibble: 6 x 4
 ##      am  gear  carb sum_am_gear_carb
 ##   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;            &lt;dbl&gt;
-## 1    1.    4.    4.               9.
-## 2    1.    4.    4.               9.
-## 3    1.    4.    1.               6.
-## 4    0.    3.    1.               4.
-## 5    0.    3.    2.               5.
-## 6    0.    3.    1.               4.</code></pre>
+## 1     1     4     4                9
+## 2     1     4     4                9
+## 3     1     4     1                6
+## 4     0     3     1                4
+## 5     0     3     2                5
+## 6     0     3     1                4</code></pre>
 <p>Think of <code>purrrlyr</code> as <code>purrr</code>s and <code>dplyr</code>s love child.</p>
 </div>
 <div id="using-dplyr-functions-inside-your-own-functions-or-what-is-tidyeval" class="section level2">
 <h2>Using <code>dplyr</code> functions inside your own functions, or what is <code>tidyeval</code></h2>
-<p>Programming with <code>dplyr</code> has been simplified a lot. Before version <code>0.70</code>, one needed to use <code>dplyr</code> in conjuction with <code>lazyeval</code> to use <code>dplyr</code> functions inside one’s own fuctions. It was not always very easy, especially if you mixed columns and values inside your functions. Here’s the example from the March blog post:</p>
+<p>Programming with <code>dplyr</code> has been simplified a lot. Before version <code>0.70</code>, one needed to use
+<code>dplyr</code> in conjuction with <code>lazyeval</code> to use <code>dplyr</code> functions inside one’s own fuctions. It was
+not always very easy, especially if you mixed columns and values inside your functions. Here’s the
+example from the March blog post:</p>
 <pre class="r"><code>extract_vars &lt;- function(data, some_string){
 
   data %&gt;%
@@ -82,7 +92,10 @@ head(mtcars2)</code></pre>
 
 extract_vars(mtcars, &quot;spam&quot;)</code></pre>
 <p>More examples are available in <a href="http://www.brodrigues.co/blog/2016-07-18-data-frame-columns-as-arguments-to-dplyr-functions/">this other blog post</a>.</p>
-<p>I will revisit them now with <code>dplyr</code>’s new <code>tidyeval</code> syntax. I’d recommend you read the <em>Tidy evaluation</em> vignette <a href="https://cran.r-project.org/web/packages/rlang/vignettes/tidy-evaluation.html">here</a>. This vignette is part of the <code>rlang</code> package, which gets used under the hood by <code>dplyr</code> for all your programming needs. Here is the function I called <code>simpleFunction()</code>, written with the old <code>dplyr</code> syntax:</p>
+<p>I will revisit them now with <code>dplyr</code>’s new <code>tidyeval</code> syntax. I’d recommend you read the <em>Tidy evaluation</em>
+vignette <a href="https://cran.r-project.org/web/packages/rlang/vignettes/tidy-evaluation.html">here</a>. This vignette
+is part of the <code>rlang</code> package, which gets used under the hood by <code>dplyr</code> for all your programming needs.
+Here is the function I called <code>simpleFunction()</code>, written with the old <code>dplyr</code> syntax:</p>
 <pre class="r"><code>simpleFunction &lt;- function(dataset, col_name){
   dataset %&gt;%
     group_by_(col_name) %&gt;%
@@ -95,9 +108,9 @@ simpleFunction(mtcars, &quot;cyl&quot;)</code></pre>
 <pre><code>## # A tibble: 3 x 2
 ##     cyl mean_mpg
 ##   &lt;dbl&gt;    &lt;dbl&gt;
-## 1    4.     26.7
-## 2    6.     19.7
-## 3    8.     15.1</code></pre>
+## 1     4     26.7
+## 2     6     19.7
+## 3     8     15.1</code></pre>
 <p>With the new synax, it must be rewritten a little bit:</p>
 <pre class="r"><code>simpleFunction &lt;- function(dataset, col_name){
   col_name &lt;- enquo(col_name)
@@ -112,10 +125,13 @@ simpleFunction(mtcars, cyl)</code></pre>
 <pre><code>## # A tibble: 3 x 2
 ##     cyl mean_mpg
 ##   &lt;dbl&gt;    &lt;dbl&gt;
-## 1    4.     26.7
-## 2    6.     19.7
-## 3    8.     15.1</code></pre>
-<p>What has changed? Forget the underscore versions of the usual functions such as <code>select_()</code>, <code>group_by_()</code>, etc. Now, you must quote the column name using <code>enquo()</code> (or just <code>quo()</code> if working interactively, outside a function), which returns a <strong>quosure</strong>. This <strong>quosure</strong> can then be evaluated using <code>!!</code> in front of the quosure and inside the usual <code>dplyr</code> functions.</p>
+## 1     4     26.7
+## 2     6     19.7
+## 3     8     15.1</code></pre>
+<p>What has changed? Forget the underscore versions of the usual functions such as <code>select_()</code>,
+<code>group_by_()</code>, etc. Now, you must quote the column name using <code>enquo()</code> (or just <code>quo()</code> if working
+interactively, outside a function), which returns a <strong>quosure</strong>. This <strong>quosure</strong> can then be
+evaluated using <code>!!</code> in front of the quosure and inside the usual <code>dplyr</code> functions.</p>
 <p>Let’s look at another example:</p>
 <pre class="r"><code>simpleFunction &lt;- function(dataset, col_name, value){
   filter_criteria &lt;- lazyeval::interp(~y == x, .values=list(y = as.name(col_name), x = value))
@@ -129,7 +145,8 @@ simpleFunction(mtcars, cyl)</code></pre>
 simpleFunction(mtcars, &quot;am&quot;, 1)</code></pre>
 <pre><code>##   mean_cyl
 ## 1 5.076923</code></pre>
-<p>As you can see, it’s a bit more complicated, as you needed to use <code>lazyeval::interp()</code> to make it work. With the improved <code>dplyr</code>, here’s how it’s done:</p>
+<p>As you can see, it’s a bit more complicated, as you needed to use <code>lazyeval::interp()</code> to make it work.
+With the improved <code>dplyr</code>, here’s how it’s done:</p>
 <pre class="r"><code>simpleFunction &lt;- function(dataset, col_name, value){
   col_name &lt;- enquo(col_name)
   dataset %&gt;%
@@ -146,8 +163,12 @@ simpleFunction(mtcars, am, 1)</code></pre>
 <pre class="r"><code>filter((!!col_name) == value)</code></pre>
 <p>and not:</p>
 <pre class="r"><code>filter(!!col_name == value)</code></pre>
-<p>I have enclosed <code>!!col_name</code> inside parentheses. I struggled with this, but thanks to help from <a href="https://twitter.com/dmi3k/status/880374506291953664">@dmi3k</a> and <a href="https://twitter.com/_lionelhenry/status/880380691078361090">@_lionelhenry</a> I was able to understand what was happening (isn’t the #rstats community on twitter great?).</p>
-<p>One last thing: let’s make this function a bit more general. I hard-coded the variable <code>cyl</code> inside the body of the function, but maybe you’d like the mean of another variable? Easy:</p>
+<p>I have enclosed <code>!!col_name</code> inside parentheses. I struggled with this, but thanks to help
+from <a href="https://twitter.com/dmi3k/status/880374506291953664">@dmi3k</a> and
+<a href="https://twitter.com/_lionelhenry/status/880380691078361090">@_lionelhenry</a> I was able to understand
+what was happening (isn’t the #rstats community on twitter great?).</p>
+<p>One last thing: let’s make this function a bit more general. I hard-coded the variable <code>cyl</code> inside the
+body of the function, but maybe you’d like the mean of another variable? Easy:</p>
 <pre class="r"><code>simpleFunction &lt;- function(dataset, group_col, mean_col, value){
   group_col &lt;- enquo(group_col)
   mean_col &lt;- enquo(mean_col)
@@ -161,7 +182,8 @@ simpleFunction(mtcars, am, 1)</code></pre>
 simpleFunction(mtcars, am, cyl, 1)</code></pre>
 <pre><code>##   mean(cyl)
 ## 1  5.076923</code></pre>
-<p><em>«That’s very nice Bruno, but <code>mean((cyl))</code> in the output looks ugly as sin»</em> you might think, and you’d be right. It is possible to set the name of the column in the output using <code>:=</code> instead of <code>=</code>:</p>
+<p><em>«That’s very nice Bruno, but <code>mean((cyl))</code> in the output looks ugly as sin»</em> you might think, and you’d be
+right. It is possible to set the name of the column in the output using <code>:=</code> instead of <code>=</code>:</p>
 <pre class="r"><code>simpleFunction &lt;- function(dataset, group_col, mean_col, value){
   group_col &lt;- enquo(group_col)
   mean_col &lt;- enquo(mean_col)
@@ -178,10 +200,17 @@ simpleFunction(mtcars, am, cyl, 1)</code></pre>
 ## 1 5.076923</code></pre>
 <p>To get the name of the column I added this line:</p>
 <pre class="r"><code>mean_name &lt;- paste0(&quot;mean_&quot;, mean_col)[2]</code></pre>
-<p>To see what it does, try the following inside an R interpreter (remember to us <code>quo()</code> instead of <code>enquo()</code> outside functions!):</p>
+<p>To see what it does, try the following inside an R interpreter (remember to us <code>quo()</code> instead of <code>enquo()</code>
+outside functions!):</p>
 <pre class="r"><code>paste0(&quot;mean_&quot;, quo(cyl))</code></pre>
 <pre><code>## [1] &quot;mean_~&quot;   &quot;mean_cyl&quot;</code></pre>
-<p><code>enquo()</code> quotes the input, and with <code>paste0()</code> it gets converted to a string that can be used as a column name. However, the <code>~</code> is in the way and the output of <code>paste0()</code> is a vector of two strings: the correct name is contained in the second element, hence the <code>[2]</code>. There might be a more elegant way of doing that, but for now this has been working well for me.</p>
-<p>That was it folks! I do recommend you read the <em>Programming with dplyr</em> vignette <a href="https://cran.r-project.org/web/packages/dplyr/vignettes/programming.html">here</a> as well as other blog posts, such as the one recommended to me by <a href="https://twitter.com/dmi3k">@dmi3k</a> <a href="http://www.win-vector.com/blog/2017/06/non-standard-evaluation-and-function-composition-in-r/">here</a>.</p>
+<p><code>enquo()</code> quotes the input, and with <code>paste0()</code> it gets converted to a string that can be used as a column
+name. However, the <code>~</code> is in the way and the output of <code>paste0()</code> is a vector of two strings: the correct
+name is contained in the second element, hence the <code>[2]</code>. There might be a more elegant way of doing that,
+but for now this has been working well for me.</p>
+<p>That was it folks! I do recommend you read the <em>Programming with dplyr</em> vignette
+<a href="https://cran.r-project.org/web/packages/dplyr/vignettes/programming.html">here</a> as well as other blog posts,
+such as the one recommended to me by <a href="https://twitter.com/dmi3k">@dmi3k</a>
+<a href="http://www.win-vector.com/blog/2017/06/non-standard-evaluation-and-function-composition-in-r/">here</a>.</p>
 <p>Have fun with <code>dplyr 0.70</code>!</p>
 </div>
