@@ -5,7 +5,7 @@ tags: [R]
 menu:
   main:
     parent: Blog
-    identifier: /blog/scraping_pdfs
+    identifier: /blog/forecast_weight
     weight: 1
 ---
 
