@@ -9,6 +9,12 @@ menu:
     weight: 1
 ---
 
+
+<div style="text-align:center;">
+  <a href="https://www.youtube.com/watch?v=o5S7CreWiBY/">
+    <img src="/img/trumpet_boy.jpg" width="640" height="360"/></a>
+</div>
+
 In this blog post I will discuss missing data imputation and instrumental variables regression. This
 is based on a short presentation I will give at my job. You can find the data used here on this 
 website: http://eclr.humanities.manchester.ac.uk/index.php/IV_in_R
