@@ -1,0 +1,267 @@
+---
+date: 2018-07-08
+title: "Dealing with heteroskedasticity; regression with robust standard errors using R"
+tags: [R]
+menu:
+  main:
+    parent: Blog
+    identifier: /blog/rob_stderr
+    weight: 1
+---
+
+
+<div style="text-align:center;">
+  <a href="https://cran.r-project.org/web/packages/sandwich/index.html">
+    <img src="/img/bread-breakfast-bun-5678.jpg" width="640" height="360"/></a>
+</div>
+
+First of all, is it heteros**k**edasticity or heteros**c**edasticity? According to 
+[McCulloch (1985)](https://www.jstor.org/stable/1911250), 
+heteros**k**edasticity is the proper spelling, because when transliterating Greek words, scientists
+use the Latin letter k in place of the Greek letter κ (kappa). κ sometimes is transliterated as 
+the Latin letter c, but only when these words entered the English language through French, such 
+as scepter.
+
+Now that this is out of the way, we can get to the meat of this blogpost (foreshadowing pun). 
+A random variable is said to be heteroskedastic, if its variance is not constant. For example, 
+the variability of expenditures may increase with income. Richer families may spend a similar
+amount on groceries as poorer people, but some rich families will sometimes buy expensive 
+items such as lobster. The variability of expenditures for rich families is thus quite large. 
+However, the expenditures on food of poorer families, who cannot afford lobster, will not vary much.
+Heteroskedasticity can also appear when data is clustered; for example, expenditures on food
+may vary from city to city, but is quite constant within a city.
+
+To illustrate this, let's first load all the packages needed for this blog post:
+
+```{r, include = FALSE}
+library(robustbase)
+library(tidyverse)
+library(sandwich)
+library(lmtest)
+library(modelr)
+library(broom)
+```
+
+```{r, eval = FALSE}
+library(robustbase)
+library(tidyverse)
+library(sandwich)
+library(lmtest)
+library(modelr)
+library(broom)
+```
+
+First, let's load and prepare the data:
+
+```{r}
+data("education")
+
+education <- education %>% 
+    rename(residents = X1,
+           per_capita_income = X2,
+           young_residents = X3,
+           per_capita_exp = Y,
+           state = State) %>% 
+    mutate(region = case_when(
+        Region == 1 ~ "northeast",
+        Region == 2 ~ "northcenter",
+        Region == 3 ~ "south",
+        Region == 4 ~ "west"
+    )) %>% 
+    select(-Region)
+```
+
+I will be using the `education` data sat from the `{robustbase}` package. I renamed some columns
+and changed the values of the `Region` column. Now, let's do a scatterplot of per capita expenditures
+on per capita income:
+
+```{r}
+ggplot(education, aes(per_capita_income, per_capita_exp)) + 
+    geom_point() +
+    theme_dark()
+```
+
+It would seem that, as income increases, variability of expenditures increases too. Let's look
+at the same plot by `region`:
+
+```{r}
+ggplot(education, aes(per_capita_income, per_capita_exp)) + 
+    geom_point() + 
+    facet_wrap(~region) + 
+    theme_dark()
+```
+
+I don't think this shows much; it would seem that observations might be clustered, but there are 
+not enough observations to draw any conclusion from this plot (in any case, drawing conclusions
+from plots only is dangerous).
+
+Let's first run a good ol' linear regression:
+
+```{r}
+lmfit <- lm(per_capita_exp ~ region + residents + young_residents + per_capita_income, data = education)
+
+summary(lmfit)
+```
+
+Let's test for heteroskedasticity using the Breusch-Pagan test that you can find in the `{lmtest}`
+package:
+
+```{r}
+bptest(lmfit)
+```
+
+This test shows that we can reject the null that the variance of the residuals is constant,
+thus heteroskedacity is present. To get the correct standard errors, we can use the `vcovHC()`
+function from the `{sandwich}` package (hence the choice for the header picture of this post):
+
+```{r}
+lmfit %>% 
+    vcovHC() %>% 
+    diag() %>% 
+    sqrt()
+```
+
+By default `vcovHC()` estimates a  heteroskedasticity consistent (HC) variance covariance 
+matrix for the parameters. There are several ways to estimate such a HC matrix, and by default
+`vcovHC()` estimates the "HC3" one. You can refer to [Zeileis (2004)](https://www.jstatsoft.org/article/view/v011i10) 
+for more details.
+
+We see that the standard errors are much larger than before! The intercept and `regionwest` variables 
+are not statistically significant anymore. 
+
+You can achieve the same in one single step:
+
+```{r}
+coeftest(lmfit, vcov = vcovHC(lmfit))
+```
+
+It's is also easy to change the estimation method for the variance-covariance matrix:
+
+```{r}
+coeftest(lmfit, vcov = vcovHC(lmfit, type = "HC0"))
+```
+
+As I wrote above, by default, the `type` argument is equal to "HC3".
+
+Another way of dealing with  heteroskedasticity is to use the `lmrob()` function from the 
+`{robustbase}` package. This package is quite interesting, and offers quite a lot of functions
+for robust linear, and nonlinear, regression models. Running a robust linear regression 
+is just the same as with `lm()`:
+
+```{r}
+lmrobfit <- lmrob(per_capita_exp ~ region + residents + young_residents + per_capita_income, 
+                  data = education)
+
+summary(lmrobfit)
+```
+
+This however, gives you different estimates than when fitting a linear regression model. 
+The estimates should be the same, only the standard errors should be different. This is because
+the estimation method is different, and is also robust to outliers (at least that's my understanding,
+I haven't read the theoretical papers behind the package yet).
+
+Finally, it is also possible to bootstrap the standard errors. For this I will use the 
+`bootstrap()` function from the `{modelr}` package:
+
+```{r}
+resamples <- 100
+
+boot_education <- education %>% 
+ modelr::bootstrap(resamples)
+```
+
+Let's take a look at the `boot_education` object:
+
+```{r}
+boot_education
+```
+
+The column `strap` contains resamples of the original data. I will run my linear regression
+from before on each of the resamples:
+
+```{r}
+(
+    boot_lin_reg <- boot_education %>% 
+        mutate(regressions = 
+                   map(strap, 
+                       ~lm(per_capita_exp ~ region + residents + 
+                               young_residents + per_capita_income, 
+                           data = .))) 
+)
+```
+
+I have added a new column called `regressions` which contains the linear regressions on each 
+bootstrapped sample. Now, I will create a list of tidied regression results:
+
+```{r}
+(
+    tidied <- boot_lin_reg %>% 
+        mutate(tidy_lm = 
+                   map(regressions, broom::tidy))
+)
+```
+
+`broom::tidy()` creates a data frame of the regression results. Let's look at one of these:
+
+```{r}
+tidied$tidy_lm[[1]]
+```
+
+This format is easier to handle than the standard `lm()` output:
+
+```{r}
+tidied$regressions[[1]]
+```
+
+Now that I have all these regression results, I can compute any statistic I need. But first,
+let's transform the data even further:
+
+```{r}
+list_mods <- tidied %>% 
+    pull(tidy_lm)
+```
+
+`list_mods` is a list of the `tidy_lm` data frames. I now add an index and 
+bind the rows together (by using `map2_df()` instead of `map2()`):
+
+```{r}
+mods_df <- map2_df(list_mods, 
+                   seq(1, resamples), 
+                   ~mutate(.x, resample = .y))
+
+```
+
+Let's take a look at the final object:
+
+```{r}
+head(mods_df, 25)
+```
+
+Now this is a very useful format, because I now can group by the `term` column and compute any 
+statistics I need, in the present case the standard deviation:
+
+```{r}
+(
+    r.std.error <- mods_df %>% 
+        group_by(term) %>% 
+        summarise(r.std.error = sd(estimate))
+)
+```
+
+We can append this column to the linear regression model result:
+
+```{r}
+lmfit %>% 
+    broom::tidy() %>% 
+    full_join(r.std.error) %>% 
+    select(term, estimate, std.error, r.std.error)
+```
+
+As you see, using the whole bootstrapping procedure is longer than simply using either one of
+the first two methods. However, this procedure is very flexible and can thus be adapted to a very
+large range of situations. Either way, in the case of heteroskedasticity, you can see that 
+results vary a lot depending on the procedure you use, so I would advise to use them all as 
+robustness tests and discuss the differences.
+
+If you found this blog post useful, you might want to follow me on [twitter](https://www.twitter.com/brodriguesco)
+for blog post updates.
