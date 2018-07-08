@@ -27,8 +27,8 @@ the variability of expenditures may increase with income. Richer families may sp
 amount on groceries as poorer people, but some rich families will sometimes buy expensive
 items such as lobster. The variability of expenditures for rich families is thus quite large.
 However, the expenditures on food of poorer families, who cannot afford lobster, will not vary much.
-Heteroskedasticity can also appear when data is clustered; for example, expenditures on food
-may vary from city to city, but is quite constant within a city.</p>
+Heteroskedasticity can also appear when data is clustered; for example, variability of
+expenditures on food may vary from city to city, but is quite constant within a city.</p>
 <p>To illustrate this, let’s first load all the packages needed for this blog post:</p>
 <pre class="r"><code>library(robustbase)
 library(tidyverse)
@@ -172,10 +172,10 @@ summary(lmrobfit)</code></pre>
 ## 
 ## Coefficients:
 ##                     Estimate Std. Error t value Pr(&gt;|t|)   
-## (Intercept)       -156.37170  132.73828  -1.178  0.24526   
-## regionnortheast     20.64575   26.45379   0.780  0.43940   
-## regionsouth         10.79693   29.42747   0.367  0.71549   
-## regionwest          45.22588   33.07950   1.367  0.17867   
+## (Intercept)       -156.37169  132.73828  -1.178  0.24526   
+## regionnortheast     20.64576   26.45378   0.780  0.43940   
+## regionsouth         10.79694   29.42747   0.367  0.71549   
+## regionwest          45.22589   33.07950   1.367  0.17867   
 ## residents            0.03406    0.04412   0.772  0.44435   
 ## young_residents      0.57896    0.25512   2.269  0.02832 * 
 ## per_capita_income    0.04328    0.01442   3.000  0.00447 **
@@ -280,14 +280,14 @@ bootstrapped sample. Now, I will create a list of tidied regression results:</p>
 ## # ... with 90 more rows</code></pre>
 <p><code>broom::tidy()</code> creates a data frame of the regression results. Let’s look at one of these:</p>
 <pre class="r"><code>tidied$tidy_lm[[1]]</code></pre>
-<pre><code>##                term      estimate    std.error  statistic     p.value
-## 1       (Intercept) -249.25388497 145.44354613 -1.7137501 0.093776074
-## 2   regionnortheast   23.34657187  20.99807894  1.1118432 0.272383441
-## 3       regionsouth  -12.52889547  14.25067520 -0.8791791 0.384191018
-## 4        regionwest   10.90663984  14.56507951  0.7488212 0.458041763
-## 5         residents    0.10043404   0.05236685  1.9178935 0.061781433
-## 6   young_residents    0.84161541   0.33774149  2.4918923 0.016640891
-## 7 per_capita_income    0.04103535   0.01352317  3.0344466 0.004078473</code></pre>
+<pre><code>##                term      estimate    std.error  statistic      p.value
+## 1       (Intercept) -515.19835839 129.61828003 -3.9747353 2.648477e-04
+## 2   regionnortheast  -11.75706535  18.72014312 -0.6280436 5.332970e-01
+## 3       regionsouth   -8.89139412  15.51588707 -0.5730510 5.695950e-01
+## 4        regionwest   25.96217940  17.48335459  1.4849656 1.448476e-01
+## 5         residents   -0.08921914   0.05557157 -1.6054819 1.157079e-01
+## 6   young_residents    1.41203710   0.35297506  4.0003877 2.447887e-04
+## 7 per_capita_income    0.08609340   0.01191468  7.2258276 6.069534e-09</code></pre>
 <p>This format is easier to handle than the standard <code>lm()</code> output:</p>
 <pre class="r"><code>tidied$regressions[[1]]</code></pre>
 <pre><code>## 
@@ -297,11 +297,11 @@ bootstrapped sample. Now, I will create a list of tidied regression results:</p>
 ## 
 ## Coefficients:
 ##       (Intercept)    regionnortheast        regionsouth  
-##        -249.25388           23.34657          -12.52890  
+##        -515.19836          -11.75707           -8.89139  
 ##        regionwest          residents    young_residents  
-##          10.90664            0.10043            0.84162  
+##          25.96218           -0.08922            1.41204  
 ## per_capita_income  
-##           0.04104</code></pre>
+##           0.08609</code></pre>
 <p>Now that I have all these regression results, I can compute any statistic I need. But first,
 let’s transform the data even further:</p>
 <pre class="r"><code>list_mods &lt;- tidied %&gt;% 
@@ -314,31 +314,31 @@ bind the rows together (by using <code>map2_df()</code> instead of <code>map2()<
 <p>Let’s take a look at the final object:</p>
 <pre class="r"><code>head(mods_df, 25)</code></pre>
 <pre><code>##                 term      estimate    std.error  statistic      p.value
-## 1        (Intercept) -249.25388497 1.454435e+02 -1.7137501 9.377607e-02
-## 2    regionnortheast   23.34657187 2.099808e+01  1.1118432 2.723834e-01
-## 3        regionsouth  -12.52889547 1.425068e+01 -0.8791791 3.841910e-01
-## 4         regionwest   10.90663984 1.456508e+01  0.7488212 4.580418e-01
-## 5          residents    0.10043404 5.236685e-02  1.9178935 6.178143e-02
-## 6    young_residents    0.84161541 3.377415e-01  2.4918923 1.664089e-02
-## 7  per_capita_income    0.04103535 1.352317e-02  3.0344466 4.078473e-03
-## 8        (Intercept) -462.99294024 9.221213e+01 -5.0209546 9.450897e-06
-## 9    regionnortheast   23.17205625 1.469644e+01  1.5767125 1.221912e-01
-## 10       regionsouth   33.74979040 1.244730e+01  2.7114138 9.590451e-03
-## 11        regionwest   80.51494490 1.292131e+01  6.2311760 1.685263e-07
-## 12         residents   -0.08514593 3.348247e-02 -2.5430004 1.467067e-02
-## 13   young_residents    1.21532834 2.049255e-01  5.9305848 4.612969e-07
-## 14 per_capita_income    0.07907414 9.183541e-03  8.6104197 6.592282e-11
-## 15       (Intercept) -609.23561363 1.880850e+02 -3.2391507 2.314402e-03
-## 16   regionnortheast   -6.04612450 1.908340e+01 -0.3168264 7.529085e-01
-## 17       regionsouth  -36.85979353 2.077828e+01 -1.7739581 8.315145e-02
-## 18        regionwest  -15.62420013 2.262198e+01 -0.6906645 4.934880e-01
-## 19         residents    0.02748290 5.823752e-02  0.4719106 6.393767e-01
-## 20   young_residents    1.93486931 5.117975e-01  3.7805367 4.777805e-04
-## 21 per_capita_income    0.05700871 1.224972e-02  4.6538768 3.117599e-05
-## 22       (Intercept)  125.20225251 1.303166e+02  0.9607548 3.420471e-01
-## 23   regionnortheast    4.64985779 1.207757e+01  0.3849995 7.021356e-01
-## 24       regionsouth  -27.68829970 1.362069e+01 -2.0328117 4.827534e-02
-## 25        regionwest   24.66023597 1.258181e+01  1.9599914 5.649787e-02
+## 1        (Intercept) -515.19835839 129.61828003 -3.9747353 2.648477e-04
+## 2    regionnortheast  -11.75706535  18.72014312 -0.6280436 5.332970e-01
+## 3        regionsouth   -8.89139412  15.51588707 -0.5730510 5.695950e-01
+## 4         regionwest   25.96217940  17.48335459  1.4849656 1.448476e-01
+## 5          residents   -0.08921914   0.05557157 -1.6054819 1.157079e-01
+## 6    young_residents    1.41203710   0.35297506  4.0003877 2.447887e-04
+## 7  per_capita_income    0.08609340   0.01191468  7.2258276 6.069534e-09
+## 8        (Intercept) -526.78466908 142.64004523 -3.6931050 6.207704e-04
+## 9    regionnortheast    3.35909252  21.97165783  0.1528830 8.792057e-01
+## 10       regionsouth    2.62845462  17.20973263  0.1527307 8.793251e-01
+## 11        regionwest   26.40527188  20.50214280  1.2879274 2.046593e-01
+## 12         residents   -0.04834920   0.05722962 -0.8448282 4.028830e-01
+## 13   young_residents    1.49618012   0.37091593  4.0337445 2.208994e-04
+## 14 per_capita_income    0.07489435   0.01179888  6.3475800 1.140844e-07
+## 15       (Intercept) -466.17160566 130.18954610 -3.5807146 8.659014e-04
+## 16   regionnortheast   -6.75977787  17.24994600 -0.3918724 6.970880e-01
+## 17       regionsouth    6.31061828  16.27953099  0.3876413 7.001938e-01
+## 18        regionwest   27.89261897  15.43852463  1.8066894 7.781178e-02
+## 19         residents   -0.08760677   0.05007780 -1.7494134 8.735434e-02
+## 20   young_residents    1.23763741   0.32965208  3.7543746 5.168492e-04
+## 21 per_capita_income    0.08469609   0.01236601  6.8491057 2.128982e-08
+## 22       (Intercept) -316.44265722 166.96769979 -1.8952328 6.479692e-02
+## 23   regionnortheast   11.54907449  14.95746934  0.7721276 4.442620e-01
+## 24       regionsouth    9.25759229  16.89974638  0.5477947 5.866654e-01
+## 25        regionwest   31.83905855  16.56287888  1.9223143 6.120738e-02
 ##    resample
 ## 1         1
 ## 2         1
@@ -375,13 +375,13 @@ statistics I need, in the present case the standard deviation:</p>
 <pre><code>## # A tibble: 7 x 2
 ##   term              r.std.error
 ##   &lt;chr&gt;                   &lt;dbl&gt;
-## 1 (Intercept)          198.    
-## 2 per_capita_income      0.0196
-## 3 regionnortheast       24.4   
-## 4 regionsouth           20.3   
-## 5 regionwest            21.9   
-## 6 residents              0.0641
-## 7 young_residents        0.454</code></pre>
+## 1 (Intercept)          226.    
+## 2 per_capita_income      0.0211
+## 3 regionnortheast       19.7   
+## 4 regionsouth           19.1   
+## 5 regionwest            18.7   
+## 6 residents              0.0629
+## 7 young_residents        0.509</code></pre>
 <p>We can append this column to the linear regression model result:</p>
 <pre class="r"><code>lmfit %&gt;% 
     broom::tidy() %&gt;% 
@@ -389,13 +389,13 @@ statistics I need, in the present case the standard deviation:</p>
     select(term, estimate, std.error, r.std.error)</code></pre>
 <pre><code>## Joining, by = &quot;term&quot;</code></pre>
 <pre><code>##                term      estimate    std.error  r.std.error
-## 1       (Intercept) -467.40282655 142.57668653 197.57100882
-## 2   regionnortheast   15.72740519  18.16259519  24.40300980
-## 3       regionsouth    7.08742365  17.29949951  20.27122230
-## 4        regionwest   34.32415663  17.49459866  21.93905985
-## 5         residents   -0.03455770   0.05318811   0.06407607
-## 6   young_residents    1.30145825   0.35716636   0.45369116
-## 7 per_capita_income    0.07203552   0.01305066   0.01961638</code></pre>
+## 1       (Intercept) -467.40282655 142.57668653 226.08735720
+## 2   regionnortheast   15.72740519  18.16259519  19.65120904
+## 3       regionsouth    7.08742365  17.29949951  19.05153934
+## 4        regionwest   34.32415663  17.49459866  18.72767470
+## 5         residents   -0.03455770   0.05318811   0.06285984
+## 6   young_residents    1.30145825   0.35716636   0.50928879
+## 7 per_capita_income    0.07203552   0.01305066   0.02109277</code></pre>
 <p>As you see, using the whole bootstrapping procedure is longer than simply using either one of
 the first two methods. However, this procedure is very flexible and can thus be adapted to a very
 large range of situations. Either way, in the case of heteroskedasticity, you can see that

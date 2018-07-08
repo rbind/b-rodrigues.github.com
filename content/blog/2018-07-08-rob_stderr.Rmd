@@ -28,8 +28,8 @@ the variability of expenditures may increase with income. Richer families may sp
 amount on groceries as poorer people, but some rich families will sometimes buy expensive 
 items such as lobster. The variability of expenditures for rich families is thus quite large. 
 However, the expenditures on food of poorer families, who cannot afford lobster, will not vary much.
-Heteroskedasticity can also appear when data is clustered; for example, expenditures on food
-may vary from city to city, but is quite constant within a city.
+Heteroskedasticity can also appear when data is clustered; for example, variability of 
+expenditures on food may vary from city to city, but is quite constant within a city.
 
 To illustrate this, let's first load all the packages needed for this blog post:
 
