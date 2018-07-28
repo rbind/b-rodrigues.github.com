@@ -71,7 +71,7 @@ education <- education %>%
     select(-Region)
 ```
 
-I will be using the `education` data sat from the `{robustbase}` package. I renamed some columns
+I will be using the `education` data set from the `{robustbase}` package. I renamed some columns
 and changed the values of the `Region` column. Now, let's do a scatterplot of per capita expenditures
 on per capita income:
 
@@ -93,7 +93,7 @@ ggplot(education, aes(per_capita_income, per_capita_exp)) +
 
 I don't think this shows much; it would seem that observations might be clustered, but there are 
 not enough observations to draw any conclusion from this plot (in any case, drawing conclusions
-from plots only is dangerous).
+from only plots is dangerous).
 
 Let's first run a good ol' linear regression:
 
