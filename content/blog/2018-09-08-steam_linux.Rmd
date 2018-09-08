@@ -1,0 +1,224 @@
+---
+date: 2018-09-08
+title: "The year of the GNU+Linux desktop is upon us: using user ratings of Steam Play compatibility to play around with regex and the tidyverse"
+tags: [R]
+menu:
+  main:
+    parent: Blog
+    identifier: /blog/steam_linux
+    weight: 1
+---
+
+
+<div style="text-align:center;">
+  <a href="https://www.youtube.com/watch?v=4QokOwvPxrE">
+    <img src="/img/want_to_believe.jpg"/></a>
+</div>
+
+
+I've been using GNU+Linux distros for about 10 years now, and have settled for openSUSE as my main operating system around 3 years ago, perhaps even more. If you're a gamer, you might have heard about SteamOS
+and how more and more games are available on GNU+Linux. I don't really care about
+games, I play the occasional one (currently [Tangledeep](http://www.tangledeep.com/)) when I find
+the time, but still follow the news about gaming on GNU+Linux. Last week,
+Valve announced something quite big; it is now possible to run Windows games on GNU+Linux directly 
+from Steam, using a modified version of [Wine](https://en.wikipedia.org/wiki/Wine_(software)) 
+they call Proton. The feature is still in Beta, and Valve announced that they guarantee around 
+30 games to work already flawlessly. Of course, people have tried running a lot of other games, and,
+as was to be expected from Free Software and Open Source fans, GNU+Linux gamers created a Google Sheet
+that lists which games were tried and how they run. You can take a look at the sheet [here](https://docs.google.com/spreadsheets/d/1DcZZQ4HL_Ol969UbXJmFG8TzOHNnHoj8Q1f8DIFe8-8/htmlview?sle=true&pru=AAABZbqTTkc*IvT11ShwA2kjoe_4lPefiQ#gid=1003113831).
+
+In this blog post, I will play around with this sheet. This blog post lists some `{tidyverse}` tricks
+I find useful and use often. Perhaps these tricks will be useful to you too! Let's start by loading
+the needed packages:
+
+```{r, include=FALSE}
+library(tidyverse)
+library(magrittr)
+library(readxl)
+```
+
+```{r, eval=FALSE}
+library(tidyverse)
+library(magrittr)
+library(readxl)
+```
+
+Since I'm lazy and don't want to type the whole name of the file I'll be using some little regex:
+
+```{r}
+steam <- read_excel(Sys.glob("Steam*"), sheet = "Main", skip = 2)
+
+glimpse(steam)
+```
+
+Let's count how many unique games are in the data:
+
+```{r}
+steam %>%
+    count(Game)
+```
+
+That's quite a lot of games! However, not everyone of them is playable:
+
+```{r}
+steam %>%
+    count(Status)
+```
+
+Around 2500 have the status "Platinum", but some games might have more than one status:
+
+```{r}
+steam %>%
+    filter(Game == "100% Orange Juice") %>%
+    count(Status)
+```
+
+More games run like *Garbage* than *Platinum*. But perhaps we can dig a little deeper and see if 
+we find some patterns.
+
+Let's take a look at the GNU+Linux distros:
+
+```{r}
+steam %>%
+    count(Distro) 
+```
+
+Ok the distro column is pretty messy. Let's try to bring some order to it:
+
+```{r}
+steam %<>%
+    mutate(distribution = as_factor(case_when(
+        grepl("buntu|lementary|antergos|steam|mint|18.|pop|neon", Distro, ignore.case = TRUE) ~ "Ubuntu",
+        grepl("arch|manjaro", Distro, ignore.case = TRUE) ~ "Arch Linux",
+        grepl("gentoo", Distro, ignore.case = TRUE) ~ "Gentoo",
+        grepl("fedora", Distro, ignore.case = TRUE) ~ "Fedora",
+        grepl("suse", Distro, ignore.case = TRUE) ~ "openSUSE",
+        grepl("debian|sid|stretch|lmde", Distro, ignore.case = TRUE) ~ "Debian",
+        grepl("solus", Distro, ignore.case = TRUE) ~ "Solus",
+        grepl("slackware", Distro, ignore.case = TRUE) ~ "Slackware",
+        grepl("void", Distro, ignore.case = TRUE) ~ "Void Linux",
+        TRUE ~ "Other"
+    )))
+```
+
+The `%<>%` operator is shorthand for `a <- a %>% f()`. It passes `a` to `f()` and assigns the
+result back to `a`. Anyways, let's take a look at the `distribution` column:
+
+```{r}
+steam %>%
+    count(distribution)
+```
+
+I will group distributions that have less than 100 occurrences into a single category
+(meaning I will keep the 5 more common values):
+
+```{r}
+steam %<>%
+    mutate(distribution = fct_lump(distribution, n = 5, other_level = "Other")) 
+
+steam %>%
+    count(distribution)
+```
+
+Let's do the same for the CPUs:
+
+```{r}
+steam %<>%
+    mutate(CPU = as_factor(case_when(
+        grepl("intel|i\\d|xeon|core2|\\d{4}k|q\\d{4}|pentium", Specs, ignore.case = TRUE) ~ "Intel",
+        grepl("ryzen|threadripper|tr|amd|fx|r\\d|\\d{4}x|phenom", Specs, ignore.case = TRUE) ~ "AMD",
+        TRUE ~ NA_character_
+    )))
+
+steam %>%
+    count(CPU)
+```
+
+And the same for the GPUs:
+
+```{r}
+steam %<>%
+    mutate(GPU = as_factor(case_when(
+        grepl("nvidia|geforce|3\\d{2}|nouveau|gtx|gt\\s?\\d{1,}|9\\d0|1060|1070|1080", Specs, ignore.case = TRUE) ~ "Nvidia",
+        grepl("amd|radeon|ati|rx|vega|r9", Specs, ignore.case = TRUE) ~ "AMD",
+        grepl("intel|igpu|integrated|hd\\d{4}|hd\\sgraphics", Specs, ignore.case = TRUE) ~ "Intel",
+        TRUE ~ NA_character_
+    )))
+
+steam %>%
+    count(GPU)
+```
+
+I will also add a rank for the `Status` column:
+
+```{r}
+steam %<>%
+    mutate(rank_status = case_when(
+        Status == "Platinum" ~ 5,
+        Status == "Gold" ~ 4,
+        Status == "Silver" ~ 3,
+        Status == "Bronze" ~ 2,
+        Status == "Garbage" ~ 1
+    ))
+```
+
+Now, what are the top 5 most frequent combinations of Status, distribution, CPU and GPU?
+
+```{r}
+steam %>%
+    filter(!is.na(CPU), !is.na(GPU)) %>%
+    count(Status, distribution, CPU, GPU) %>%
+    mutate(total = sum(n)) %>%
+    mutate(freq = n / total) %>%
+    top_n(5)
+```
+
+Unsurprisingly, Ubuntu, or distributions using Ubuntu as a base, are the most popular ones. Nvidia
+is the most popular GPU, Intel for CPUs and in most cases, this combo of hardware and distribution
+is associated with positive ratings (even though there are almost as many "Garbage" ratings than
+"Platinum" ratings).
+
+Now let's compute some dumb averages of Statuses by distribution, CPU and GPU. Since I'm going
+to run the same computation three times, I'll write a function to do that.
+
+```{r}
+compute_avg <- function(dataset, var){
+    var <- enquo(var)
+    dataset %>%
+        select(rank_status, (!!var)) %>%
+        group_by((!!var)) %>%
+        mutate(wt = n()) %>%
+        summarise(average_rating = weighted.mean(rank_status, (!!var), wt, na.rm = TRUE))
+}
+```
+
+Let's see now if we can rank distribution by Steam play rating:
+
+```{r}
+compute_avg(steam, distribution)
+```
+
+How about for hardware?
+
+```{r}
+compute_avg(steam, GPU)
+```
+
+```{r}
+compute_avg(steam, CPU)
+```
+
+To wrap this up, what are the games with the most ratings? Perhaps this can give us a hint about which
+games GNU+Linux users prefer:
+
+```{r}
+steam %>%
+    count(Game) %>%
+    top_n(10)
+```
+
+I actually laughed out loud when I saw that DOOM was the game with the most ratings! What else 
+was I expecting, really.
+
+If you found this blog post useful, you might want to follow me on [twitter](https://www.twitter.com/brodriguesco)
+for blog post updates.

@@ -1,0 +1,280 @@
+---
+date: 2018-09-08
+title: "The year of the GNU+Linux desktop is upon us: using user ratings of Steam Play compatibility to play around with regex and the tidyverse"
+tags: [R]
+menu:
+  main:
+    parent: Blog
+    identifier: /blog/steam_linux
+    weight: 1
+---
+
+
+
+<div style="text-align:center;">
+<p><a href="https://www.youtube.com/watch?v=4QokOwvPxrE">
+<img src="/img/want_to_believe.jpg"/></a></p>
+</div>
+<p>I’ve been using GNU+Linux distros for about 10 years now, and have settled for openSUSE as my main operating system around 3 years ago, perhaps even more. If you’re a gamer, you might have heard about SteamOS
+and how more and more games are available on GNU+Linux. I don’t really care about
+games, I play the occasional one (currently <a href="http://www.tangledeep.com/">Tangledeep</a>) when I find
+the time, but still follow the news about gaming on GNU+Linux. Last week,
+Valve announced something quite big; it is now possible to run Windows games on GNU+Linux directly
+from Steam, using a modified version of <a href="https://en.wikipedia.org/wiki/Wine_(software)">Wine</a>
+they call Proton. The feature is still in Beta, and Valve announced that they guarantee around
+30 games to work already flawlessly. Of course, people have tried running a lot of other games, and,
+as was to be expected from Free Software and Open Source fans, GNU+Linux gamers created a Google Sheet
+that lists which games were tried and how they run. You can take a look at the sheet <a href="https://docs.google.com/spreadsheets/d/1DcZZQ4HL_Ol969UbXJmFG8TzOHNnHoj8Q1f8DIFe8-8/htmlview?sle=true&amp;pru=AAABZbqTTkc*IvT11ShwA2kjoe_4lPefiQ#gid=1003113831">here</a>.</p>
+<p>In this blog post, I will play around with this sheet. This blog post lists some <code>{tidyverse}</code> tricks
+I find useful and use often. Perhaps these tricks will be useful to you too! Let’s start by loading
+the needed packages:</p>
+<pre class="r"><code>library(tidyverse)
+library(magrittr)
+library(readxl)</code></pre>
+<p>Since I’m lazy and don’t want to type the whole name of the file I’ll be using some little regex:</p>
+<pre class="r"><code>steam &lt;- read_excel(Sys.glob(&quot;Steam*&quot;), sheet = &quot;Main&quot;, skip = 2)
+
+glimpse(steam)</code></pre>
+<pre><code>## Observations: 8,570
+## Variables: 9
+## $ SteamDB   &lt;chr&gt; &quot;LINK&quot;, &quot;LINK&quot;, &quot;LINK&quot;, &quot;LINK&quot;, &quot;LINK&quot;, &quot;LINK&quot;, &quot;LIN...
+## $ Game      &lt;chr&gt; &quot;64&quot;, &quot;1849&quot;, &quot;1982&quot;, &quot;1982&quot;, &quot;am Weapon: Revival&quot;, ...
+## $ Submitted &lt;chr&gt; &quot;5 days ago&quot;, &quot;12 days ago&quot;, &quot;11 days ago&quot;, &quot;11 days...
+## $ Status    &lt;chr&gt; &quot;Garbage&quot;, &quot;Platinum&quot;, &quot;Gold&quot;, &quot;Platinum&quot;, &quot;Platinum...
+## $ Notes     &lt;chr&gt; &quot;Crashes with a debug log&quot;, &quot;Plays OK.&quot;, &quot;Gamepad su...
+## $ Distro    &lt;chr&gt; &quot;Arch (4.18.5)&quot;, &quot;Manjaro XFCE&quot;, &quot;Gentoo AMD64 (Kern...
+## $ Driver    &lt;chr&gt; &quot;Nvidia 396.54 / Intel xf86-video-intel (1:2.99.917+...
+## $ Specs     &lt;chr&gt; &quot;Intel Core i7-7700HQ / Nvidia GTX 1050 (Mobile)&quot;, &quot;...
+## $ Proton    &lt;chr&gt; &quot;3.7 Beta&quot;, &quot;3.7-4 Beta&quot;, &quot;3.7-4 Beta&quot;, &quot;Default&quot;, &quot;...</code></pre>
+<p>Let’s count how many unique games are in the data:</p>
+<pre class="r"><code>steam %&gt;%
+    count(Game)</code></pre>
+<pre><code>## # A tibble: 3,855 x 2
+##    Game                                                                   n
+##    &lt;chr&gt;                                                              &lt;int&gt;
+##  1 .hack//G.U. Last Recode                                                2
+##  2 $1 Ride                                                                1
+##  3 0rbitalis                                                              1
+##  4 10 Second Ninja                                                        4
+##  5 100% Orange Juice                                                     17
+##  6 1000 Amps                                                              3
+##  7 12 Labours of Hercules VII: Fleecing the Fleece (Platinum Edition)     1
+##  8 16bit trader                                                           1
+##  9 1849                                                                   1
+## 10 1953 - KGB Unleased                                                    1
+## # ... with 3,845 more rows</code></pre>
+<p>That’s quite a lot of games! However, not everyone of them is playable:</p>
+<pre class="r"><code>steam %&gt;%
+    count(Status)</code></pre>
+<pre><code>## # A tibble: 8 x 2
+##   Status       n
+##   &lt;chr&gt;    &lt;int&gt;
+## 1 Borked     205
+## 2 bronze       1
+## 3 Bronze     423
+## 4 Garbage   2705
+## 5 Gold       969
+## 6 Platinum  2596
+## 7 Primary      1
+## 8 Silver    1670</code></pre>
+<p>Around 2500 have the status “Platinum”, but some games might have more than one status:</p>
+<pre class="r"><code>steam %&gt;%
+    filter(Game == &quot;100% Orange Juice&quot;) %&gt;%
+    count(Status)</code></pre>
+<pre><code>## # A tibble: 5 x 2
+##   Status       n
+##   &lt;chr&gt;    &lt;int&gt;
+## 1 Bronze       5
+## 2 Garbage      3
+## 3 Gold         2
+## 4 Platinum     6
+## 5 Silver       1</code></pre>
+<p>More games run like <em>Garbage</em> than <em>Platinum</em>. But perhaps we can dig a little deeper and see if
+we find some patterns.</p>
+<p>Let’s take a look at the GNU+Linux distros:</p>
+<pre class="r"><code>steam %&gt;%
+    count(Distro) </code></pre>
+<pre><code>## # A tibble: 2,085 x 2
+##    Distro                                         n
+##    &lt;chr&gt;                                      &lt;int&gt;
+##  1 ?                                              2
+##  2 &quot;\&quot;Arch Linux\&quot; (64 bit)&quot;                      1
+##  3 &quot;\&quot;Linux Mint 18.3 Sylvia 64bit&quot;               1
+##  4 &quot;\&quot;Manjaro Stable 64-bit (Kernel 4.14.66)&quot;     1
+##  5 &quot;\&quot;Solus\&quot; (64 bit)&quot;                           2
+##  6 (K)ubuntu 18.04 64-bit (Kernel 4.15.0)         2
+##  7 (L)Ubuntu 18.04.1 LTS                          1
+##  8 18.04.1                                        1
+##  9 18.04.1 LTS                                    2
+## 10 18.04.1 LTS (64 Bit)                           1
+## # ... with 2,075 more rows</code></pre>
+<p>Ok the distro column is pretty messy. Let’s try to bring some order to it:</p>
+<pre class="r"><code>steam %&lt;&gt;%
+    mutate(distribution = as_factor(case_when(
+        grepl(&quot;buntu|lementary|antergos|steam|mint|18.|pop|neon&quot;, Distro, ignore.case = TRUE) ~ &quot;Ubuntu&quot;,
+        grepl(&quot;arch|manjaro&quot;, Distro, ignore.case = TRUE) ~ &quot;Arch Linux&quot;,
+        grepl(&quot;gentoo&quot;, Distro, ignore.case = TRUE) ~ &quot;Gentoo&quot;,
+        grepl(&quot;fedora&quot;, Distro, ignore.case = TRUE) ~ &quot;Fedora&quot;,
+        grepl(&quot;suse&quot;, Distro, ignore.case = TRUE) ~ &quot;openSUSE&quot;,
+        grepl(&quot;debian|sid|stretch|lmde&quot;, Distro, ignore.case = TRUE) ~ &quot;Debian&quot;,
+        grepl(&quot;solus&quot;, Distro, ignore.case = TRUE) ~ &quot;Solus&quot;,
+        grepl(&quot;slackware&quot;, Distro, ignore.case = TRUE) ~ &quot;Slackware&quot;,
+        grepl(&quot;void&quot;, Distro, ignore.case = TRUE) ~ &quot;Void Linux&quot;,
+        TRUE ~ &quot;Other&quot;
+    )))</code></pre>
+<p>The <code>%&lt;&gt;%</code> operator is shorthand for <code>a &lt;- a %&gt;% f()</code>. It passes <code>a</code> to <code>f()</code> and assigns the
+result back to <code>a</code>. Anyways, let’s take a look at the <code>distribution</code> column:</p>
+<pre class="r"><code>steam %&gt;%
+    count(distribution)</code></pre>
+<pre><code>## # A tibble: 10 x 2
+##    distribution     n
+##    &lt;fct&gt;        &lt;int&gt;
+##  1 Ubuntu        6632
+##  2 Arch Linux     805
+##  3 Solus          175
+##  4 Debian         359
+##  5 Fedora         355
+##  6 Gentoo          42
+##  7 Void Linux      38
+##  8 Other           76
+##  9 openSUSE        66
+## 10 Slackware       22</code></pre>
+<p>I will group distributions that have less than 100 occurrences into a single category
+(meaning I will keep the 5 more common values):</p>
+<pre class="r"><code>steam %&lt;&gt;%
+    mutate(distribution = fct_lump(distribution, n = 5, other_level = &quot;Other&quot;)) 
+
+steam %&gt;%
+    count(distribution)</code></pre>
+<pre><code>## # A tibble: 6 x 2
+##   distribution     n
+##   &lt;fct&gt;        &lt;int&gt;
+## 1 Ubuntu        6632
+## 2 Arch Linux     805
+## 3 Solus          175
+## 4 Debian         359
+## 5 Fedora         355
+## 6 Other          244</code></pre>
+<p>Let’s do the same for the CPUs:</p>
+<pre class="r"><code>steam %&lt;&gt;%
+    mutate(CPU = as_factor(case_when(
+        grepl(&quot;intel|i\\d|xeon|core2|\\d{4}k|q\\d{4}|pentium&quot;, Specs, ignore.case = TRUE) ~ &quot;Intel&quot;,
+        grepl(&quot;ryzen|threadripper|tr|amd|fx|r\\d|\\d{4}x|phenom&quot;, Specs, ignore.case = TRUE) ~ &quot;AMD&quot;,
+        TRUE ~ NA_character_
+    )))
+
+steam %&gt;%
+    count(CPU)</code></pre>
+<pre><code>## # A tibble: 3 x 2
+##   CPU       n
+##   &lt;fct&gt; &lt;int&gt;
+## 1 Intel  5768
+## 2 AMD    2319
+## 3 &lt;NA&gt;    483</code></pre>
+<p>And the same for the GPUs:</p>
+<pre class="r"><code>steam %&lt;&gt;%
+    mutate(GPU = as_factor(case_when(
+        grepl(&quot;nvidia|geforce|3\\d{2}|nouveau|gtx|gt\\s?\\d{1,}|9\\d0|1060|1070|1080&quot;, Specs, ignore.case = TRUE) ~ &quot;Nvidia&quot;,
+        grepl(&quot;amd|radeon|ati|rx|vega|r9&quot;, Specs, ignore.case = TRUE) ~ &quot;AMD&quot;,
+        grepl(&quot;intel|igpu|integrated|hd\\d{4}|hd\\sgraphics&quot;, Specs, ignore.case = TRUE) ~ &quot;Intel&quot;,
+        TRUE ~ NA_character_
+    )))
+
+steam %&gt;%
+    count(GPU)</code></pre>
+<pre><code>## # A tibble: 4 x 2
+##   GPU        n
+##   &lt;fct&gt;  &lt;int&gt;
+## 1 Nvidia  6086
+## 2 AMD     1374
+## 3 Intel    413
+## 4 &lt;NA&gt;     697</code></pre>
+<p>I will also add a rank for the <code>Status</code> column:</p>
+<pre class="r"><code>steam %&lt;&gt;%
+    mutate(rank_status = case_when(
+        Status == &quot;Platinum&quot; ~ 5,
+        Status == &quot;Gold&quot; ~ 4,
+        Status == &quot;Silver&quot; ~ 3,
+        Status == &quot;Bronze&quot; ~ 2,
+        Status == &quot;Garbage&quot; ~ 1
+    ))</code></pre>
+<p>Now, what are the top 5 most frequent combinations of Status, distribution, CPU and GPU?</p>
+<pre class="r"><code>steam %&gt;%
+    filter(!is.na(CPU), !is.na(GPU)) %&gt;%
+    count(Status, distribution, CPU, GPU) %&gt;%
+    mutate(total = sum(n)) %&gt;%
+    mutate(freq = n / total) %&gt;%
+    top_n(5)</code></pre>
+<pre><code>## Selecting by freq</code></pre>
+<pre><code>## # A tibble: 5 x 7
+##   Status   distribution CPU   GPU        n total   freq
+##   &lt;chr&gt;    &lt;fct&gt;        &lt;fct&gt; &lt;fct&gt;  &lt;int&gt; &lt;int&gt;  &lt;dbl&gt;
+## 1 Garbage  Ubuntu       Intel Nvidia  1025  7443 0.138 
+## 2 Gold     Ubuntu       Intel Nvidia   361  7443 0.0485
+## 3 Platinum Ubuntu       Intel Nvidia  1046  7443 0.141 
+## 4 Platinum Ubuntu       AMD   Nvidia   338  7443 0.0454
+## 5 Silver   Ubuntu       Intel Nvidia   650  7443 0.0873</code></pre>
+<p>Unsurprisingly, Ubuntu, or distributions using Ubuntu as a base, are the most popular ones. Nvidia
+is the most popular GPU, Intel for CPUs and in most cases, this combo of hardware and distribution
+is associated with positive ratings (even though there are almost as many “Garbage” ratings than
+“Platinum” ratings).</p>
+<p>Now let’s compute some dumb averages of Statuses by distribution, CPU and GPU. Since I’m going
+to run the same computation three times, I’ll write a function to do that.</p>
+<pre class="r"><code>compute_avg &lt;- function(dataset, var){
+    var &lt;- enquo(var)
+    dataset %&gt;%
+        select(rank_status, (!!var)) %&gt;%
+        group_by((!!var)) %&gt;%
+        mutate(wt = n()) %&gt;%
+        summarise(average_rating = weighted.mean(rank_status, (!!var), wt, na.rm = TRUE))
+}</code></pre>
+<p>Let’s see now if we can rank distribution by Steam play rating:</p>
+<pre class="r"><code>compute_avg(steam, distribution)</code></pre>
+<pre><code>## # A tibble: 6 x 2
+##   distribution average_rating
+##   &lt;fct&gt;                 &lt;dbl&gt;
+## 1 Ubuntu                 3.03
+## 2 Arch Linux             3.05
+## 3 Solus                  3.03
+## 4 Debian                 3.01
+## 5 Fedora                 3.07
+## 6 Other                  3.16</code></pre>
+<p>How about for hardware?</p>
+<pre class="r"><code>compute_avg(steam, GPU)</code></pre>
+<pre><code>## # A tibble: 4 x 2
+##   GPU    average_rating
+##   &lt;fct&gt;           &lt;dbl&gt;
+## 1 Nvidia           3.07
+## 2 AMD              2.90
+## 3 Intel            3.01
+## 4 &lt;NA&gt;            NA</code></pre>
+<pre class="r"><code>compute_avg(steam, CPU)</code></pre>
+<pre><code>## # A tibble: 3 x 2
+##   CPU   average_rating
+##   &lt;fct&gt;          &lt;dbl&gt;
+## 1 Intel           3.03
+## 2 AMD             3.06
+## 3 &lt;NA&gt;           NA</code></pre>
+<p>To wrap this up, what are the games with the most ratings? Perhaps this can give us a hint about which
+games GNU+Linux users prefer:</p>
+<pre class="r"><code>steam %&gt;%
+    count(Game) %&gt;%
+    top_n(10)</code></pre>
+<pre><code>## Selecting by n</code></pre>
+<pre><code>## # A tibble: 10 x 2
+##    Game                              n
+##    &lt;chr&gt;                         &lt;int&gt;
+##  1 Age of Empires II: HD Edition    43
+##  2 Borderlands                      39
+##  3 DiRT 3 Complete Edition          32
+##  4 DOOM                             62
+##  5 Fallout: New Vegas               45
+##  6 Grim Dawn                        34
+##  7 No Man&#39;s Sky                     40
+##  8 Path of Exile                    35
+##  9 Quake Champions                  32
+## 10 The Elder Scrolls V: Skyrim      46</code></pre>
+<p>I actually laughed out loud when I saw that DOOM was the game with the most ratings! What else
+was I expecting, really.</p>
+<p>If you found this blog post useful, you might want to follow me on <a href="https://www.twitter.com/brodriguesco">twitter</a>
+for blog post updates.</p>
