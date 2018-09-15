@@ -19,13 +19,19 @@ how you could use the `{tidyxl}` package to go from a human readable Excel Workb
 data set (or flat file, as they are also called). Some people then contributed their solutions,
 which is always something I really enjoy when it happens. This way, I also get to learn things!
 
-@expersso proposed a solution without `{tidyxl}`:
+[`@expersso`](https://twitter.com/expersso) proposed a solution without `{tidyxl}`:
 
 <blockquote class="twitter-tweet" data-lang="en"><p lang="en" dir="ltr">Interesting data wrangling exercise in <a href="https://twitter.com/hashtag/rstats?src=hash&amp;ref_src=twsrc%5Etfw">#rstats</a>. <br>My solution (without using {tidyxl}): <a href="https://t.co/VjuOoM82yX">https://t.co/VjuOoM82yX</a> <a href="https://t.co/VsXFyowigu">https://t.co/VsXFyowigu</a></p>&mdash; Eric (@expersso) <a href="https://twitter.com/expersso/status/1039894727808757761?ref_src=twsrc%5Etfw">September 12, 2018</a></blockquote>
 <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 
-Ben Stenhaug also proposed a solution on his [github](https://github.com/stenhaug/shared/blob/master/tidyxl_bruno_blog.md)
+[Ben Stenhaug](https://www.benstenhaug.com/) also proposed a solution on his [github](https://github.com/stenhaug/shared/blob/master/tidyxl_bruno_blog.md)
 which is simpler than my code in a lot of ways!
+
+Update: [`@nacnudus`](https://twitter.com/nacnudus) also contributed his own version using `{unpivotr}`:
+
+<blockquote class="twitter-tweet" data-lang="en"><p lang="en" dir="ltr">Here&#39;s a version using unpivotr <a href="https://t.co/l2hy6zCuKj">https://t.co/l2hy6zCuKj</a></p>&mdash; Duncan Garmonsway (@nacnudus) <a href="https://twitter.com/nacnudus/status/1040905626317217792?ref_src=twsrc%5Etfw">September 15, 2018</a></blockquote>
+<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
 
 Now, it would be too bad not to further analyze this data. I've been wanting to play around with
 the `{flexdashboard}` package for some time now, but never really got the opportunity to do so. 
