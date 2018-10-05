@@ -1,0 +1,152 @@
+---
+date: 2018-10-05
+title: "Exporting editable plots from R to Excel: making ggplot2 purrr with officer"
+tags: [R]
+menu:
+  main:
+    parent: Blog
+    identifier: /blog/time_use
+    weight: 1
+---
+
+<div style="text-align:center;">
+  <a href="https://www.youtube.com/watch?v=oc9XOxUcvLY">
+    <img src="/img/officer_meme.jpg"/></a>
+</div>
+
+
+I was recently confronted to the following problem: creating hundreds of plots that could still be 
+edited by our client. What this meant was that I needed to export the graphs in Excel or Powerpoint
+or some other such tool that was familiar to the client, and not export the plots directly to pdf or
+png as I would normally do. I still wanted to use R to do it though, because I could do what I always
+do to when I need to perform repetitive tasks such as producing hundreds of plots; map over a list
+of, say, countries, and make one plot per country. This is something I discussed in a previous
+blog post, [Make ggplot2 purrr](http://www.brodrigues.co/blog/2017-03-29-make-ggplot2-purrr/).
+
+So, after some online seaching, I found the `{officer}` package. This package allows you to put
+objects into Microsoft documents. For example, editable plots in a Powerpoint document. This is what
+I will show in this blog post. 
+
+Let's start by loading the required packages:
+
+```{r, include=FALSE}
+library("tidyverse")
+library("officer")
+library("rvg")
+```
+
+```{r, eval=FALSE}
+library("tidyverse")
+library("officer")
+library("rvg")
+```
+
+Then, I will use the data from the time use survey, which I discussed in a previous blog post 
+[Going from a human readable Excel file to a machine-readable csv with {tidyxl}](http://www.brodrigues.co/blog/2018-09-11-human_to_machine/).
+
+Let's import and prepare it:
+
+```{r}
+time_use <- rio::import("clean_data.csv")
+
+
+time_use <- time_use %>%
+    filter(population %in% c("Male", "Female")) %>%
+    filter(activities %in% c("Personal care", "Sleep", "Eating", 
+                             "Employment", "Household and family care")) %>%
+    group_by(day) %>%
+    nest()
+```
+
+I only kept two categories, "Male" and "Female" and 5 activities. Then I grouped by day and nested
+the data. This is how it looks like:
+
+```{r}
+time_use
+```
+
+As shown, `time_use` is a tibble with 2 columns, the first `day` contains the days, and the second
+`data`, is of type list, and each element of these lists are tibbles themselves. Let's take a look 
+inside one:
+
+```{r}
+time_use$data[1]
+```
+
+I can now create plots for each of the days with the following code:
+
+```{r}
+my_plots <- time_use %>%
+    mutate(plots = map2(.y = day, .x = data, ~ggplot(data = .x) + theme_minimal() +
+                       geom_col(aes(y = time_in_minutes, x = activities, fill = population), 
+                                position = "dodge") +
+                       ggtitle(.y) +
+                       ylab("Time in minutes") +
+                       xlab("Activities")))
+```
+
+These steps are all detailled in my blog post 
+[Make ggplot2 purrr](http://www.brodrigues.co/blog/2017-03-29-make-ggplot2-purrr/).
+Let's take a look at `my_plots`:
+
+```{r}
+my_plots
+```
+
+The last column, called `plots` is a list where each element is a plot! We can take a look at one:
+
+```{r}
+my_plots$plots[1]
+```
+
+Now, this is where I could export these plots as pdfs or pngs. But this is not what I need. I need
+to export these plots as editable charts for Powerpoint. To do this for one image, I would do the 
+following (as per `{officer}`'s documentation):
+
+```{r, eval = FALSE}
+read_pptx() %>%
+    add_slide(layout = "Title and Content", master = "Office Theme") %>%
+    ph_with_vg(code = print(one_plot), type = "body") %>% 
+    print(target = path)
+```
+
+To map this over a list of arguments, I wrote a wrapper:
+
+```{r}
+create_pptx <- function(plot, path){
+    if(!file.exists(path)) {
+        out <- read_pptx()
+    } else {
+        out <- read_pptx(path)
+    }
+    
+    out %>%
+        add_slide(layout = "Title and Content", master = "Office Theme") %>%
+        ph_with_vg(code = print(plot), type = "body") %>% 
+        print(target = path)
+}
+```
+
+This function takes two arguments, `plot` and `path`. `plot` must be an plot object such as the ones
+contained inside the `plots` column of `my_plots` tibble. `path` is the path of where I want to save
+the pptx.
+
+The first lines check if the file exists, if yes, the slides get added to the existing file, if not
+a new pptx gets created. The rest of the code is very similar to the one from the documentation. Now,
+to create my pptx I simple need to map over the `plots` column and provide a `path`: 
+
+```{r}
+map(my_plots$plots, create_pptx, path = "test.pptx")
+```
+
+Here is the end result:
+
+```{r, echo=FALSE}
+knitr::include_graphics("/img/editable_plots.png")
+```
+
+Inside Powerpoint (or in this case Libreoffice), the plots are geometric shapes that can now
+be edited!
+
+If you found this blog post useful, you might want to follow me on [twitter](https://www.twitter.com/brodriguesco)
+for blog post updates.
