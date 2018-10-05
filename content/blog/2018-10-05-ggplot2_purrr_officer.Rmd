@@ -44,6 +44,8 @@ library("rvg")
 Then, I will use the data from the time use survey, which I discussed in a previous blog post 
 [Going from a human readable Excel file to a machine-readable csv with {tidyxl}](http://www.brodrigues.co/blog/2018-09-11-human_to_machine/).
 
+You can download the data [here](https://github.com/rbind/b-rodrigues.github.com/blob/master/content/blog/clean_data.csv).
+
 Let's import and prepare it:
 
 ```{r}
