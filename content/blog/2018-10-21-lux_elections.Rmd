@@ -60,11 +60,20 @@ knitr::include_graphics("/img/elections_data.png")
 This is good, because we can write a function to extracts the data and then map it over
 all the sheets. First, let's load some packages and the data for the country:
 
-```{r}
+```{r, include = FALSE}
 library("tidyverse")
 library("tidyxl")
 library("brotools")
+```
 
+
+```{r, eval = FALSE}
+library("tidyverse")
+library("tidyxl")
+library("brotools")
+```
+
+```{r}
 # National Level 2018
 elections_raw_2018 <- xlsx_cells("leg-2018-10-14-22-58-09-737.xlsx",
                         sheets = "Le Grand-Duché de Luxembourg")
