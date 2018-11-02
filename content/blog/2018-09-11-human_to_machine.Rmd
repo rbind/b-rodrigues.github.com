@@ -73,7 +73,7 @@ to handle, but you will see that it actually makes things way easier.
 I only want to work on the English sheets so I use the following code to ignore the French ones:
 
 ```{r}
-sheets <- xlsx_sheet_names("~/Downloads/time-use.xlsx") %>%
+sheets <- xlsx_sheet_names("time-use.xlsx") %>%
     keep(grepl(pattern = ".*day$", .))
 ```
 

@@ -55,7 +55,7 @@ time_use_xl &lt;- xlsx_cells(&quot;time-use.xlsx&quot;)</code></pre>
 is a <code>tibble</code> object, where each row is one cell of the Excel sheet. This might seem very complicated
 to handle, but you will see that it actually makes things way easier.</p>
 <p>I only want to work on the English sheets so I use the following code to ignore the French ones:</p>
-<pre class="r"><code>sheets &lt;- xlsx_sheet_names(&quot;~/Downloads/time-use.xlsx&quot;) %&gt;%
+<pre class="r"><code>sheets &lt;- xlsx_sheet_names(&quot;time-use.xlsx&quot;) %&gt;%
     keep(grepl(pattern = &quot;.*day$&quot;, .))</code></pre>
 <p>Also, there’s a sheet that aggregates the results for week days and weekends, which I also ignore.</p>
 <p>Now, to extract the tables from each sheet I wrote the following function:</p>
