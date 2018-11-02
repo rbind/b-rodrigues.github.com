@@ -62,7 +62,7 @@ img {
 }
 
 @media (max-width: 768px) {
-  .table-of-contents {
+  .list-group.table-of-contents {
       position: absolute;
       z-index: 1;
       max-height: 100vh;
