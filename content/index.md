@@ -28,6 +28,8 @@ I'm writing a book as a hobby about functional programming, unit testing and pac
 development with R. You can read it for [free](https://b-rodrigues.github.io/fput/).
 
 You can also download my package, called [brotools](https://github.com/b-rodrigues/brotools),
-which contains some functions I use daily. You might find them useful too!
+which contains some functions I use daily. You might find them useful too! I also made a package
+caled `{nethack}` that contains data from NetHack games played online from 2001 to 2018. You
+can get it [here](https://github.com/b-rodrigues/nethack).
 
 # Blog posts
