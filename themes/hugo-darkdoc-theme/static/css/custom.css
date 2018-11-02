@@ -60,3 +60,14 @@ body>.navbar {
 img {
   max-width: 700px
 }
+
+@media (max-width: 768px) {
+  .table-of-contents {
+      position: absolute;
+      z-index: 1;
+      max-height: 100vh;
+      overflow-y: scroll;
+      margin: 0 20px 0 5px;
+      display: none;
+  }
+}
