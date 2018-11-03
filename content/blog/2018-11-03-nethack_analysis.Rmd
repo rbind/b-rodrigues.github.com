@@ -1,0 +1,471 @@
+---
+date: 2018-11-03
+title: "Analyzing NetHack data, part 1: What kills the players"
+tags: [R]
+menu:
+  main:
+    parent: Blog
+    identifier: /blog/nethack_analysis
+    weight: 1
+---
+
+<div style="text-align:center;">
+  <a href="https://www.youtube.com/watch?v=dpM2o4dRLto">
+    <img src="/img/deepfried_loss.png" title = "Click here to listen to epic music while reading"></a>
+</div>
+
+
+## Abstract
+
+In this post, I will analyse the data I scraped and put into an R package, which I called `{nethack}`.
+NetHack is a roguelike game; for more context, read my previous blog
+[post](https://www.brodrigues.co/blog/2018-11-01-nethack/).
+You can install the `{nethack}` package and play around with the data yourself by installing it from github:
+
+```{r, eval=FALSE}
+devtools::install_github("b-rodrigues/nethack")
+```
+
+And to use it:
+
+```{r, eval=FALSE}
+library(nethack)
+data("nethack")
+```
+
+The data contains information on games played from 2001 to 2018; 322485 rows and 14 columns. I
+will analyze the data in a future blog post. This post focuses on getting and then sharing the
+data. By the way, all the content from the public server I scrape is under the CC BY 4.0 license.
+
+I built the package by using the very useful `{devtools}` package. 
+
+## Introduction
+
+What I want from this first analysis are several, simple things: how many players manage to ascend
+(meaning, winning), what monster kills most players, and finally extract data from the `dumplog`
+column. The `dumplog` column is a bit special; each element of the dumplog column is a log file
+that contains a lot of information from the last turns of a player. I will leave this for a future
+blog post, though.
+
+Let's load some packages first:
+
+```{r, include=FALSE}
+library(nethack)
+library(tidyverse)
+library(lubridate)
+library(magrittr)
+library(brotools)
+```
+
+
+```{r, eval=FALSE}
+library(nethack)
+library(tidyverse)
+library(lubridate)
+library(magrittr)
+library(brotools)
+```
+
+`{brotools}` is my own package that contains some functions that I use daily. If you want to 
+install it, run the following line:
+
+```{r, eval=FALSE}
+devtools::install_github("b-rodrigues/brotools")
+```
+
+The documentation is not up-to-date, I think I'll do that and release it on CRAN. Some day. 
+
+Now, let's load the "nethack" data, included in the `{nethack}` package:
+
+```{r}
+data("nethack")
+
+head(nethack)
+```
+
+Let's create some variables that might be helpful (or perhaps not, we'll see):
+
+```{r}
+nethack %<>% 
+  mutate(date = ymd(date),
+         year = year(date),
+         month = month(date),
+         day = day(date))
+```
+
+This makes it easy to look at the data from, say, June 2017:
+
+```{r}
+nethack %>%
+  filter(year == 2017, month == 6) %>%
+  brotools::describe()
+```
+
+Let's also take a look at a dumplog:
+
+<details>
+  <summary>Click to expand; the dumplog is quite long</summary>
+  
+```{r}
+nethack %>%
+    filter(year == 2018, month == 10) %>%
+    slice(1) %>%
+    pull(dumplog)
+```
+</details>
+
+Now, I am curious to see how many games are played per day:
+
+```{r}
+runs_per_day <- nethack %>%
+  group_by(date) %>%
+  count() %>%
+  ungroup() 
+
+
+ggplot(runs_per_day, aes(y = n, x = date)) + 
+  geom_point(colour = "#0f4150") + 
+  geom_smooth(colour = "#82518c") + 
+  theme_blog()
+```
+
+The number of games seems to be stable since 2015, around 50. But what is also interesting is not 
+only the number of games played, but also how many of these games resulted in a win.
+
+For this, let's also add a new column that tells us whether the played *ascended* (won the game) 
+or not:
+
+```{r}
+nethack %<>%
+  mutate(Ascended = ifelse(death == "ascended", "Ascended", "Died an horrible death"))
+```
+
+I'm curious to see how many players managed to ascend... NetHack being as hard as diamonds, probably
+not a lot:
+
+```{r}
+ascensions_per_day <- nethack %>%
+  group_by(date, Ascended) %>%
+  count() %>%
+  rename(Total = n)
+
+ggplot(ascensions_per_day) + 
+  geom_area(aes(y = Total, x = as.Date(date), fill = Ascended)) +
+  theme_blog() +
+  labs(y = "Number of runs", x = "Date") +
+  scale_fill_blog() +
+  theme(legend.title = element_blank())
+```
+
+Yeah, just as expected. Because there is so much data, it's difficult to see clearly, though. Depending on
+the size of the screen you're reading this, it might seem that in some days there are a lot of ascensions.
+This is only an impression due to the resolution of the picture. Let's see the share of ascensions per 
+year (and how many times the quests fail miserably), and this will become more apparent:
+
+```{r}
+ascensions_per_day %>%
+  mutate(Year = year(as.Date(date))) %>%
+  group_by(Year, Ascended) %>%
+  summarise(Total = sum(Total, na.rm = TRUE)) %>%
+  group_by(Year) %>%
+  mutate(denom = sum(Total, na.rm = TRUE)) %>%
+  ungroup() %>%
+  mutate(Share = Total/denom) %>%
+  ggplot() + 
+  geom_col(aes(y = Share, x = Year, fill = Ascended)) + 
+  theme_blog() + 
+  scale_fill_blog() + 
+  theme(legend.title = element_blank())
+```
+
+I will now convert the "time" column to seconds. I am not yet sure that this column is really useful,
+because NetHack is a turn based game. This means that when the player does not move, neither do the
+monsters. So the seconds spent playing might not be a good proxy for actual time spent playing. 
+But it makes for a good exercise:
+
+```{r}
+convert_to_seconds <- function(time_string){
+    time_numeric <- time_string %>%
+        str_split(":", simplify = TRUE) %>%
+        as.numeric
+
+    time_in_seconds <- sum(time_numeric * c(3600, 60, 1))
+
+    time_in_seconds 
+}
+```
+
+The strings I want to convert are of the form "01:34:43", so I split at the ":" and then convert
+the result to numeric. I end up with an atomic vector (`c(1, 34, 43)`). Then I multiple each element
+by the right number of seconds, and sum that to get the total. Let's apply it to my data:
+
+```{r}
+nethack %<>%
+  mutate(time_in_seconds = map_dbl(time, convert_to_seconds))
+```
+
+What is the distribution of "time_in_seconds"?
+
+```{r}
+nethack %>%
+  describe(time_in_seconds)
+```
+
+We see that the minimum of `time_in_seconds` is 61 whereas the maximum is of the order of 27200000...
+This must be a mistake, because that is almost one year!
+
+```{r}
+nethack %>%
+  filter(time_in_seconds == max(time_in_seconds, na.rm = TRUE))
+```
+
+Well... maybe "fisted" wanted to break the record of the longest NetHack game ever. Congratulations!
+
+Let's take a look at the density but cut it at 90th percentile:
+
+```{r}
+nethack %>%
+  filter(!is.na(time_in_seconds),
+         time_in_seconds < quantile(time_in_seconds, 0.9, na.rm = TRUE)) %>%
+  ggplot() + 
+  geom_density(aes(x = time_in_seconds), colour = "#82518c") + 
+  theme_blog()
+```
+
+As expected, the distribution is right skewed. However, as explained above NetHack is a turn based 
+game, meaning that if the player does not move, the monsters won't move either. Perhaps it makes more 
+sense to look at the `turns` column:
+
+```{r}
+nethack %>%
+  describe(turns)
+```
+
+The maximum is quite large too. Just like before, let's focus by cutting the variable at the 90th percentile:
+
+```{r}
+nethack %>%
+  filter(!is.na(turns),
+         turns < quantile(turns, 0.9, na.rm = TRUE)) %>% 
+  ggplot() + 
+  geom_density(aes(x = turns), colour = "#82518c") + 
+  theme_blog()
+```
+
+I think that using `turns` makes more sense. In the a future blog post, I will estimate a survival
+model and see how long players survive, and will use `turns` instead of `time_in_seconds`. 
+
+## Analysis
+
+### What kills the players
+
+To know what kills players so much, some cleaning of the `death` column is in order. Death can 
+occur from poisoning, starvation, accidents, drowning... of course monsters can kill the player too.
+Here are some values of the `death` variable:
+
+```
+burned by a tower of flame
+choked on a lichen corpse
+died of starvation
+fell into a pit of iron spikes
+killed by a gnome
+killed by a gnome called Blabla
+killed by a gnome called Blabla while sleeping
+slipped while mounting a saddled pony
+slipped while mounting a saddled pony called Jolly Jumper
+zapped her/himself with a spell
+```
+
+To know what is the most frequent cause of death, I have to do some cleaning, because if not,
+"killed by a gnome" and "killed by a gnome called Blabla" would be two different causes of death.
+In the end, what interests me is to know how many times the player got killed by a gnome. 
+
+The following lines do a cleanup of the `death` variable:
+
+```{r}
+nethack %<>% 
+  mutate(death2 = case_when(str_detect(death, "poisoned") ~ "poisoned",
+                            str_detect(death, "slipped") ~ "accident",
+                            str_detect(death, "petrified") ~ "petrified",
+                            str_detect(death, "choked") ~ "accident",
+                            str_detect(death, "caught.*self") ~ "accident",
+                            str_detect(death, "starvation") ~ "starvation",
+                            str_detect(death, "drowned") ~ "drowned",
+                            str_detect(death, "fell") ~ "fell",
+                            str_detect(death, "zapped") ~ "zapped",
+                            str_detect(death, "killed") ~ "killed",
+                            TRUE ~ death)) %>%
+  mutate(death3 = str_extract(death, "(?<=by|while).*")) %>%
+  mutate(death3 = case_when(str_detect(death3, ",|\\bcalled\\b") ~ str_extract(death3, "(.*?),|(.*?)\\bcalled\\b"), 
+                            TRUE ~ death3)) %>%
+  mutate(death3 = str_remove(death3, ",|called|\\ban?"),
+         death3 = str_trim(death3))
+```
+
+`death2` is a new variable, in which I broadly categorize causes of death. Using regular expressions
+I detect causes of death and aggregate some categories, for instance "slipped" and "chocked" into 
+"accident". Then, I want to extract everything that comes  after the strings "by" or while, and put
+the result into a new variable called `death3`. Then I detect the string "," or "called"; if one 
+of these strings is present, I extract everything that comes before "," or that comes before 
+"called". Finally, I remove ",", "called" or "a" or "an" from the string and trim the whitespaces.
+
+Let's take a look at these new variables:
+
+```{r}
+set.seed(123)
+nethack %>%
+    select(name, death, death2, death3) %>%
+    sample_n(10)
+```
+
+Now, it is quite easy to know what monsters are the meanest buttholes; let's focus on the top 15.
+Most likely, these are going to be early game monsters. Let' see:
+
+```{r}
+nethack %>%
+    filter(!is.na(death3)) %>%
+    count(death3) %>%
+    top_n(15) %>%
+    mutate(death3 = fct_reorder(death3, n, .desc = FALSE)) %>%
+    ggplot() + 
+    geom_col(aes(y = n, x = death3)) + 
+    coord_flip() + 
+    theme_blog() + 
+    scale_fill_blog() + 
+    ylab("Number of deaths caused") +
+    xlab("Monster")
+```
+
+Seems like soldier ants are the baddest, followed by jackals and dwarfs. As expected, these are
+mostly early game monsters. Thus, it would be interesting to look at this distribution, but at 
+different stages in the game. Let's create a categorical variable that discretizes `turns`,
+and then create one plot per category:
+
+<details>
+  <summary>Click to expand</summary>
+  
+
+```{r}
+nethack %>%
+    filter(!is.na(death3)) %>%
+    filter(!is.na(turns)) %>%
+    mutate(turn_flag = case_when(between(turns, 1, 5000) ~ "Less than 5000",
+                                 between(turns, 5001, 10000) ~ "Between 5001 and 10000",
+                                 between(turns, 10001, 20000) ~ "Between 10001 and 20000",
+                                 between(turns, 20001, 40000) ~ "Between 20001 and 40000",
+                                 between(turns, 40001, 60000) ~ "Between 40001 and 60000",
+                                 turns > 60000 ~ "More than 60000")) %>%
+    mutate(turn_flag = factor(turn_flag, levels = c("Less than 5000", 
+                                                    "Between 5001 and 10000",
+                                                    "Between 10001 and 20000",
+                                                    "Between 20001 and 40000",
+                                                    "Between 40001 and 60000",
+                                                    "More than 60000"), ordered = TRUE)) %>%
+    group_by(turn_flag) %>%
+    count(death3) %>%
+    top_n(15) %>%
+    nest() %>%
+    mutate(data = map(data, ~mutate(., death3 = fct_reorder(death3, n, .desc = TRUE))))  %>%
+    mutate(plots = map2(.x = turn_flag,
+                         .y = data,
+                         ~ggplot(data = .y) + 
+                             geom_col(aes(y = n, x = death3)) + 
+                             coord_flip() + 
+                             theme_blog() + 
+                             scale_fill_blog() + 
+                             ylab("Number of deaths caused") +
+                             xlab("Monster") + 
+                             ggtitle(.x))) %>%
+    pull(plots)
+```
+</details>
+
+Finally, for this section, I want to know if there are levels, or floors, where players die more
+often than others. For this, we can take a look at the `lev_max` column. Observations in this 
+column are of the form "8/10". This means that the player died on level 8, but the lowest level
+that was explored was the 10th. Let's do this for the year 2017 first. Before anything, I have
+to explain the layout of the levels of the game. You can see a diagram
+[here](https://nethackwiki.com/wiki/Mazes_of_Menace#Map). The player starts on floor 1, 
+and goes down to level 53. Then, the player can ascend, by going on levels -1 to -5. But there
+are more levels than these ones. -6 and -9 are the sky, and the player can teleport there (but will
+fall to his death). If the player teleports to level -10, he'll enter heaven (and die too). Because
+these levels are special, I do not consider them here. I do not consider level 0 either, which is 
+"Nowhere". Let's get the number of players who died on each floor, but also compute the cumulative 
+death count:
+
+```{r}
+died_on_level <- nethack %>%
+    filter(Ascended == "Died an horrible death") %>%
+    mutate(died_on = str_extract(lev_max, "-?\\d{1,}")) %>%
+    mutate(died_on = as.numeric(died_on)) %>%
+    group_by(year) %>%
+    count(died_on) %>% 
+    filter(died_on >= -5, died_on != 0) %>%
+    mutate(died_on = case_when(died_on == -1 ~ 54,
+                               died_on == -2 ~ 55,
+                               died_on == -3 ~ 56,
+                               died_on == -4 ~ 57,
+                               died_on == -5 ~ 58,
+                               TRUE ~ died_on)) %>%
+    arrange(desc(died_on)) %>%
+    mutate(cumul_deaths = cumsum(n))
+```
+
+Let's take a look:
+
+```{r}
+head(died_on_level)
+```
+
+Now, let's compute the number of players who ascended and add this to the cumulative count:
+
+```{r}
+ascended_yearly <- nethack %>%
+    filter(Ascended == "Ascended") %>%
+    group_by(year) %>%
+    count(Ascended)
+```
+
+Let's take a look:
+
+```{r}
+head(ascended_yearly)
+```
+
+I will modify the dataset a little bit and merge it with the previous one:
+
+```{r}
+ascended_yearly %<>%
+  rename(ascended_players = n) %>%
+  select(-Ascended)
+```
+
+Let's add this to the data frame from before by merging both, and then we can compute the 
+surviving players:
+
+```{r}
+died_on_level %<>%
+  full_join(ascended_yearly, by = "year") %>%
+  mutate(surviving_players = cumul_deaths + ascended_players)
+```
+
+Now we can compute the share of players who died on each level:
+
+```{r}
+died_on_level %>%
+    mutate(death_rate = n/surviving_players) %>% 
+    ggplot(aes(y = death_rate, x = as.factor(died_on))) + 
+    geom_line(aes(group = year, alpha = year), colour = "#82518c") +
+    theme_blog() + 
+    ylab("Death rate") +
+    xlab("Level") + 
+    theme(axis.text.x = element_text(angle = 90),
+          legend.position = "none") + 
+    scale_y_continuous(labels = scales::percent)
+```
+
+Looks like level 7 is consistently the most dangerous! The death rate there is more than 35%!
+
+That's it for this blog post, in the next one, I will focus on what players kill!
+
+If you found this blog post useful, you might want to follow me on [twitter](https://www.twitter.com/brodriguesco) for blog post updates.

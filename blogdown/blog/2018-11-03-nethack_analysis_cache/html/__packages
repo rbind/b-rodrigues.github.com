@@ -1,0 +1,15 @@
+base
+nethack
+tidyverse
+ggplot2
+tibble
+tidyr
+readr
+purrr
+dplyr
+stringr
+forcats
+lubridate
+magrittr
+brotools
+bindrcpp
