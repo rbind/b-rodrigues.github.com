@@ -13,6 +13,13 @@ menu:
 blogdown::shortcode("tweet", "1009664438683648001")
 ```
 
+## Update 07-11-2018
+
+The `{nethack}` package currently on Github contains a dump from all the NetHack games played
+on the alt.org/nethack public server. This data was kindly provided by [`@paxed`](https://twitter.com/paxed).
+The tutorial in this blog post is still useful if you want to learn more about scraping with R
+and building a data package.
+
 ## Abstract
 
 In this post, I am going to show you how you can scrape tables from a website, and then create a package
@@ -66,15 +73,13 @@ When you start an new game, you have to create a character, which can have sever
 You have to choose a race (human, elf, orc, etc), a role (tourist, samurai, mage, etc) and an 
 alignment (neutral, law, chaos) and these choices impact your base stats. 
 
-If you can't get past the ASCII graphics, you might want to try 
-[Pathos](https://pathos.azurewebsites.net/), which is NetHack with touch screen support
-(on smartphones) and tile graphics:
+If you can't get past the ASCII graphics, you can play NetHack with tileset:
 
 ```{r, echo=FALSE}
-knitr::include_graphics("https://d2.alternativeto.net/dist/s/pathos-nethack-codex_729533_full.jpg?format=jpg&width=1600&height=1600&mode=min&upscale=false")
+knitr::include_graphics("https://vignette.wikia.nocookie.net/nethack/images/8/80/Vultures_eye.png/revision/latest?cb=20070313215112")
 ```
 
-You can install NetHack on your computer or you can play online on a pulbic server, such as
+You can install NetHack on your computer or you can play online on a public server, such as
 this [one](https://alt.org/nethack/). There are several advantages when playing on a pubic server;
 the player does not have to install anyhing, and we data enthusiasts have access to a mine of 
 information! For example, you can view the following [table](https://alt.org/nethack/gamesday.php?date=20181025) 
