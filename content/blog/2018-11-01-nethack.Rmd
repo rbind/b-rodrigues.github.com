@@ -15,8 +15,8 @@ blogdown::shortcode("tweet", "1009664438683648001")
 
 ## Update 07-11-2018
 
-The `{nethack}` package currently on Github contains a dump from all the NetHack games played
-on the alt.org/nethack public server. This data was kindly provided by [`@paxed`](https://twitter.com/paxed).
+The `{nethack}` package currently on Github contains a sample of 6000 NetHack games played
+on the alt.org/nethack public server between April and November 2018. This data was kindly provided by [`@paxed`](https://twitter.com/paxed).
 The tutorial in this blog post is still useful if you want to learn more about scraping with R
 and building a data package.
 
