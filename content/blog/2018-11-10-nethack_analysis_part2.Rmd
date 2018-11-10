@@ -329,7 +329,7 @@ nethack %>%
 ```
 
 That was it for this one, the graphs are not that super sexy, but the amount of work that went
-into making was quite consequent. The main reason was that parsing xlogfiles was a bit tricky, but
+into making them was quite consequent. The main reason was that parsing xlogfiles was a bit tricky, but
 the main challenge was extracting information from dumplog files. This proved to be a bit more 
 complicated than expected (just take a look at the source code of `extract_defeated_monsters()`
 to get an idea...).
