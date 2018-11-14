@@ -264,7 +264,7 @@ First, let’s tranform the data:</p>
 <p>There might also be a need to difference the data. Computing the differences between consecutive
 observations makes the time-series stationary. This will be taken care of by the <code>auto.arima()</code>
 function, if needed. The <code>auto.arima()</code> function returns the best ARIMA model according to different
-statistical criterions, sach us the AIC, AICc or BIC.</p>
+statistical criterions, such as the AIC, AICc or BIC.</p>
 <pre class="r"><code>(model_fit &lt;- auto.arima(logged_data))</code></pre>
 <pre><code>## Series: logged_data 
 ## ARIMA(2,1,1)(2,1,0)[12] 

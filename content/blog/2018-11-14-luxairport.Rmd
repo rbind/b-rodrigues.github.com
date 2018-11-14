@@ -285,7 +285,7 @@ Taking the log, or ihs of the data deals with stabilizing the variance of the ti
 There might also be a need to difference the data. Computing the differences between consecutive 
 observations makes the time-series stationary. This will be taken care of by the `auto.arima()`
 function, if needed. The `auto.arima()` function returns the best ARIMA model according to different
-statistical criterions, sach us the AIC, AICc or BIC.
+statistical criterions, such as the AIC, AICc or BIC.
 
 ```{r}
 (model_fit <- auto.arima(logged_data))
