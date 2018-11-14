@@ -77,7 +77,15 @@ The documentation is not up-to-date, I think I'll do that and release it on CRAN
 
 Now, let's load the "nethack" data, included in the `{nethack}` package:
 
-```{r}
+```{r, include=FALSE}
+load("/home/cbrunos/Documents/nethack_dumps/nethack.rda")
+```
+
+```{r, echo=FALSE}
+head(nethack)
+```
+
+```{r, eval=FALSE}
 data("nethack")
 
 head(nethack)
@@ -436,7 +444,7 @@ I will modify the dataset a little bit and merge it with the previous one:
 
 ```{r}
 ascended_yearly %<>%
-  rename(ascended_players = n) %>%
+  rename(ascended_players = `n`) %>%
   select(-Ascended)
 ```
 

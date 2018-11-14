@@ -48,9 +48,6 @@ install it, run the following line:</p>
 <pre class="r"><code>devtools::install_github(&quot;b-rodrigues/brotools&quot;)</code></pre>
 <p>The documentation is not up-to-date, I think I’ll do that and release it on CRAN. Some day.</p>
 <p>Now, let’s load the “nethack” data, included in the <code>{nethack}</code> package:</p>
-<pre class="r"><code>data(&quot;nethack&quot;)
-
-head(nethack)</code></pre>
 <pre><code>##   rank score     name time turns lev_max hp_max role race gender alignment
 ## 1    1   360      jkm &lt;NA&gt;    NA     2/2  -2/25  Sam  Hum    Mal       Law
 ## 2    2   172 yosemite &lt;NA&gt;    NA     1/1  -1/10  Tou  Hum    Fem       Neu
@@ -72,6 +69,9 @@ head(nethack)</code></pre>
 ## 4      NA
 ## 5      NA
 ## 6      NA</code></pre>
+<pre class="r"><code>data(&quot;nethack&quot;)
+
+head(nethack)</code></pre>
 <p>Let’s create some variables that might be helpful (or perhaps not, we’ll see):</p>
 <pre class="r"><code>nethack %&lt;&gt;% 
   mutate(date = ymd(date),
@@ -82,25 +82,29 @@ head(nethack)</code></pre>
 <pre class="r"><code>nethack %&gt;%
   filter(year == 2017, month == 6) %&gt;%
   brotools::describe()</code></pre>
-<pre><code>## # A tibble: 15 x 13
-##    variable type   nobs    mean      sd mode    min     max   q25 median
-##    &lt;chr&gt;    &lt;chr&gt; &lt;int&gt;   &lt;dbl&gt;   &lt;dbl&gt; &lt;chr&gt; &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;
-##  1 day      Nume…  1451    17.4  9.00e0 1         1      30   10      19
-##  2 month    Nume…  1451     6    0.     6         6       6    6       6
-##  3 rank     Nume…  1451    47.1  2.95e1 1         1     100   20      47
-##  4 score    Nume…  1451 38156.   3.39e5 488       0 5966425  402.    953
-##  5 turns    Nume…  1451  4179.   1.23e4 812       1  291829  860.   1796
-##  6 year     Nume…  1451  2017    0.     2017   2017    2017 2017    2017
-##  7 alignme… Char…  1451    NA   NA      Law      NA      NA   NA      NA
-##  8 death    Char…  1451    NA   NA      kill…    NA      NA   NA      NA
-##  9 gender   Char…  1451    NA   NA      Mal      NA      NA   NA      NA
-## 10 hp_max   Char…  1451    NA   NA      -1/16    NA      NA   NA      NA
-## 11 lev_max  Char…  1451    NA   NA      4/4      NA      NA   NA      NA
-## 12 name     Char…  1451    NA   NA      ohno…    NA      NA   NA      NA
-## 13 race     Char…  1451    NA   NA      Hum      NA      NA   NA      NA
-## 14 role     Char…  1451    NA   NA      Kni      NA      NA   NA      NA
-## 15 time     Char…  1451    NA   NA      01:1…    NA      NA   NA      NA
-## # ... with 3 more variables: q75 &lt;dbl&gt;, n_missing &lt;int&gt;, n_unique &lt;int&gt;</code></pre>
+<pre><code>## # A tibble: 17 x 17
+##    variable type   nobs    mean      sd mode    min     max   q05   q25
+##    &lt;chr&gt;    &lt;chr&gt; &lt;int&gt;   &lt;dbl&gt;   &lt;dbl&gt; &lt;chr&gt; &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+##  1 day      Nume…  1451    17.4  9.00e0 1         1      30     2   10 
+##  2 month    Nume…  1451     6    0.     6         6       6     6    6 
+##  3 rank     Nume…  1451    47.1  2.95e1 1         1     100     4   20 
+##  4 score    Nume…  1451 38156.   3.39e5 488       0 5966425    94  402.
+##  5 turns    Nume…  1451  4179.   1.23e4 812       1  291829   204  860.
+##  6 year     Nume…  1451  2017    0.     2017   2017    2017  2017 2017 
+##  7 alignme… Char…  1451    NA   NA      Law      NA      NA    NA   NA 
+##  8 death    Char…  1451    NA   NA      kill…    NA      NA    NA   NA 
+##  9 gender   Char…  1451    NA   NA      Mal      NA      NA    NA   NA 
+## 10 hp_max   Char…  1451    NA   NA      -1/16    NA      NA    NA   NA 
+## 11 lev_max  Char…  1451    NA   NA      4/4      NA      NA    NA   NA 
+## 12 name     Char…  1451    NA   NA      ohno…    NA      NA    NA   NA 
+## 13 race     Char…  1451    NA   NA      Hum      NA      NA    NA   NA 
+## 14 role     Char…  1451    NA   NA      Kni      NA      NA    NA   NA 
+## 15 time     Char…  1451    NA   NA      01:1…    NA      NA    NA   NA 
+## 16 dumplog  List   1451    NA   NA      &lt;NA&gt;     NA      NA    NA   NA 
+## 17 date     Date   1451    NA   NA      &lt;NA&gt;     NA      NA    NA   NA 
+## # ... with 7 more variables: median &lt;dbl&gt;, q75 &lt;dbl&gt;, q95 &lt;dbl&gt;,
+## #   n_missing &lt;int&gt;, n_unique &lt;int&gt;, starting_date &lt;date&gt;,
+## #   ending_date &lt;date&gt;</code></pre>
 <p>Let’s also take a look at a dumplog:</p>
 <details>
 <p><summary>Click to expand; the dumplog is quite long</summary></p>
@@ -413,7 +417,7 @@ ggplot(runs_per_day, aes(y = n, x = date)) +
   geom_smooth(colour = &quot;#82518c&quot;) + 
   theme_blog()</code></pre>
 <pre><code>## `geom_smooth()` using method = &#39;gam&#39; and formula &#39;y ~ s(x, bs = &quot;cs&quot;)&#39;</code></pre>
-<p><img src="/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+<p><img src="/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
 <p>The number of games seems to be stable since 2015, around 50. But what is also interesting is not
 only the number of games played, but also how many of these games resulted in a win.</p>
 <p>For this, let’s also add a new column that tells us whether the played <em>ascended</em> (won the game)
@@ -433,7 +437,7 @@ ggplot(ascensions_per_day) +
   labs(y = &quot;Number of runs&quot;, x = &quot;Date&quot;) +
   scale_fill_blog() +
   theme(legend.title = element_blank())</code></pre>
-<p><img src="/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
+<p><img src="/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
 <p>Yeah, just as expected. Because there is so much data, it’s difficult to see clearly, though. Depending on
 the size of the screen you’re reading this, it might seem that in some days there are a lot of ascensions.
 This is only an impression due to the resolution of the picture. Let’s see the share of ascensions per
@@ -451,7 +455,7 @@ year (and how many times the quests fail miserably), and this will become more a
   theme_blog() + 
   scale_fill_blog() + 
   theme(legend.title = element_blank())</code></pre>
-<p><img src="/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+<p><img src="/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
 <p>I will now convert the “time” column to seconds. I am not yet sure that this column is really useful,
 because NetHack is a turn based game. This means that when the player does not move, neither do the
 monsters. So the seconds spent playing might not be a good proxy for actual time spent playing.
@@ -473,11 +477,12 @@ by the right number of seconds, and sum that to get the total. Let’s apply it 
 <p>What is the distribution of “time_in_seconds”?</p>
 <pre class="r"><code>nethack %&gt;%
   describe(time_in_seconds)</code></pre>
-<pre><code>## # A tibble: 1 x 13
-##   variable type    nobs   mean     sd mode    min    max   q25 median   q75
-##   &lt;chr&gt;    &lt;chr&gt;  &lt;int&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;
-## 1 time_in… Nume… 322485 23529. 2.73e5 &lt;NA&gt;     61 2.72e7   622   1689  5486
-## # ... with 2 more variables: n_missing &lt;int&gt;, n_unique &lt;lgl&gt;</code></pre>
+<pre><code>## # A tibble: 1 x 15
+##   variable type    nobs   mean     sd mode    min    max   q05   q25 median
+##   &lt;chr&gt;    &lt;chr&gt;  &lt;int&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;
+## 1 time_in… Nume… 322485 23529. 2.73e5 &lt;NA&gt;     61 2.72e7   141   622   1689
+## # ... with 4 more variables: q75 &lt;dbl&gt;, q95 &lt;dbl&gt;, n_missing &lt;int&gt;,
+## #   n_unique &lt;lgl&gt;</code></pre>
 <p>We see that the minimum of <code>time_in_seconds</code> is 61 whereas the maximum is of the order of 27200000…
 This must be a mistake, because that is almost one year!</p>
 <pre class="r"><code>nethack %&gt;%
@@ -496,17 +501,18 @@ This must be a mistake, because that is almost one year!</p>
   ggplot() + 
   geom_density(aes(x = time_in_seconds), colour = &quot;#82518c&quot;) + 
   theme_blog()</code></pre>
-<p><img src="/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
+<p><img src="/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-20-1.png" width="672" /></p>
 <p>As expected, the distribution is right skewed. However, as explained above NetHack is a turn based
 game, meaning that if the player does not move, the monsters won’t move either. Perhaps it makes more
 sense to look at the <code>turns</code> column:</p>
 <pre class="r"><code>nethack %&gt;%
   describe(turns)</code></pre>
-<pre><code>## # A tibble: 1 x 13
-##   variable type    nobs  mean     sd mode    min    max   q25 median   q75
-##   &lt;chr&gt;    &lt;chr&gt;  &lt;int&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;
-## 1 turns    Nume… 322485 4495. 19853. &lt;NA&gt;      1 6.86e6   871   1818  3582
-## # ... with 2 more variables: n_missing &lt;int&gt;, n_unique &lt;lgl&gt;</code></pre>
+<pre><code>## # A tibble: 1 x 15
+##   variable type    nobs  mean     sd mode    min    max   q05   q25 median
+##   &lt;chr&gt;    &lt;chr&gt;  &lt;int&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;
+## 1 turns    Nume… 322485 4495. 19853. &lt;NA&gt;      1 6.86e6   202   871   1818
+## # ... with 4 more variables: q75 &lt;dbl&gt;, q95 &lt;dbl&gt;, n_missing &lt;int&gt;,
+## #   n_unique &lt;lgl&gt;</code></pre>
 <p>The maximum is quite large too. Just like before, let’s focus by cutting the variable at the 90th percentile:</p>
 <pre class="r"><code>nethack %&gt;%
   filter(!is.na(turns),
@@ -514,7 +520,7 @@ sense to look at the <code>turns</code> column:</p>
   ggplot() + 
   geom_density(aes(x = turns), colour = &quot;#82518c&quot;) + 
   theme_blog()</code></pre>
-<p><img src="/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-20-1.png" width="672" /></p>
+<p><img src="/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-22-1.png" width="672" /></p>
 <p>I think that using <code>turns</code> makes more sense. In the a future blog post, I will estimate a survival
 model and see how long players survive, and will use <code>turns</code> instead of <code>time_in_seconds</code>.</p>
 </div>
@@ -593,7 +599,7 @@ Most likely, these are going to be early game monsters. Let’ see:</p>
     ylab(&quot;Number of deaths caused&quot;) +
     xlab(&quot;Monster&quot;)</code></pre>
 <pre><code>## Selecting by n</code></pre>
-<p><img src="/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-23-1.png" width="672" /></p>
+<p><img src="/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-25-1.png" width="672" /></p>
 <p>Seems like soldier ants are the baddest, followed by jackals and dwarfs. As expected, these are
 mostly early game monsters. Thus, it would be interesting to look at this distribution, but at
 different stages in the game. Let’s create a categorical variable that discretizes <code>turns</code>,
@@ -633,22 +639,22 @@ and then create one plot per category:</p>
     pull(plots)</code></pre>
 <pre><code>## Selecting by n</code></pre>
 <pre><code>## [[1]]</code></pre>
-<p><img src="/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-24-1.png" width="672" /></p>
+<p><img src="/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-26-1.png" width="672" /></p>
 <pre><code>## 
 ## [[2]]</code></pre>
-<p><img src="/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-24-2.png" width="672" /></p>
+<p><img src="/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-26-2.png" width="672" /></p>
 <pre><code>## 
 ## [[3]]</code></pre>
-<p><img src="/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-24-3.png" width="672" /></p>
+<p><img src="/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-26-3.png" width="672" /></p>
 <pre><code>## 
 ## [[4]]</code></pre>
-<p><img src="/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-24-4.png" width="672" /></p>
+<p><img src="/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-26-4.png" width="672" /></p>
 <pre><code>## 
 ## [[5]]</code></pre>
-<p><img src="/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-24-5.png" width="672" /></p>
+<p><img src="/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-26-5.png" width="672" /></p>
 <pre><code>## 
 ## [[6]]</code></pre>
-<img src="/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-24-6.png" width="672" />
+<img src="/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-26-6.png" width="672" />
 </details>
 <p>Finally, for this section, I want to know if there are levels, or floors, where players die more
 often than others. For this, we can take a look at the <code>lev_max</code> column. Observations in this
@@ -708,7 +714,7 @@ death count:</p>
 ## 6  2006 Ascended   459</code></pre>
 <p>I will modify the dataset a little bit and merge it with the previous one:</p>
 <pre class="r"><code>ascended_yearly %&lt;&gt;%
-  rename(ascended_players = n) %&gt;%
+  rename(ascended_players = `n`) %&gt;%
   select(-Ascended)</code></pre>
 <p>Let’s add this to the data frame from before by merging both, and then we can compute the
 surviving players:</p>
@@ -726,7 +732,7 @@ surviving players:</p>
     theme(axis.text.x = element_text(angle = 90),
           legend.position = &quot;none&quot;) + 
     scale_y_continuous(labels = scales::percent)</code></pre>
-<p><img src="/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-31-1.png" width="672" /></p>
+<p><img src="/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-33-1.png" width="672" /></p>
 <p>Looks like level 7 is consistently the most dangerous! The death rate there is more than 35%!</p>
 <p>That’s it for this blog post, in the next one, I will focus on what players kill!</p>
 <p>If you found this blog post useful, you might want to follow me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates.</p>
