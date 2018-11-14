@@ -1,0 +1,360 @@
+---
+date: 2018-11-14
+title: "Easy time-series prediction with R: a tutorial with air traffic data from Lux Airport"
+tags: [R]
+menu:
+  main:
+    parent: Blog
+    identifier: /blog/lux_airport
+    weight: 1
+---
+
+<div style="text-align:center;">
+  <a href="https://www.youtube.com/watch?v=GIQn8pab8Vc">
+    <img src="/img/lx_aie.jpg" title = "Luxembourg's largest aircraft landing"></a>
+</div>
+
+In this blog post, I will show you how you can quickly and easily forecast a univariate time series.
+I am going to use data from the EU Open Data Portal on air passenger transport. You can find the
+data [here](https://data.europa.eu/euodp/en/data/dataset/2EwfWXj5d94BUOzfoABKSQ). I downloaded 
+the data in the TSV format for Luxembourg Airport, but you could repeat the analysis for any airport.
+
+```{r, include=FALSE}
+library(tidyverse)
+library(lubridate)
+library(forecast)
+library(tsibble)
+library(brotools)
+```
+
+Once you have the data, load some of the package we are going to need:
+
+```{r, eval=FALSE}
+library(tidyverse)
+library(lubridate)
+library(forecast)
+library(tsibble)
+library(brotools)
+```
+
+and define the following function:
+
+```{r}
+ihs <- function(x){
+    log(x + sqrt(x**2 + 1))
+}
+```
+
+This function, the inverse hyperbolic sine, is useful to transform data in a manner that is very
+close to logging it, but that allows for 0's. The data from Eurostat is not complete for some reason,
+so there are some 0 sometimes. To avoid having to log 0, which in R yields `-Inf`, I use this 
+transformation.
+
+Now, let's load the data:
+
+```{r}
+avia <- read_tsv("avia_par_lu.tsv")
+```
+
+Let's take a look at the data:
+
+```{r}
+head(avia)
+```
+
+So yeah, useless in that state. The first column actually is composed of 3 columns, merged together,
+and instead of having one column with the date, and another with the value, we have one column
+per date. Some cleaning is necessary before using this data.
+
+Let's start with going from a wide to a long data set:
+
+```{r, include=FALSE}
+temp <- avia %>%
+    select("unit,tra_meas,airp_pr\\time", contains("20")) %>%
+    gather(date, passengers, -`unit,tra_meas,airp_pr\\time`)
+```
+
+```{r, eval=FALSE}
+avia %>%
+    select("unit,tra_meas,airp_pr\\time", contains("20")) %>%
+    gather(date, passengers, -`unit,tra_meas,airp_pr\\time`)
+```
+
+The first line makes it possible to only select the columns that contain the string "20", so 
+selecting columns from 2000 onward. Then, using gather, I go from long to wide. The data looks
+like this now:
+
+```{r, echo=FALSE}
+temp
+```
+
+Now, let's separate the first column into 3 columns:
+
+```{r, eval=FALSE}
+avia %>%
+    select("unit,tra_meas,airp_pr\\time", contains("20")) %>%
+    gather(date, passengers, -`unit,tra_meas,airp_pr\\time`) %>%
+     separate(col = `unit,tra_meas,airp_pr\\time`, into = c("unit", "tra_meas", "air_pr\\time"), sep = ",")
+```
+
+This separates the first column into 3 new columns, "unit", "tra_meas" and "air_pr\\time". This step
+is not necessary for the rest of the analysis, but might as well do it. The data looks like this now:
+
+
+```{r, include=FALSE}
+temp <- avia %>%
+    select("unit,tra_meas,airp_pr\\time", contains("20")) %>%
+    gather(date, passengers, -`unit,tra_meas,airp_pr\\time`) %>%
+     separate(col = `unit,tra_meas,airp_pr\\time`, into = c("unit", "tra_meas", "air_pr\\time"), sep = ",")
+```
+
+```{r, echo=FALSE}
+temp
+```
+
+The next steps are simple renamings. I have copy-pasted the information from the Eurostat page
+where you can [view the data online](http://appsso.eurostat.ec.europa.eu/nui/show.do?dataset=avia_par_lu&lang=en).
+If you click here:
+
+```{r, echo=FALSE}
+knitr::include_graphics("/img/eurostat_click_here.png")
+```
+
+you will be able to select the variables you want displayed in the table, as well as the dictionary
+of the variables. I simply copy pasted it and recoded the variables. You can take a look at the 
+whole cleaning workflow by clicking "Click to expand" below:
+
+
+<details>
+  <summary>Click here to take a look at the whole cleaning workflow</summary>
+
+```{r}
+avia_clean <- avia %>%
+    select("unit,tra_meas,airp_pr\\time", contains("20")) %>%
+    gather(date, passengers, -`unit,tra_meas,airp_pr\\time`) %>%
+    separate(col = `unit,tra_meas,airp_pr\\time`, into = c("unit", "tra_meas", "air_pr\\time"), sep = ",") %>%
+    mutate(tra_meas = fct_recode(tra_meas,
+         `Passengers on board` = "PAS_BRD",
+         `Passengers on board (arrivals)` = "PAS_BRD_ARR",
+         `Passengers on board (departures)` = "PAS_BRD_DEP",
+         `Passengers carried` = "PAS_CRD",
+         `Passengers carried (arrival)` = "PAS_CRD_ARR",
+         `Passengers carried (departures)` = "PAS_CRD_DEP",
+         `Passengers seats available` = "ST_PAS",
+         `Passengers seats available (arrivals)` = "ST_PAS_ARR",
+         `Passengers seats available (departures)` = "ST_PAS_DEP",
+         `Commercial passenger air flights` = "CAF_PAS",
+         `Commercial passenger air flights (arrivals)` = "CAF_PAS_ARR",
+         `Commercial passenger air flights (departures)` = "CAF_PAS_DEP")) %>%
+    mutate(unit = fct_recode(unit,
+                             Passenger = "PAS",
+                             Flight = "FLIGHT",
+                             `Seats and berths` = "SEAT")) %>%
+    mutate(destination = fct_recode(`air_pr\\time`,
+                                     `WIEN-SCHWECHAT` = "LU_ELLX_AT_LOWW",
+                                     `BRUSSELS` = "LU_ELLX_BE_EBBR",
+                                     `GENEVA` = "LU_ELLX_CH_LSGG",
+                                     `ZURICH` = "LU_ELLX_CH_LSZH",
+                                     `FRANKFURT/MAIN` = "LU_ELLX_DE_EDDF",
+                                     `HAMBURG` = "LU_ELLX_DE_EDDH",
+                                     `BERLIN-TEMPELHOF` = "LU_ELLX_DE_EDDI",
+                                     `MUENCHEN` = "LU_ELLX_DE_EDDM",
+                                     `SAARBRUECKEN` = "LU_ELLX_DE_EDDR",
+                                     `BERLIN-TEGEL` = "LU_ELLX_DE_EDDT",
+                                     `KOBENHAVN/KASTRUP` = "LU_ELLX_DK_EKCH",
+                                     `HURGHADA / INTL` = "LU_ELLX_EG_HEGN",
+                                     `IRAKLION/NIKOS KAZANTZAKIS` = "LU_ELLX_EL_LGIR",
+                                     `FUERTEVENTURA` = "LU_ELLX_ES_GCFV",
+                                     `GRAN CANARIA` = "LU_ELLX_ES_GCLP",
+                                     `LANZAROTE` = "LU_ELLX_ES_GCRR",
+                                     `TENERIFE SUR/REINA SOFIA` = "LU_ELLX_ES_GCTS",
+                                     `BARCELONA/EL PRAT` = "LU_ELLX_ES_LEBL",
+                                     `ADOLFO SUAREZ MADRID-BARAJAS` = "LU_ELLX_ES_LEMD",
+                                     `MALAGA/COSTA DEL SOL` = "LU_ELLX_ES_LEMG",
+                                     `PALMA DE MALLORCA` = "LU_ELLX_ES_LEPA",
+                                     `SYSTEM - PARIS` = "LU_ELLX_FR_LF90",
+                                     `NICE-COTE D'AZUR` = "LU_ELLX_FR_LFMN",
+                                     `PARIS-CHARLES DE GAULLE` = "LU_ELLX_FR_LFPG",
+                                     `STRASBOURG-ENTZHEIM` = "LU_ELLX_FR_LFST",
+                                     `KEFLAVIK` = "LU_ELLX_IS_BIKF",
+                                     `MILANO/MALPENSA` = "LU_ELLX_IT_LIMC",
+                                     `BERGAMO/ORIO AL SERIO` = "LU_ELLX_IT_LIME",
+                                     `ROMA/FIUMICINO` = "LU_ELLX_IT_LIRF",
+                                     `AGADIR/AL MASSIRA` = "LU_ELLX_MA_GMAD",
+                                     `AMSTERDAM/SCHIPHOL` = "LU_ELLX_NL_EHAM",
+                                     `WARSZAWA/CHOPINA` = "LU_ELLX_PL_EPWA",
+                                     `PORTO` = "LU_ELLX_PT_LPPR",
+                                     `LISBOA` = "LU_ELLX_PT_LPPT",
+                                     `STOCKHOLM/ARLANDA` = "LU_ELLX_SE_ESSA",
+                                     `MONASTIR/HABIB BOURGUIBA` = "LU_ELLX_TN_DTMB",
+                                     `ENFIDHA-HAMMAMET INTERNATIONAL` = "LU_ELLX_TN_DTNH",
+                                     `ENFIDHA ZINE EL ABIDINE BEN ALI` = "LU_ELLX_TN_DTNZ",
+                                     `DJERBA/ZARZIS` = "LU_ELLX_TN_DTTJ",
+                                     `ANTALYA (MIL-CIV)` = "LU_ELLX_TR_LTAI",
+                                     `ISTANBUL/ATATURK` = "LU_ELLX_TR_LTBA",
+                                     `SYSTEM - LONDON` = "LU_ELLX_UK_EG90",
+                                     `MANCHESTER` = "LU_ELLX_UK_EGCC",
+                                     `LONDON GATWICK` = "LU_ELLX_UK_EGKK",
+                                     `LONDON/CITY` = "LU_ELLX_UK_EGLC",
+                                     `LONDON HEATHROW` = "LU_ELLX_UK_EGLL",
+                                     `LONDON STANSTED` = "LU_ELLX_UK_EGSS",
+                                     `NEWARK LIBERTY INTERNATIONAL, NJ.` = "LU_ELLX_US_KEWR",
+                                     `O.R TAMBO INTERNATIONAL` = "LU_ELLX_ZA_FAJS")) %>%
+    mutate(passengers = as.numeric(passengers)) %>%
+    select(unit, tra_meas, destination, date, passengers)
+```
+</details> 
+
+There is quarterly data and monthly data. Let's separate the two:
+
+```{r}
+avia_clean_quarterly <- avia_clean %>%
+    filter(tra_meas == "Passengers on board (arrivals)",
+           !is.na(passengers)) %>%
+    filter(str_detect(date, "Q")) %>%
+    mutate(date = yq(date))
+```
+
+In the "date" column, I detect the observations with "Q" in their name, indicating that it is quarterly data.
+I do the same for monthly data, but I have to add the string "01" to the dates. This transforms 
+a date that looks like this "2018M1" to this "2018M101". "2018M101" can then be converted into a 
+date by using the `ymd()` function from lubridate. `yq()` was used for the quarterly data.
+
+```{r}
+avia_clean_monthly <- avia_clean %>%
+    filter(tra_meas == "Passengers on board (arrivals)",
+           !is.na(passengers)) %>%
+    filter(str_detect(date, "M")) %>%
+    mutate(date = paste0(date, "01")) %>%
+    mutate(date = ymd(date)) %>%
+    select(destination, date, passengers)
+```
+
+Time for some plots. Let's start with the raw data:
+
+```{r}
+avia_clean_monthly %>%
+    group_by(date) %>%
+    summarise(total = sum(passengers)) %>%
+    ggplot() +
+    ggtitle("Raw data") +
+    geom_line(aes(y = total, x = date), colour = "#82518c") +
+    scale_x_date(date_breaks = "1 year", date_labels = "%m-%Y") + 
+    theme_blog()
+```
+
+And now with the logged data (or rather, the data transformed using the inverted hyperbolic sine
+transformation):
+
+```{r}
+avia_clean_monthly %>%
+    group_by(date) %>%
+    summarise(total = sum(passengers)) %>%
+    mutate(total_ihs = ihs(total)) %>%
+    ggplot() +
+    ggtitle("Logged data") +
+    geom_line(aes(y = total_ihs, x = date), colour = "#82518c") +
+    scale_x_date(date_breaks = "1 year", date_labels = "%m-%Y") + 
+    theme_blog()
+```
+
+We clearly see a seasonal pattern in the data. There is also an upward trend. We will have to deal
+with these two problems if we want to do some forecasting. For this, let's limit ourselves to data 
+from before 2015, and convert the "passengers" column from the data to a time series object, using 
+the `ts()` function:
+
+```{r}
+avia_clean_train <- avia_clean_monthly %>%
+    select(date, passengers) %>%
+    filter(year(date) < 2015) %>%
+    group_by(date) %>%
+    summarise(total_passengers = sum(passengers)) %>%
+    pull(total_passengers) %>%
+    ts(., frequency = 12, start = c(2005, 1))
+```
+
+We will try to *pseudo*-forecast the data from 2015 to the last point available, March 2018.
+First, let's tranform the data:
+
+```{r}
+logged_data <- ihs(avia_clean_train)
+```
+
+Taking the log, or ihs of the data deals with stabilizing the variance of the time series.
+
+There might also be a need to difference the data. Computing the differences between consecutive 
+observations makes the time-series stationary. This will be taken care of by the `auto.arima()`
+function, if needed. The `auto.arima()` function returns the best ARIMA model according to different
+statistical criterions, sach us the AIC, AICc or BIC.
+
+```{r}
+(model_fit <- auto.arima(logged_data))
+```
+
+`auto.arima()` found that the best model would be an $ARIMA(2, 1, 1)(2, 1, 0)_{12}$. This is an 
+seasonal autoregressive model, with p = 2, d = 1, q = 1, P = 2 and D = 1. 
+
+```{r}
+model_forecast <- forecast(model_fit, h = 39)
+```
+
+I can now forecast the model for the next 39 months (which correspond to the data available).
+
+To plot the forecast, one could do a simple call to the plot function. But the resulting plot
+is not very aesthetic. To plot my own, I have to grab the data that was forecast, and do some
+munging again:
+
+```{r}
+point_estimate <- model_forecast$mean %>%
+    as_tsibble() %>%
+    rename(point_estimate = value,
+           date = index)
+
+upper <- model_forecast$upper %>%
+    as_tsibble() %>%
+    spread(key, value) %>%
+    rename(date = index,
+           upper80 = `80%`,
+           upper95 = `95%`)
+
+lower <- model_forecast$lower %>%
+    as_tsibble() %>%
+    spread(key, value) %>%
+    rename(date = index,
+           lower80 = `80%`,
+           lower95 = `95%`)
+
+estimated_data <- reduce(list(point_estimate, upper, lower), full_join, by = "date")
+```
+
+`as_tibble()` is a function from the `{tsibble}` package that converts objects that are *time-series aware*
+to *time-aware* tibbles. If you are not familiar with `ts_tibble()`, I urge you to run the above lines
+one by one, and especially to compare `as_tsibble()` with the standard `as_tibble()` from the `{tibble}`
+package.
+
+This is how `estimated_data` looks:
+
+```{r}
+head(estimated_data)
+```
+
+We can now plot the data, with the forecast, and with the 95% confidence interval:
+
+```{r}
+avia_clean_monthly %>%
+    group_by(date) %>%
+    summarise(total = sum(passengers)) %>%
+    mutate(total_ihs = ihs(total)) %>%
+    ggplot() +
+    ggtitle("Logged data") +
+    geom_line(aes(y = total_ihs, x = date), colour = "#82518c") +
+    scale_x_date(date_breaks = "1 year", date_labels = "%m-%Y") +
+    geom_ribbon(data = estimated_data, aes(x = date, ymin = lower95, ymax = upper95), fill = "#666018", alpha = 0.2) +
+    geom_line(data = estimated_data, aes(x = date, y = point_estimate), linetype = 2, colour = "#8e9d98") +
+    theme_blog()
+```
+
+The pseudo-forecast (the dashed line) is not very far from the truth, only overestimating the 
+seasonal peaks, but the true line is within the 95% confidence interval, which is good!
+
+If you found this blog post useful, you might want to follow me on [twitter](https://www.twitter.com/brodriguesco) for blog post updates.
