@@ -364,6 +364,12 @@ models_df <- models_df %>%
 
 ```
 
+This is how `models_df` looks now:
+
+```{r}
+head(models_df)
+```
+
 Now, I can finally select the best performing model. I select the model with minimum RMSE:
 
 ```{r}

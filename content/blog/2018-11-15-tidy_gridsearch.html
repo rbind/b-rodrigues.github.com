@@ -338,6 +338,17 @@ from 2015 to 2018. Because I have to add it as a list of size 2304, I do that wi
     mutate(true_value = rerun(nrows, logged_test_data)) %&gt;%
     mutate(rmse = map2_dbl(point_forecast, true_value,
                            ~sqrt(mean((.x - .y) ** 2))))</code></pre>
+<p>This is how <code>models_df</code> looks now:</p>
+<pre class="r"><code>head(models_df)</code></pre>
+<pre><code>## # A tibble: 6 x 7
+##   order    season   models    forecast     point_forecast true_value  rmse
+##   &lt;list&gt;   &lt;list&gt;   &lt;list&gt;    &lt;list&gt;       &lt;list&gt;         &lt;list&gt;     &lt;dbl&gt;
+## 1 &lt;int [3… &lt;dbl [4… &lt;S3: Ari… &lt;S3: foreca… &lt;S3: ts&gt;       &lt;S3: ts&gt;   0.525
+## 2 &lt;int [3… &lt;dbl [4… &lt;S3: Ari… &lt;S3: foreca… &lt;S3: ts&gt;       &lt;S3: ts&gt;   0.236
+## 3 &lt;int [3… &lt;dbl [4… &lt;S3: Ari… &lt;S3: foreca… &lt;S3: ts&gt;       &lt;S3: ts&gt;   0.235
+## 4 &lt;int [3… &lt;dbl [4… &lt;S3: Ari… &lt;S3: foreca… &lt;S3: ts&gt;       &lt;S3: ts&gt;   0.217
+## 5 &lt;int [3… &lt;dbl [4… &lt;S3: Ari… &lt;S3: foreca… &lt;S3: ts&gt;       &lt;S3: ts&gt;   0.190
+## 6 &lt;int [3… &lt;dbl [4… &lt;S3: Ari… &lt;S3: foreca… &lt;S3: ts&gt;       &lt;S3: ts&gt;   0.174</code></pre>
 <p>Now, I can finally select the best performing model. I select the model with minimum RMSE:</p>
 <pre class="r"><code>best_model &lt;- models_df %&gt;%
     filter(rmse == min(rmse, na.rm = TRUE))</code></pre>
@@ -372,7 +383,7 @@ from 2015 to 2018. Because I have to add it as a list of size 2304, I do that wi
                 fill = &quot;#666018&quot;, alpha = 0.2) +
     geom_line(data = best_model_forecast, aes(x = date, y = point_estimate), linetype = 2, colour = &quot;#8e9d98&quot;) +
     theme_blog()</code></pre>
-<p><img src="/blog/2018-11-15-tidy_gridsearch_files/figure-html/unnamed-chunk-27-1.png" width="672" /></p>
+<p><img src="/blog/2018-11-15-tidy_gridsearch_files/figure-html/unnamed-chunk-28-1.png" width="672" /></p>
 <p>Compared to the previous <a href="https://www.brodrigues.co/blog/2018-11-14-luxairport/">blog post</a>, the
 dotted line now seems to follow the true line even better!
 Now, I am not saying that you should always do a gridsearch whenever you have a problem like this
