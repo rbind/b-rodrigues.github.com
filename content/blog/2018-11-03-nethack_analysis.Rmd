@@ -476,4 +476,6 @@ Looks like level 7 is consistently the most dangerous! The death rate there is m
 
 That's it for this blog post, in the next one, I will focus on what players kill!
 
-If you found this blog post useful, you might want to follow me on [twitter](https://www.twitter.com/brodriguesco) for blog post updates.
+Hope you enjoyed! If you found this blog post useful, you might want to follow 
+me on [twitter](https://www.twitter.com/brodriguesco) for blog post updates or 
+[buy me an espresso](https://www.buymeacoffee.com/brodriguesco).

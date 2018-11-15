@@ -334,7 +334,9 @@ the main challenge was extracting information from dumplog files. This proved to
 complicated than expected (just take a look at the source code of `extract_defeated_monsters()`
 to get an idea...).
 
-If you found this blog post useful, you might want to follow me on [twitter](https://www.twitter.com/brodriguesco) for blog post updates.
+Hope you enjoyed! If you found this blog post useful, you might want to follow 
+me on [twitter](https://www.twitter.com/brodriguesco) for blog post updates or 
+[buy me an espresso](https://www.buymeacoffee.com/brodriguesco).
 
 
 ## Bonus plot

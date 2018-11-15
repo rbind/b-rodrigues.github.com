@@ -357,4 +357,6 @@ avia_clean_monthly %>%
 The pseudo-forecast (the dashed line) is not very far from the truth, only overestimating the 
 seasonal peaks, but the true line is within the 95% confidence interval, which is good!
 
-If you found this blog post useful, you might want to follow me on [twitter](https://www.twitter.com/brodriguesco) for blog post updates.
+Hope you enjoyed! If you found this blog post useful, you might want to follow 
+me on [twitter](https://www.twitter.com/brodriguesco) for blog post updates or 
+[buy me an espresso](https://www.buymeacoffee.com/brodriguesco).

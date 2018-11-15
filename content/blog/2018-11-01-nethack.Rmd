@@ -580,4 +580,6 @@ devtools:release()
 If you want many more details than what you can find in this blog post, I urge you to read 
 "R Packages" by Hadley Wickham, which you can read for free [here](http://r-pkgs.had.co.nz/).
 
-If you found this blog post useful, you might want to follow me on [twitter](https://www.twitter.com/brodriguesco) for blog post updates.
+Hope you enjoyed! If you found this blog post useful, you might want to follow 
+me on [twitter](https://www.twitter.com/brodriguesco) for blog post updates or 
+[buy me an espresso](https://www.buymeacoffee.com/brodriguesco).

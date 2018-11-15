@@ -407,4 +407,6 @@ one. In the case of univariate time series, I am still doubtful that a gridsearc
 necessary. However, it makes for a good exercise and a good illustration of the power of `{furrr}`.
 
 Hope you enjoyed! If you found this blog post useful, you might want to follow 
-me on [twitter](https://www.twitter.com/brodriguesco) for blog post updates.
+me on [twitter](https://www.twitter.com/brodriguesco) for blog post updates or 
+[buy me an espresso](https://www.buymeacoffee.com/brodriguesco).
+
