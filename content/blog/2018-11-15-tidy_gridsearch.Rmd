@@ -405,7 +405,7 @@ dotted line now seems to follow the true line even better! However, this is not 
 am using the test set as a validation set, which might lead to overfitting the hyperparameters
 to the test set. Also, I am not saying that you should always do a gridsearch whenever you have a 
 problem like this one. In the case of univariate time series, I am  still doubtful that a gridsearch like this is really necessary. The goal of this blog post was not to teach you how to look for 
-hyperparameters per se, but more to show you to do a grid search the tidy way. I'll be talking 
+hyperparameters per se, but more to show you how to do a grid search the tidy way. I'll be writing 
 about *proper* hyperparameter optimization in a future blog post.
 Also, the other thing I wanted to show was the power of `{furrr}`.
 
