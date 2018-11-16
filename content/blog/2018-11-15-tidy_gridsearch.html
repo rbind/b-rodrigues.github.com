@@ -385,13 +385,12 @@ from 2015 to 2018. Because I have to add it as a list of size 2304, I do that wi
     theme_blog()</code></pre>
 <p><img src="/blog/2018-11-15-tidy_gridsearch_files/figure-html/unnamed-chunk-28-1.png" width="672" /></p>
 <p>Compared to the previous <a href="https://www.brodrigues.co/blog/2018-11-14-luxairport/">blog post</a>, the
-dotted line now seems to follow the true line even better!
-Now, I am not saying that you should always do a gridsearch whenever you have a problem like this
-one. In the case of univariate time series, I am still doubtful that a gridsearch like this is really necessary. Plus, I was not very rigorous and used the test set also as a validation set,
-which you shouldn’t do, because you might be overfitting the hyperparameters to the test set. The
-goal of this blog post was not to teach you how to look for hyperparameters per se, but more to
-show you to do a grid search the tidy way. I’ll be talking about <em>proper</em> hyperparameter optimization
-in a future blog post.
+dotted line now seems to follow the true line even better! However, this is not suprising, as I
+am using the test set as a validation set, which might lead to overfitting the hyperparameters
+to the test set. Also, I am not saying that you should always do a gridsearch whenever you have a
+problem like this one. In the case of univariate time series, I am still doubtful that a gridsearch like this is really necessary. The goal of this blog post was not to teach you how to look for
+hyperparameters per se, but more to show you to do a grid search the tidy way. I’ll be talking
+about <em>proper</em> hyperparameter optimization in a future blog post.
 Also, the other thing I wanted to show was the power of <code>{furrr}</code>.</p>
 <p>Hope you enjoyed! If you found this blog post useful, you might want to follow
 me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates or
