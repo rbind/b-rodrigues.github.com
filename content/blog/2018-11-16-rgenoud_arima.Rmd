@@ -1,6 +1,6 @@
 ---
 date: 2018-11-16
-title: "Using a genetic algorithm to optimize the hyper-parameters optimization of an ARIMA model"
+title: "Using a genetic algorithm for the hyperparameter optimization of a SARIMA model"
 tags: [R]
 menu:
   main:
