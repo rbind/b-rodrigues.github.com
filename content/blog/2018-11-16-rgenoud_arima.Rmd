@@ -298,7 +298,7 @@ avia_clean_monthly %>%
     summarise(total = sum(passengers)) %>%
     mutate(total_ihs = ihs(total)) %>%
     ggplot() +
-    ggtitle("Minimisation of RMSE") +
+    ggtitle("Minimization of RMSE") +
     geom_line(aes(y = total_ihs, x = date), colour = "#82518c") +
     scale_x_date(date_breaks = "1 year", date_labels = "%m-%Y") +
     geom_ribbon(data = best_model_rmse_forecast, aes(x = date, ymin = lower95, ymax = upper95),
@@ -411,7 +411,7 @@ avia_clean_monthly %>%
     summarise(total = sum(passengers)) %>%
     mutate(total_ihs = ihs(total)) %>%
     ggplot() +
-    ggtitle("Minimisation of BIC") +
+    ggtitle("Minimization of BIC") +
     geom_line(aes(y = total_ihs, x = date), colour = "#82518c") +
     scale_x_date(date_breaks = "1 year", date_labels = "%m-%Y") +
     geom_ribbon(data = best_model_bic_forecast, aes(x = date, ymin = lower95, ymax = upper95),
@@ -534,7 +534,7 @@ avia_clean_monthly %>%
     summarise(total = sum(passengers)) %>%
     mutate(total_ihs = ihs(total)) %>%
     ggplot() +
-    ggtitle("Logged data") +
+    ggtitle("Minimization of RMSE + low k") +
     geom_line(aes(y = total_ihs, x = date), colour = "#82518c") +
     scale_x_date(date_breaks = "1 year", date_labels = "%m-%Y") +
     geom_ribbon(data = best_model_rmse_low_k_forecast, aes(x = date, ymin = lower95, ymax = upper95),

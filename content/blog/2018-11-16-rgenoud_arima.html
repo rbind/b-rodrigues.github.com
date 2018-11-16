@@ -254,7 +254,7 @@ starting_model_forecast &lt;- to_tibble(starting_model_forecast)</code></pre>
     summarise(total = sum(passengers)) %&gt;%
     mutate(total_ihs = ihs(total)) %&gt;%
     ggplot() +
-    ggtitle(&quot;Minimisation of RMSE&quot;) +
+    ggtitle(&quot;Minimization of RMSE&quot;) +
     geom_line(aes(y = total_ihs, x = date), colour = &quot;#82518c&quot;) +
     scale_x_date(date_breaks = &quot;1 year&quot;, date_labels = &quot;%m-%Y&quot;) +
     geom_ribbon(data = best_model_rmse_forecast, aes(x = date, ymin = lower95, ymax = upper95),
@@ -362,7 +362,7 @@ best_model_bic_forecast &lt;- to_tibble(best_model_bic_forecast)</code></pre>
     summarise(total = sum(passengers)) %&gt;%
     mutate(total_ihs = ihs(total)) %&gt;%
     ggplot() +
-    ggtitle(&quot;Minimisation of BIC&quot;) +
+    ggtitle(&quot;Minimization of BIC&quot;) +
     geom_line(aes(y = total_ihs, x = date), colour = &quot;#82518c&quot;) +
     scale_x_date(date_breaks = &quot;1 year&quot;, date_labels = &quot;%m-%Y&quot;) +
     geom_ribbon(data = best_model_bic_forecast, aes(x = date, ymin = lower95, ymax = upper95),
@@ -479,7 +479,7 @@ best_model_rmse_low_k_forecast &lt;- to_tibble(best_model_rmse_low_k_forecast)</
     summarise(total = sum(passengers)) %&gt;%
     mutate(total_ihs = ihs(total)) %&gt;%
     ggplot() +
-    ggtitle(&quot;Logged data&quot;) +
+    ggtitle(&quot;Minimization of RMSE + low k&quot;) +
     geom_line(aes(y = total_ihs, x = date), colour = &quot;#82518c&quot;) +
     scale_x_date(date_breaks = &quot;1 year&quot;, date_labels = &quot;%m-%Y&quot;) +
     geom_ribbon(data = best_model_rmse_low_k_forecast, aes(x = date, ymin = lower95, ymax = upper95),
