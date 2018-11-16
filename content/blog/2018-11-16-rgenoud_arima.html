@@ -377,7 +377,8 @@ best_model_bic_forecast &lt;- to_tibble(best_model_bic_forecast)</code></pre>
 <p><img src="/blog/2018-11-16-rgenoud_arima_files/figure-html/unnamed-chunk-21-1.png" width="672" /></p>
 <p>The solutions are very close, both in terms of point estimates and confidence intervals. Bias
 increased, but variance lowered… This gives me an idea! What if I minimize the RMSE, while
-keeping the number of parameters low, as a kind of regularization? The best of both worlds if you will:</p>
+keeping the number of parameters low, as a kind of regularization? This is somewhat what minimising
+BIC does, but let’s try to do it a more “naive” approach:</p>
 <pre class="r"><code>cost_function_rmse_low_k &lt;- function(param, train_data, validation_data, forecast_periods, max.order){
     order &lt;- param[1:3]
     season &lt;- c(param[4:6], 12)

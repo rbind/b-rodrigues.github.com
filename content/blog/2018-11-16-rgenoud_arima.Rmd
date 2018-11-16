@@ -427,7 +427,8 @@ avia_clean_monthly %>%
 
 The solutions are very close, both in terms of point estimates and confidence intervals. Bias
 increased, but variance lowered... This gives me an idea! What if I minimize the RMSE, while
-keeping the number of parameters low, as a kind of regularization? The best of both worlds if you will:
+keeping the number of parameters low, as a kind of regularization? This is somewhat what minimising 
+BIC does, but let's try to do it a more "naive" approach: 
 
 ```{r}
 cost_function_rmse_low_k <- function(param, train_data, validation_data, forecast_periods, max.order){
