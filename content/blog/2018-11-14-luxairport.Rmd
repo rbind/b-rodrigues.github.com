@@ -327,7 +327,7 @@ lower <- model_forecast$lower %>%
 estimated_data <- reduce(list(point_estimate, upper, lower), full_join, by = "date")
 ```
 
-`as_tibble()` is a function from the `{tsibble}` package that converts objects that are *time-series aware*
+`as_tsibble()` is a function from the `{tsibble}` package that converts objects that are *time-series aware*
 to *time-aware* tibbles. If you are not familiar with `ts_tibble()`, I urge you to run the above lines
 one by one, and especially to compare `as_tsibble()` with the standard `as_tibble()` from the `{tibble}`
 package.

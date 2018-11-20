@@ -1,0 +1,446 @@
+---
+date: 2018-11-21
+title: "The best way to visit Luxembourguish castles is doing data science + combinatorial optimization"
+tags: [R]
+menu:
+  main:
+    parent: Blog
+    identifier: /blog/lux_castle
+    weight: 1
+---
+
+<div style="text-align:center;">
+  <a href="https://www.youtube.com/watch?v=XQDm6I3mbMU">
+    <img width = "400" src="/img/harold_kumar.jpg" title = "Only 00's kids will get the reference"></a>
+</div>
+
+Inspired by David Schoch's blog post,
+[Traveling Beerdrinker Problem](http://blog.schochastics.net/post/traveling-beerdrinker-problem/).
+Check out his blog, he has some amazing posts!
+
+## Introduction
+
+Luxembourg, as any proper European country, is full of castles. According to Wikipedia, 
+
+"By some optimistic estimates, there are as many as 130 castles in Luxembourg but more realistically
+there are probably just over a hundred, although many of these could be considered large residences 
+or manor houses rather than castles".
+
+I see the editors are probably German or French, calling our castles *manor houses*! They only say
+that because Luxembourg is small, so our castles must be small too, right?
+
+Banter aside, with that many castles, what is the best way to visit them all? And by best way I mean 
+shortest way. This is a classical **Travelling salesman problem**. To solve this, I need the following elements:
+
+* A list of castles to visit, with their coordinates
+* The distances between these castles to each other
+* A program to solve the TSP
+
+Let's start by loading some packages:
+
+```{r, include=FALSE}
+library(tidyverse)
+library(magrittr)
+library(rvest)
+library(curl)
+library(brotools)
+library(RJSONIO)
+library(TSP)
+library(ggimage)
+```
+
+```{r, eval=FALSE}
+library(tidyverse)
+library(magrittr)
+library(rvest)
+library(curl)
+library(brotools)
+library(RJSONIO)
+library(TSP)
+library(ggimage)
+```
+
+First step; scrape the data.
+
+## Scraping the data (that's the data science part)
+
+```{r, include=FALSE}
+castles <- read_csv("castles_clean.csv")
+```
+
+Let's start by having a list of castles. For this, I go to the French Wikipedia page of 
+[Luxembourguish castles](https://fr.wikipedia.org/wiki/Liste_de_ch%C3%A2teaux_luxembourgeois).
+
+The Luxembourguish page is more [exhaustive](https://lb.wikipedia.org/wiki/L%C3%ABscht_vun_de_L%C3%ABtzebuerger_Buergen_a_Schl%C3%A4sser), 
+but the names are in Luxembourguish, and I doubt that
+OpenStreetMap, which I'll use to get the coordinates, understands Luxembourguish.
+
+This list has around 50 castles, a reasonable amount of castles. Scraping the table is quite easy:
+
+```{r, eval=FALSE}
+page <- read_html("https://fr.wikipedia.org/wiki/Liste_de_ch%C3%A2teaux_luxembourgeois")
+
+castles <- page %>%
+    html_node(".wikitable") %>%
+    html_table(fill = TRUE) %>%
+    select(Nom, Localité) %>%
+    mutate(query = paste0(Nom, ", ", Localité))
+```
+
+I also add a `query` column which concatenates the name of the castle ("Nom") to where it is found
+("Localité"). The query should be a better choice that simply the castle name to get the coordinates.
+
+Now, I need to add the coordinates to this data frame. For this, I use a function I found online
+that gets the coordinates from OpenStreetMap:
+
+```{r, eval=FALSE}
+## geocoding function using OSM Nominatim API
+## details: http://wiki.openstreetmap.org/wiki/Nominatim
+## made by: D.Kisler
+
+#https://datascienceplus.com/osm-nominatim-with-r-getting-locations-geo-coordinates-by-its-address/
+
+nominatim_osm <- function(address = NULL){
+    if(suppressWarnings(is.null(address)))
+        return(data.frame())
+    tryCatch(
+        d <- jsonlite::fromJSON(
+            gsub('\\@addr\\@', gsub('\\s+', '\\%20', address),
+                 'http://nominatim.openstreetmap.org/search/@addr@?format=json&addressdetails=0&limit=1')
+        ), error = function(c) return(data.frame())
+    )
+    if(length(d) == 0) return(data.frame())
+    return(data.frame(lon = as.numeric(d$lon), lat = as.numeric(d$lat)))
+}
+```
+
+I can now easily add the coordinates by mapping the `nominatim_osm()` function to the 
+`query` column I built before:
+
+```{r, eval=FALSE}
+castles_osm <- castles %>%
+    mutate(geolocation = map(query, nominatim_osm))
+```
+
+Let's take a look at `castles_osm`:
+
+```{r, include=FALSE}
+castles_osm <- read_rds("castles_osm.rds")
+```
+
+```{r}
+head(castles_osm)
+```
+
+I now clean the data. There were several mistakes or castles that where not found, which I added
+manually. I did not notice these mistakes immediately, but when I computed the distances matrix I 
+notices several inconsistencies; 0's in positions other than the diagonal, as well as NAs. So I went
+back to the raw data and corrected what was wrong, this time by looking at Google Maps. Thankfully
+there were not that many mistakes. Below the whole workflow:
+
+```{r, eval=FALSE}
+# Little helper function to clean the lon and lat columns
+extract_numbers <- function(string){
+    str_extract_all(string, "\\d+", simplify = TRUE) %>%
+        paste0(collapse = ".")
+}
+
+castles <- castles_osm %>%
+    mutate(geolocation = 
+               ifelse(Nom == "Château de Wintrange", "6.3517223, 49.5021975", geolocation)) %>%
+    mutate(geolocation = 
+               ifelse(Nom == "Septfontaines, Rollingergrund", "6.1028634, 49.6257147", geolocation)) %>%
+    mutate(geolocation = 
+               ifelse(Nom == "Château de Septfontaines", "5.9617443, 49.7006292", geolocation)) %>%
+    mutate(geolocation = 
+               ifelse(Nom == "Château de Senningen", "6.2342581, 49.6464632", geolocation)) %>%
+    mutate(geolocation = 
+               ifelse(Nom == "Château de Schauwenburg", "6.0478341, 49.6110245", geolocation)) %>%
+    mutate(geolocation = 
+               ifelse(Nom == "Château de Schuttbourg", "5.8980951, 49.7878706", geolocation)) %>%
+    mutate(geolocation = 
+               ifelse(Nom == "Château de Meysembourg", "6.1864882, 49.7704348", geolocation)) %>%
+    mutate(geolocation = 
+               ifelse(Nom == "Château de Mamer", "6.0232432, 49.6262397", geolocation)) %>%
+    mutate(geolocation = 
+               ifelse(Nom == "Château de Born", "6.5125214, 49.7611168", geolocation)) %>%
+    # Found chateau de Betzdorf in Germany, not Luxembourg:
+    mutate(geolocation = ifelse(Nom == "Château Betzdorf", "6.330278, 49.694167", geolocation)) %>%
+    # Found château de Clemency in France, not Luxembourg:
+    mutate(geolocation = ifelse(Nom == "Château de Clemency", "5.874167, 49.598056", geolocation)) %>%
+    separate(geolocation, into = c("lon", "lat"), sep = ",") %>%
+    filter(!is.na(lat)) %>%
+    mutate(lon = map(lon, extract_numbers)) %>%
+    mutate(lat = map(lat, extract_numbers)) %>%
+    # Château de Beaufort found is in southern France, not the one in lux
+    # Château de Dudelange is wrong (same as Bettembourg)
+    # Château de Pétange is wrong (same as Differdange)
+    # Château d'Urspelt is wrong (same as Clervaux)
+    # Château d'Hesperange is wrong (same as Palais Grand-Ducal)
+    mutate(lon = ifelse(Nom == "Château de Beaufort", "6.2865176", lon),
+           lat = ifelse(Nom == "Château de Beaufort", "49.8335306", lat)) %>%
+    mutate(lon = ifelse(Nom == "Château Dudelange", "6.0578438", lon),
+           lat = ifelse(Nom == "Château Dudelange", "49.4905049", lat)) %>%
+    mutate(lon = ifelse(Nom == "Château de Pétange", "6.105703", lon),
+           lat = ifelse(Nom == "Château de Pétange", "49.7704746", lat)) %>%
+    mutate(lon = ifelse(Nom == "Château d' Urspelt", "6.043375", lon),
+           lat = ifelse(Nom == "Château d' Urspelt", "50.075342", lat)) %>%
+    mutate(lon = ifelse(Nom == "Château d'Hesperange", "6.1524302", lon),
+           lat = ifelse(Nom == "Château d'Hesperange", "49.573071", lat)) %>%
+    mutate(latlon = paste0(lat, ",", lon)) %>%
+    mutate(lon = as.numeric(lon), lat = as.numeric(lat))
+```
+
+In the end, I have `r nrow(castles)` castles, 2 of them were not found neither by OpenStreetMap nor
+Google Maps.
+
+Now I can get the distances matrix. For this, I opened an account at [Graphhopper](https://www.graphhopper.com/)
+and used their [Matrix API](https://graphhopper.com/api/1/docs/matrix/#matrix-api). When you open
+a free account, you get a standard account for free for two weeks, which was perfect for this little
+exercise. 
+
+To use the Matrix API you can make a call with curl from your terminal, like this:
+
+```
+curl "https://graphhopper.com/api/1/matrix?point=49.932707,11.588051&point=50.241935,10.747375&point=50.118817,11.983337&type=json&vehicle=car&debug=true&out_array=weights&out_array=times&out_array=distances&key=[YOUR_KEY]"
+```
+
+To use this from R, I use the `{curl}` package and the `curl_download()` function to download and
+write the output to disk.
+
+```{r, include=FALSE}
+castles_dist <- fromJSON("distances_graphhopper.json")
+```
+
+I built the url like this. First, the "points" part:
+
+```{r}
+points <- paste(castles$latlon, collapse = "&point=")
+```
+
+<details>
+  <summary>Click if you want to see the "points" string</summary>
+```{r}
+points
+```
+</details>
+
+Then, I added my key, and pasted these elements together to form the correct url:
+
+```{r, eval=FALSE}
+my_key <- "my_key_was_here"
+
+url <- paste0("https://graphhopper.com/api/1/matrix?point=", points, "&type=json&vehicle=car&debug=true&out_array=weights&out_array=times&out_array=distances&key=", my_key)
+```
+
+Then, I get the matrix like this:
+
+```{r, eval=FALSE}
+castles_dist <- "distances_graphhopper.json"
+curl_download(url, castles_dist)
+```
+
+Let's take a look at the object:
+
+```{r}
+distances <- castles_dist$distances
+```
+
+<details>
+  <summary>Click if you want to see the distance object</summary>
+```{r}
+distances
+```
+</details>
+
+`distances` is a list where the first element is the distances from the first castle to all the others.
+Let's make it a matrix:
+
+```{r}
+distances_matrix <- distances %>%
+    reduce(rbind)
+```
+
+<details>
+  <summary>Click if you want to see the distance matrix</summary>
+```{r}
+distances_matrix
+```
+</details>
+
+Let's baptize the rows and columns:
+
+```{r}
+colnames(distances_matrix) <- castles$Nom
+
+rownames(distances_matrix) <- castles$Nom
+```
+
+Now that we have the data, we can solve the TSP.
+
+## Solving the Travelling salesman problem (that's the combinatorial optimization part)
+
+Let's first coerce the `distances_matrix` to an `ATSP` object, which is needed for the solver.
+`ATSP` stands for asymmetrical TSP. Asymmetrical because the `distances_matrix` is not symmetric, 
+meaning that going from Castle A to Castle B is longer than going from Castle B to Castle A (for
+example).
+
+```{r}
+atsp_castles <- ATSP(distances_matrix)
+```
+
+I then define a list of all the available methods:
+
+```{r}
+methods <- c("identity", "random", "nearest_insertion",
+             "cheapest_insertion", "farthest_insertion", "arbitrary_insertion",
+             "nn", "repetitive_nn", "two_opt")
+```
+
+And solve the problem with all the methods:
+
+```{r, cache=TRUE}
+solutions <- map(methods, ~solve_TSP(x = atsp_castles, method = ., two_opt = TRUE, rep = 10,  two_opt_repetitions = 10)) %>%
+    set_names(methods)
+```
+
+I do this because the results vary depending on the methods, and I want to be exhaustive (solving 
+this problem is quite fast, so there's no reason not to do it):
+
+```{r}
+solutions_df <- solutions %>%
+    map_df(as.numeric)
+```
+
+`solutions_df` is a data frame with the order of the castles to visit in rows and the method used
+in columns.
+
+<details>
+  <summary>Click if you want to see the solutions</summary>
+```{r}
+solutions_df
+```
+</details>
+
+Now, let's extract the tour lengths, see which one is the minimum, then plot it.
+
+```{r}
+tour_lengths <- solutions %>%
+    map_dbl(tour_length)
+
+which.min(tour_lengths)
+```
+
+The total length of the tour is `r round(min(tour_lengths)/1000)` kilometers
+(that's `r round((min(tour_lengths)/1000)/1.609344)` miles). Before plotting the data, let's
+re-order it according to the solution:
+
+```{r}
+castles_to_visit <- castles[pull(solutions_df, names(which.min(tour_lengths))), ]
+```
+
+## Plot the solution
+
+To plot the solution, I first use a data frame I created with the longitude and latitude of 
+Luxembourguish communes, from the `geojson` file available on the 
+[OpenData Portal](https://data.public.lu/en/datasets/limites-administratives-du-grand-duche-de-luxembourg/#resource-39af91a6-9ce4-4c18-8271-313b3ad7c7f5).
+I converted it to a data frame because it is easier to manipulate this way. The code to do that is
+in the appendix of this blog post:
+
+```{r}
+communes_df <- read_csv("communes_df.csv")
+```
+
+Now I can use `{ggplot2}` to create the map with the tour. I use `geom_polygon()` to build the map,
+`geom_point()` to add the castles, `geom_path()` to connect the points according to the solution I
+found and `geom_point()` again to highlight the starting castle:
+
+```{r, fig.height=10, fig.width=8}
+ggplot() +
+    geom_polygon(data = communes_df, aes(x = lon, y = lat, group = commune), colour = "grey", fill = NA) +
+    geom_point(data = castles, aes(x = lon, y = lat), colour = "#82518c", size = 3) +
+    geom_path(data = castles_to_visit, aes(x = lon, y = lat), colour = "#647e0e") +
+    geom_point(data = (slice(castles_to_visit, 1)), aes(x = lon, y = lat), colour = "white", size = 5) +
+    theme_void() +
+    ggtitle("The shortest tour to visit 48 Luxembourguish castles") +
+    theme(legend.position = "bottom",
+          legend.title = element_blank(),
+          legend.text = element_text(colour = "white"),
+          plot.background = element_rect("#272b30"),
+          plot.title = element_text(colour = "white")) 
+```
+
+The white point is the starting point of the tour. As a bonus, let's do the same plot without 
+points, but castles emojis instead (using the `{ggimage}` package):
+
+```{r, fig.height=10, fig.width=8}
+ggplot() +
+    geom_polygon(data = communes_df, aes(x = lon, y = lat, group = commune), colour = "grey", fill = NA) +
+    geom_emoji(data = castles, aes(x = lon, y = lat, image = "1f3f0")) + # <- this is the hex code for the "european castle" emoji
+    geom_path(data = castles_to_visit, aes(x = lon, y = lat), colour = "#647e0e") +
+    theme_void() +
+    ggtitle("The shortest tour to visit 48 Luxembourguish castles") +
+    theme(legend.position = "bottom",
+          legend.title = element_blank(),
+          legend.text = element_text(colour = "white"),
+          plot.background = element_rect("#272b30"),
+          plot.title = element_text(colour = "white"))
+```
+
+It's horrible.
+
+Hope you enjoyed! If you found this blog post useful, you might want to follow 
+me on [twitter](https://www.twitter.com/brodriguesco) for blog post updates and 
+[buy me an espresso](https://www.buymeacoffee.com/brodriguesco).
+
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a>
+
+
+## Appendix
+
+The code below converts the `geojson` that can be downloaded from the 
+[OpenData Portal](https://data.public.lu/en/datasets/limites-administratives-du-grand-duche-de-luxembourg/#resource-39af91a6-9ce4-4c18-8271-313b3ad7c7f5)
+to `csv`. A `csv` file is easier to handle. I only focus on the communes.
+
+```{r, eval=FALSE}
+limadmin <- RJSONIO::fromJSON("limadmin.geojson")
+
+communes <- limadmin$communes
+
+extract_communes <- function(features){
+
+    res <- features$geometry$coordinates %>%
+        map(lift(rbind)) %>%
+        as.data.frame() %>%
+        rename(lon = X1,
+               lat = X2)
+
+    res %>%
+        mutate(commune = features$properties[1])
+}
+
+communes_df <- map(limadmin$communes$features, extract_communes)
+
+## Steinfort and Waldbredimus special treatment:
+
+steinfort <- limadmin$communes$features[[5]]$geometry$coordinates[[1]] %>%
+    map(lift(rbind)) %>%
+    as.data.frame() %>%
+    rename(lon = X1,
+           lat = X2) %>%
+    mutate(commune = "Steinfort")
+
+waldbredimus <- limadmin$communes$features[[44]]$geometry$coordinates[[1]] %>%
+    map(lift(rbind)) %>%
+    as.data.frame() %>%
+    rename(lon = X1,
+           lat = X2) %>%
+    mutate(commune = "Waldbredimus")
+
+communes_df[[5]] <- NULL
+communes_df[[43]] <- NULL
+
+
+communes_df <- bind_rows(communes_df, list(steinfort, waldbredimus))
+```
+

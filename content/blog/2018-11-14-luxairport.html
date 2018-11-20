@@ -303,7 +303,7 @@ lower &lt;- model_forecast$lower %&gt;%
            lower95 = `95%`)
 
 estimated_data &lt;- reduce(list(point_estimate, upper, lower), full_join, by = &quot;date&quot;)</code></pre>
-<p><code>as_tibble()</code> is a function from the <code>{tsibble}</code> package that converts objects that are <em>time-series aware</em>
+<p><code>as_tsibble()</code> is a function from the <code>{tsibble}</code> package that converts objects that are <em>time-series aware</em>
 to <em>time-aware</em> tibbles. If you are not familiar with <code>ts_tibble()</code>, I urge you to run the above lines
 one by one, and especially to compare <code>as_tsibble()</code> with the standard <code>as_tibble()</code> from the <code>{tibble}</code>
 package.</p>
