@@ -132,7 +132,7 @@ castles_osm <- read_rds("castles_osm.rds")
 head(castles_osm)
 ```
 
-I now clean the data. There were several mistakes or castles that where not found, which I added
+I now clean the data. There were several mistakes or castles that were not found, which I added
 manually. I did not notice these mistakes immediately, but when I computed the distances matrix I 
 notices several inconsistencies; 0's in positions other than the diagonal, as well as NAs. So I went
 back to the raw data and corrected what was wrong, this time by looking at Google Maps. Thankfully
