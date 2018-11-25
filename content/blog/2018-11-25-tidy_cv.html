@@ -144,7 +144,7 @@ broom::augment(linreg_model, newdata = test_data) %&gt;%
 <pre><code>## # A tibble: 1 x 3
 ##   .metric .estimator .estimate
 ##   &lt;chr&gt;   &lt;chr&gt;          &lt;dbl&gt;
-## 1 rmse    standard       0.396</code></pre>
+## 1 rmse    standard       0.469</code></pre>
 <p><code>broom::augment()</code> adds the predictions to the <code>test_data</code> in a new column, <code>.fitted</code>. I won’t
 use this trick with the random forest, because there is no <code>augment()</code> method for random forests
 from the <code>{ranger}</code> which I’ll use. I’ll add the predictions to the data myself.</p>
@@ -302,7 +302,7 @@ result &lt;- mbo(fn, des, surrogate, ctrl, more.args = list(&quot;validation_dat
 ## 19        &lt;NA&gt;      0.014 infill_ei        0.756 0.0002481260 0.3941597
 ## 20        &lt;NA&gt;      0.013 infill_ei        0.483 0.0001687982 0.3939285</code></pre>
 <p>So the recommended parameters are 6 for <code>mtry</code> and 381 for <code>trees</code>. The value of the RMSE is lower
-than before, and equals 0.391.
+than before, and equals 0.393.
 Let’s now train the random forest on the training data with this values. First, I pre-process the
 training data:</p>
 <pre class="r"><code>training_rec &lt;- prep(simple_recipe(housing_train), testing = housing_train)
@@ -318,56 +318,56 @@ price_predict &lt;- predict(final_model, new_data = select(test_data, -price))</
 <pre class="r"><code>cbind(price_predict * sd(housing_train$price) + mean(housing_train$price), 
       housing_test$price)</code></pre>
 <pre><code>##       .pred housing_test$price
-## 1  17.57714               16.5
-## 2  15.89689               12.7
-## 3  27.59274               28.0
-## 4  20.08597               20.1
-## 5  19.64129               19.4
-## 6  25.17725               22.8
-## 7  15.98469               11.8
-## 8  18.56254               19.4
-## 9  20.75345               17.4
-## 10 23.91982               23.6
-## 11 27.00998               29.4
-## 12 29.93867               30.5
-## 13 28.80000               31.1
-## 14 33.15124               34.6
-## 15 42.57018               42.3
-## 16 22.80326               24.4
-## 17 43.14027               50.0
-## 18 43.12760               48.3
-## 19 24.38197               24.4
-## 20 23.04889               20.7
-## 21 31.41176               35.1
-## 22 43.27946               46.0
-## 23 33.61857               37.3
-## 24 24.91639               27.1
-## 25 20.91789               20.3
-## 26 25.69338               22.5
-## 27 23.87155               23.8
-## 28 20.99601               19.8
-## 29 23.73400               23.1
-## 30 22.78424               20.4
-## 31 23.73739               18.5
-## 32 29.49364               31.2
-## 33 20.63531               19.9
-## 34 16.66487               13.9
-## 35 13.59002               12.3
-## 36 11.87280               10.5
-## 37 11.44381               10.2
-## 38 17.00681               12.7
-## 39 13.68036                8.3
-## 40 14.07903                5.0
-## 41 13.49748                8.8
-## 42 14.03274               13.4
-## 43 15.88574               14.9
-## 44 18.21688               12.6
-## 45 17.26244               16.1
-## 46 17.26041               13.5
-## 47 20.45077               17.7
-## 48 17.15361               14.6
-## 49 15.90101               15.2
-## 50 18.80099               19.7</code></pre>
+## 1  26.66387               24.0
+## 2  18.05651               18.9
+## 3  17.73167               15.0
+## 4  19.58751               18.2
+## 5  15.83327               13.9
+## 6  15.23911               13.2
+## 7  20.71109               20.0
+## 8  24.57467               25.0
+## 9  23.30817               21.4
+## 10 22.49698               22.9
+## 11 22.80554               21.4
+## 12 19.12121               18.6
+## 13 19.63354               19.3
+## 14 18.33941               20.4
+## 15 17.03028               14.4
+## 16 45.58864               50.0
+## 17 28.26440               32.0
+## 18 28.48881               30.5
+## 19 28.18277               31.1
+## 20 45.12203               48.5
+## 21 45.13364               50.0
+## 22 20.95897               24.4
+## 23 32.70919               31.6
+## 24 18.88725               18.5
+## 25 23.80696               22.0
+## 26 24.05506               23.2
+## 27 33.69617               37.3
+## 28 26.93756               27.9
+## 29 22.71415               23.9
+## 30 24.88508               27.1
+## 31 24.63913               22.5
+## 32 30.73453               33.1
+## 33 23.35807               22.1
+## 34 21.89201               23.1
+## 35 23.22168               23.1
+## 36 20.15691               19.3
+## 37 21.12050               22.7
+## 38 12.88927               13.1
+## 39 19.25563               10.4
+## 40 11.32007               10.5
+## 41 16.30650               13.1
+## 42 14.14549                8.3
+## 43 11.08126                5.0
+## 44 14.14806               13.4
+## 45 20.56828               17.8
+## 46 14.43175               14.4
+## 47 20.00864               19.5
+## 48 13.46410               12.0
+## 49 20.81910               21.8
+## 50 21.72144               21.2</code></pre>
 <p>Let’s now compute the RMSE:</p>
 <pre class="r"><code>tibble::tibble(&quot;truth&quot; = test_data$price,
         &quot;prediction&quot; = unlist(price_predict)) %&gt;% 

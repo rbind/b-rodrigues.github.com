@@ -358,7 +358,7 @@ result
 ```
 
 So the recommended parameters are 6 for `mtry` and 381 for `trees`. The value of the RMSE is lower
-than before, and equals 0.391.
+than before, and equals 0.393.
 Let's now train the random forest on the training data with this values. First, I pre-process the 
 training data:
 
