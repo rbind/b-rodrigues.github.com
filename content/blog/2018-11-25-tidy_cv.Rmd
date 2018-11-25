@@ -1,0 +1,403 @@
+---
+date: 2018-11-25
+title: "A tutorial on tidy cross-validation with R"
+tags: [R]
+menu:
+  main:
+    parent: Blog
+    identifier: /blog/tidy_cv
+    weight: 1
+---
+
+<div style="text-align:center;">
+  <a href="https://www.youtube.com/watch?v=7T6pgZdFLP0">
+    <image width = "400" src="/img/cross_validation.gif" title = "Visual representation of cross⁻validation inside your computer *click for virtual weed*"></a>
+</div>
+
+## Introduction
+
+This blog posts will use several packages from the
+[`{tidymodels}`](https://github.com/tidymodels) collection of packages, namely
+[`{recipes}`](https://tidymodels.github.io/recipes/), 
+[`{rsample}`](https://tidymodels.github.io/rsample/) and 
+[`{parsnip}`](https://tidymodels.github.io/parsnip/) to train a random forest the tidy way. I will
+also use [`{mlrMBO}`](http://mlrmbo.mlr-org.com/) to tune the hyper-parameters of the random forest.
+
+## Set up
+
+Let's load the needed packages:
+
+```{r, include=FALSE}
+library("tidyverse")
+library("tidymodels")
+library("parsnip")
+library("brotools")
+library("mlbench")
+```
+
+
+```{r, eval=FALSE}
+library("tidyverse")
+library("tidymodels")
+library("parsnip")
+library("brotools")
+library("mlbench")
+```
+
+Load the data, included in the `{mlrbench}` package:
+
+```{r}
+data("BostonHousing2")
+```
+
+I will train a random forest to predict the housing price, which is the `cmedv` column:
+
+```{r}
+head(BostonHousing2)
+```
+
+Only keep relevant columns:
+
+```{r}
+boston <- BostonHousing2 %>% 
+    select(-medv, -town, -lon, -lat) %>% 
+    rename(price = cmedv)
+```
+
+I remove `town`, `lat` and `lon` because the information contained in the column `tract` is enough.
+
+To train and evaluate the model's performance, I split the data in two. 
+One data set, which I call the training set, will be further split into two down below. I won't 
+touch the second data set, the test set, until the very end.
+
+```{r}
+train_test_split <- initial_split(boston, prop = 0.9)
+
+housing_train <- training(train_test_split)
+
+housing_test <- testing(train_test_split)
+```
+
+I want to train a random forest to predict price of houses, but random forests have so-called
+hyperparameters, which are parameters that cannot be estimated, or learned, from the data. Instead,
+these parameters have to be chosen by the analyst. In order to choose them, you can 
+use values from the literature that seemed to have worked well (like is done in Macro-econometrics)
+or you can further split the train set into two, create a grid of hyperparameter, train the model 
+on one part of the data for all values of the grid, and compare the predictions of the models on the 
+second part of the data. You then stick with the model that performed the best, for example, the 
+model with lowest RMSE. The thing is, you can't estimate the true value of the RMSE with only
+one value. It's like if you wanted to estimate the height of the population by drawing one single
+observation from the population. You need a bit more observations. To approach the true value of the
+RMSE for a give set of hyperparameters, instead of doing one split, I'll do 30. I then
+compute the average RMSE, which implies training 30 models for each combination of the values of the 
+hyperparameters I am interested in. 
+
+First, let's split the training data again, using the `mc_cv()` function from `{rsample}` package.
+This function implements Monte Carlo cross-validation:
+
+```{r}
+validation_data <- mc_cv(housing_train, prop = 0.9, times = 30)
+```
+
+What does `validation_data` look like?
+
+```{r}
+validation_data
+```
+
+Let's look further down:
+
+```{r}
+validation_data$splits[[1]]
+```
+
+The first value is the number of rows of the first set, the second value of the second, and the third
+was the original amount of values in the training data, before splitting again.
+
+How should we call these two new data sets? The author of `{rsample}`, Max Kuhn, talks about 
+the *analysis* and the *assessment* sets:
+
+```{r, echo=FALSE}
+blogdown::shortcode("tweet", "1066131042615140353")
+```
+
+Now, in order to continue I need pre-process the data. I will do this in three steps.
+The first and the second step are used to center and scale the numeric variables and the third step 
+converts character and factor variables to dummy variables. This is needed because I will train a 
+random forest, which cannot handle factor variables directly. Let's define a recipe to do that, 
+and start by pre-processing the testing set. I write a wrapper function around the recipe,
+because I will need to apply this recipe to various data sets:
+
+```{r}
+simple_recipe <- function(dataset){
+    recipe(price ~ ., data = dataset) %>%
+        step_center(all_numeric()) %>%
+        step_scale(all_numeric()) %>%
+        step_dummy(all_nominal())
+}
+```
+
+Once the recipe is defined, I can use the `prep()` function, which estimates the parameters from 
+the data which are needed to process the data. For example, for centering, `prep()` estimates 
+the mean which will then be subtracted from the variables. With `bake()` the estimates are then
+applied on the data:
+
+```{r}
+testing_rec <- prep(simple_recipe(housing_test), testing = housing_test)
+
+test_data <- bake(testing_rec, newdata = housing_test)
+```
+
+It is important to split the data before using `prep()` and `bake()`, because if not, you will 
+use observations from the test set in the `prep()` step, and thus introduce knowledge from the test
+set into the training data. This is called data leakage, and must be avoided. This is why it is 
+necessary to first split the training data into an analysis and an assessment set, and then also 
+pre-process these sets separately. However, the `validation_data` object cannot now be used with
+`recipe()`, because it is not a dataframe. No worries, I simply need to write a function that extracts
+the analysis and assessment sets from the `validation_data` object, applies the pre-processing, trains
+the model, and returns the RMSE. This will be a big function, at the center of the analysis. 
+
+But before that, let's run a simple linear regression, as a benchmark. For the linear regression, I will
+not use any CV, so let's pre-process the training set:
+
+```{r}
+trainlm_rec <- prep(simple_recipe(housing_train), testing = housing_train)
+
+trainlm_data <- bake(trainlm_rec, newdata = housing_train)
+
+linreg_model <- lm(price ~ ., data = trainlm_data)
+
+broom::augment(linreg_model, newdata = test_data) %>% 
+    rmse(price, .fitted)
+```
+
+`broom::augment()` adds the predictions to the `test_data` in a new column, `.fitted`. I won't
+use this trick with the random forest, because there is no `augment()` method for random forests
+from the `{ranger}` which I'll use. I'll add the predictions to the data myself.
+
+Ok, now let's go back to the random forest and write the big function:
+
+```{r}
+my_rf <- function(mtry, trees, split, id){
+    
+    analysis_set <- analysis(split)
+    
+    analysis_prep <- prep(simple_recipe(analysis_set), training = analysis_set)
+    
+    analysis_processed <- bake(analysis_prep, newdata = analysis_set)
+    
+    model <- rand_forest(mtry = mtry, trees = trees) %>%
+        set_engine("ranger", importance = 'impurity') %>%
+        fit(price ~ ., data = analysis_processed)
+
+    assessment_set <- assessment(split)
+    
+    assessment_prep <- prep(simple_recipe(assessment_set), testing = assessment_set)
+    
+    assessment_processed <- bake(assessment_prep, newdata = assessment_set)
+
+    tibble::tibble("id" = id,
+        "truth" = assessment_processed$price,
+        "prediction" = unlist(predict(model, new_data = assessment_processed)))
+}
+```
+
+The `rand_forest()` function is available from the `{parsnip}` package. This package provides an 
+unified interface to a lot of other machine learning packages. This means that instead of having to 
+learn the syntax of `range()` and `randomForest()` and, and... you can simply use the `rand_forest()`
+function and change the `engine` argument to the one you want (`ranger`, `randomForest`, etc).
+
+Let's try this function:
+
+```{r, cache=TRUE}
+results_example <- map2_df(.x = validation_data$splits,
+                           .y = validation_data$id,
+                           ~my_rf(mtry = 3, trees = 200, split = .x, id = .y))
+
+```
+
+```{r}
+head(results_example)
+```
+
+I can now compute the RMSE when `mtry` = 3 and `trees` = 200:
+
+```{r}
+results_example %>%
+    group_by(id) %>%
+    rmse(truth, prediction) %>%
+    summarise(mean_rmse = mean(.estimate)) %>%
+    pull
+```
+
+The random forest has already lower RMSE than the linear regression. The goal now is to lower this
+RMSE by tuning the `mtry` and `trees` hyperparameters. For this, I will use Bayesian Optimization
+methods implemented in the `{mlrMBO}` package.
+
+## Bayesian hyperparameter optimization
+
+I will re-use the code from above, and define a function that does everything from pre-processing
+to returning the metric I want to minimize by tuning the hyperparameters, the RMSE:
+
+```{r}
+tuning <- function(param, validation_data){
+
+    mtry <- param[1]
+    trees <- param[2]
+
+    results <- purrr::map2_df(.x = validation_data$splits,
+                       .y = validation_data$id,
+                       ~my_rf(mtry = mtry, trees = trees, split = .x, id = .y))
+
+    results %>%
+        group_by(id) %>%
+        rmse(truth, prediction) %>%
+        summarise(mean_rmse = mean(.estimate)) %>%
+        pull
+}
+```
+
+This is exactly the code from before, but it now returns the RMSE. Let's try the function
+with the values from before:
+
+```{r, cache=TRUE}
+tuning(c(3, 200), validation_data)
+```
+
+Let's also plot the value of RMSE for `mtry = 3` and `trees` from 200 to 300. This takes some 
+time, because I need to evaluate this costly function 100 times. If evaluating the function was 
+cheap, I could have made a 3D plot by varying values of `mtry` too, but then again if evaluating
+the function was cheap, I would run an exhaustive grid search to find the hyperparameters instead of
+using Bayesian optimization.
+
+```{r, cache=TRUE}
+plot_points <- crossing("mtry" = 3, "trees" = seq(200, 300))
+
+plot_data <- plot_points %>% 
+    mutate(value = map_dbl(seq(200, 300), ~tuning(c(3, .), validation_data)))
+```
+
+```{r}
+plot_data %>% 
+    ggplot(aes(y = value, x = trees)) + 
+    geom_line(colour = "#82518c") + 
+    theme_blog() +
+    ggtitle("RMSE for mtry = 3")
+```
+
+For `mtry = 3` the minimum seems to lie around 255. The function to minimize is not smooth at all.
+
+I now follow the code that can be found in the [arxiv](https://arxiv.org/abs/1703.03373) paper to 
+run the optimization. I think I got the gist of the paper, but I did not understand everything yet.
+For now, I am still experimenting with the library at the moment, but from what I understand, a 
+simpler model, called the surrogate model, is used to look for promising points and to evaluate the
+value of the function at these points. This seems somewhat similar (in spirit) to the 
+*Indirect Inference* method as described in [Gourieroux, Monfort, Renault](https://www.jstor.org/stable/2285076).
+
+Let's first load the package and create the function to optimize:
+
+```{r, include=FALSE}
+library("mlrMBO")
+```
+
+```{r, eval=FALSE}
+library("mlrMBO")
+```
+
+```{r}
+fn <- makeSingleObjectiveFunction(name = "tuning",
+                                 fn = tuning,
+                                 par.set = makeParamSet(makeIntegerParam("x1", lower = 3, upper = 8),
+                                                        makeIntegerParam("x2", lower = 50, upper = 500)))
+```
+
+This function is based on the function I defined before. The parameters to optimize are also 
+defined as are their bounds. I will look for `mtry` between the values of 3 and 8, and `trees` 
+between 50 and 500.
+
+Now comes the part I didn't quite get.
+
+```{r}
+# Create initial random Latin Hypercube Design of 10 points
+library(lhs)# for randomLHS
+des <- generateDesign(n = 5L * 2L, getParamSet(fn), fun = randomLHS)
+```
+
+I think this means that these 10 points are the points used to start the whole process. I did not
+understand why they have to be sampled from a hypercube, but ok. Then I choose the surrogate model,
+a random forest too, and predict the standard error. Here also, I did not quite get why the 
+standard error can be an option.
+ 
+```{r}
+# Specify kriging model with standard error estimation
+surrogate <- makeLearner("regr.ranger", predict.type = "se", keep.inbag = TRUE)
+```
+
+Here I define some options:
+
+```{r}
+# Set general controls
+ctrl <- makeMBOControl()
+ctrl <- setMBOControlTermination(ctrl, iters = 10L)
+ctrl <- setMBOControlInfill(ctrl, crit = makeMBOInfillCritEI())
+```
+
+And this is the optimization part:
+
+```{r, eval=FALSE}
+# Start optimization
+result <- mbo(fn, des, surrogate, ctrl, more.args = list("validation_data" = validation_data))
+```
+
+```{r, include=FALSE}
+result <- readRDS("random_forest_estimation.rds")
+```
+
+```{r}
+result
+```
+
+So the recommended parameters are 6 for `mtry` and 381 for `trees`. The value of the RMSE is lower
+than before, and equals 0.391.
+Let's now train the random forest on the training data with this values. First, I pre-process the 
+training data:
+
+```{r}
+training_rec <- prep(simple_recipe(housing_train), testing = housing_train)
+
+train_data <- bake(training_rec, newdata = housing_train)
+```
+
+Let's now train our final model and predict the prices:
+
+```{r}
+final_model <- rand_forest(mtry = 6, trees = 381) %>%
+        set_engine("ranger", importance = 'impurity') %>%
+        fit(price ~ ., data = train_data)
+
+price_predict <- predict(final_model, new_data = select(test_data, -price))
+```
+
+Let's transform the data back and compare the predicted prices to the true ones visually:
+
+```{r}
+cbind(price_predict * sd(housing_train$price) + mean(housing_train$price), 
+      housing_test$price)
+```
+
+Let's now compute the RMSE:
+
+```{r, cache=TRUE}
+tibble::tibble("truth" = test_data$price,
+        "prediction" = unlist(price_predict)) %>% 
+    rmse(truth, prediction)
+```
+
+Very nice. 
+
+Hope you enjoyed! If you found this blog post useful, you might want to follow 
+me on [twitter](https://www.twitter.com/brodriguesco) for blog post updates and 
+[buy me an espresso](https://www.buymeacoffee.com/brodriguesco).
+
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a>
+
