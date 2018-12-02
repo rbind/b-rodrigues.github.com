@@ -1,0 +1,154 @@
+---
+date: 2018-12-02
+title: "What hyper-parameters are, and what to do with them; an illustration with ridge regression"
+tags: [R]
+menu:
+  main:
+    parent: Blog
+    identifier: /blog/modern_r_hyperparameters
+    weight: 1
+---
+
+
+
+<div style="text-align:center;">
+<p><a href="https://www.youtube.com/watch?v=13Gd5kpLzsw">
+<img width = "400" src="/img/ridge.jpg" title = "Gameboy ridge"></a></p>
+</div>
+<script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+<p>This blog post is an excerpt of my ebook <em>Modern R with the tidyverse</em> that you can read for
+free <a href="https://b-rodrigues.github.io/modern_R/">here</a>. This is taken from Chapter 7, which deals
+with statistical models. In the text below, I explain what hyper-parameters are, and as an example
+I run a ridge regression using the <code>{glmnet}</code> package. The book is still being written, so
+comments are more than welcome!</p>
+<div id="hyper-parameters" class="section level2">
+<h2>Hyper-parameters</h2>
+<p>Hyper-parameters are parameters of the model that cannot be directly learned from the data.
+A linear regression does not have any hyper-parameters, but a random forest for instance has several.
+You might have heard of ridge regression, lasso and elasticnet. These are
+extensions to linear models that avoid over-fitting by penalizing <em>large</em> models. These
+extensions of the linear regression have hyper-parameters that the practitioner has to tune. There
+are several ways one can tune these parameters, for example, by doing a grid-search, or a random
+search over the grid or using more elaborate methods. To introduce hyper-parameters, let’s get
+to know ridge regression, also called Tikhonov regularization.</p>
+<div id="ridge-regression" class="section level3">
+<h3>Ridge regression</h3>
+<p>Ridge regression is used when the data you are working with has a lot of explanatory variables,
+or when there is a risk that a simple linear regression might overfit to the training data, because,
+for example, your explanatory variables are collinear.
+If you are training a linear model and then you notice that it generalizes very badly to new,
+unseen data, it is very likely that the linear model you trained overfits the data.
+In this case, ridge regression might prove useful. The way ridge regression works might seem
+counter-intuititive; it boils down to fitting a <em>worse</em> model to the training data, but in return,
+this worse model will generalize better to new data.</p>
+<p>The closed form solution of the ordinary least squares estimator is defined as:</p>
+<p><span class="math display">\[
+\widehat{\beta} = (X&#39;X)^{-1}X&#39;Y
+\]</span></p>
+<p>where <span class="math inline">\(X\)</span> is the design matrix (the matrix made up of the explanatory variables) and <span class="math inline">\(Y\)</span> is the
+dependent variable. For ridge regression, this closed form solution changes a little bit:</p>
+<p><span class="math display">\[
+\widehat{\beta} = (X&#39;X + \lambda I_p)^{-1}X&#39;Y
+\]</span></p>
+<p>where <span class="math inline">\(\lambda \in \mathbb{R}\)</span> is an hyper-parameter and <span class="math inline">\(I_p\)</span> is the identity matrix of dimension <span class="math inline">\(p\)</span>
+(<span class="math inline">\(p\)</span> is the number of explanatory variables).
+This formula above is the closed form solution to the following optimisation program:</p>
+<p><span class="math display">\[
+\sum_{i=1}^n \left(y_i - \sum_{j=1}^px_{ij}\beta_j\right)^2 
+\]</span></p>
+<p>such that:</p>
+<p><span class="math display">\[
+\sum_{j=1}^p(\beta_j)^2 &lt; c
+\]</span></p>
+<p>for any strictly positive <span class="math inline">\(c\)</span>.</p>
+<p>The <code>glmnet()</code> function from the <code>{glmnet}</code> package can be used for ridge regression, by setting
+the <code>alpha</code> argument to 0 (setting it to 1 would do LASSO, and setting it to a number between
+0 and 1 would do elasticnet). But in order to compare linear regression and ridge regression,
+let me first divide the data into a training set and a testing set. I will be using the <code>Housing</code>
+data from the <code>{Ecdat}</code> package:</p>
+<pre class="r"><code>library(tidyverse)
+library(Ecdat)
+library(glmnet)</code></pre>
+<pre class="r"><code>index &lt;- 1:nrow(Housing)
+
+set.seed(12345)
+train_index &lt;- sample(index, round(0.90*nrow(Housing)), replace = FALSE)
+
+test_index &lt;- setdiff(index, train_index)
+
+train_x &lt;- Housing[train_index, ] %&gt;% 
+    select(-price)
+
+train_y &lt;- Housing[train_index, ] %&gt;% 
+    pull(price)
+
+test_x &lt;- Housing[test_index, ] %&gt;% 
+    select(-price)
+
+test_y &lt;- Housing[test_index, ] %&gt;% 
+    pull(price)</code></pre>
+<p>I do the train/test split this way, because <code>glmnet()</code> requires a design matrix as input, and not
+a formula. Design matrices can be created using the <code>model.matrix()</code> function:</p>
+<pre class="r"><code>train_matrix &lt;- model.matrix(train_y ~ ., data = train_x)
+
+test_matrix &lt;- model.matrix(test_y ~ ., data = test_x)</code></pre>
+<p>To run an unpenalized linear regression, we can set the penalty to 0:</p>
+<pre class="r"><code>model_lm_ridge &lt;- glmnet(y = train_y, x = train_matrix, alpha = 0, lambda = 0)</code></pre>
+<p>The model above provides the same result as a linear regression. Let’s compare the coefficients between the two:</p>
+<pre class="r"><code>coef(model_lm_ridge)</code></pre>
+<pre><code>## 13 x 1 sparse Matrix of class &quot;dgCMatrix&quot;
+##                       s0
+## (Intercept) -3247.030393
+## (Intercept)     .       
+## lotsize         3.520283
+## bedrooms     1745.211187
+## bathrms     14337.551325
+## stories      6736.679470
+## drivewayyes  5687.132236
+## recroomyes   5701.831289
+## fullbaseyes  5708.978557
+## gashwyes    12508.524241
+## aircoyes    12592.435621
+## garagepl     4438.918373
+## prefareayes  9085.172469</code></pre>
+<p>and now the coefficients of the linear regression (because I provide a design matrix, I have to use
+<code>lm.fit()</code> instead of <code>lm()</code> which requires a formula, not a matrix.)</p>
+<pre class="r"><code>coef(lm.fit(x = train_matrix, y = train_y))</code></pre>
+<pre><code>##  (Intercept)      lotsize     bedrooms      bathrms      stories 
+## -3245.146665     3.520357  1744.983863 14336.336858  6737.000410 
+##  drivewayyes   recroomyes  fullbaseyes     gashwyes     aircoyes 
+##  5686.394123  5700.210775  5709.493884 12509.005265 12592.367268 
+##     garagepl  prefareayes 
+##  4439.029607  9085.409155</code></pre>
+<p>as you can see, the coefficients are the same. Let’s compute the RMSE for the unpenalized linear
+regression:</p>
+<pre class="r"><code>preds_lm &lt;- predict(model_lm_ridge, test_matrix)
+
+rmse_lm &lt;- sqrt(mean(preds_lm - test_y)^2)</code></pre>
+<p>The RMSE for the linear unpenalized regression is equal to 2077.4197343.</p>
+<p>Let’s now run a ridge regression, with <code>lambda</code> equal to 100, and see if the RMSE is smaller:</p>
+<pre class="r"><code>model_ridge &lt;- glmnet(y = train_y, x = train_matrix, alpha = 0, lambda = 100)</code></pre>
+<p>and let’s compute the RMSE again:</p>
+<pre class="r"><code>preds &lt;- predict(model_ridge, test_matrix)
+
+rmse &lt;- sqrt(mean(preds - test_y)^2)</code></pre>
+<p>The RMSE for the linear penalized regression is equal to 2072.6117757, which is smaller than before.
+But which value of <code>lambda</code> gives smallest RMSE? To find out, one must run model over a grid of
+<code>lambda</code> values and pick the model with lowest RMSE. This procedure is available in the <code>cv.glmnet()</code>
+function, which picks the best value for <code>lambda</code>:</p>
+<pre class="r"><code>best_model &lt;- cv.glmnet(train_matrix, train_y)
+# lambda that minimises the MSE
+best_model$lambda.min</code></pre>
+<pre><code>## [1] 66.07936</code></pre>
+<p>According to <code>cv.glmnet()</code> the best value for <code>lambda</code> is 66.0793576. In the
+next section, we will implement cross validation ourselves, in order to find the hyper-parameters
+of a random forest.</p>
+<p>Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="paypal.me/brodriguesco">paypal.me</a>.</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
+</div>
+</div>
