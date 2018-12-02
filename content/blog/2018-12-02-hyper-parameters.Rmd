@@ -149,7 +149,7 @@ regression:
 ```{r}
 preds_lm <- predict(model_lm_ridge, test_matrix)
 
-rmse_lm <- sqrt(mean(preds_lm - test_y)^2)
+rmse_lm <- sqrt(mean((preds_lm - test_y)^2))
 ```
 
 The RMSE for the linear unpenalized regression is equal to `r rmse_lm`.
@@ -165,7 +165,7 @@ and let's compute the RMSE again:
 ```{r}
 preds <- predict(model_ridge, test_matrix)
 
-rmse <- sqrt(mean(preds - test_y)^2)
+rmse <- sqrt(mean((preds - test_y)^2))
 ```
 
 The RMSE for the linear penalized regression is equal to `r rmse`, which is smaller than before.
@@ -179,8 +179,8 @@ best_model <- cv.glmnet(train_matrix, train_y)
 best_model$lambda.min
 ```
 
-According to `cv.glmnet()` the best value for `lambda` is `r best_model$lambda.min`. In the 
-next section, we will implement cross validation ourselves, in order to find the hyper-parameters
+According to `cv.glmnet()` the best value for `lambda` is `r best_model$lambda.min`. 
+In the next section, we will implement cross validation ourselves, in order to find the hyper-parameters
 of a random forest.
 
 
