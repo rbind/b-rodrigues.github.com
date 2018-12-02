@@ -152,7 +152,7 @@ preds_lm <- predict(model_lm_ridge, test_matrix)
 rmse_lm <- sqrt(mean((preds_lm - test_y)^2))
 ```
 
-The RMSE for the linear unpenalized regression is equal to `r rmse_lm`.
+The RMSE for the linear unpenalized regression is equal to `r sprintf("%.2f", rmse_lm)`.
 
 Let's now run a ridge regression, with `lambda` equal to 100, and see if the RMSE is smaller:
 
@@ -168,7 +168,7 @@ preds <- predict(model_ridge, test_matrix)
 rmse <- sqrt(mean((preds - test_y)^2))
 ```
 
-The RMSE for the linear penalized regression is equal to `r rmse`, which is smaller than before.
+The RMSE for the linear penalized regression is equal to `r sprintf("%.2f", rmse)`, which is smaller than before.
 But which value of `lambda` gives smallest RMSE? To find out, one must run model over a grid of
 `lambda` values and pick the model with lowest RMSE. This procedure is available in the `cv.glmnet()`
 function, which picks the best value for `lambda`:
