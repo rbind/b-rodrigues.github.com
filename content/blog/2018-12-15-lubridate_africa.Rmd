@@ -77,7 +77,11 @@ the date uses the name of the month instead of the number of the month (well, th
 big deal, but still), and second of all the type of
 the independence day column is *character* and not "date". So our first task is to correctly define the column
 as being of type date, while making sure that R understands that *January* is supposed to be "01", and so
-on. There are several helpful functions included in `{lubridate}` to convert columns to dates. For instance
+on. 
+
+## Using `{lubridate}`
+
+There are several helpful functions included in `{lubridate}` to convert columns to dates. For instance
 if the column you want to convert is of the form "2012-11-21", then you would use the function `ymd()`,
 for "year-month-day". If, however the column is "2012-21-11", then you would use `ydm()`. There's
 a few of these helper functions, and they can handle a lot of different formats for dates. In our case,
