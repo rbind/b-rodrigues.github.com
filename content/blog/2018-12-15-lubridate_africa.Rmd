@@ -1,0 +1,177 @@
+---
+date: 2018-12-15
+title: "Manipulate dates easily with {lubridate}"
+tags: [R]
+menu:
+  main:
+    parent: Blog
+    identifier: /blog/modern_r_hyperparameters
+    weight: 1
+---
+
+<div style="text-align:center;">
+  <a href="https://www.youtube.com/watch?v=FTQbiNvZqaY">
+    <img width = "400" src="/img/africa.gif" title = "One of my favourite songs"></a>
+</div>
+
+<script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+
+This blog post is an excerpt of my ebook *Modern R with the tidyverse* that you can read for 
+free [here](https://b-rodrigues.github.io/modern_R/). This is taken from Chapter 5, which presents
+the `{tidyverse}` packages and how to use them to compute descriptive statistics and manipulate data.
+In the text below, I scrape a table from Wikipedia, which shows when African countries gained 
+independence from other countries. Then, using `{lubridate}` functions I show you how you can 
+answers questions such as *Which countries gained independence before 1960?*.
+
+## Set-up: scraping some data from Wikipedia
+
+`{lubridate}` is yet another tidyverse package, that makes dealing with dates or duration data 
+(and intervals) as painless as possible. I do not use every function contained in the package 
+daily, and as such will only focus on some of the functions. However, if you have to deal with 
+dates often, you might want to explore the package thoroughly.
+
+Let's get some data from a Wikipedia table:
+
+```{r, include=FALSE}
+library(tidyverse)
+library(rvest)
+```
+
+```{r, eval=FALSE}
+library(tidyverse)
+library(rvest)
+```
+
+```{r, cache=TRUE}
+page <- read_html("https://en.wikipedia.org/wiki/Decolonisation_of_Africa")
+
+independence <- page %>%
+    html_node(".wikitable") %>%
+    html_table(fill = TRUE)
+
+independence <- independence %>%
+    select(-Rank) %>%
+    map_df(~str_remove_all(., "\\[.*\\]")) %>%
+    rename(country = `Country[a]`,
+           colonial_name = `Colonial name`,
+           colonial_power = `Colonial power[b]`,
+           independence_date = `Independence date[c]`,
+           first_head_of_state = `First head of state[d]`,
+           independence_won_through = `Independence won through`)
+```
+
+This dataset was scraped from the following Wikipedia [table](https://en.wikipedia.org/wiki/Decolonisation_of_Africa#Timeline).
+It shows when African countries gained independence from which colonial powers. In Chapter 11, I
+will show you how to scrape Wikipedia pages using R. For now, let's take a look at the contents
+of the dataset:
+
+```{r}
+independence
+```
+
+as you can see, the date of independence is in a format that might make it difficult to answer questions
+such as *Which African countries gained independence before 1960 ?* for two reasons. First of all,
+the date uses the name of the month instead of the number of the month (well, this is not such a 
+big deal, but still), and second of all the type of
+the independence day column is *character* and not "date". So our first task is to correctly define the column
+as being of type date, while making sure that R understands that *January* is supposed to be "01", and so
+on. There are several helpful functions included in `{lubridate}` to convert columns to dates. For instance
+if the column you want to convert is of the form "2012-11-21", then you would use the function `ymd()`,
+for "year-month-day". If, however the column is "2012-21-11", then you would use `ydm()`. There's
+a few of these helper functions, and they can handle a lot of different formats for dates. In our case,
+having the name of the month instead of the number might seem quite problematic, but it turns out
+that this is a case that `{lubridate}` handles painfully:
+
+```{r}
+library(lubridate)
+
+independence <- independence %>%
+  mutate(independence_date = dmy(independence_date))
+```
+
+Some dates failed to parse, for instance for Morocco. This is because these countries have several
+independence dates; this means that the string to convert looks like:
+
+```
+"2 March 1956
+7 April 1956
+10 April 1958
+4 January 1969"
+```
+
+which obviously cannot be converted by `{lubridate}` without further manipulation. I ignore these cases for
+simplicity's sake.
+
+Let's take a look at the data now:
+
+```{r}
+independence
+```
+
+As you can see, we now have a date column in the right format. We can now answer questions such as
+*Which countries gained independence before 1960?* quite easily, by using the functions `year()`,
+`month()` and `day()`. Let's see which countries gained independence before 1960:
+
+```{r}
+independence %>%
+  filter(year(independence_date) <= 1960) %>%
+  pull(country)
+```
+
+You guessed it, `year()` extracts the year of the date column and converts it as a *numeric* so that we can work
+on it. This is the same for `month()` or `day()`. Let's try to see if countries gained their independence on
+Christmas Eve:
+
+```{r}
+independence %>%
+  filter(month(independence_date) == 12,
+         day(independence_date) == 24) %>%
+  pull(country)
+```
+
+Seems like Libya was the only one! You can also operate on dates. For instance, let's compute the difference between
+two dates, using the `interval()` column:
+
+```{r}
+independence %>%
+  mutate(today = lubridate::today()) %>%
+  mutate(independent_since = interval(independence_date, today)) %>%
+  select(country, independent_since)
+```
+
+The `independent_since` column now contains an *interval* object that we can convert to years:
+
+```{r}
+independence %>%
+  mutate(today = lubridate::today()) %>%
+  mutate(independent_since = interval(independence_date, today)) %>%
+  select(country, independent_since) %>%
+  mutate(years_independent = as.numeric(independent_since, "years"))
+```
+
+We can now see for how long the last country to gain independence has been independent.
+Because the data is not tidy (in some cases, an African country was colonized by two powers,
+see Libya), I will only focus on 4 European colonial powers: Belgium, France, Portugal and the United Kingdom:
+
+```{r}
+independence %>%
+  filter(colonial_power %in% c("Belgium", "France", "Portugal", "United Kingdom")) %>%
+  mutate(today = lubridate::today()) %>%
+  mutate(independent_since = interval(independence_date, today)) %>%
+  mutate(years_independent = as.numeric(independent_since, "years")) %>%
+  group_by(colonial_power) %>%
+  summarise(last_colony_independent_for = min(years_independent, na.rm = TRUE))
+```
+
+`{lubridate}` contains many more functions. If you often work with dates, duration or interval data, `{lubridate}`
+is a package that you have to master.
+
+
+Hope you enjoyed! If you found this blog post useful, you might want to follow 
+me on [twitter](https://www.twitter.com/brodriguesco) for blog post updates and 
+[buy me an espresso](https://www.buymeacoffee.com/brodriguesco) or [paypal.me](paypal.me/brodriguesco).
+
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a>
+
