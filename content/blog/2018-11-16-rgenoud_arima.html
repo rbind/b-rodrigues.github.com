@@ -77,7 +77,7 @@ to_tibble &lt;- function(forecast_object){
 ## cols(
 ##   destination = col_character(),
 ##   date = col_date(format = &quot;&quot;),
-##   passengers = col_integer()
+##   passengers = col_double()
 ## )</code></pre>
 <p>Let’s split the data into a train set, a validation set and a test set:</p>
 <pre class="r"><code>avia_clean_train &lt;- avia_clean_monthly %&gt;%

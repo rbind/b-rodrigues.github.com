@@ -83,18 +83,18 @@ This function implements Monte Carlo cross-validation:</p>
 <pre class="r"><code>validation_data</code></pre>
 <pre><code>## # # Monte Carlo cross-validation (0.9/0.1) with 30 resamples  
 ## # A tibble: 30 x 2
-##    splits       id        
-##    &lt;list&gt;       &lt;chr&gt;     
-##  1 &lt;S3: rsplit&gt; Resample01
-##  2 &lt;S3: rsplit&gt; Resample02
-##  3 &lt;S3: rsplit&gt; Resample03
-##  4 &lt;S3: rsplit&gt; Resample04
-##  5 &lt;S3: rsplit&gt; Resample05
-##  6 &lt;S3: rsplit&gt; Resample06
-##  7 &lt;S3: rsplit&gt; Resample07
-##  8 &lt;S3: rsplit&gt; Resample08
-##  9 &lt;S3: rsplit&gt; Resample09
-## 10 &lt;S3: rsplit&gt; Resample10
+##    splits           id        
+##    &lt;list&gt;           &lt;chr&gt;     
+##  1 &lt;split [411/45]&gt; Resample01
+##  2 &lt;split [411/45]&gt; Resample02
+##  3 &lt;split [411/45]&gt; Resample03
+##  4 &lt;split [411/45]&gt; Resample04
+##  5 &lt;split [411/45]&gt; Resample05
+##  6 &lt;split [411/45]&gt; Resample06
+##  7 &lt;split [411/45]&gt; Resample07
+##  8 &lt;split [411/45]&gt; Resample08
+##  9 &lt;split [411/45]&gt; Resample09
+## 10 &lt;split [411/45]&gt; Resample10
 ## # ... with 20 more rows</code></pre>
 <p>Let’s look further down:</p>
 <pre class="r"><code>validation_data$splits[[1]]</code></pre>
@@ -123,6 +123,8 @@ applied on the data:</p>
 <pre class="r"><code>testing_rec &lt;- prep(simple_recipe(housing_test), testing = housing_test)
 
 test_data &lt;- bake(testing_rec, newdata = housing_test)</code></pre>
+<pre><code>## Warning: Please use `new_data` instead of `newdata` with `bake`. 
+## In recipes versions &gt;= 0.1.4, this will cause an error.</code></pre>
 <p>It is important to split the data before using <code>prep()</code> and <code>bake()</code>, because if not, you will
 use observations from the test set in the <code>prep()</code> step, and thus introduce knowledge from the test
 set into the training data. This is called data leakage, and must be avoided. This is why it is
@@ -135,16 +137,17 @@ the model, and returns the RMSE. This will be a big function, at the center of t
 not use any CV, so let’s pre-process the training set:</p>
 <pre class="r"><code>trainlm_rec &lt;- prep(simple_recipe(housing_train), testing = housing_train)
 
-trainlm_data &lt;- bake(trainlm_rec, newdata = housing_train)
-
-linreg_model &lt;- lm(price ~ ., data = trainlm_data)
+trainlm_data &lt;- bake(trainlm_rec, newdata = housing_train)</code></pre>
+<pre><code>## Warning: Please use `new_data` instead of `newdata` with `bake`. 
+## In recipes versions &gt;= 0.1.4, this will cause an error.</code></pre>
+<pre class="r"><code>linreg_model &lt;- lm(price ~ ., data = trainlm_data)
 
 broom::augment(linreg_model, newdata = test_data) %&gt;% 
     rmse(price, .fitted)</code></pre>
 <pre><code>## # A tibble: 1 x 3
 ##   .metric .estimator .estimate
 ##   &lt;chr&gt;   &lt;chr&gt;          &lt;dbl&gt;
-## 1 rmse    standard       0.469</code></pre>
+## 1 rmse    standard       0.517</code></pre>
 <p><code>broom::augment()</code> adds the predictions to the <code>test_data</code> in a new column, <code>.fitted</code>. I won’t
 use this trick with the random forest, because there is no <code>augment()</code> method for random forests
 from the <code>{ranger}</code> which I’ll use. I’ll add the predictions to the data myself.</p>
@@ -308,6 +311,8 @@ training data:</p>
 <pre class="r"><code>training_rec &lt;- prep(simple_recipe(housing_train), testing = housing_train)
 
 train_data &lt;- bake(training_rec, newdata = housing_train)</code></pre>
+<pre><code>## Warning: Please use `new_data` instead of `newdata` with `bake`. 
+## In recipes versions &gt;= 0.1.4, this will cause an error.</code></pre>
 <p>Let’s now train our final model and predict the prices:</p>
 <pre class="r"><code>final_model &lt;- rand_forest(mtry = 6, trees = 381) %&gt;%
         set_engine(&quot;ranger&quot;, importance = &#39;impurity&#39;) %&gt;%
@@ -317,57 +322,57 @@ price_predict &lt;- predict(final_model, new_data = select(test_data, -price))</
 <p>Let’s transform the data back and compare the predicted prices to the true ones visually:</p>
 <pre class="r"><code>cbind(price_predict * sd(housing_train$price) + mean(housing_train$price), 
       housing_test$price)</code></pre>
-<pre><code>##       .pred housing_test$price
-## 1  26.66387               24.0
-## 2  18.05651               18.9
-## 3  17.73167               15.0
-## 4  19.58751               18.2
-## 5  15.83327               13.9
-## 6  15.23911               13.2
-## 7  20.71109               20.0
-## 8  24.57467               25.0
-## 9  23.30817               21.4
-## 10 22.49698               22.9
-## 11 22.80554               21.4
-## 12 19.12121               18.6
-## 13 19.63354               19.3
-## 14 18.33941               20.4
-## 15 17.03028               14.4
-## 16 45.58864               50.0
-## 17 28.26440               32.0
-## 18 28.48881               30.5
-## 19 28.18277               31.1
-## 20 45.12203               48.5
-## 21 45.13364               50.0
-## 22 20.95897               24.4
-## 23 32.70919               31.6
-## 24 18.88725               18.5
-## 25 23.80696               22.0
-## 26 24.05506               23.2
-## 27 33.69617               37.3
-## 28 26.93756               27.9
-## 29 22.71415               23.9
-## 30 24.88508               27.1
-## 31 24.63913               22.5
-## 32 30.73453               33.1
-## 33 23.35807               22.1
-## 34 21.89201               23.1
-## 35 23.22168               23.1
-## 36 20.15691               19.3
-## 37 21.12050               22.7
-## 38 12.88927               13.1
-## 39 19.25563               10.4
-## 40 11.32007               10.5
-## 41 16.30650               13.1
-## 42 14.14549                8.3
-## 43 11.08126                5.0
-## 44 14.14806               13.4
-## 45 20.56828               17.8
-## 46 14.43175               14.4
-## 47 20.00864               19.5
-## 48 13.46410               12.0
-## 49 20.81910               21.8
-## 50 21.72144               21.2</code></pre>
+<pre><code>##        .pred housing_test$price
+## 1  34.365862               33.4
+## 2  19.423718               14.5
+## 3  18.925315               18.9
+## 4  31.830201               28.7
+## 5  25.288224               26.5
+## 6  19.524103               19.3
+## 7  20.843876               21.7
+## 8  17.153504               18.8
+## 9  19.087082               21.4
+## 10 17.213867               18.4
+## 11 16.783981               18.1
+## 12 15.262021               13.3
+## 13 21.168946               15.3
+## 14 21.594243               23.8
+## 15 21.833613               26.4
+## 16 23.245971               29.6
+## 17 28.904099               29.8
+## 18 29.728381               31.5
+## 19 44.565166               41.7
+## 20 27.044637               29.0
+## 21 21.537647               20.1
+## 22 21.823311               20.7
+## 23 21.510906               21.1
+## 24 34.480114               35.4
+## 25 31.755210               32.2
+## 26 22.283491               20.1
+## 27 28.833303               27.9
+## 28 21.081977               16.1
+## 29 19.265630               17.8
+## 30 24.388880               23.0
+## 31 24.475214               20.7
+## 32 20.790691               18.5
+## 33 23.777922               16.5
+## 34 24.319497               22.9
+## 35 26.069466               24.1
+## 36 30.642997               30.1
+## 37 21.437498               21.7
+## 38 37.732402               21.9
+## 39 13.150888               13.9
+## 40 18.978880               10.4
+## 41 10.791929               10.2
+## 42  9.145787                5.6
+## 43 10.221693                7.2
+## 44 20.562642               16.1
+## 45 16.070214               14.8
+## 46 12.685455               11.8
+## 47 15.988482               16.1
+## 48 21.105341               20.2
+## 49 16.262065               19.1
+## 50 15.271072               13.6</code></pre>
 <p>Let’s now compute the RMSE:</p>
 <pre class="r"><code>tibble::tibble(&quot;truth&quot; = test_data$price,
         &quot;prediction&quot; = unlist(price_predict)) %&gt;% 
