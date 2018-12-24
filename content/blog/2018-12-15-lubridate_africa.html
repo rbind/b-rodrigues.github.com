@@ -153,16 +153,16 @@ two dates, using the <code>interval()</code> column:</p>
 <pre><code>## # A tibble: 54 x 2
 ##    country      independent_since             
 ##    &lt;chr&gt;        &lt;S4: Interval&gt;                
-##  1 Liberia      1847-07-26 UTC--2018-12-21 UTC
-##  2 South Africa 1910-05-31 UTC--2018-12-21 UTC
-##  3 Egypt        1922-02-28 UTC--2018-12-21 UTC
-##  4 Eritrea      1947-02-10 UTC--2018-12-21 UTC
-##  5 Libya        1951-12-24 UTC--2018-12-21 UTC
-##  6 Sudan        1956-01-01 UTC--2018-12-21 UTC
-##  7 Tunisia      1956-03-20 UTC--2018-12-21 UTC
+##  1 Liberia      1847-07-26 UTC--2018-12-24 UTC
+##  2 South Africa 1910-05-31 UTC--2018-12-24 UTC
+##  3 Egypt        1922-02-28 UTC--2018-12-24 UTC
+##  4 Eritrea      1947-02-10 UTC--2018-12-24 UTC
+##  5 Libya        1951-12-24 UTC--2018-12-24 UTC
+##  6 Sudan        1956-01-01 UTC--2018-12-24 UTC
+##  7 Tunisia      1956-03-20 UTC--2018-12-24 UTC
 ##  8 Morocco      NA--NA                        
-##  9 Ghana        1957-03-06 UTC--2018-12-21 UTC
-## 10 Guinea       1958-10-02 UTC--2018-12-21 UTC
+##  9 Ghana        1957-03-06 UTC--2018-12-24 UTC
+## 10 Guinea       1958-10-02 UTC--2018-12-24 UTC
 ## # ... with 44 more rows</code></pre>
 <p>The <code>independent_since</code> column now contains an <em>interval</em> object that we can convert to years:</p>
 <pre class="r"><code>independence %&gt;%
@@ -173,16 +173,16 @@ two dates, using the <code>interval()</code> column:</p>
 <pre><code>## # A tibble: 54 x 3
 ##    country      independent_since              years_independent
 ##    &lt;chr&gt;        &lt;S4: Interval&gt;                             &lt;dbl&gt;
-##  1 Liberia      1847-07-26 UTC--2018-12-21 UTC             171. 
-##  2 South Africa 1910-05-31 UTC--2018-12-21 UTC             109. 
-##  3 Egypt        1922-02-28 UTC--2018-12-21 UTC              96.8
-##  4 Eritrea      1947-02-10 UTC--2018-12-21 UTC              71.9
-##  5 Libya        1951-12-24 UTC--2018-12-21 UTC              67.0
-##  6 Sudan        1956-01-01 UTC--2018-12-21 UTC              63.0
-##  7 Tunisia      1956-03-20 UTC--2018-12-21 UTC              62.8
+##  1 Liberia      1847-07-26 UTC--2018-12-24 UTC             171. 
+##  2 South Africa 1910-05-31 UTC--2018-12-24 UTC             109. 
+##  3 Egypt        1922-02-28 UTC--2018-12-24 UTC              96.8
+##  4 Eritrea      1947-02-10 UTC--2018-12-24 UTC              71.9
+##  5 Libya        1951-12-24 UTC--2018-12-24 UTC              67.0
+##  6 Sudan        1956-01-01 UTC--2018-12-24 UTC              63.0
+##  7 Tunisia      1956-03-20 UTC--2018-12-24 UTC              62.8
 ##  8 Morocco      NA--NA                                      NA  
-##  9 Ghana        1957-03-06 UTC--2018-12-21 UTC              61.8
-## 10 Guinea       1958-10-02 UTC--2018-12-21 UTC              60.2
+##  9 Ghana        1957-03-06 UTC--2018-12-24 UTC              61.8
+## 10 Guinea       1958-10-02 UTC--2018-12-24 UTC              60.2
 ## # ... with 44 more rows</code></pre>
 <p>We can now see for how long the last country to gain independence has been independent.
 Because the data is not tidy (in some cases, an African country was colonized by two powers,
