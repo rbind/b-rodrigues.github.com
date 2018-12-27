@@ -165,7 +165,14 @@ animate(animation, renderer = ffmpeg_renderer(options = list(s = "864x480",
 The option `vf = "setpts=5*PTS"` is important because it slows the video down, so we can actually
 see something. `crf = "15"` is the quality of the video (lower is better), `b = "1600k"` is the 
 bitrate, and `vcodec = "libvpx-vp9"` is the codec I use. The video you saw at the top of this 
-post is the result. You can also find the video [here](https://raw.githubusercontent.com/rbind/b-rodrigues.github.com/master/static/img/wiid_gganimate.webm).
+post is the result. You can also find the video [here](https://raw.githubusercontent.com/rbind/b-rodrigues.github.com/master/static/img/wiid_gganimate.webm), 
+and here's a gif if all else fails:
+
+<div style="text-align:center;">
+  <a href="https://www.youtube.com/watch?v=3zXx0ReqOOI">
+    <img src="/img/wiid_gganimate_gif.gif" title = "Click to listen to OST of this gif"></a>
+</div>
+
 
 I would have preferred if the video was smoother, which should be possible by creating more frames.
 I did not find such an option in `{gganimate}`, and perhaps there is none, at least for now.
