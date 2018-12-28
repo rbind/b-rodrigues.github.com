@@ -179,6 +179,32 @@ I did not find such an option in `{gganimate}`, and perhaps there is none, at le
 
 In any case `{gganimate}` is pretty nice to play with, and I'll definitely use it more!
 
+### Update
+
+Silly me! It turns out thate the `animate()` function has arguments that can control the number of frames
+and the duration, without needing to pass options to the renderer. I was looking at options for the
+renderer only, without having read the documentation of the `animate()` function. It turns out that
+you can pass several arguments to the `animate()` function; for example, here is how you 
+can make a GIF that lasts for 20 seconds running and 20 frames per second, pausing for 5 
+frames at the end and then restarting:
+
+```{r, eval=FALSE}
+animate(animation, nframes = 400, duration = 20, fps = 20, end_pause = 5, rewind = TRUE)
+```
+
+I guess that you should only pass options to the renderer if you really need fine-grained control.
+
+This took around 2 minutes to finish. You can use the same options with the ffmpeg renderer too.
+Here is what the gif looks like:
+
+<div style="text-align:center;">
+  <a href="https://www.youtube.com/watch?v=3zXx0ReqOOI">
+    <img src="/img/wiid_gganimate_gif_smooth.gif" title = "Click to listen to OST of this gif"></a>
+</div>
+
+Much, much smoother!
+
+
 Hope you enjoyed! If you found this blog post useful, you might want to follow 
 me on [twitter](https://www.twitter.com/brodriguesco) for blog post updates and 
 [buy me an espresso](https://www.buymeacoffee.com/brodriguesco) or [paypal.me](paypal.me/brodriguesco).
