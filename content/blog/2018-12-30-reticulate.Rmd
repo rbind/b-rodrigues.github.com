@@ -1,0 +1,147 @@
+---
+date: 2018-12-30
+title: "R or Python? Why not both? Using Anaconda Python within R with {reticulate}"
+tags: [R]
+menu:
+  main:
+    parent: Blog
+    identifier: /blog/reticulate
+    weight: 1
+---
+
+<div style="text-align:center;">
+  <a href="https://youtu.be/I8vaCrVIR-Q?t=1h2m26s">
+    <img src="/img/why not both.png" title = "This literally starts playing when you run both R and Python in the same session"></a>
+</div>
+
+This short blog post illustrates how easy it is to use R and Python in the same R Notebook thanks to the 
+`{reticulate}` package. For this to work, you might need to upgrade RStudio to the [current preview version](https://www.rstudio.com/products/rstudio/download/preview/).
+Let's start by importing `{reticulate}`:
+
+```{r}
+library(reticulate)
+```
+
+`{reticulate}` is an RStudio package that provides "*a comprehensive set of tools for interoperability
+between Python and R*". With it, it is possible to call Python and use Python libraries within 
+an R session, or define Python chunks in R markdown. I think that using R Notebooks is the best way
+to work with Python and R; when you want to use Python, you simply use a Python chunk:
+
+    ```{python}`r ''`
+    your python code here
+    ```
+
+However, if you wish to use Python interactively within your R session, you must start the Python
+REPL with the `repl_python()` function, which starts a Python REPL. You can then do whatever you 
+want, even access objects from your R session, and then when you exit the REPL, any object you 
+created in Python remains accessible in R. I think that using Python this way is a bit more involved
+and would advise using R Notebooks if you need to use both languages.
+
+I installed the Anaconda Python distribution to have Python on my system. To use it with `{reticulate}`
+I must first use the `use_python()` function that allows me to set which version of Python I want
+to use:
+
+```{r}
+# This is an R chunk
+use_python("~/miniconda3/bin/python")
+```
+
+I can now load a dataset, still using R:
+
+```{r}
+# This is an R chunk
+data(mtcars)
+head(mtcars)
+```
+
+and now, to access the `mtcars` data frame, I simply use the `r` object:
+
+```{python}
+# This is a Python chunk
+print(r.mtcars.describe())
+```
+
+`.describe()` is a Python Pandas DataFrame method to get summary statistics of our data. This means that
+`mtcars` was automatically converted from a `tibble` object to a Pandas DataFrame! Let's check its type:
+
+```{python}
+# This is a Python chunk
+print(type(r.mtcars))
+```
+
+Let's save the summary statistics in a variable:
+
+```{python}
+# This is a Python chunk
+summary_mtcars = r.mtcars.describe()
+```
+
+Let's access this from R, by using the `py` object:
+
+```{r}
+# This is an R chunk
+class(py$summary_mtcars)
+```
+
+Let's try something more complex. Let's first fit a linear model in Python, and see how R sees it:
+
+```{python}
+# This is a Python chunk
+import numpy as np
+import statsmodels.api as sm
+import statsmodels.formula.api as smf
+
+model = smf.ols('mpg ~ hp', data = r.mtcars).fit()
+
+print(model.summary())
+```
+
+Just for fun, I ran the linear regression with the Scikit-learn library too:
+
+```{python}
+# This is a Python chunk
+import numpy as np
+from sklearn.linear_model import LinearRegression  
+regressor = LinearRegression()  
+
+x = r.mtcars[["hp"]]
+y = r.mtcars[["mpg"]]
+
+model_scikit = regressor.fit(x, y)
+
+print(model_scikit.intercept_)
+print(model_scikit.coef_)
+```
+
+Let's access the `model` variable in R and see what type of object it is in R:
+
+```{r}
+# This is an R chunk
+model_r <- py$model
+class(model_r)
+```
+
+So because this is a custom Python object, it does not get converted into the equivalent R object.
+This is described [here](https://rstudio.github.io/reticulate/index.html). However, you can still
+use Python methods from within an R chunk!
+
+```{r}
+# This is an R chunk
+model_r$aic
+
+model_r$params
+```
+
+I must say that I am very impressed with the `{reticulate}` package. I think that even if you are 
+primarily a Python user, this is still very interesting to know in case you need a specific function
+from an R package. Just write all your script inside a Python Markdown chunk and then use the R
+function you need from an R chunk! Of course there is also a way to use R from Python, a Python library
+called `rpy2` but I am not very familiar with it. From what I read, it seems to be also quite
+simple to use.
+
+Hope you enjoyed! If you found this blog post useful, you might want to follow 
+me on [twitter](https://www.twitter.com/brodriguesco) for blog post updates and 
+[buy me an espresso](https://www.buymeacoffee.com/brodriguesco) or [paypal.me](paypal.me/brodriguesco).
+
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a>
+
