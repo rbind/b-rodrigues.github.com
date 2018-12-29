@@ -31,6 +31,14 @@ to work with Python and R; when you want to use Python, you simply use a Python 
     your python code here
     ```
 
+There's even autocompletion for Python object methods:
+
+```{r, echo=FALSE}
+knitr::include_graphics("/img/autocompletion.png")
+```
+
+Fantastic!
+
 However, if you wish to use Python interactively within your R session, you must start the Python
 REPL with the `repl_python()` function, which starts a Python REPL. You can then do whatever you 
 want, even access objects from your R session, and then when you exit the REPL, any object you 
