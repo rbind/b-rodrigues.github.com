@@ -27,11 +27,11 @@ from <code>{ggplot2}</code> graphs with data from UNU-WIDER.</p>
 release it as an R package. You can install it with:</p>
 <pre class="r"><code>devtools::install_github(&quot;b-rodrigues/wiid4&quot;)</code></pre>
 <p>Here a short description of the data, taken from UNU-WIDER’s website:</p>
-<p><em>&quot;The World Income Inequality Database (WIID) presents information on income inequality for
+<p><em>"The World Income Inequality Database (WIID) presents information on income inequality for
 developed, developing, and transition countries. It provides the most comprehensive set of income
 inequality statistics available and can be downloaded for free.</em></p>
 <p><em>WIID4, released in December 2018, covers 189 countries (including historical entities), with over
-11,000 data points in total. With the current version, the latest observations now reach the year 2017.&quot;</em></p>
+11,000 data points in total. With the current version, the latest observations now reach the year 2017."</em></p>
 <p>It was also a good opportunity to play around with the <code>{gganimate}</code> package. This package
 makes it possible to create animations and is an extension to <code>{ggplot2}</code>. Read more about it
 <a href="https://github.com/thomasp85/gganimate">here</a>.</p>
@@ -115,9 +115,9 @@ and I am still not entirely satisfied with the result, but here is the code to r
                                                              crf = &quot;15&quot;,
                                                              b = &quot;1600k&quot;, 
                                                              vf = &quot;setpts=5*PTS&quot;)))</code></pre>
-<p>The option <code>vf = &quot;setpts=5*PTS&quot;</code> is important because it slows the video down, so we can actually
-see something. <code>crf = &quot;15&quot;</code> is the quality of the video (lower is better), <code>b = &quot;1600k&quot;</code> is the
-bitrate, and <code>vcodec = &quot;libvpx-vp9&quot;</code> is the codec I use. The video you saw at the top of this
+<p>The option <code>vf = "setpts=5*PTS"</code> is important because it slows the video down, so we can actually
+see something. <code>crf = "15"</code> is the quality of the video (lower is better), <code>b = "1600k"</code> is the
+bitrate, and <code>vcodec = "libvpx-vp9"</code> is the codec I use. The video you saw at the top of this
 post is the result. You can also find the video <a href="https://raw.githubusercontent.com/rbind/b-rodrigues.github.com/master/static/img/wiid_gganimate.webm">here</a>,
 and here’s a gif if all else fails:</p>
 <div style="text-align:center;">
