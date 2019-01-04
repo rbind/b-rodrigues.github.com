@@ -276,8 +276,9 @@ Then there's a lot of topics that reference either music, bals, or instruments.
 I guess these are ads for local music festivals, or similar events. There's also an ad for what
 seems to be bundles of sticks, topic 3: `chêne` is oak, `copeaux` is shavings and you know 
 what `fagots` is. The first word `stère` which I did not know is a unit of volume equal to one
-cubic metre (see [Wikipedia](https://en.wikipedia.org/wiki/Stere)). For the other topics, I either
-lack context or perhaps I just adjust `k`, the number of topics to model, and `alpha` to get better
+cubic meter (see [Wikipedia](https://en.wikipedia.org/wiki/Stere)). So they were likely selling 
+bundle of oak sticks by the cubic meter. For the other topics, I either
+lack context or perhaps I just need to adjust `k`, the number of topics to model, and `alpha` to get better
 results. In the meantime, topic 1 is about shoes (`chaussures`), theatre, fuel (`combustible`)
 and farts (`pet`). Really wonder what they were selling in that shop. 
 
