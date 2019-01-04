@@ -278,8 +278,9 @@ seems to be bundles of sticks, topic 3: `chêne` is oak, `copeaux` is shavings a
 what `fagots` is. The first word `stère` which I did not know is a unit of volume equal to one
 cubic metre (see [Wikipedia](https://en.wikipedia.org/wiki/Stere)). For the other topics, I either
 lack context or perhaps I just adjust `k`, the number of topics to model, and `alpha` to get better
-results. In any case, this was quite an interesting project, In the meantime, topic 1 is about shoes (`chaussures`) and farts (`pet`).
-and learned a lot about topic modeling
+results. In the meantime, topic 1 is about shoes (`chaussures`) and farts (`pet`).
+In any case, this was quite an i, theatre, fuel (`combustible`)
+teresting project. Really wonder what they were selling in that shop. I learned a lot about topic modeling
 and historical newspapers of my country! I do not know if I will continue exploring it myself,
 but I am really curious to see what others will do with it!
 
