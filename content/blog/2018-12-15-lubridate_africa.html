@@ -153,16 +153,16 @@ two dates, using the <code>interval()</code> column:</p>
 <pre><code>## # A tibble: 54 x 2
 ##    country      independent_since             
 ##    &lt;chr&gt;        &lt;S4: Interval&gt;                
-##  1 Liberia      1847-07-26 UTC--2018-12-30 UTC
-##  2 South Africa 1910-05-31 UTC--2018-12-30 UTC
-##  3 Egypt        1922-02-28 UTC--2018-12-30 UTC
-##  4 Eritrea      1947-02-10 UTC--2018-12-30 UTC
-##  5 Libya        1951-12-24 UTC--2018-12-30 UTC
-##  6 Sudan        1956-01-01 UTC--2018-12-30 UTC
-##  7 Tunisia      1956-03-20 UTC--2018-12-30 UTC
+##  1 Liberia      1847-07-26 UTC--2019-01-05 UTC
+##  2 South Africa 1910-05-31 UTC--2019-01-05 UTC
+##  3 Egypt        1922-02-28 UTC--2019-01-05 UTC
+##  4 Eritrea      1947-02-10 UTC--2019-01-05 UTC
+##  5 Libya        1951-12-24 UTC--2019-01-05 UTC
+##  6 Sudan        1956-01-01 UTC--2019-01-05 UTC
+##  7 Tunisia      1956-03-20 UTC--2019-01-05 UTC
 ##  8 Morocco      NA--NA                        
-##  9 Ghana        1957-03-06 UTC--2018-12-30 UTC
-## 10 Guinea       1958-10-02 UTC--2018-12-30 UTC
+##  9 Ghana        1957-03-06 UTC--2019-01-05 UTC
+## 10 Guinea       1958-10-02 UTC--2019-01-05 UTC
 ## # ... with 44 more rows</code></pre>
 <p>The <code>independent_since</code> column now contains an <em>interval</em> object that we can convert to years:</p>
 <pre class="r"><code>independence %&gt;%
@@ -173,16 +173,16 @@ two dates, using the <code>interval()</code> column:</p>
 <pre><code>## # A tibble: 54 x 3
 ##    country      independent_since              years_independent
 ##    &lt;chr&gt;        &lt;S4: Interval&gt;                             &lt;dbl&gt;
-##  1 Liberia      1847-07-26 UTC--2018-12-30 UTC             171. 
-##  2 South Africa 1910-05-31 UTC--2018-12-30 UTC             109. 
-##  3 Egypt        1922-02-28 UTC--2018-12-30 UTC              96.8
-##  4 Eritrea      1947-02-10 UTC--2018-12-30 UTC              71.9
-##  5 Libya        1951-12-24 UTC--2018-12-30 UTC              67.0
-##  6 Sudan        1956-01-01 UTC--2018-12-30 UTC              63.0
-##  7 Tunisia      1956-03-20 UTC--2018-12-30 UTC              62.8
+##  1 Liberia      1847-07-26 UTC--2019-01-05 UTC             171. 
+##  2 South Africa 1910-05-31 UTC--2019-01-05 UTC             109. 
+##  3 Egypt        1922-02-28 UTC--2019-01-05 UTC              96.9
+##  4 Eritrea      1947-02-10 UTC--2019-01-05 UTC              71.9
+##  5 Libya        1951-12-24 UTC--2019-01-05 UTC              67.0
+##  6 Sudan        1956-01-01 UTC--2019-01-05 UTC              63.0
+##  7 Tunisia      1956-03-20 UTC--2019-01-05 UTC              62.8
 ##  8 Morocco      NA--NA                                      NA  
-##  9 Ghana        1957-03-06 UTC--2018-12-30 UTC              61.8
-## 10 Guinea       1958-10-02 UTC--2018-12-30 UTC              60.2
+##  9 Ghana        1957-03-06 UTC--2019-01-05 UTC              61.8
+## 10 Guinea       1958-10-02 UTC--2019-01-05 UTC              60.3
 ## # ... with 44 more rows</code></pre>
 <p>We can now see for how long the last country to gain independence has been independent.
 Because the data is not tidy (in some cases, an African country was colonized by two powers,
@@ -199,13 +199,13 @@ see Libya), I will only focus on 4 European colonial powers: Belgium, France, Po
 ##   &lt;chr&gt;                                &lt;dbl&gt;
 ## 1 Belgium                               56.5
 ## 2 France                                41.5
-## 3 Portugal                              43.1
+## 3 Portugal                              43.2
 ## 4 United Kingdom                        42.5</code></pre>
 <p><code>{lubridate}</code> contains many more functions. If you often work with dates, duration or interval data, <code>{lubridate}</code>
 is a package that you have to master.</p>
 <p>Hope you enjoyed! If you found this blog post useful, you might want to follow
 me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
-<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="paypal.me/brodriguesco">paypal.me</a>.</p>
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>.</p>
 <style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
 <p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
 </div>
