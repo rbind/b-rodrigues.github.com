@@ -170,12 +170,12 @@ this list of positions and I get the data for all the parties:</p>
 <pre class="r"><code>glimpse(elections_national_2018)</code></pre>
 <pre><code>## Observations: 72
 ## Variables: 6
-## $ Party     &lt;chr&gt; &quot;PIRATEN&quot;, &quot;PIRATEN&quot;, &quot;PIRATEN&quot;, &quot;PIRATEN&quot;, &quot;PIRATEN...
-## $ Year      &lt;dbl&gt; 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018...
-## $ Variables &lt;chr&gt; &quot;Pourcentage&quot;, &quot;Suffrage total&quot;, &quot;Suffrages de liste...
-## $ Values    &lt;dbl&gt; 6.446204e-02, 2.275490e+05, 1.815600e+05, 4.598900e+...
-## $ locality  &lt;chr&gt; &quot;Grand-Duchy of Luxembourg&quot;, &quot;Grand-Duchy of Luxembo...
-## $ division  &lt;chr&gt; &quot;National&quot;, &quot;National&quot;, &quot;National&quot;, &quot;National&quot;, &quot;Nat...</code></pre>
+## $ Party     &lt;chr&gt; &quot;PIRATEN&quot;, &quot;PIRATEN&quot;, &quot;PIRATEN&quot;, &quot;PIRATEN&quot;, &quot;PIRATEN&quot;,…
+## $ Year      &lt;dbl&gt; 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, …
+## $ Variables &lt;chr&gt; &quot;Pourcentage&quot;, &quot;Suffrage total&quot;, &quot;Suffrages de liste&quot;,…
+## $ Values    &lt;dbl&gt; 6.446204e-02, 2.275490e+05, 1.815600e+05, 4.598900e+04…
+## $ locality  &lt;chr&gt; &quot;Grand-Duchy of Luxembourg&quot;, &quot;Grand-Duchy of Luxembour…
+## $ division  &lt;chr&gt; &quot;National&quot;, &quot;National&quot;, &quot;National&quot;, &quot;National&quot;, &quot;Natio…</code></pre>
 <p>Very nice.</p>
 <p>Now we need to do the same for the 4 electoral circonscriptions. First, let’s load the data:</p>
 <pre class="r"><code># Electoral districts 2018
@@ -245,7 +245,7 @@ result:</p>
 ##  8 PIRATEN  2018 ISEKIN Christian (5) 2610     
 ##  9 PIRATEN  2018 SCHWEICH Georges (9) 2602     
 ## 10 PIRATEN  2018 LIESCH Mireille (8)  2551     
-## # ... with 198 more rows
+## # … with 198 more rows
 ## 
 ## [[2]]
 ## # A tibble: 112 x 4
@@ -261,7 +261,7 @@ result:</p>
 ##  8 PIRATEN  2018 BAUMANN Roy (5)                    2387     
 ##  9 PIRATEN  2018 CONRAD Pierre (7)                  2280     
 ## 10 PIRATEN  2018 TRAUT ép. MOLITOR Angela Maria (9) 2274     
-## # ... with 102 more rows
+## # … with 102 more rows
 ## 
 ## [[3]]
 ## # A tibble: 224 x 4
@@ -277,7 +277,7 @@ result:</p>
 ##  8 PIRATEN  2018 DA GRAÇA DIAS Yanick (10) 5307     
 ##  9 PIRATEN  2018 WEBER Jules (7)           5301     
 ## 10 PIRATEN  2018 CHMELIK Libor (8)         5247     
-## # ... with 214 more rows
+## # … with 214 more rows
 ## 
 ## [[4]]
 ## # A tibble: 96 x 4
@@ -293,7 +293,7 @@ result:</p>
 ##  8 PIRATEN  2018 CONTRERAS Gerald (5)             1687     
 ##  9 PIRATEN  2018 Suffrages total                 14762     
 ## 10 PIRATEN  2018 Suffrages de liste              10248     
-## # ... with 86 more rows</code></pre>
+## # … with 86 more rows</code></pre>
 <p>I now need to add the <code>locality</code> and <code>division</code> columns:</p>
 <pre class="r"><code>elections_district_2018 &lt;- map2(.y = elections_district_2018, .x = districts, 
      ~mutate(.y, locality = .x, division = &quot;Electoral district&quot;)) %&gt;%
@@ -337,12 +337,12 @@ elections_2018 &lt;- bind_rows(list(elections_national_2018, elections_district_
 glimpse(elections_2018)</code></pre>
 <pre><code>## Observations: 15,544
 ## Variables: 6
-## $ Party     &lt;chr&gt; &quot;PIRATEN&quot;, &quot;PIRATEN&quot;, &quot;PIRATEN&quot;, &quot;PIRATEN&quot;, &quot;PIRATEN...
-## $ Year      &lt;dbl&gt; 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018...
-## $ Variables &lt;chr&gt; &quot;Pourcentage&quot;, &quot;Suffrage total&quot;, &quot;Suffrages de liste...
-## $ Values    &lt;dbl&gt; 6.446204e-02, 2.275490e+05, 1.815600e+05, 4.598900e+...
-## $ locality  &lt;chr&gt; &quot;Grand-Duchy of Luxembourg&quot;, &quot;Grand-Duchy of Luxembo...
-## $ division  &lt;chr&gt; &quot;National&quot;, &quot;National&quot;, &quot;National&quot;, &quot;National&quot;, &quot;Nat...</code></pre>
+## $ Party     &lt;chr&gt; &quot;PIRATEN&quot;, &quot;PIRATEN&quot;, &quot;PIRATEN&quot;, &quot;PIRATEN&quot;, &quot;PIRATEN&quot;,…
+## $ Year      &lt;dbl&gt; 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, …
+## $ Variables &lt;chr&gt; &quot;Pourcentage&quot;, &quot;Suffrage total&quot;, &quot;Suffrages de liste&quot;,…
+## $ Values    &lt;dbl&gt; 6.446204e-02, 2.275490e+05, 1.815600e+05, 4.598900e+04…
+## $ locality  &lt;chr&gt; &quot;Grand-Duchy of Luxembourg&quot;, &quot;Grand-Duchy of Luxembour…
+## $ division  &lt;chr&gt; &quot;National&quot;, &quot;National&quot;, &quot;National&quot;, &quot;National&quot;, &quot;Natio…</code></pre>
 <p>This blog post is already quite long, so I will analyze the data now that R can easily ingest it
 in a future blog post.</p>
 <p>If you found this blog post useful, you might want to follow me on <a href="https://www.twitter.com/brodriguesco">twitter</a>

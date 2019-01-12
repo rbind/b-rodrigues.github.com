@@ -102,7 +102,7 @@ head(nethack)</code></pre>
 ## 15 time     Char…  1451    NA   NA      01:1…    NA      NA    NA   NA 
 ## 16 dumplog  List   1451    NA   NA      &lt;NA&gt;     NA      NA    NA   NA 
 ## 17 date     Date   1451    NA   NA      &lt;NA&gt;     NA      NA    NA   NA 
-## # ... with 7 more variables: median &lt;dbl&gt;, q75 &lt;dbl&gt;, q95 &lt;dbl&gt;,
+## # … with 7 more variables: median &lt;dbl&gt;, q75 &lt;dbl&gt;, q95 &lt;dbl&gt;,
 ## #   n_missing &lt;int&gt;, n_unique &lt;int&gt;, starting_date &lt;date&gt;,
 ## #   ending_date &lt;date&gt;</code></pre>
 <p>Let’s also take a look at a dumplog:</p>
@@ -481,7 +481,7 @@ by the right number of seconds, and sum that to get the total. Let’s apply it 
 ##   variable type    nobs   mean     sd mode    min    max   q05   q25 median
 ##   &lt;chr&gt;    &lt;chr&gt;  &lt;int&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;
 ## 1 time_in… Nume… 322485 23529. 2.73e5 &lt;NA&gt;     61 2.72e7   141   622   1689
-## # ... with 4 more variables: q75 &lt;dbl&gt;, q95 &lt;dbl&gt;, n_missing &lt;int&gt;,
+## # … with 4 more variables: q75 &lt;dbl&gt;, q95 &lt;dbl&gt;, n_missing &lt;int&gt;,
 ## #   n_unique &lt;lgl&gt;</code></pre>
 <p>We see that the minimum of <code>time_in_seconds</code> is 61 whereas the maximum is of the order of 27200000…
 This must be a mistake, because that is almost one year!</p>
@@ -511,7 +511,7 @@ sense to look at the <code>turns</code> column:</p>
 ##   variable type    nobs  mean     sd mode    min    max   q05   q25 median
 ##   &lt;chr&gt;    &lt;chr&gt;  &lt;int&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;
 ## 1 turns    Nume… 322485 4495. 19853. &lt;NA&gt;      1 6.86e6   202   871   1818
-## # ... with 4 more variables: q75 &lt;dbl&gt;, q95 &lt;dbl&gt;, n_missing &lt;int&gt;,
+## # … with 4 more variables: q75 &lt;dbl&gt;, q95 &lt;dbl&gt;, n_missing &lt;int&gt;,
 ## #   n_unique &lt;lgl&gt;</code></pre>
 <p>The maximum is quite large too. Just like before, let’s focus by cutting the variable at the 90th percentile:</p>
 <pre class="r"><code>nethack %&gt;%

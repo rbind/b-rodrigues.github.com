@@ -47,7 +47,7 @@ time_use_xl &lt;- xlsx_cells(&quot;time-use.xlsx&quot;)</code></pre>
 ## 4 Index D1          1     4 TRUE     blank     &lt;NA&gt;  NA           NA
 ## 5 Index E1          1     5 TRUE     blank     &lt;NA&gt;  NA           NA
 ## 6 Index F1          1     6 TRUE     blank     &lt;NA&gt;  NA           NA
-## # ... with 12 more variables: date &lt;dttm&gt;, character &lt;chr&gt;,
+## # … with 12 more variables: date &lt;dttm&gt;, character &lt;chr&gt;,
 ## #   character_formatted &lt;list&gt;, formula &lt;chr&gt;, is_array &lt;lgl&gt;,
 ## #   formula_ref &lt;chr&gt;, formula_group &lt;int&gt;, comment &lt;chr&gt;, height &lt;dbl&gt;,
 ## #   width &lt;dbl&gt;, style_format &lt;chr&gt;, local_format_id &lt;int&gt;</code></pre>
@@ -151,10 +151,10 @@ column to the data frame and bind all the rows together.</p>
 glimpse(clean_data)</code></pre>
 <pre><code>## Observations: 2,968
 ## Variables: 4
-## $ day        &lt;chr&gt; &quot;Year 2014_Monday til Friday&quot;, &quot;Year 2014_Monday ti...
-## $ population &lt;chr&gt; &quot;All&quot;, &quot;All&quot;, &quot;All&quot;, &quot;All&quot;, &quot;All&quot;, &quot;All&quot;, &quot;All&quot;, &quot;A...
-## $ activities &lt;chr&gt; &quot;Personal care&quot;, &quot;Sleep&quot;, &quot;Eating&quot;, &quot;Other personal...
-## $ time       &lt;chr&gt; &quot;11:07&quot;, &quot;08:26&quot;, &quot;01:47&quot;, &quot;00:56&quot;, &quot;07:37&quot;, &quot;07:47...</code></pre>
+## $ day        &lt;chr&gt; &quot;Year 2014_Monday til Friday&quot;, &quot;Year 2014_Monday til …
+## $ population &lt;chr&gt; &quot;All&quot;, &quot;All&quot;, &quot;All&quot;, &quot;All&quot;, &quot;All&quot;, &quot;All&quot;, &quot;All&quot;, &quot;All…
+## $ activities &lt;chr&gt; &quot;Personal care&quot;, &quot;Sleep&quot;, &quot;Eating&quot;, &quot;Other personal c…
+## $ time       &lt;chr&gt; &quot;11:07&quot;, &quot;08:26&quot;, &quot;01:47&quot;, &quot;00:56&quot;, &quot;07:37&quot;, &quot;07:47&quot;,…</code></pre>
 <p>So I map my list of sheets to the <code>tibble</code> I imported with <code>readxl</code>, use <code>set_names</code> to
 name the elements of my list (which is superfluous, but I wanted to show this; might interest you!)
 and then map this result to my little function. I could stop here,
