@@ -263,8 +263,8 @@ models, and will do so in parallel. Let’s just take a quick look at the intern
 <pre class="r"><code>glimpse(hyper_parameters_df)</code></pre>
 <pre><code>## Observations: 2,304
 ## Variables: 2
-## $ order  &lt;list&gt; [&lt;0, 0, 0&gt;, &lt;0, 0, 0&gt;, &lt;0, 0, 0&gt;, &lt;0, 0, 0&gt;, &lt;0, 0, 0&gt;...
-## $ season &lt;list&gt; [&lt;0, 0, 0, 12&gt;, &lt;1, 0, 0, 12&gt;, &lt;2, 0, 0, 12&gt;, &lt;3, 0, 0...</code></pre>
+## $ order  &lt;list&gt; [&lt;0, 0, 0&gt;, &lt;0, 0, 0&gt;, &lt;0, 0, 0&gt;, &lt;0, 0, 0&gt;, &lt;0, 0, 0&gt;, …
+## $ season &lt;list&gt; [&lt;0, 0, 0, 12&gt;, &lt;1, 0, 0, 12&gt;, &lt;2, 0, 0, 12&gt;, &lt;3, 0, 0, …</code></pre>
 <p>So in the <code>order</code> column, the vector <code>0, 0, 0</code> is repeated as many times as there are combinations
 of <em>P, D, Q, S</em> for <code>season</code>. Same for all the other vectors of the <code>order</code> column.</p>
 </div>
@@ -341,14 +341,14 @@ from 2015 to 2018. Because I have to add it as a list of size 2304, I do that wi
 <p>This is how <code>models_df</code> looks now:</p>
 <pre class="r"><code>head(models_df)</code></pre>
 <pre><code>## # A tibble: 6 x 7
-##   order    season   models    forecast     point_forecast true_value  rmse
-##   &lt;list&gt;   &lt;list&gt;   &lt;list&gt;    &lt;list&gt;       &lt;list&gt;         &lt;list&gt;     &lt;dbl&gt;
-## 1 &lt;int [3… &lt;dbl [4… &lt;S3: Ari… &lt;S3: foreca… &lt;S3: ts&gt;       &lt;S3: ts&gt;   0.525
-## 2 &lt;int [3… &lt;dbl [4… &lt;S3: Ari… &lt;S3: foreca… &lt;S3: ts&gt;       &lt;S3: ts&gt;   0.236
-## 3 &lt;int [3… &lt;dbl [4… &lt;S3: Ari… &lt;S3: foreca… &lt;S3: ts&gt;       &lt;S3: ts&gt;   0.235
-## 4 &lt;int [3… &lt;dbl [4… &lt;S3: Ari… &lt;S3: foreca… &lt;S3: ts&gt;       &lt;S3: ts&gt;   0.217
-## 5 &lt;int [3… &lt;dbl [4… &lt;S3: Ari… &lt;S3: foreca… &lt;S3: ts&gt;       &lt;S3: ts&gt;   0.190
-## 6 &lt;int [3… &lt;dbl [4… &lt;S3: Ari… &lt;S3: foreca… &lt;S3: ts&gt;       &lt;S3: ts&gt;   0.174</code></pre>
+##   order    season    models    forecast     point_forecast true_value  rmse
+##   &lt;list&gt;   &lt;list&gt;    &lt;list&gt;    &lt;list&gt;       &lt;list&gt;         &lt;list&gt;     &lt;dbl&gt;
+## 1 &lt;int [3… &lt;dbl [4]&gt; &lt;S3: Ari… &lt;S3: foreca… &lt;S3: ts&gt;       &lt;S3: ts&gt;   0.525
+## 2 &lt;int [3… &lt;dbl [4]&gt; &lt;S3: Ari… &lt;S3: foreca… &lt;S3: ts&gt;       &lt;S3: ts&gt;   0.236
+## 3 &lt;int [3… &lt;dbl [4]&gt; &lt;S3: Ari… &lt;S3: foreca… &lt;S3: ts&gt;       &lt;S3: ts&gt;   0.235
+## 4 &lt;int [3… &lt;dbl [4]&gt; &lt;S3: Ari… &lt;S3: foreca… &lt;S3: ts&gt;       &lt;S3: ts&gt;   0.217
+## 5 &lt;int [3… &lt;dbl [4]&gt; &lt;S3: Ari… &lt;S3: foreca… &lt;S3: ts&gt;       &lt;S3: ts&gt;   0.190
+## 6 &lt;int [3… &lt;dbl [4]&gt; &lt;S3: Ari… &lt;S3: foreca… &lt;S3: ts&gt;       &lt;S3: ts&gt;   0.174</code></pre>
 <p>Now, I can finally select the best performing model. I select the model with minimum RMSE:</p>
 <pre class="r"><code>best_model &lt;- models_df %&gt;%
     filter(rmse == min(rmse, na.rm = TRUE))</code></pre>
@@ -369,7 +369,7 @@ from 2015 to 2018. Because I have to add it as a list of size 2304, I do that wi
 ##  8 2015 Aug           12.3    12.5    12.6    12.2    12.1
 ##  9 2015 Sep           12.3    12.5    12.6    12.2    12.1
 ## 10 2015 Oct           12.2    12.4    12.5    12.1    12.0
-## # ... with 29 more rows</code></pre>
+## # … with 29 more rows</code></pre>
 <p>And now, I can plot it:</p>
 <pre class="r"><code>avia_clean_monthly %&gt;%
     group_by(date) %&gt;%

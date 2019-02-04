@@ -51,7 +51,7 @@ transformation.</p>
 ## 4 FLIGHT,CAF_PAS,… 485      167       151       167       493      497     
 ## 5 FLIGHT,CAF_PAS,… 834      293       267       274       790      728     
 ## 6 FLIGHT,CAF_PAS,… :        :         :         :         :        :       
-## # ... with 231 more variables: `2017Q2` &lt;chr&gt;, `2017Q1` &lt;chr&gt;,
+## # … with 231 more variables: `2017Q2` &lt;chr&gt;, `2017Q1` &lt;chr&gt;,
 ## #   `2017M12` &lt;chr&gt;, `2017M11` &lt;chr&gt;, `2017M10` &lt;chr&gt;, `2017M09` &lt;chr&gt;,
 ## #   `2017M08` &lt;chr&gt;, `2017M07` &lt;chr&gt;, `2017M06` &lt;chr&gt;, `2017M05` &lt;chr&gt;,
 ## #   `2017M04` &lt;chr&gt;, `2017M03` &lt;chr&gt;, `2017M02` &lt;chr&gt;, `2017M01` &lt;chr&gt;,
@@ -100,7 +100,7 @@ like this now:</p>
 ##  8 FLIGHT,CAF_PAS,LU_ELLX_DE_EDDR 2018Q1 :         
 ##  9 FLIGHT,CAF_PAS,LU_ELLX_DE_EDDT 2018Q1 :         
 ## 10 FLIGHT,CAF_PAS,LU_ELLX_DK_EKCH 2018Q1 :         
-## # ... with 117,060 more rows</code></pre>
+## # … with 117,060 more rows</code></pre>
 <p>Now, let’s separate the first column into 3 columns:</p>
 <pre class="r"><code>avia %&gt;%
     select(&quot;unit,tra_meas,airp_pr\\time&quot;, contains(&quot;20&quot;)) %&gt;%
@@ -121,7 +121,7 @@ is not necessary for the rest of the analysis, but might as well do it. The data
 ##  8 FLIGHT CAF_PAS  LU_ELLX_DE_EDDR 2018Q1 :         
 ##  9 FLIGHT CAF_PAS  LU_ELLX_DE_EDDT 2018Q1 :         
 ## 10 FLIGHT CAF_PAS  LU_ELLX_DK_EKCH 2018Q1 :         
-## # ... with 117,060 more rows</code></pre>
+## # … with 117,060 more rows</code></pre>
 <p>The next steps are simple renamings. I have copy-pasted the information from the Eurostat page
 where you can <a href="http://appsso.eurostat.ec.europa.eu/nui/show.do?dataset=avia_par_lu&amp;lang=en">view the data online</a>.
 If you click here:</p>
