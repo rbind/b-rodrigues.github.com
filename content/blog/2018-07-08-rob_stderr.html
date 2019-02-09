@@ -173,9 +173,9 @@ summary(lmrobfit)</code></pre>
 ## Coefficients:
 ##                     Estimate Std. Error t value Pr(&gt;|t|)   
 ## (Intercept)       -156.37173  132.73829  -1.178  0.24526   
-## regionnortheast     20.64572   26.45381   0.780  0.43940   
-## regionsouth         10.79690   29.42749   0.367  0.71549   
-## regionwest          45.22584   33.07953   1.367  0.17867   
+## regionnortheast     20.64571   26.45381   0.780  0.43940   
+## regionsouth         10.79689   29.42749   0.367  0.71549   
+## regionwest          45.22583   33.07953   1.367  0.17867   
 ## residents            0.03406    0.04412   0.772  0.44435   
 ## young_residents      0.57896    0.25512   2.269  0.02832 * 
 ## per_capita_income    0.04328    0.01442   3.000  0.00447 **
@@ -281,15 +281,15 @@ bootstrapped sample. Now, I will create a list of tidied regression results:</p>
 <p><code>broom::tidy()</code> creates a data frame of the regression results. Let’s look at one of these:</p>
 <pre class="r"><code>tidied$tidy_lm[[1]]</code></pre>
 <pre><code>## # A tibble: 7 x 5
-##   term               estimate std.error statistic   p.value
-##   &lt;chr&gt;                 &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;
-## 1 (Intercept)       -472.      152.       -3.11   0.00330  
-## 2 regionnortheast      7.16     16.9       0.423  0.674    
-## 3 regionsouth          1.53     17.6       0.0869 0.931    
-## 4 regionwest          35.6      15.7       2.27   0.0283   
-## 5 residents           -0.0647    0.0623   -1.04   0.305    
-## 6 young_residents      1.38      0.387     3.56   0.000925 
-## 7 per_capita_income    0.0725    0.0150    4.85   0.0000167</code></pre>
+##   term               estimate std.error statistic      p.value
+##   &lt;chr&gt;                 &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;        &lt;dbl&gt;
+## 1 (Intercept)       -668.      148.         -4.51 0.0000501   
+## 2 regionnortheast     37.6      19.9         1.89 0.0651      
+## 3 regionsouth         45.8      18.2         2.51 0.0158      
+## 4 regionwest          58.3      17.4         3.36 0.00166     
+## 5 residents           -0.0736    0.0574     -1.28 0.207       
+## 6 young_residents      1.57      0.389       4.04 0.000216    
+## 7 per_capita_income    0.0955    0.0144      6.63 0.0000000450</code></pre>
 <p>This format is easier to handle than the standard <code>lm()</code> output:</p>
 <pre class="r"><code>tidied$regressions[[1]]</code></pre>
 <pre><code>## 
@@ -299,11 +299,11 @@ bootstrapped sample. Now, I will create a list of tidied regression results:</p>
 ## 
 ## Coefficients:
 ##       (Intercept)    regionnortheast        regionsouth  
-##        -471.93733            7.16144            1.53251  
+##        -668.24680           37.60644           45.76014  
 ##        regionwest          residents    young_residents  
-##          35.60837           -0.06467            1.37640  
+##          58.32840           -0.07360            1.57062  
 ## per_capita_income  
-##           0.07254</code></pre>
+##           0.09546</code></pre>
 <p>Now that I have all these regression results, I can compute any statistic I need. But first,
 let’s transform the data even further:</p>
 <pre class="r"><code>list_mods &lt;- tidied %&gt;% 
@@ -316,18 +316,18 @@ bind the rows together (by using <code>map2_df()</code> instead of <code>map2()<
 <p>Let’s take a look at the final object:</p>
 <pre class="r"><code>head(mods_df, 25)</code></pre>
 <pre><code>## # A tibble: 25 x 6
-##    term               estimate std.error statistic   p.value resample
-##    &lt;chr&gt;                 &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;int&gt;
-##  1 (Intercept)       -472.      152.       -3.11   0.00330          1
-##  2 regionnortheast      7.16     16.9       0.423  0.674            1
-##  3 regionsouth          1.53     17.6       0.0869 0.931            1
-##  4 regionwest          35.6      15.7       2.27   0.0283           1
-##  5 residents           -0.0647    0.0623   -1.04   0.305            1
-##  6 young_residents      1.38      0.387     3.56   0.000925         1
-##  7 per_capita_income    0.0725    0.0150    4.85   0.0000167        1
-##  8 (Intercept)       -554.      136.       -4.06   0.000202         2
-##  9 regionnortheast     28.7      16.1       1.79   0.0805           2
-## 10 regionsouth         13.3      18.0       0.737  0.465            2
+##    term               estimate std.error statistic      p.value resample
+##    &lt;chr&gt;                 &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;        &lt;dbl&gt;    &lt;int&gt;
+##  1 (Intercept)       -668.      148.         -4.51 0.0000501           1
+##  2 regionnortheast     37.6      19.9         1.89 0.0651              1
+##  3 regionsouth         45.8      18.2         2.51 0.0158              1
+##  4 regionwest          58.3      17.4         3.36 0.00166             1
+##  5 residents           -0.0736    0.0574     -1.28 0.207               1
+##  6 young_residents      1.57      0.389       4.04 0.000216            1
+##  7 per_capita_income    0.0955    0.0144      6.63 0.0000000450        1
+##  8 (Intercept)       -794.      149.         -5.32 0.00000355          2
+##  9 regionnortheast     41.9      18.8         2.22 0.0316              2
+## 10 regionsouth         39.9      18.0         2.22 0.0318              2
 ## # … with 15 more rows</code></pre>
 <p>Now this is a very useful format, because I now can group by the <code>term</code> column and compute any
 statistics I need, in the present case the standard deviation:</p>
@@ -339,13 +339,13 @@ statistics I need, in the present case the standard deviation:</p>
 <pre><code>## # A tibble: 7 x 2
 ##   term              r.std.error
 ##   &lt;chr&gt;                   &lt;dbl&gt;
-## 1 (Intercept)          195.    
-## 2 per_capita_income      0.0202
-## 3 regionnortheast       23.3   
-## 4 regionsouth           19.7   
-## 5 regionwest            22.2   
-## 6 residents              0.0728
-## 7 young_residents        0.434</code></pre>
+## 1 (Intercept)          213.    
+## 2 per_capita_income      0.0212
+## 3 regionnortheast       24.2   
+## 4 regionsouth           22.8   
+## 5 regionwest            23.8   
+## 6 residents              0.0691
+## 7 young_residents        0.475</code></pre>
 <p>We can append this column to the linear regression model result:</p>
 <pre class="r"><code>lmfit %&gt;% 
     broom::tidy() %&gt;% 
@@ -355,13 +355,13 @@ statistics I need, in the present case the standard deviation:</p>
 <pre><code>## # A tibble: 7 x 4
 ##   term               estimate std.error r.std.error
 ##   &lt;chr&gt;                 &lt;dbl&gt;     &lt;dbl&gt;       &lt;dbl&gt;
-## 1 (Intercept)       -467.      143.        195.    
-## 2 regionnortheast     15.7      18.2        23.3   
-## 3 regionsouth          7.09     17.3        19.7   
-## 4 regionwest          34.3      17.5        22.2   
-## 5 residents           -0.0346    0.0532      0.0728
-## 6 young_residents      1.30      0.357       0.434 
-## 7 per_capita_income    0.0720    0.0131      0.0202</code></pre>
+## 1 (Intercept)       -467.      143.        213.    
+## 2 regionnortheast     15.7      18.2        24.2   
+## 3 regionsouth          7.09     17.3        22.8   
+## 4 regionwest          34.3      17.5        23.8   
+## 5 residents           -0.0346    0.0532      0.0691
+## 6 young_residents      1.30      0.357       0.475 
+## 7 per_capita_income    0.0720    0.0131      0.0212</code></pre>
 <p>As you see, using the whole bootstrapping procedure is longer than simply using either one of
 the first two methods. However, this procedure is very flexible and can thus be adapted to a very
 large range of situations. Either way, in the case of heteroskedasticity, you can see that
