@@ -1,0 +1,353 @@
+---
+date: 2019-03-03
+title: "Classification of historical newspapers articles: a tutorial combining R, bash and Vowpal Wabbit"
+tags: [R]
+menu:
+  main:
+    parent: Blog
+    identifier: /blog/historical_vowpal
+    weight: 1
+---
+
+<div style="text-align:center;">
+  <a href="https://youtu.be/BilPXIt0R2w?t=41">
+    <img src="/img/wabbit_reading.jpg" title = "Vowpal Wabbit is fast as heck"></a>
+</div>
+
+```{r, include=FALSE}
+library(tidyverse)
+```
+
+Can I get enough of historical newspapers data? Seems like I don't. I already wrote four 
+([1](https://www.brodrigues.co/blog/2019-01-04-newspapers/), 
+[2](https://www.brodrigues.co/blog/2019-01-13-newspapers_mets_alto/),
+[3](https://www.brodrigues.co/blog/2019-01-31-newspapers_shiny_app/) and 
+[4](https://www.brodrigues.co/blog/2019-02-04-newspapers_shiny_app_tutorial/)) blog posts, but
+there's still a lot to explore. This blog post uses a new batch of data announced on twitter:
+
+```{r, echo=FALSE}
+blogdown::shortcode("tweet", "1101432342214782981")
+```
+
+and this data could not have arrived at a better moment, since something else got announced via Twitter
+recently:
+
+```{r, echo=FALSE}
+blogdown::shortcode("tweet", "1098941963527700480")
+```
+
+I wanted to try using [Vowpal Wabbit](https://github.com/VowpalWabbit/vowpal_wabbit) 
+for a couple of weeks now because it seems to be the perfect
+tool for when you're dealing with what I call *big-ish* data: data that is not big data, and might
+fit in your RAM, but is still a PITA to deal with. It can be data that is large enough to take 30
+seconds to be imported into R, and then every operation on it lasts for minutes, and estimating/training
+a model on it might eat up all your RAM. Vowpal Wabbit avoids all this because it's an online-learning
+system. Vowpal Wabbit is capable of training a model with data that it sees on the fly, which means
+VW can be used for real-time machine learning, but also for when the training data is very large.
+Each row of the data gets streamed into VW which updates the estimated parameters of the model
+(or weights) in real time. So no need to first import all the data into R!
+
+The goal of this blog post is to get started with VW, and build a very simple logistic model
+to classify documents using the historical newspapers data from the National Library of Luxembourg,
+which you can download [here](https://data.bnl.lu/data/historical-newspapers/) (scroll down and
+download the *Text Analysis Pack*). The goal is not to build the best model, but *a* model. Several
+steps are needed for this: prepare the data, install VW and train a model using `{RVowpalWabbit}`.
+
+## Step 1: Preparing the data
+
+The data is in a neat `.xml` format, and extracting what I need will be easy. However, the input
+format for VW is a bit unusual; it resembles *.psv* files (**P**ipe **S**eparated **V**alues) but
+allows for more flexibility. I will not dwell much into it, but for our purposes, the file must
+look like this:
+
+```
+1 | this is the first observation, which in our case will be free text
+2 | this is another observation, its label, or class, equals 2
+4 | this is another observation, of class 4
+```
+
+The first column, before the "|" is the target class we want to predict, and the second column
+contains free text.
+
+The raw data looks like this:
+
+
+<details>
+  <summary>Click if you want to see the raw data</summary>
+```
+<OAI-PMH xmlns="http://www.openarchives.org/OAI/2.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+<responseDate>2019-02-28T11:13:01</responseDate>
+<request>http://www.eluxemburgensia.lu/OAI</request>
+<ListRecords>
+<record>
+<header>
+<identifier>digitool-publish:3026998-DTL45</identifier>
+<datestamp>2019-02-28T11:13:01Z</datestamp>
+</header>
+<metadata>
+<oai_dc:dc xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:dcterms="http://purl.org/dc/terms/" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
+<dc:identifier>
+https://persist.lu/ark:/70795/6gq1q1/articles/DTL45
+</dc:identifier>
+<dc:source>newspaper/indeplux/1871-12-29_01</dc:source>
+<dcterms:isPartOf>L'indépendance luxembourgeoise</dcterms:isPartOf>
+<dcterms:isReferencedBy>
+issue:newspaper/indeplux/1871-12-29_01/article:DTL45
+</dcterms:isReferencedBy>
+<dc:date>1871-12-29</dc:date>
+<dc:publisher>Jean Joris</dc:publisher>
+<dc:relation>3026998</dc:relation>
+<dcterms:hasVersion>
+http://www.eluxemburgensia.lu/webclient/DeliveryManager?pid=3026998#panel:pp|issue:3026998|article:DTL45
+</dcterms:hasVersion>
+<dc:description>
+CONSEIL COMMUNAL de la ville de Luxembourg. Séance du 23 décembre 1871. (Suite.) Art. 6. Glacière communale. M. le Bourgmcstr ¦ . Le collège échevinal propose un autro mode de se procurer de la glace. Nous avons dépensé 250 fr. cha- que année pour distribuer 30 kilos do glace; c’est une trop forte somme pour un résultat si minime. Nous aurions voulu nous aboucher avec des fabricants de bière ou autres industriels qui nous auraient fourni de la glace en cas de besoin. L’architecte qui été chargé de passer un contrat, a été trouver des négociants, mais ses démarches n’ont pas abouti. 
+</dc:description>
+<dc:title>
+CONSEIL COMMUNAL de la ville de Luxembourg. Séance du 23 décembre 1871. (Suite.)
+</dc:title>
+<dc:type>ARTICLE</dc:type>
+<dc:language>fr</dc:language>
+<dcterms:extent>863</dcterms:extent>
+</oai_dc:dc>
+</metadata>
+</record>
+</ListRecords>
+</OAI-PMH>
+```
+</details>
+
+I need several things from this file:
+
+* The title of the newspaper: `<dcterms:isPartOf>L'indépendance luxembourgeoise</dcterms:isPartOf>`
+* The type of the article: `<dc:type>ARTICLE</dc:type>`. Can be Article, Advertisement, Issue, Section or Other.
+* The contents: `<dc:description>CONSEIL COMMUNAL de la ville de Luxembourg. Séance du ....</dc:description>`
+
+I will only focus on newspapers in French, even though newspapers in German also had articles in French.
+This is because the tag `<dc:language>fr</dc:language>` is not always available. If it were, I could
+simply look for it and extract all the content in French easily, but unfortunately this is not the case.
+
+First of all, let's get the data into R:
+
+```{r, eval=FALSE}
+library("tidyverse")
+library("xml2")
+library("furrr")
+
+files <- list.files(path = "export01-newspapers1841-1878/", all.files = TRUE, recursive = TRUE)
+```
+
+This results in a character vector with the path to all the files:
+
+```{r, eval=FALSE}
+head(files)
+[1] "000/1400000/1400000-ADVERTISEMENT-DTL78.xml"   "000/1400000/1400000-ADVERTISEMENT-DTL79.xml"  
+[3] "000/1400000/1400000-ADVERTISEMENT-DTL80.xml"   "000/1400000/1400000-ADVERTISEMENT-DTL81.xml"  
+[5] "000/1400000/1400000-MODSMD_ARTICLE1-DTL34.xml" "000/1400000/1400000-MODSMD_ARTICLE2-DTL35.xml"
+```
+
+Now I write a function that does the needed data preparation steps. I describe what the function
+does in the comments inside:
+
+```{r, eval=FALSE}
+to_vw <- function(xml_file){
+
+    # read in the xml file
+    file <- read_xml(paste0("export01-newspapers1841-1878/", xml_file))
+
+    # Get the newspaper
+    newspaper <- xml_find_all(file, ".//dcterms:isPartOf") %>% xml_text()
+
+    # Only keep the newspapers written in French
+    if(!(newspaper %in% c("L'UNION.",
+                          "L'indépendance luxembourgeoise",
+                          "COURRIER DU GRAND-DUCHÉ DE LUXEMBOURG.",
+                          "JOURNAL DE LUXEMBOURG.",
+                          "L'AVENIR",
+                          "L’Arlequin",
+                          "La Gazette du Grand-Duché de Luxembourg",
+                          "L'AVENIR DE LUXEMBOURG",
+                          "L'AVENIR DU GRAND-DUCHE DE LUXEMBOURG.",
+                          "L'AVENIR DU GRAND-DUCHÉ DE LUXEMBOURG.",
+                          "Le gratis luxembourgeois",
+                          "Luxemburger Zeitung – Journal de Luxembourg",
+                          "Recueil des mémoires et des travaux publiés par la Société de Botanique du Grand-Duché de Luxembourg"))){
+        return(NULL)
+    } else {
+        # Get the type of the content. Can be article, advert, issue, section or other
+        type <- xml_find_all(file, ".//dc:type") %>% xml_text()
+
+        type <- case_when(type == "ARTICLE" ~ "1",
+                          type == "ADVERTISEMENT" ~ "2",
+                          type == "ISSUE" ~ "3",
+                          type == "SECTION" ~ "4",
+                          TRUE ~ "5"
+        )
+
+        # Get the content itself. Only keep alphanumeric characters, and remove any line returns or 
+        # carriage returns
+        description <- xml_find_all(file, ".//dc:description") %>%
+            xml_text() %>%
+            str_replace_all(pattern = "[^[:alnum:][:space:]]", "") %>%
+            str_to_lower() %>%
+            str_replace_all("\r?\n|\r|\n", " ")
+
+        # Return the final object: one line that looks like this
+        # 1 | bla bla
+        paste(type, "|", description)
+    }
+
+}
+```
+
+I can now run this code to parse all the files, and I do so in parallel, thanks to the `{furrr}` package:
+
+```{r, eval=FALSE}
+plan(multiprocess, workers = 12)
+
+text_fr <- files %>%
+    future_map(to_vw)
+
+text_fr <- text_fr %>%
+    discard(is.null)
+
+write_lines(text_fr, "text_fr.txt")
+```
+
+## Step 2: Install Vowpal Wabbit
+
+To easiest way to install VW must be using Anaconda, and more specifically the conda package manager.
+Anaconda is a Python (and R) distribution for scientific computing and it comes with a package manager
+called conda which makes installing Python (or R) packages very easy. While VW is a standalone
+piece of software, it can also be installed by conda or pip. Instead of installing the full Anaconda distribution,
+you can install Miniconda, which only comes with the bare minimum: a Python executable and the 
+conda package manager. You can find Miniconda [here](https://docs.conda.io/en/latest/miniconda.html)
+and once it's installed, you can install VW with:
+
+```
+conda install -c gwerbin vowpal-wabbit 
+```
+
+It is also possible to install VW with pip, as detailed [here](https://pypi.org/project/vowpalwabbit/),
+but in my experience, managing Python packages with pip is not super. It is better to manage your 
+Python distribution through conda, because it creates environments in your home folder which are 
+independent of the system's Python installation, which is often out-of-date.
+
+## Step 3: Building *a* model
+
+Vowpal Wabbit can be used from the command line, but there are interfaces for Python and since a 
+few weeks, for R. The R interface is quite crude for now, as it's still in very early stages. I'm
+sure it will evolve, and perhaps a Vowpal Wabbit engine will be added to `{parsnip}`, which would
+make modeling with VW really easy.
+
+For now, let's only use 10000 lines for prototyping purposes before running the model on the whole file. Because
+the data is quite large, I do not want to import it into R. So I use command line tools to manipulate
+this data directly from my hard drive:
+
+```{r, eval=FALSE}
+# Prepare data
+system2("shuf", args = "-n 10000 text_fr.txt > small.txt")
+```
+
+`shuf` is a Unix command, and as such the above code should work on GNU/Linux systems, and most
+likely macOS too. `shuf` generates random permutations of a given file to standard output. I use `>` 
+to direct this output to another file, which I called `small.txt`. The `-n 10000` options simply 
+means that I want 10000 lines.
+
+I then split this small file into a training and a testing set:
+
+```{r, eval=FALSE}
+# Adapted from http://bitsearch.blogspot.com/2009/03/bash-script-to-split-train-and-test.html
+
+# The command below counts the lines in small.txt. This is not really needed, since I know that the 
+# file only has 10000 lines, but I kept it here for future reference
+# notice the stdout = TRUE option. This is needed because the output simply gets shown in R's
+# command line and does get saved into a variable.
+nb_lines <- system2("cat", args = "small.txt | wc -l", stdout = TRUE)
+
+system2("split", args = paste0("-l", as.numeric(nb_lines)*0.99, " small.txt data_split/"))
+```
+
+`split` is the Unix command that does the splitting. I keep 99% of the lines in the training set and 
+1% in the test set. This creates two files, `aa` and `ab`. I rename them using the `mv` Unix command:
+
+```{r, eval=FALSE}
+system2("mv", args = "data_split/aa data_split/train.txt")
+system2("mv", args = "data_split/ab data_split/test.txt")
+```
+
+Ok, now let's run a model using the VW command line utility from R, using `system2()`:
+
+```{r, eval=FALSE}
+oaa_fit <- system2("~/miniconda3/bin/vw", args = "--oaa 5 -d data_split/train.txt -f oaa.model", stderr = TRUE)
+```
+
+I need to point `system2()` to the `vw` executable, and then add some options. `--oaa` stands for
+*one against all* and is a way of doing multiclass classification; first, one class gets classified
+by a logistic classifier against all the others, then the other class against all the others, then 
+the other.... The `5` in the option means that there are 5 classes.
+
+`-d data_split/train.txt` specifies the path to the training data. `-f` means "final regressor"
+and specifies where you want to save the trained model.
+
+This is the output that get's captured and saved into `oaa_fit`:
+
+```
+ [1] "final_regressor = oaa.model"                                             
+ [2] "Num weight bits = 18"                                                    
+ [3] "learning rate = 0.5"                                                     
+ [4] "initial_t = 0"                                                           
+ [5] "power_t = 0.5"                                                           
+ [6] "using no cache"                                                          
+ [7] "Reading datafile = data_split/train.txt"                                 
+ [8] "num sources = 1"                                                         
+ [9] "average  since         example        example  current  current  current"
+[10] "loss     last          counter         weight    label  predict features"
+[11] "1.000000 1.000000            1            1.0        3        1       87"
+[12] "1.000000 1.000000            2            2.0        1        3     2951"
+[13] "1.000000 1.000000            4            4.0        1        3      506"
+[14] "0.625000 0.250000            8            8.0        1        1      262"
+[15] "0.625000 0.625000           16           16.0        1        2      926"
+[16] "0.500000 0.375000           32           32.0        4        1        3"
+[17] "0.375000 0.250000           64           64.0        1        1      436"
+[18] "0.296875 0.218750          128          128.0        2        2      277"
+[19] "0.238281 0.179688          256          256.0        2        2      118"
+[20] "0.158203 0.078125          512          512.0        2        2       61"
+[21] "0.125000 0.091797         1024         1024.0        2        2      258"
+[22] "0.096191 0.067383         2048         2048.0        1        1       45"
+[23] "0.085205 0.074219         4096         4096.0        1        1      318"
+[24] "0.076172 0.067139         8192         8192.0        2        1      523"
+[25] ""                                                                        
+[26] "finished run"                                                            
+[27] "number of examples = 9900"                                               
+[28] "weighted example sum = 9900.000000"                                      
+[29] "weighted label sum = 0.000000"                                           
+[30] "average loss = 0.073434"                                                 
+[31] "total feature number = 4456798"  
+```
+
+Now, when I try to run the same model using `RVowpalWabbit::vw()` I get the following error:
+
+```{r, eval=FALSE}
+oaa_class <- c("--oaa", "5",
+               "-d", "data_split/train.txt",
+               "-f", "vw_models/oaa.model")
+
+result <- vw(oaa_class)
+```
+
+```
+Error in Rvw(args) : unrecognised option '--oaa'
+```
+
+I think the problem might be because I installed Vowpal Wabbit using conda, and the package 
+cannot find the executable. I'll open an issue with reproducible code and we'll see.
+
+In any case, that's it for now! In the next blog post, we'll see how to get the accuracy of this
+very simple model, and see how to improve it!
+
+Hope you enjoyed! If you found this blog post useful, you might want to follow 
+me on [twitter](https://www.twitter.com/brodriguesco) for blog post updates and 
+[buy me an espresso](https://www.buymeacoffee.com/brodriguesco) or [paypal.me](https://www.paypal.me/brodriguesco).
+
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a>
