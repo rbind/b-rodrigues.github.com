@@ -1,6 +1,6 @@
 ---
 date: 2019-03-03
-title: "Classification of historical newspapers content: a tutorial combining R, bash and Vowpal Wabbit"
+title: "Classification of historical newspapers content: a tutorial combining R, bash and Vowpal Wabbit, part 1"
 tags: [R]
 menu:
   main:
@@ -217,10 +217,10 @@ nb_lines &lt;- system2(&quot;cat&quot;, args = &quot;small.txt | wc -l&quot;, st
 system2(&quot;split&quot;, args = paste0(&quot;-l&quot;, as.numeric(nb_lines)*0.99, &quot; small.txt data_split/&quot;))</code></pre>
 <p><code>split</code> is the Unix command that does the splitting. I keep 99% of the lines in the training set and
 1% in the test set. This creates two files, <code>aa</code> and <code>ab</code>. I rename them using the <code>mv</code> Unix command:</p>
-<pre class="r"><code>system2(&quot;mv&quot;, args = &quot;data_split/aa data_split/train.txt&quot;)
-system2(&quot;mv&quot;, args = &quot;data_split/ab data_split/test.txt&quot;)</code></pre>
+<pre class="r"><code>system2(&quot;mv&quot;, args = &quot;data_split/aa data_split/small_train.txt&quot;)
+system2(&quot;mv&quot;, args = &quot;data_split/ab data_split/small_test.txt&quot;)</code></pre>
 <p>Ok, now let’s run a model using the VW command line utility from R, using <code>system2()</code>:</p>
-<pre class="r"><code>oaa_fit &lt;- system2(&quot;~/miniconda3/bin/vw&quot;, args = &quot;--oaa 5 -d data_split/train.txt -f oaa.model&quot;, stderr = TRUE)</code></pre>
+<pre class="r"><code>oaa_fit &lt;- system2(&quot;~/miniconda3/bin/vw&quot;, args = &quot;--oaa 5 -d data_split/small_train.txt -f small_oaa.model&quot;, stderr = TRUE)</code></pre>
 <p>I need to point <code>system2()</code> to the <code>vw</code> executable, and then add some options. <code>--oaa</code> stands for
 <em>one against all</em> and is a way of doing multiclass classification; first, one class gets classified
 by a logistic classifier against all the others, then the other class against all the others, then
@@ -261,8 +261,8 @@ and specifies where you want to save the trained model.</p>
 [31] &quot;total feature number = 4456798&quot;  </code></pre>
 <p>Now, when I try to run the same model using <code>RVowpalWabbit::vw()</code> I get the following error:</p>
 <pre class="r"><code>oaa_class &lt;- c(&quot;--oaa&quot;, &quot;5&quot;,
-               &quot;-d&quot;, &quot;data_split/train.txt&quot;,
-               &quot;-f&quot;, &quot;vw_models/oaa.model&quot;)
+               &quot;-d&quot;, &quot;data_split/small_train.txt&quot;,
+               &quot;-f&quot;, &quot;vw_models/small_oaa.model&quot;)
 
 result &lt;- vw(oaa_class)</code></pre>
 <pre><code>Error in Rvw(args) : unrecognised option &#39;--oaa&#39;</code></pre>

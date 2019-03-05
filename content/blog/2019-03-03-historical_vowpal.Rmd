@@ -1,6 +1,6 @@
 ---
 date: 2019-03-03
-title: "Classification of historical newspapers content: a tutorial combining R, bash and Vowpal Wabbit"
+title: "Classification of historical newspapers content: a tutorial combining R, bash and Vowpal Wabbit, part 1"
 tags: [R]
 menu:
   main:
@@ -272,14 +272,14 @@ system2("split", args = paste0("-l", as.numeric(nb_lines)*0.99, " small.txt data
 1% in the test set. This creates two files, `aa` and `ab`. I rename them using the `mv` Unix command:
 
 ```{r, eval=FALSE}
-system2("mv", args = "data_split/aa data_split/train.txt")
-system2("mv", args = "data_split/ab data_split/test.txt")
+system2("mv", args = "data_split/aa data_split/small_train.txt")
+system2("mv", args = "data_split/ab data_split/small_test.txt")
 ```
 
 Ok, now let's run a model using the VW command line utility from R, using `system2()`:
 
 ```{r, eval=FALSE}
-oaa_fit <- system2("~/miniconda3/bin/vw", args = "--oaa 5 -d data_split/train.txt -f oaa.model", stderr = TRUE)
+oaa_fit <- system2("~/miniconda3/bin/vw", args = "--oaa 5 -d data_split/small_train.txt -f small_oaa.model", stderr = TRUE)
 ```
 
 I need to point `system2()` to the `vw` executable, and then add some options. `--oaa` stands for
@@ -330,8 +330,8 @@ Now, when I try to run the same model using `RVowpalWabbit::vw()` I get the foll
 
 ```{r, eval=FALSE}
 oaa_class <- c("--oaa", "5",
-               "-d", "data_split/train.txt",
-               "-f", "vw_models/oaa.model")
+               "-d", "data_split/small_train.txt",
+               "-f", "vw_models/small_oaa.model")
 
 result <- vw(oaa_class)
 ```

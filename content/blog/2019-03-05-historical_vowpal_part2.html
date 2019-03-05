@@ -1,0 +1,248 @@
+---
+date: 2019-03-05
+title: "Classification of historical newspapers content: a tutorial combining R, bash and Vowpal Wabbit, part 2"
+tags: [R]
+menu:
+  main:
+    parent: Blog
+    identifier: /blog/historical_vowpal_part2
+    weight: 1
+---
+
+
+
+<div style="text-align:center;">
+<p><a href="https://youtu.be/BilPXIt0R2w?t=41">
+<img src="/img/wabbit_reading.jpg" title = "Vowpal Wabbit is fast as heck"></a></p>
+</div>
+<p>In <a href="https://www.brodrigues.co/blog/2019-03-03-historical_vowpal/">part 1</a> of this series I set
+up Vowpal Wabbit to classify newspapers content. Now, let’s use the model to make predictions and
+see how and if we can improve the model. Then, let’s train the model on the whole data.</p>
+<div id="step-1-prepare-the-data" class="section level2">
+<h2>Step 1: prepare the data</h2>
+<p>The first step consists in importing the test data and preparing it. The test data need not be large
+and thus can be imported and worked on in R.</p>
+<p>I need to remove the target column from the test set, or else it will be used to make predictions.
+If you do not remove this column the accuracy of the model will be very high, but it will be wrong
+since, of course, you do not have the target column at running time… because it is the column
+that you want to predict!</p>
+<pre class="r"><code>library(&quot;tidyverse&quot;)
+library(&quot;yardstick&quot;)
+
+small_test &lt;- read_delim(&quot;data_split/small_test.txt&quot;, &quot;|&quot;,
+                      escape_double = FALSE, col_names = FALSE,
+                      trim_ws = TRUE)
+
+small_test %&gt;%
+    mutate(X1= &quot; &quot;) %&gt;%
+    write_delim(&quot;data_split/small_test2.txt&quot;, col_names = FALSE, delim = &quot;|&quot;)</code></pre>
+<p>I wrote the data in a file called <code>small_test2.txt</code> and can now use my model to make predictions:</p>
+<pre class="r"><code>system2(&quot;/home/cbrunos/miniconda3/bin/vw&quot;, args = &quot;-t -i vw_models/small_oaa.model data_split/small_test2.txt -p data_split/small_oaa.predict&quot;)</code></pre>
+<p>The predictions get saved in the file <code>small_oaa.predict</code>, which is a plain text file. Let’s add these
+predictions to the original test set:</p>
+<pre class="r"><code>small_predictions &lt;- read_delim(&quot;data_split/small_oaa.predict&quot;, &quot;|&quot;,
+                          escape_double = FALSE, col_names = FALSE,
+                          trim_ws = TRUE)
+
+small_test &lt;- small_test %&gt;%
+    rename(truth = X1) %&gt;%
+    mutate(truth = factor(truth, levels = c(&quot;1&quot;, &quot;2&quot;, &quot;3&quot;, &quot;4&quot;, &quot;5&quot;)))
+
+small_predictions &lt;- small_predictions %&gt;%
+    rename(predictions = X1) %&gt;%
+    mutate(predictions = factor(predictions, levels = c(&quot;1&quot;, &quot;2&quot;, &quot;3&quot;, &quot;4&quot;, &quot;5&quot;)))
+
+small_test &lt;- small_test %&gt;%
+    bind_cols(small_predictions)</code></pre>
+</div>
+<div id="step-2-use-the-model-and-test-data-to-evaluate-performance" class="section level2">
+<h2>Step 2: use the model and test data to evaluate performance</h2>
+<p>We can use the several metrics included in <code>{yardstick}</code> to evaluate the model’s performance:</p>
+<pre class="r"><code>conf_mat(small_test, truth = truth, estimate = predictions)
+
+accuracy(small_test, truth = truth, estimate = predictions)</code></pre>
+<pre class="r"><code>          Truth
+Prediction  1  2  3  4  5
+         1 51 15  2 10  1
+         2 11  6  3  1  0
+         3  0  0  0  0  0
+         4  0  0  0  0  0
+         5  0  0  0  0  0</code></pre>
+<pre class="r"><code># A tibble: 1 x 3
+  .metric  .estimator .estimate
+  &lt;chr&gt;    &lt;chr&gt;          &lt;dbl&gt;
+1 accuracy multiclass     0.570</code></pre>
+<p>We can see that the model never predicted class <code>3</code>, <code>4</code> or <code>5</code>. Can we improve by adding some
+regularization? Let’s find out!</p>
+</div>
+<div id="step-3-adding-regularization" class="section level2">
+<h2>Step 3: adding regularization</h2>
+<p>Before trying regularization, let’s try changing the cost function from the logistic function to the
+hinge function:</p>
+<pre class="r"><code># Train the model
+hinge_oaa_fit &lt;- system2(&quot;/home/cbrunos/miniconda3/bin/vw&quot;, args = &quot;--oaa 5 -d data_split/small_train.txt --loss_function hinge -f vw_models/hinge_oaa.model&quot;, stderr = TRUE)
+
+system2(&quot;/home/cbrunos/miniconda3/bin/vw&quot;, args = &quot;-i vw_models/hinge_oaa.model -t -d data_split/small_test2.txt -p data_split/hinge_oaa.predict&quot;)
+
+
+predictions &lt;- read_delim(&quot;data_split/hinge_oaa.predict&quot;, &quot;|&quot;,
+                          escape_double = FALSE, col_names = FALSE,
+                          trim_ws = TRUE)
+
+test &lt;- test %&gt;%
+    select(-predictions)
+
+predictions &lt;- predictions %&gt;%
+    rename(predictions = X1) %&gt;%
+    mutate(predictions = factor(predictions, levels = c(&quot;1&quot;, &quot;2&quot;, &quot;3&quot;, &quot;4&quot;, &quot;5&quot;)))
+
+test &lt;- test %&gt;%
+    bind_cols(predictions)</code></pre>
+<pre class="r"><code>conf_mat(test, truth = truth, estimate = predictions)
+
+accuracy(test, truth = truth, estimate = predictions)</code></pre>
+<pre class="r"><code>          Truth
+Prediction   1   2   3   4   5
+         1 411 120  45  92   1
+         2 355 189  12  17   0
+         3  11   2   0   0   0
+         4  36   4   0   1   0
+         5   3   0   3   0   0</code></pre>
+<pre class="r"><code># A tibble: 1 x 3
+  .metric  .estimator .estimate
+  &lt;chr&gt;    &lt;chr&gt;          &lt;dbl&gt;
+1 accuracy multiclass     0.462</code></pre>
+<p>Well, didn’t work out so well, but at least we now know how to change the loss function. Let’s go
+back to the logistic loss and add some regularization. First, let’s train the model:</p>
+<pre class="r"><code>regul_oaa_fit &lt;- system2(&quot;/home/cbrunos/miniconda3/bin/vw&quot;, args = &quot;--oaa 5 --l1 0.005 --l2 0.005 -d data_split/small_train.txt -f vw_models/small_regul_oaa.model&quot;, stderr = TRUE)</code></pre>
+<p>Now we can use it for prediction:</p>
+<pre class="r"><code>system2(&quot;/home/cbrunos/miniconda3/bin/vw&quot;, args = &quot;-i vw_models/small_regul_oaa.model -t -d data_split/test2.txt -p data_split/small_regul_oaa.predict&quot;)
+
+
+predictions &lt;- read_delim(&quot;data_split/small_regul_oaa.predict&quot;, &quot;|&quot;,
+                          escape_double = FALSE, col_names = FALSE,
+                          trim_ws = TRUE)
+
+test &lt;- test %&gt;%
+    select(-predictions)
+
+predictions &lt;- predictions %&gt;%
+    rename(predictions = X1) %&gt;%
+    mutate(predictions = factor(predictions, levels = c(&quot;1&quot;, &quot;2&quot;, &quot;3&quot;, &quot;4&quot;, &quot;5&quot;)))
+
+test &lt;- test %&gt;%
+    bind_cols(predictions)</code></pre>
+<p>We can now use it for predictions:</p>
+<pre class="r"><code>conf_mat(test, truth = truth, estimate = predictions)
+
+accuracy(test, truth = truth, estimate = predictions)</code></pre>
+<pre class="r"><code>          Truth
+Prediction   1   2   3   4   5
+         1 816 315  60 110   1
+         2   0   0   0   0   0
+         3   0   0   0   0   0
+         4   0   0   0   0   0
+         5   0   0   0   0   0</code></pre>
+<pre class="r"><code># A tibble: 1 x 3
+  .metric  .estimator .estimate
+  &lt;chr&gt;    &lt;chr&gt;          &lt;dbl&gt;
+1 accuracy multiclass     0.627</code></pre>
+<p>So accuracy improved, but the model only predicts class 1 now… let’s try with other hyper-parameters values:</p>
+<pre class="r"><code>regul_oaa_fit &lt;- system2(&quot;/home/cbrunos/miniconda3/bin/vw&quot;, args = &quot;--oaa 5 --l1 0.00015 --l2 0.00015 -d data_split/small_train.txt -f vw_models/small_regul_oaa.model&quot;, stderr = TRUE)</code></pre>
+<pre class="r"><code>conf_mat(test, truth = truth, estimate = predictions)
+
+accuracy(test, truth = truth, estimate = predictions)</code></pre>
+<pre class="r"><code>          Truth
+Prediction   1   2   3   4   5
+         1 784 300  57 108   1
+         2  32  14   3   2   0
+         3   0   1   0   0   0
+         4   0   0   0   0   0
+         5   0   0   0   0   0</code></pre>
+<pre class="r"><code># A tibble: 1 x 3
+  .metric  .estimator .estimate
+  &lt;chr&gt;    &lt;chr&gt;          &lt;dbl&gt;
+1 accuracy multiclass     0.613</code></pre>
+<p>So accuracy is lower than previously, but at least more categories get correctly predicted. Depending
+on your needs, you should consider different metrics. Especially for classification problems, you might
+not be interested in accuracy, in particular if the data is severely unbalanced.</p>
+<p>Anyhow, to finish this blog post, let’s train the model on the whole data and measure the time it
+takes to run the full model.</p>
+</div>
+<div id="step-4-training-on-the-whole-data" class="section level2">
+<h2>Step 4: Training on the whole data</h2>
+<p>Let’s first split the whole data into a training and a testing set:</p>
+<pre class="r"><code>nb_lines &lt;- system2(&quot;cat&quot;, args = &quot;text_fr.txt | wc -l&quot;, stdout = TRUE)
+
+system2(&quot;split&quot;, args = paste0(&quot;-l&quot;, floor(as.numeric(nb_lines)*0.995), &quot; text_fr.txt data_split/&quot;))
+
+system2(&quot;mv&quot;, args = &quot;data_split/aa data_split/train.txt&quot;)
+system2(&quot;mv&quot;, args = &quot;data_split/ab data_split/test.txt&quot;)</code></pre>
+<p>The whole data contains 260247 lines, and the training set weighs 667MB, which is quite large. Let’s train
+the simple multiple classifier on the data and see how long it takes:</p>
+<pre class="r"><code>tic &lt;- Sys.time()
+oaa_fit &lt;- system2(&quot;/home/cbrunos/miniconda3/bin/vw&quot;, args = &quot;--oaa 5 -d data_split/train.txt -f vw_models/oaa.model&quot;, stderr = TRUE)
+Sys.time() - tic</code></pre>
+<pre class="r"><code>Time difference of 4.73266 secs</code></pre>
+<p>Yep, you read that right. Training the classifier on 667MB of data took less than 5 seconds!</p>
+<p>Let’s take a look at the final object:</p>
+<pre class="r"><code>oaa_fit</code></pre>
+<pre class="r"><code> [1] &quot;final_regressor = vw_models/oaa.model&quot;                                   
+ [2] &quot;Num weight bits = 18&quot;                                                    
+ [3] &quot;learning rate = 0.5&quot;                                                     
+ [4] &quot;initial_t = 0&quot;                                                           
+ [5] &quot;power_t = 0.5&quot;                                                           
+ [6] &quot;using no cache&quot;                                                          
+ [7] &quot;Reading datafile = data_split/train.txt&quot;                                 
+ [8] &quot;num sources = 1&quot;                                                         
+ [9] &quot;average  since         example        example  current  current  current&quot;
+[10] &quot;loss     last          counter         weight    label  predict features&quot;
+[11] &quot;1.000000 1.000000            1            1.0        2        1      253&quot;
+[12] &quot;0.500000 0.000000            2            2.0        2        2      499&quot;
+[13] &quot;0.250000 0.000000            4            4.0        2        2        6&quot;
+[14] &quot;0.250000 0.250000            8            8.0        1        1     2268&quot;
+[15] &quot;0.312500 0.375000           16           16.0        1        1      237&quot;
+[16] &quot;0.250000 0.187500           32           32.0        1        1      557&quot;
+[17] &quot;0.171875 0.093750           64           64.0        1        1      689&quot;
+[18] &quot;0.179688 0.187500          128          128.0        2        2      208&quot;
+[19] &quot;0.144531 0.109375          256          256.0        1        1      856&quot;
+[20] &quot;0.136719 0.128906          512          512.0        4        4        4&quot;
+[21] &quot;0.122070 0.107422         1024         1024.0        1        1     1353&quot;
+[22] &quot;0.106934 0.091797         2048         2048.0        1        1      571&quot;
+[23] &quot;0.098633 0.090332         4096         4096.0        1        1       43&quot;
+[24] &quot;0.080566 0.062500         8192         8192.0        1        1      885&quot;
+[25] &quot;0.069336 0.058105        16384        16384.0        1        1      810&quot;
+[26] &quot;0.062683 0.056030        32768        32768.0        2        2      467&quot;
+[27] &quot;0.058167 0.053650        65536        65536.0        1        1       47&quot;
+[28] &quot;0.056061 0.053955       131072       131072.0        1        1      495&quot;
+[29] &quot;&quot;                                                                        
+[30] &quot;finished run&quot;                                                            
+[31] &quot;number of examples = 258945&quot;                                             
+[32] &quot;weighted example sum = 258945.000000&quot;                                    
+[33] &quot;weighted label sum = 0.000000&quot;                                           
+[34] &quot;average loss = 0.054467&quot;                                                 
+[35] &quot;total feature number = 116335486&quot;  </code></pre>
+<p>Let’s use the test set and see how the model fares:</p>
+<pre class="r"><code>conf_mat(test, truth = truth, estimate = predictions)
+
+accuracy(test, truth = truth, estimate = predictions)</code></pre>
+<pre class="r"><code>          Truth
+Prediction   1   2   3   4   5
+         1 537 175  52 100   1
+         2 271 140   8   9   0
+         3   1   0   0   0   0
+         4   7   0   0   1   0
+         5   0   0   0   0   0</code></pre>
+<pre class="r"><code># A tibble: 1 x 3
+  .metric  .estimator .estimate
+  &lt;chr&gt;    &lt;chr&gt;          &lt;dbl&gt;
+1 accuracy multiclass     0.521</code></pre>
+<p>Better accuracy can certainly be achieved with hyper-parameter tuning… maybe the subject for a
+future blog post? In any case I am very impressed with Vowpal Wabbit and am certainly looking forward
+to future developments of <code>{RVowpalWabbit}</code>!</p>
+<p>Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>.</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
+</div>
