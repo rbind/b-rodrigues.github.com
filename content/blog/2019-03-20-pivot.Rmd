@@ -1,0 +1,207 @@
+---
+date: 2019-03-20
+title: "Pivoting data frames just got easier thanks to `pivot_wide()` and `pivot_long()`"
+tags: [R]
+menu:
+  main:
+    parent: Blog
+    identifier: /blog/pivot
+    weight: 1
+---
+
+<div style="text-align:center;">
+  <a href="https://youtu.be/R2u0sN9stbA?t=69">
+    <img src="/img/pivot.jpg" title = "You know where this leads"></a>
+</div>
+
+There's a lot going on in the development version of `{tidyr}`. New functions for pivoting data
+frames, `pivot_wide()` and `pivot_long()` are coming, and will replace the current functions,
+`spread()` and `gather()`. `spread()` and `gather()` will remain in the package though:
+
+```{r, echo=FALSE}
+blogdown::shortcode("tweet", "1108107722128613377")
+```
+
+If you want to try out these new functions, you need to install the development version of `{tidyr}`:
+
+```{r, eval=FALSE}
+devtools::install_github("tidyverse/tidyr")
+```
+
+and you can read the vignette [here](https://tidyr.tidyverse.org/dev/articles/pivot.html#many-variables-in-column-names).
+Because these functions are still being developed, some more changes might be introduced, but I guess
+that the main functionality will not change much.
+
+Let's play around with these functions and the `mtcars` data set. First let's load the packages and
+the data:
+
+```{r, include=FALSE}
+library(tidyverse)
+data(mtcars)
+```
+
+```{r, eval=FALSE}
+library(tidyverse)
+data(mtcars)
+```
+
+First, let's create a wide dataset, by *spreading* the levels of the "am" column to two new columns:
+
+```{r}
+mtcars_wide1 <- mtcars %>% 
+    pivot_wide(names_from = "am", values_from = "mpg") 
+
+mtcars_wide1 %>% 
+    select(`0`, `1`, everything())
+```
+
+`pivot_wide()`'s arguments are quite explicit: `names_from = ` is where you specify the column that
+will be spread across the data frame, meaning, the levels of this column will become new columns.
+`values_from = ` is where you specify the column that will fill in the values of the new columns.
+
+"0" and "1" are the new columns ("am" had two levels, `0` and `1`), which contain the miles per 
+gallon for manual and automatic cars respectively. Let's also take a look at the data frame itself:
+
+```{r}
+mtcars_wide1 %>% 
+    select(`0`, `1`, everything())
+```
+
+Now suppose that we want to spread the values of "am" times "cyl", and filling the data with the 
+values of "mpg":
+
+```{r}
+mtcars_wide2 <- mtcars %>% 
+    pivot_wide(names_from = c("am", "cyl"), values_from = "mpg") 
+
+mtcars_wide2 %>% 
+    select(matches("^0|1"), everything())
+```
+
+As you can see, this is easily achieved by simply providing more columns to `names_from = `.
+
+Finally, it is also possible to use an optional data set which contains the specifications of the 
+new columns:
+
+```{r}
+mtcars_spec <- mtcars %>% 
+    expand(am, cyl, .value = "mpg") %>%
+    unite(".name", am, cyl, remove = FALSE)
+
+mtcars_spec
+```
+
+This optional data set defines how the columns "0_4", "0_6" etc are constructed, and also the 
+value that shall be used to fill in the values. "am" and "cyl" will be used to create the ".name"
+and the "mpg" column will be used for the ".value":
+
+```{r}
+mtcars %>% 
+    pivot_wide(spec = mtcars_spec) %>% 
+    select(matches("^0|1"), everything())
+```
+
+Using a spec is especially useful if you need to make new levels that are not in the data.
+For instance, suppose that there are actually 10-cylinder cars too, but they do not appear in our
+sample. We would like to make the fact that they're missing explicit:
+
+```{r}
+mtcars_spec2 <- mtcars %>% 
+    expand(am, "cyl" = c(cyl, 10), .value = "mpg") %>%
+    unite(".name", am, cyl, remove = FALSE)
+
+mtcars_spec2
+```
+
+
+```{r}
+mtcars %>% 
+    pivot_wide(spec = mtcars_spec2) %>% 
+    select(matches("^0|1"), everything())
+```
+
+As you can see, we now have two more columns have been added, and they are full of NA's.
+
+Now, let's try to go from wide to long data sets, using `pivot_long()`:
+
+```{r}
+mtcars_wide1 %>% 
+  pivot_long(cols = c(`1`, `0`), names_to = "am", values_to = "mpg") %>% 
+  select(am, mpg, everything())
+```
+
+The arguments of `pivot_long()` are quite explicit too, and similar to the ones in `pivot_wide()`.
+`cols = ` is where the user specifies the columns that need to be pivoted. `names_to = ` is where
+the user can specify the name of the new columns, whose levels will be exactly the ones specified
+to `cols = `. `values_to = ` is where the user specifies the column name of the new column that
+will contain the values. 
+
+It is also possible to specify the columns that should not be transformed, by using `-`:
+
+```{r}
+mtcars_wide1 %>% 
+  pivot_long(cols = -matches("^[[:alpha:]]"), names_to = "am", values_to = "mpg") %>% 
+  select(am, mpg, everything())
+```
+
+Here the columns that should not be modified are all those that start with a letter, hence the "^[[:alpha:]]"
+regular expression. It is also possible to remove all the `NA`'s from the data frame, with `na.rm = `.
+
+```{r}
+mtcars_wide1 %>% 
+  pivot_long(cols = c(`1`, `0`), names_to = "am", values_to = "mpg", na.rm = TRUE) %>% 
+  select(am, mpg, everything())
+```
+
+We can also pivot data frames where the names of the columns are made of two or more variables,
+for example in our `mtcars_wide2` data frame:
+
+```{r}
+mtcars_wide2 %>% 
+    select(matches("^0|1"), everything())
+```
+
+All the columns that start with either "0" or "1" must be pivoted:
+
+```{r}
+mtcars_wide2 %>% 
+  pivot_long(cols = matches("0|1"), names_to = "am_cyl", values_to = "mpg", na.rm = TRUE) %>% 
+  select(am_cyl, everything())
+```
+
+Now, there is one new column, "am_cyl" which must still be transformed by separating "am_cyl" into two new columns:
+
+
+```{r}
+mtcars_wide2 %>% 
+  pivot_long(cols = matches("0|1"), names_to = "am_cyl", values_to = "mpg", na.rm = TRUE) %>% 
+  separate(am_cyl, into = c("am", "cyl"), sep = "_") %>% 
+  select(am, cyl, everything())
+```
+
+It is also possible to achieve this using a data frame with the specification of what you need:
+
+```{r}
+mtcars_spec_long <- mtcars_wide2 %>% 
+  pivot_long_spec(matches("0|1"), values_to = "mpg") %>% 
+  separate(name, c("am", "cyl"), sep = "_")
+
+mtcars_spec_long
+```
+
+Providing this spec to `pivot_long()` solves the issue:
+
+```{r}
+mtcars_wide2 %>% 
+  pivot_long(spec = mtcars_spec_long, na.rm = TRUE) %>% 
+  select(am, cyl, everything())
+```
+
+Stay tuned to Hadley Wickham's [twitter](https://twitter.com/hadleywickham) as there will definitely
+be announcements soon!
+
+Hope you enjoyed! If you found this blog post useful, you might want to follow 
+me on [twitter](https://www.twitter.com/brodriguesco) for blog post updates and 
+[buy me an espresso](https://www.buymeacoffee.com/brodriguesco) or [paypal.me](https://www.paypal.me/brodriguesco).
+
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a>

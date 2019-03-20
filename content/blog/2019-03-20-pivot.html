@@ -1,0 +1,328 @@
+---
+date: 2019-03-20
+title: "Pivoting data frames just got easier thanks to `pivot_wide()` and `pivot_long()`"
+tags: [R]
+menu:
+  main:
+    parent: Blog
+    identifier: /blog/pivot
+    weight: 1
+---
+
+
+
+<div style="text-align:center;">
+<p><a href="https://youtu.be/R2u0sN9stbA?t=69">
+<img src="/img/pivot.jpg" title = "You know where this leads"></a></p>
+</div>
+<p>There’s a lot going on in the development version of <code>{tidyr}</code>. New functions for pivoting data
+frames, <code>pivot_wide()</code> and <code>pivot_long()</code> are coming, and will replace the current functions,
+<code>spread()</code> and <code>gather()</code>. <code>spread()</code> and <code>gather()</code> will remain in the package though:</p>
+{{% tweet "1108107722128613377" %}}
+<p>If you want to try out these new functions, you need to install the development version of <code>{tidyr}</code>:</p>
+<pre class="r"><code>devtools::install_github(&quot;tidyverse/tidyr&quot;)</code></pre>
+<p>and you can read the vignette <a href="https://tidyr.tidyverse.org/dev/articles/pivot.html#many-variables-in-column-names">here</a>.
+Because these functions are still being developed, some more changes might be introduced, but I guess
+that the main functionality will not change much.</p>
+<p>Let’s play around with these functions and the <code>mtcars</code> data set. First let’s load the packages and
+the data:</p>
+<pre class="r"><code>library(tidyverse)
+data(mtcars)</code></pre>
+<p>First, let’s create a wide dataset, by <em>spreading</em> the levels of the “am” column to two new columns:</p>
+<pre class="r"><code>mtcars_wide1 &lt;- mtcars %&gt;% 
+    pivot_wide(names_from = &quot;am&quot;, values_from = &quot;mpg&quot;) 
+
+mtcars_wide1 %&gt;% 
+    select(`0`, `1`, everything())</code></pre>
+<pre><code>## # A tibble: 32 x 11
+##      `0`   `1`   cyl  disp    hp  drat    wt  qsec    vs  gear  carb
+##    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+##  1  NA    21       6  160    110  3.9   2.62  16.5     0     4     4
+##  2  NA    21       6  160    110  3.9   2.88  17.0     0     4     4
+##  3  NA    22.8     4  108     93  3.85  2.32  18.6     1     4     1
+##  4  21.4  NA       6  258    110  3.08  3.22  19.4     1     3     1
+##  5  18.7  NA       8  360    175  3.15  3.44  17.0     0     3     2
+##  6  18.1  NA       6  225    105  2.76  3.46  20.2     1     3     1
+##  7  14.3  NA       8  360    245  3.21  3.57  15.8     0     3     4
+##  8  24.4  NA       4  147.    62  3.69  3.19  20       1     4     2
+##  9  22.8  NA       4  141.    95  3.92  3.15  22.9     1     4     2
+## 10  19.2  NA       6  168.   123  3.92  3.44  18.3     1     4     4
+## # … with 22 more rows</code></pre>
+<p><code>pivot_wide()</code>’s arguments are quite explicit: <code>names_from =</code> is where you specify the column that
+will be spread across the data frame, meaning, the levels of this column will become new columns.
+<code>values_from =</code> is where you specify the column that will fill in the values of the new columns.</p>
+<p>“0” and “1” are the new columns (“am” had two levels, <code>0</code> and <code>1</code>), which contain the miles per
+gallon for manual and automatic cars respectively. Let’s also take a look at the data frame itself:</p>
+<pre class="r"><code>mtcars_wide1 %&gt;% 
+    select(`0`, `1`, everything())</code></pre>
+<pre><code>## # A tibble: 32 x 11
+##      `0`   `1`   cyl  disp    hp  drat    wt  qsec    vs  gear  carb
+##    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+##  1  NA    21       6  160    110  3.9   2.62  16.5     0     4     4
+##  2  NA    21       6  160    110  3.9   2.88  17.0     0     4     4
+##  3  NA    22.8     4  108     93  3.85  2.32  18.6     1     4     1
+##  4  21.4  NA       6  258    110  3.08  3.22  19.4     1     3     1
+##  5  18.7  NA       8  360    175  3.15  3.44  17.0     0     3     2
+##  6  18.1  NA       6  225    105  2.76  3.46  20.2     1     3     1
+##  7  14.3  NA       8  360    245  3.21  3.57  15.8     0     3     4
+##  8  24.4  NA       4  147.    62  3.69  3.19  20       1     4     2
+##  9  22.8  NA       4  141.    95  3.92  3.15  22.9     1     4     2
+## 10  19.2  NA       6  168.   123  3.92  3.44  18.3     1     4     4
+## # … with 22 more rows</code></pre>
+<p>Now suppose that we want to spread the values of “am” times “cyl”, and filling the data with the
+values of “mpg”:</p>
+<pre class="r"><code>mtcars_wide2 &lt;- mtcars %&gt;% 
+    pivot_wide(names_from = c(&quot;am&quot;, &quot;cyl&quot;), values_from = &quot;mpg&quot;) 
+
+mtcars_wide2 %&gt;% 
+    select(matches(&quot;^0|1&quot;), everything())</code></pre>
+<pre><code>## # A tibble: 32 x 14
+##    `1_6` `1_4` `0_6` `0_8` `0_4` `1_8`  disp    hp  drat    wt  qsec    vs
+##    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+##  1    21  NA    NA    NA    NA      NA  160    110  3.9   2.62  16.5     0
+##  2    21  NA    NA    NA    NA      NA  160    110  3.9   2.88  17.0     0
+##  3    NA  22.8  NA    NA    NA      NA  108     93  3.85  2.32  18.6     1
+##  4    NA  NA    21.4  NA    NA      NA  258    110  3.08  3.22  19.4     1
+##  5    NA  NA    NA    18.7  NA      NA  360    175  3.15  3.44  17.0     0
+##  6    NA  NA    18.1  NA    NA      NA  225    105  2.76  3.46  20.2     1
+##  7    NA  NA    NA    14.3  NA      NA  360    245  3.21  3.57  15.8     0
+##  8    NA  NA    NA    NA    24.4    NA  147.    62  3.69  3.19  20       1
+##  9    NA  NA    NA    NA    22.8    NA  141.    95  3.92  3.15  22.9     1
+## 10    NA  NA    19.2  NA    NA      NA  168.   123  3.92  3.44  18.3     1
+## # … with 22 more rows, and 2 more variables: gear &lt;dbl&gt;, carb &lt;dbl&gt;</code></pre>
+<p>As you can see, this is easily achieved by simply providing more columns to <code>names_from =</code>.</p>
+<p>Finally, it is also possible to use an optional data set which contains the specifications of the
+new columns:</p>
+<pre class="r"><code>mtcars_spec &lt;- mtcars %&gt;% 
+    expand(am, cyl, .value = &quot;mpg&quot;) %&gt;%
+    unite(&quot;.name&quot;, am, cyl, remove = FALSE)
+
+mtcars_spec</code></pre>
+<pre><code>## # A tibble: 6 x 4
+##   .name    am   cyl .value
+##   &lt;chr&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt; 
+## 1 0_4       0     4 mpg   
+## 2 0_6       0     6 mpg   
+## 3 0_8       0     8 mpg   
+## 4 1_4       1     4 mpg   
+## 5 1_6       1     6 mpg   
+## 6 1_8       1     8 mpg</code></pre>
+<p>This optional data set defines how the columns “0_4”, “0_6” etc are constructed, and also the
+value that shall be used to fill in the values. “am” and “cyl” will be used to create the “.name”
+and the “mpg” column will be used for the “.value”:</p>
+<pre class="r"><code>mtcars %&gt;% 
+    pivot_wide(spec = mtcars_spec) %&gt;% 
+    select(matches(&quot;^0|1&quot;), everything())</code></pre>
+<pre><code>## # A tibble: 32 x 14
+##    `0_4` `0_6` `0_8` `1_4` `1_6` `1_8`  disp    hp  drat    wt  qsec    vs
+##    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+##  1  NA    NA    NA    NA      21    NA  160    110  3.9   2.62  16.5     0
+##  2  NA    NA    NA    NA      21    NA  160    110  3.9   2.88  17.0     0
+##  3  NA    NA    NA    22.8    NA    NA  108     93  3.85  2.32  18.6     1
+##  4  NA    21.4  NA    NA      NA    NA  258    110  3.08  3.22  19.4     1
+##  5  NA    NA    18.7  NA      NA    NA  360    175  3.15  3.44  17.0     0
+##  6  NA    18.1  NA    NA      NA    NA  225    105  2.76  3.46  20.2     1
+##  7  NA    NA    14.3  NA      NA    NA  360    245  3.21  3.57  15.8     0
+##  8  24.4  NA    NA    NA      NA    NA  147.    62  3.69  3.19  20       1
+##  9  22.8  NA    NA    NA      NA    NA  141.    95  3.92  3.15  22.9     1
+## 10  NA    19.2  NA    NA      NA    NA  168.   123  3.92  3.44  18.3     1
+## # … with 22 more rows, and 2 more variables: gear &lt;dbl&gt;, carb &lt;dbl&gt;</code></pre>
+<p>Using a spec is especially useful if you need to make new levels that are not in the data.
+For instance, suppose that there are actually 10-cylinder cars too, but they do not appear in our
+sample. We would like to make the fact that they’re missing explicit:</p>
+<pre class="r"><code>mtcars_spec2 &lt;- mtcars %&gt;% 
+    expand(am, &quot;cyl&quot; = c(cyl, 10), .value = &quot;mpg&quot;) %&gt;%
+    unite(&quot;.name&quot;, am, cyl, remove = FALSE)
+
+mtcars_spec2</code></pre>
+<pre><code>## # A tibble: 8 x 4
+##   .name    am   cyl .value
+##   &lt;chr&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt; 
+## 1 0_4       0     4 mpg   
+## 2 0_6       0     6 mpg   
+## 3 0_8       0     8 mpg   
+## 4 0_10      0    10 mpg   
+## 5 1_4       1     4 mpg   
+## 6 1_6       1     6 mpg   
+## 7 1_8       1     8 mpg   
+## 8 1_10      1    10 mpg</code></pre>
+<pre class="r"><code>mtcars %&gt;% 
+    pivot_wide(spec = mtcars_spec2) %&gt;% 
+    select(matches(&quot;^0|1&quot;), everything())</code></pre>
+<pre><code>## # A tibble: 32 x 16
+##    `0_4` `0_6` `0_8` `0_10` `1_4` `1_6` `1_8` `1_10`  disp    hp  drat
+##    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+##  1  NA    NA    NA       NA  NA      21    NA     NA  160    110  3.9 
+##  2  NA    NA    NA       NA  NA      21    NA     NA  160    110  3.9 
+##  3  NA    NA    NA       NA  22.8    NA    NA     NA  108     93  3.85
+##  4  NA    21.4  NA       NA  NA      NA    NA     NA  258    110  3.08
+##  5  NA    NA    18.7     NA  NA      NA    NA     NA  360    175  3.15
+##  6  NA    18.1  NA       NA  NA      NA    NA     NA  225    105  2.76
+##  7  NA    NA    14.3     NA  NA      NA    NA     NA  360    245  3.21
+##  8  24.4  NA    NA       NA  NA      NA    NA     NA  147.    62  3.69
+##  9  22.8  NA    NA       NA  NA      NA    NA     NA  141.    95  3.92
+## 10  NA    19.2  NA       NA  NA      NA    NA     NA  168.   123  3.92
+## # … with 22 more rows, and 5 more variables: wt &lt;dbl&gt;, qsec &lt;dbl&gt;,
+## #   vs &lt;dbl&gt;, gear &lt;dbl&gt;, carb &lt;dbl&gt;</code></pre>
+<p>As you can see, we now have two more columns have been added, and they are full of NA’s.</p>
+<p>Now, let’s try to go from wide to long data sets, using <code>pivot_long()</code>:</p>
+<pre class="r"><code>mtcars_wide1 %&gt;% 
+  pivot_long(cols = c(`1`, `0`), names_to = &quot;am&quot;, values_to = &quot;mpg&quot;) %&gt;% 
+  select(am, mpg, everything())</code></pre>
+<pre><code>## # A tibble: 64 x 11
+##    am      mpg   cyl  disp    hp  drat    wt  qsec    vs  gear  carb
+##    &lt;chr&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+##  1 1      21       6   160   110  3.9   2.62  16.5     0     4     4
+##  2 0      NA       6   160   110  3.9   2.62  16.5     0     4     4
+##  3 1      21       6   160   110  3.9   2.88  17.0     0     4     4
+##  4 0      NA       6   160   110  3.9   2.88  17.0     0     4     4
+##  5 1      22.8     4   108    93  3.85  2.32  18.6     1     4     1
+##  6 0      NA       4   108    93  3.85  2.32  18.6     1     4     1
+##  7 1      NA       6   258   110  3.08  3.22  19.4     1     3     1
+##  8 0      21.4     6   258   110  3.08  3.22  19.4     1     3     1
+##  9 1      NA       8   360   175  3.15  3.44  17.0     0     3     2
+## 10 0      18.7     8   360   175  3.15  3.44  17.0     0     3     2
+## # … with 54 more rows</code></pre>
+<p>The arguments of <code>pivot_long()</code> are quite explicit too, and similar to the ones in <code>pivot_wide()</code>.
+<code>cols =</code> is where the user specifies the columns that need to be pivoted. <code>names_to =</code> is where
+the user can specify the name of the new columns, whose levels will be exactly the ones specified
+to <code>cols =</code>. <code>values_to =</code> is where the user specifies the column name of the new column that
+will contain the values.</p>
+<p>It is also possible to specify the columns that should not be transformed, by using <code>-</code>:</p>
+<pre class="r"><code>mtcars_wide1 %&gt;% 
+  pivot_long(cols = -matches(&quot;^[[:alpha:]]&quot;), names_to = &quot;am&quot;, values_to = &quot;mpg&quot;) %&gt;% 
+  select(am, mpg, everything())</code></pre>
+<pre><code>## # A tibble: 64 x 11
+##    am      mpg   cyl  disp    hp  drat    wt  qsec    vs  gear  carb
+##    &lt;chr&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+##  1 1      21       6   160   110  3.9   2.62  16.5     0     4     4
+##  2 0      NA       6   160   110  3.9   2.62  16.5     0     4     4
+##  3 1      21       6   160   110  3.9   2.88  17.0     0     4     4
+##  4 0      NA       6   160   110  3.9   2.88  17.0     0     4     4
+##  5 1      22.8     4   108    93  3.85  2.32  18.6     1     4     1
+##  6 0      NA       4   108    93  3.85  2.32  18.6     1     4     1
+##  7 1      NA       6   258   110  3.08  3.22  19.4     1     3     1
+##  8 0      21.4     6   258   110  3.08  3.22  19.4     1     3     1
+##  9 1      NA       8   360   175  3.15  3.44  17.0     0     3     2
+## 10 0      18.7     8   360   175  3.15  3.44  17.0     0     3     2
+## # … with 54 more rows</code></pre>
+<p>Here the columns that should not be modified are all those that start with a letter, hence the “<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a>”
+regular expression. It is also possible to remove all the <code>NA</code>’s from the data frame, with <code>na.rm =</code>.</p>
+<pre class="r"><code>mtcars_wide1 %&gt;% 
+  pivot_long(cols = c(`1`, `0`), names_to = &quot;am&quot;, values_to = &quot;mpg&quot;, na.rm = TRUE) %&gt;% 
+  select(am, mpg, everything())</code></pre>
+<pre><code>## # A tibble: 32 x 11
+##    am      mpg   cyl  disp    hp  drat    wt  qsec    vs  gear  carb
+##    &lt;chr&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+##  1 1      21       6  160    110  3.9   2.62  16.5     0     4     4
+##  2 1      21       6  160    110  3.9   2.88  17.0     0     4     4
+##  3 1      22.8     4  108     93  3.85  2.32  18.6     1     4     1
+##  4 0      21.4     6  258    110  3.08  3.22  19.4     1     3     1
+##  5 0      18.7     8  360    175  3.15  3.44  17.0     0     3     2
+##  6 0      18.1     6  225    105  2.76  3.46  20.2     1     3     1
+##  7 0      14.3     8  360    245  3.21  3.57  15.8     0     3     4
+##  8 0      24.4     4  147.    62  3.69  3.19  20       1     4     2
+##  9 0      22.8     4  141.    95  3.92  3.15  22.9     1     4     2
+## 10 0      19.2     6  168.   123  3.92  3.44  18.3     1     4     4
+## # … with 22 more rows</code></pre>
+<p>We can also pivot data frames where the names of the columns are made of two or more variables,
+for example in our <code>mtcars_wide2</code> data frame:</p>
+<pre class="r"><code>mtcars_wide2 %&gt;% 
+    select(matches(&quot;^0|1&quot;), everything())</code></pre>
+<pre><code>## # A tibble: 32 x 14
+##    `1_6` `1_4` `0_6` `0_8` `0_4` `1_8`  disp    hp  drat    wt  qsec    vs
+##    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+##  1    21  NA    NA    NA    NA      NA  160    110  3.9   2.62  16.5     0
+##  2    21  NA    NA    NA    NA      NA  160    110  3.9   2.88  17.0     0
+##  3    NA  22.8  NA    NA    NA      NA  108     93  3.85  2.32  18.6     1
+##  4    NA  NA    21.4  NA    NA      NA  258    110  3.08  3.22  19.4     1
+##  5    NA  NA    NA    18.7  NA      NA  360    175  3.15  3.44  17.0     0
+##  6    NA  NA    18.1  NA    NA      NA  225    105  2.76  3.46  20.2     1
+##  7    NA  NA    NA    14.3  NA      NA  360    245  3.21  3.57  15.8     0
+##  8    NA  NA    NA    NA    24.4    NA  147.    62  3.69  3.19  20       1
+##  9    NA  NA    NA    NA    22.8    NA  141.    95  3.92  3.15  22.9     1
+## 10    NA  NA    19.2  NA    NA      NA  168.   123  3.92  3.44  18.3     1
+## # … with 22 more rows, and 2 more variables: gear &lt;dbl&gt;, carb &lt;dbl&gt;</code></pre>
+<p>All the columns that start with either “0” or “1” must be pivoted:</p>
+<pre class="r"><code>mtcars_wide2 %&gt;% 
+  pivot_long(cols = matches(&quot;0|1&quot;), names_to = &quot;am_cyl&quot;, values_to = &quot;mpg&quot;, na.rm = TRUE) %&gt;% 
+  select(am_cyl, everything())</code></pre>
+<pre><code>## # A tibble: 32 x 10
+##    am_cyl  disp    hp  drat    wt  qsec    vs  gear  carb   mpg
+##    &lt;chr&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+##  1 1_6     160    110  3.9   2.62  16.5     0     4     4  21  
+##  2 1_6     160    110  3.9   2.88  17.0     0     4     4  21  
+##  3 1_4     108     93  3.85  2.32  18.6     1     4     1  22.8
+##  4 0_6     258    110  3.08  3.22  19.4     1     3     1  21.4
+##  5 0_8     360    175  3.15  3.44  17.0     0     3     2  18.7
+##  6 0_6     225    105  2.76  3.46  20.2     1     3     1  18.1
+##  7 0_8     360    245  3.21  3.57  15.8     0     3     4  14.3
+##  8 0_4     147.    62  3.69  3.19  20       1     4     2  24.4
+##  9 0_4     141.    95  3.92  3.15  22.9     1     4     2  22.8
+## 10 0_6     168.   123  3.92  3.44  18.3     1     4     4  19.2
+## # … with 22 more rows</code></pre>
+<p>Now, there is one new column, “am_cyl” which must still be transformed by separating “am_cyl” into two new columns:</p>
+<pre class="r"><code>mtcars_wide2 %&gt;% 
+  pivot_long(cols = matches(&quot;0|1&quot;), names_to = &quot;am_cyl&quot;, values_to = &quot;mpg&quot;, na.rm = TRUE) %&gt;% 
+  separate(am_cyl, into = c(&quot;am&quot;, &quot;cyl&quot;), sep = &quot;_&quot;) %&gt;% 
+  select(am, cyl, everything())</code></pre>
+<pre><code>## # A tibble: 32 x 11
+##    am    cyl    disp    hp  drat    wt  qsec    vs  gear  carb   mpg
+##    &lt;chr&gt; &lt;chr&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+##  1 1     6      160    110  3.9   2.62  16.5     0     4     4  21  
+##  2 1     6      160    110  3.9   2.88  17.0     0     4     4  21  
+##  3 1     4      108     93  3.85  2.32  18.6     1     4     1  22.8
+##  4 0     6      258    110  3.08  3.22  19.4     1     3     1  21.4
+##  5 0     8      360    175  3.15  3.44  17.0     0     3     2  18.7
+##  6 0     6      225    105  2.76  3.46  20.2     1     3     1  18.1
+##  7 0     8      360    245  3.21  3.57  15.8     0     3     4  14.3
+##  8 0     4      147.    62  3.69  3.19  20       1     4     2  24.4
+##  9 0     4      141.    95  3.92  3.15  22.9     1     4     2  22.8
+## 10 0     6      168.   123  3.92  3.44  18.3     1     4     4  19.2
+## # … with 22 more rows</code></pre>
+<p>It is also possible to achieve this using a data frame with the specification of what you need:</p>
+<pre class="r"><code>mtcars_spec_long &lt;- mtcars_wide2 %&gt;% 
+  pivot_long_spec(matches(&quot;0|1&quot;), values_to = &quot;mpg&quot;) %&gt;% 
+  separate(name, c(&quot;am&quot;, &quot;cyl&quot;), sep = &quot;_&quot;)
+
+mtcars_spec_long</code></pre>
+<pre><code>## # A tibble: 6 x 4
+##   .name .value am    cyl  
+##   &lt;chr&gt; &lt;chr&gt;  &lt;chr&gt; &lt;chr&gt;
+## 1 1_6   mpg    1     6    
+## 2 1_4   mpg    1     4    
+## 3 0_6   mpg    0     6    
+## 4 0_8   mpg    0     8    
+## 5 0_4   mpg    0     4    
+## 6 1_8   mpg    1     8</code></pre>
+<p>Providing this spec to <code>pivot_long()</code> solves the issue:</p>
+<pre class="r"><code>mtcars_wide2 %&gt;% 
+  pivot_long(spec = mtcars_spec_long, na.rm = TRUE) %&gt;% 
+  select(am, cyl, everything())</code></pre>
+<pre><code>## # A tibble: 32 x 11
+##    am    cyl    disp    hp  drat    wt  qsec    vs  gear  carb   mpg
+##    &lt;chr&gt; &lt;chr&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+##  1 1     6      160    110  3.9   2.62  16.5     0     4     4  21  
+##  2 1     6      160    110  3.9   2.88  17.0     0     4     4  21  
+##  3 1     4      108     93  3.85  2.32  18.6     1     4     1  22.8
+##  4 0     6      258    110  3.08  3.22  19.4     1     3     1  21.4
+##  5 0     8      360    175  3.15  3.44  17.0     0     3     2  18.7
+##  6 0     6      225    105  2.76  3.46  20.2     1     3     1  18.1
+##  7 0     8      360    245  3.21  3.57  15.8     0     3     4  14.3
+##  8 0     4      147.    62  3.69  3.19  20       1     4     2  24.4
+##  9 0     4      141.    95  3.92  3.15  22.9     1     4     2  22.8
+## 10 0     6      168.   123  3.92  3.44  18.3     1     4     4  19.2
+## # … with 22 more rows</code></pre>
+<p>Stay tuned to Hadley Wickham’s <a href="https://twitter.com/hadleywickham">twitter</a> as there will definitely
+be announcements soon!</p>
+<p>Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>.</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>[:alpha:]<a href="#fnref1" class="footnote-back">↩</a></p></li>
+</ol>
+</div>
