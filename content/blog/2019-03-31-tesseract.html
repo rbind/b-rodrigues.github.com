@@ -1,0 +1,158 @@
+---
+date: 2019-03-31
+title: "Get text from pdfs or images using OCR: a tutorial with {tesseract} and {magick}"
+tags: [R]
+menu:
+  main:
+    parent: Blog
+    identifier: /blog/tesseract
+    weight: 1
+---
+
+
+
+<div style="text-align:center;">
+<p><a href="https://en.wikipedia.org/wiki/Michel_Rodange">
+<img src="/img/michelrodange.jpg" title = "The high school I attended was named after this gentleman"></a></p>
+</div>
+<p>In this blog post I’m going to show you how you can extract text from scanned pdf files, or pdf files
+where no text recognition was performed. (For pdfs where text recognition was performed, you can
+read my <a href="https://www.brodrigues.co/blog/2018-06-10-scraping_pdfs/">other blog post</a>).</p>
+<p>The pdf I’m going to use can be downloaded from <a href="http://www.luxemburgensia.bnl.lu/cgi/getPdf1_2.pl?mode=item&amp;id=7110">here</a>.
+It’s a poem titled, <em>D’Léierchen (Dem Léiweckerche säi Lidd)</em>,
+written by Michel Rodange, arguably Luxembourg’s most well known writer and poet. Michel Rodange is
+mostly known for his fable, <em>Renert oder De Fuuß am Frack an a Ma’nsgrëßt</em>, starring a central European
+<a href="https://en.wikipedia.org/wiki/Reynard_the_Fox">trickster anthropomorphic red fox</a>.</p>
+<p><img src="https://upload.wikimedia.org/wikipedia/commons/d/d4/Reynard-the-fox.jpg" /><!-- --></p>
+<p>Anyway, back to the point of this blog post. How can be get data from a pdf where no text recognition
+was performed (or, how can we get text from an image)? The pdf we need the text from looks like
+this:</p>
+<p><img src="/img/dleierchen_03.png" /><!-- --></p>
+<p>To get the text from the pdf, we can use the <code>{tesseract}</code> package, which provides bindings to the <code>tesseract</code> program.
+<code>tesseract</code> is an open source OCR engine developed by Google. But before that, let’s use the <code>{pdftools}</code>
+package to convert the pdf to png. This is because <code>{tesseract}</code> requires images as input (if you
+provide a pdf file, it will converted on the fly). Let’s first load the needed packages:</p>
+<pre class="r"><code>library(tidyverse)
+library(tesseract)
+library(pdftools)
+library(magick)</code></pre>
+<p>And now let’s convert the pdf to png files (in plural, because we’ll get one image per page of the pdf):</p>
+<pre class="r"><code>pngfile &lt;- pdftools::pdf_convert(&quot;path/to/pdf&quot;, dpi = 600)</code></pre>
+<p>This will generate 14 png files. I erase the ones that are not needed, such as the title page. Now,
+let’s read in all the image files:</p>
+<pre class="r"><code>path &lt;- dir(path = &quot;path/to/pngs&quot;, pattern = &quot;*.png&quot;, full.names = TRUE)
+
+images &lt;- map(path, magick::image_read)</code></pre>
+<p>The <code>images</code> object is a list of <code>magick-image</code>s, which we can parse. BUUUUUT! There’s a problem.
+The text is laid out in two columns. Which means that the first line after performing OCR will be
+the first line of the first column, and the first line of the second column joined together. Same
+for the other lines of course. So ideally, I’d need to split the file in the middle, and then
+perform OCR. This is easily done with the <code>{magick}</code> package:</p>
+<pre class="r"><code>first_half &lt;- map(images, ~image_crop(., geometry = &quot;2307x6462&quot;))
+
+second_half &lt;- map(images, ~image_crop(., geometry = &quot;2307x6462+2307+0&quot;))</code></pre>
+<p>Because the pngs are 4614 by 6962 pixels, I can get the first half of the png by cropping at
+“2307x6462” (I decrease the height a bit to get rid of the page number), and the second half by
+applying the same logic, but starting the cropping at the “2307+0” position. The result looks like
+this:</p>
+<p><img src="/img/dleierchen_cropped.png" /><!-- --></p>
+<p>Much better! Now I need to join these two lists together. I cannot simply join them. Consider
+the following example:</p>
+<pre class="r"><code>one &lt;- list(1, 3, 5)
+
+two &lt;- list(2, 4, 6)</code></pre>
+<p>This is the setup I currently have; <code>first_half</code> contains odd pages, and <code>second_half</code> contains
+even pages. The result I want would look like this:</p>
+<pre class="r"><code>list(1, 2, 3, 4, 5, 6)</code></pre>
+<pre><code>## [[1]]
+## [1] 1
+## 
+## [[2]]
+## [1] 2
+## 
+## [[3]]
+## [1] 3
+## 
+## [[4]]
+## [1] 4
+## 
+## [[5]]
+## [1] 5
+## 
+## [[6]]
+## [1] 6</code></pre>
+<p>There is a very elegant solution, with <code>reduce2()</code> from the <code>{purrr}</code> package. <code>reduce()</code> takes one
+list and a function, and … <em>reduces</em> the list to a single element. For instance:</p>
+<pre class="r"><code>reduce(list(1, 2, 3), paste)</code></pre>
+<pre><code>## [1] &quot;1 2 3&quot;</code></pre>
+<p><code>reduce2()</code> is very similar, but takes in two lists, but the second list must be one element shorter:</p>
+<pre class="r"><code>reduce2(list(1, 2, 3), list(&quot;a&quot;, &quot;b&quot;), paste)</code></pre>
+<pre><code>## [1] &quot;1 2 a 3 b&quot;</code></pre>
+<p>So we cannot simply use <code>reduce2()</code> on lists <code>one</code> and <code>two</code>, because they’re the same length. So let’s
+prepend a value to <code>one</code>, using the <code>prepend()</code> function of <code>{purrr}</code>:</p>
+<pre class="r"><code>prepend(one, 0) %&gt;% 
+    reduce2(two, c)</code></pre>
+<pre><code>## [1] 0 1 2 3 4 5 6</code></pre>
+<p>Exactly what we need! Let’s apply this trick to our lists:</p>
+<pre class="r"><code>merged_list &lt;- prepend(first_half, NA) %&gt;% 
+    reduce2(second_half, c) %&gt;% 
+    discard(is.na)</code></pre>
+<p>I’ve prepended <code>NA</code> to the first list, and then used <code>reduce2()</code> and then used <code>discard(is.na)</code> to
+remove the <code>NA</code> I’ve added at the start. Now, we can use OCR to get the text:</p>
+<pre class="r"><code>text_list &lt;- map(merged_list, ocr)</code></pre>
+<p><code>ocr()</code> uses a model trained on English by default, and even though there is a model trained on
+Luxembourguish, the one trained on English works better! Very likely because the English model was trained
+on a lot more data than the Luxembourguish one. I was worried the English model was not going to
+recognize characters such as <code>é</code>, but no, it worked quite well.</p>
+<p>This how it looks like:</p>
+<pre class="r"><code>text_list
+
+[[1]]
+[1] &quot;Lhe\n| Kaum huet d’Feld dat fréndlecht Feier\nVun der Aussentssonn gesunn\nAs mam Plou aus Stall a Scheier\n* D’lescht e Bauer ausgezunn.\nFir de Plou em nach ze dreiwen\nWar sai Jéngelchen alaert,\nDeen nét wéllt doheem méi bleiwen\n8 An esouz um viischte Paerd.\nOp der Schéllche stoung ze denken\nD’Léierche mam Hierz voll Lidder\nFir de Béifchen nach ze zanken\n12 Duckelt s’an de Som sech nidder.\nBis e laascht war, an du stémmt se\nUn e Liddchen, datt et kraacht\nOp der Nouteleder klémmt se\n16 Datt dem Béifchen d’Haerz alt laacht.\nAn du sot en: Papp, ech mengen\nBal de Vull dee kénnt och schwatzen.\nLauschter, sot de Papp zum Klengen,\n20 Ech kann d’Liddchen iwersetzen.\nI\nBas de do, mii léiwe Fréndchen\nMa de Wanter dee war laang!\nKuck, ech hat keng fréilech Sténnchen\n24 *T war fir dech a mech mer baang.\nAn du koum ech dech besichen\nWell du goungs nét méi eraus\nMann wat hues jo du eng Kichen\n28 Wat eng Scheier wat en Haus.\nWi zerguttster, a wat Saachen!\nAn déng Frache gouf mer Brout.\nAn déng Kanner, wi se laachen,\n32, An hir Backelcher, wi rout!\nJo, bei dir as Rot nét deier!\nJo a kuck mer wat eng Méscht.\nDat gét Saache fir an d’Scheier\n36 An och Sué fir an d’Késcht.\nMuerges waars de schuns um Dreschen\nIr der Daudes d’Schung sech stréckt\nBas am Do duurch Wis a Paschen\n40 Laascht all Waassergruef geschréckt.\n&quot;
+....
+....</code></pre>
+<p>We still need to split at the “” character:</p>
+<pre class="r"><code>text_list &lt;- text_list %&gt;% 
+    map(., ~str_split(., &quot;\n&quot;))</code></pre>
+<p>The end result:</p>
+<pre class="r"><code>text_list
+
+[[1]]
+[[1]][[1]]
+ [1] &quot;Lhe&quot;                                      &quot;| Kaum huet d’Feld dat fréndlecht Feier&quot; 
+ [3] &quot;Vun der Aussentssonn gesunn&quot;              &quot;As mam Plou aus Stall a Scheier&quot;         
+ [5] &quot;* D’lescht e Bauer ausgezunn.&quot;            &quot;Fir de Plou em nach ze dreiwen&quot;          
+ [7] &quot;War sai Jéngelchen alaert,&quot;               &quot;Deen nét wéllt doheem méi bleiwen&quot;       
+ [9] &quot;8 An esouz um viischte Paerd.&quot;            &quot;Op der Schéllche stoung ze denken&quot;       
+[11] &quot;D’Léierche mam Hierz voll Lidder&quot;         &quot;Fir de Béifchen nach ze zanken&quot;          
+[13] &quot;12 Duckelt s’an de Som sech nidder.&quot;      &quot;Bis e laascht war, an du stémmt se&quot;      
+[15] &quot;Un e Liddchen, datt et kraacht&quot;           &quot;Op der Nouteleder klémmt se&quot;             
+[17] &quot;16 Datt dem Béifchen d’Haerz alt laacht.&quot; &quot;An du sot en: Papp, ech mengen&quot;          
+[19] &quot;Bal de Vull dee kénnt och schwatzen.&quot;     &quot;Lauschter, sot de Papp zum Klengen,&quot;     
+[21] &quot;20 Ech kann d’Liddchen iwersetzen.&quot;       &quot;I&quot;                                       
+[23] &quot;Bas de do, mii léiwe Fréndchen&quot;           &quot;Ma de Wanter dee war laang!&quot;             
+[25] &quot;Kuck, ech hat keng fréilech Sténnchen&quot;    &quot;24 *T war fir dech a mech mer baang.&quot;    
+[27] &quot;An du koum ech dech besichen&quot;             &quot;Well du goungs nét méi eraus&quot;            
+[29] &quot;Mann wat hues jo du eng Kichen&quot;           &quot;28 Wat eng Scheier wat en Haus.&quot;         
+[31] &quot;Wi zerguttster, a wat Saachen!&quot;           &quot;An déng Frache gouf mer Brout.&quot;          
+[33] &quot;An déng Kanner, wi se laachen,&quot;           &quot;32, An hir Backelcher, wi rout!&quot;         
+[35] &quot;Jo, bei dir as Rot nét deier!&quot;            &quot;Jo a kuck mer wat eng Méscht.&quot;           
+[37] &quot;Dat gét Saache fir an d’Scheier&quot;          &quot;36 An och Sué fir an d’Késcht.&quot;          
+[39] &quot;Muerges waars de schuns um Dreschen&quot;      &quot;Ir der Daudes d’Schung sech stréckt&quot;     
+[41] &quot;Bas am Do duurch Wis a Paschen&quot;           &quot;40 Laascht all Waassergruef geschréckt.&quot; 
+[43] &quot;&quot;  
+...
+...</code></pre>
+<p>Perfect! Some more cleaning would be needed though. For example, I need to remove the little
+annotations that are included:</p>
+<p><img src="/img/dleierchen_anot.png" /><!-- --></p>
+<p>I don’t know yet how I’m going to do that.I also need to remove the line numbers at the beginning
+of every fourth line, but this is easily done with a simple regular expression:</p>
+<pre class="r"><code>str_remove_all(c(&quot;12 bla&quot;, &quot;blb&quot;, &quot;123 blc&quot;), &quot;^\\d{1,}\\s+&quot;)</code></pre>
+<pre><code>## [1] &quot;bla&quot; &quot;blb&quot; &quot;blc&quot;</code></pre>
+<p>But this will be left for a future blog post!</p>
+<p>Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>.</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
