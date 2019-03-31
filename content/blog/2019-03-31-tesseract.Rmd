@@ -28,7 +28,7 @@ mostly known for his fable, *Renert oder De Fuuß am Frack an a Ma'nsgrëßt*, s
 knitr::include_graphics("https://upload.wikimedia.org/wikipedia/commons/d/d4/Reynard-the-fox.jpg")
 ```
 
-Anyway, back to the point of this blog post. How can be get data from a pdf where no text recognition
+Anyway, back to the point of this blog post. How can we get data from a pdf where no text recognition
 was performed (or, how can we get text from an image)? The pdf we need the text from looks like
 this:
 
