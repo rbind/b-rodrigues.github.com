@@ -148,7 +148,7 @@ Luxembourguish, the one trained on English works better! Very likely because the
 on a lot more data than the Luxembourguish one. I was worried the English model was not going to 
 recognize characters such as `é`, but no, it worked quite well.
 
-This how it looks like:
+This is how it looks like:
 
 ```{r, eval=FALSE}
 text_list
@@ -159,7 +159,7 @@ text_list
 ....
 ```
 
-We still need to split at the "\n" character:
+We still need to split at the `"\n"` character:
 
 ```{r, eval=FALSE}
 text_list <- text_list %>% 

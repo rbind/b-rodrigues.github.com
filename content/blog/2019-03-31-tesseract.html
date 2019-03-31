@@ -104,14 +104,14 @@ remove the <code>NA</code> I’ve added at the start. Now, we can use OCR to get
 Luxembourguish, the one trained on English works better! Very likely because the English model was trained
 on a lot more data than the Luxembourguish one. I was worried the English model was not going to
 recognize characters such as <code>é</code>, but no, it worked quite well.</p>
-<p>This how it looks like:</p>
+<p>This is how it looks like:</p>
 <pre class="r"><code>text_list
 
 [[1]]
 [1] &quot;Lhe\n| Kaum huet d’Feld dat fréndlecht Feier\nVun der Aussentssonn gesunn\nAs mam Plou aus Stall a Scheier\n* D’lescht e Bauer ausgezunn.\nFir de Plou em nach ze dreiwen\nWar sai Jéngelchen alaert,\nDeen nét wéllt doheem méi bleiwen\n8 An esouz um viischte Paerd.\nOp der Schéllche stoung ze denken\nD’Léierche mam Hierz voll Lidder\nFir de Béifchen nach ze zanken\n12 Duckelt s’an de Som sech nidder.\nBis e laascht war, an du stémmt se\nUn e Liddchen, datt et kraacht\nOp der Nouteleder klémmt se\n16 Datt dem Béifchen d’Haerz alt laacht.\nAn du sot en: Papp, ech mengen\nBal de Vull dee kénnt och schwatzen.\nLauschter, sot de Papp zum Klengen,\n20 Ech kann d’Liddchen iwersetzen.\nI\nBas de do, mii léiwe Fréndchen\nMa de Wanter dee war laang!\nKuck, ech hat keng fréilech Sténnchen\n24 *T war fir dech a mech mer baang.\nAn du koum ech dech besichen\nWell du goungs nét méi eraus\nMann wat hues jo du eng Kichen\n28 Wat eng Scheier wat en Haus.\nWi zerguttster, a wat Saachen!\nAn déng Frache gouf mer Brout.\nAn déng Kanner, wi se laachen,\n32, An hir Backelcher, wi rout!\nJo, bei dir as Rot nét deier!\nJo a kuck mer wat eng Méscht.\nDat gét Saache fir an d’Scheier\n36 An och Sué fir an d’Késcht.\nMuerges waars de schuns um Dreschen\nIr der Daudes d’Schung sech stréckt\nBas am Do duurch Wis a Paschen\n40 Laascht all Waassergruef geschréckt.\n&quot;
 ....
 ....</code></pre>
-<p>We still need to split at the “” character:</p>
+<p>We still need to split at the <code>"\n"</code> character:</p>
 <pre class="r"><code>text_list &lt;- text_list %&gt;% 
     map(., ~str_split(., &quot;\n&quot;))</code></pre>
 <p>The end result:</p>
