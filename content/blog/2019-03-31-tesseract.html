@@ -29,9 +29,12 @@ was performed (or, how can we get text from an image)? The pdf we need the text 
 this:</p>
 <p><img src="/img/dleierchen_03.png" /><!-- --></p>
 <p>To get the text from the pdf, we can use the <code>{tesseract}</code> package, which provides bindings to the <code>tesseract</code> program.
-<code>tesseract</code> is an open source OCR engine developed by Google. But before that, let’s use the <code>{pdftools}</code>
-package to convert the pdf to png. This is because <code>{tesseract}</code> requires images as input (if you
-provide a pdf file, it will converted on the fly). Let’s first load the needed packages:</p>
+<code>tesseract</code> is an open source OCR engine developed by Google. This means that first you will need
+to install the <code>tesseract</code> program on your system. You can follow the intructions from <code>tesseract</code>’s
+github <a href="https://github.com/tesseract-ocr/tesseract">page</a>. <code>tesseract</code> is currently at version 4.</p>
+<p>Before applying OCR to a pdf, let’s first use the <code>{pdftools}</code> package to convert the pdf to png.
+This is because <code>{tesseract}</code> requires images as input (if you provide a pdf file, it will
+converted on the fly). Let’s first load the needed packages:</p>
 <pre class="r"><code>library(tidyverse)
 library(tesseract)
 library(pdftools)

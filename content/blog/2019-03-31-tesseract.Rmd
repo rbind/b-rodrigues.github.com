@@ -37,9 +37,13 @@ knitr::include_graphics("/img/dleierchen_03.png")
 ```
 
 To get the text from the pdf, we can use the `{tesseract}` package, which provides bindings to the `tesseract` program.
-`tesseract` is an open source OCR engine developed by Google. But before that, let's use the `{pdftools}`
-package to convert the pdf to png. This is because `{tesseract}` requires images as input (if you
-provide a pdf file, it will converted on the fly). Let's first load the needed packages:
+`tesseract` is an open source OCR engine developed by Google. This means that first you will need 
+to install the `tesseract` program on your system. You can follow the intructions from `tesseract`'s
+github [page](https://github.com/tesseract-ocr/tesseract). `tesseract` is currently at version 4.
+
+Before applying OCR to a pdf, let's first use the `{pdftools}` package to convert the pdf to png. 
+This is because `{tesseract}` requires images as input (if you provide a pdf file, it will 
+converted on the fly). Let's first load the needed packages:
 
 ```{r, eval=FALSE}
 library(tidyverse)
