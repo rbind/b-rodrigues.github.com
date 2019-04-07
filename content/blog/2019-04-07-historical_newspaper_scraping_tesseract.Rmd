@@ -24,7 +24,7 @@ knitr::include_graphics("/img/market_price_table.png")
 
 
 I wanted to see how easy it was to extract these tables from the newspapers and then make it available. 
-It was a bit more
+It was a bit more complicated than anticipated.
 
 ## Download data
 
