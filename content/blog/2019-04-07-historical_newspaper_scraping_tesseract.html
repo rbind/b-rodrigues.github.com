@@ -20,16 +20,16 @@ to do is NLP, but there is also a lot of numerical data inside historical newspa
 For instance, you can find these tables that show the market prices of the day in the <em>L’Indépendance Luxembourgeoise</em>:</p>
 <p><img src="/img/market_price_table.png" /><!-- --></p>
 <p>I wanted to see how easy it was to extract these tables from the newspapers and then make it available.
-It was a bit more</p>
+It was a bit more complicated than anticipated.</p>
 <div id="download-data" class="section level2">
 <h2>Download data</h2>
-<p>The first step is to download the data. For this, I have used the code <span class="citation">[@yvesmaurer]</span>(<a href="https://twitter.com/yvesmaurer" class="uri">https://twitter.com/yvesmaurer</a>) which you
+<p>The first step is to download the data. For this, I have used the code <a href="https://twitter.com/yvesmaurer"><code>@yvesmaurer</code></a> which you
 can find <a href="https://github.com/ymaurer/eluxemburgensia-opendata-ark">here</a>. This code makes it easy to download individual
 pages of certain newspapers,
 for instance <a href="https://iiif.eluxemburgensia.lu/iiif/2/ark:%2F70795%2F1drtkj%2Fpages%2F1/full/full/0/default.jpg">this one</a>. The
-pages I am interested in are page 3, which contain the tables I’m interested in, for example
+pages I am interested in are pages 3, which contain the tables I need, for example
 <a href="https://iiif.eluxemburgensia.lu/iiif/2/ark:%2F70795%2F1drtkj%2Fpages%2F3/full/full/0/default.jpg">here</a>.
-<span class="citation">[@yvesmaurer]</span>(<a href="https://twitter.com/yvesmaurer" class="uri">https://twitter.com/yvesmaurer</a>)’s code makes it easy to find the download links, which look like
+<a href="https://twitter.com/yvesmaurer"><code>@yvesmaurer</code></a>’s code makes it easy to find the download links, which look like
 this: <code>https://iiif.eluxemburgensia.lu/iiif/2/ark:%2F70795%2F1drtkj%2Fpages%2F3/full/full/0/default.jpg</code>. It is also possible to
 crop the image by changing some parameters <a href="https://iiif.eluxemburgensia.lu/iiif/2/ark:%2F70795%2Fwsvhwh%2Fpages%2F3/pct:74,0,100,100/full/0/default.jpg">like so</a>.
 This is helpful, because it makes the image smaller. The tables I’m interested in are always in the last column, so I can can use
@@ -69,15 +69,15 @@ download_image &lt;- function(link){
         NULL
         }
 }</code></pre>
-<p>the download links can be obtained using <span class="citation">[@yvesmaurer]</span>(<a href="https://twitter.com/yvesmaurer" class="uri">https://twitter.com/yvesmaurer</a>)’s code. This code only downloads
+<p>This code only downloads
 an image if the <code>ocr()</code> from the {tesseract} (which does, you guessed it, OCR) detects the string “marché de luxembourg” which
 is the title of the tables. This is a bit extreme, because if a single letter cannot be correctly detected by the OCR, the page will not
 be downloaded. But I figured that if this string could not be easily recognized, this would be a canary telling me that the text
 inside the table would also not be easily recognized. So it might be extreme, but my hope was that it would make detecting
 the table itself easier. Turned out it wasn’t so easy, but more on this later.</p>
 </div>
-<div id="prepare-images" class="section level2">
-<h2>Prepare images</h2>
+<div id="preparing-images" class="section level2">
+<h2>Preparing images</h2>
 <p>Now that I have the images, I will prepare them to make character recognition easier. To do this, I’m using the <code>{magick}</code>
 package:</p>
 <pre class="r"><code>library(tidyverse)

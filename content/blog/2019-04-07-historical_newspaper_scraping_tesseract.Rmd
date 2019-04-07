@@ -28,13 +28,13 @@ It was a bit more complicated than anticipated.
 
 ## Download data
 
-The first step is to download the data. For this, I have used the code [@yvesmaurer](https://twitter.com/yvesmaurer) which you 
+The first step is to download the data. For this, I have used the code [`@yvesmaurer`](https://twitter.com/yvesmaurer) which you 
 can find [here](https://github.com/ymaurer/eluxemburgensia-opendata-ark). This code makes it easy to download individual 
 pages of certain newspapers, 
 for instance [this one](https://iiif.eluxemburgensia.lu/iiif/2/ark:%2F70795%2F1drtkj%2Fpages%2F1/full/full/0/default.jpg). The 
-pages I am interested in are page 3, which contain the tables I'm interested in, for example 
+pages I am interested in are pages 3, which contain the tables I need, for example 
 [here](https://iiif.eluxemburgensia.lu/iiif/2/ark:%2F70795%2F1drtkj%2Fpages%2F3/full/full/0/default.jpg).
-[@yvesmaurer](https://twitter.com/yvesmaurer)'s code makes it easy to find the download links, which look like 
+[`@yvesmaurer`](https://twitter.com/yvesmaurer)'s code makes it easy to find the download links, which look like 
 this: `https://iiif.eluxemburgensia.lu/iiif/2/ark:%2F70795%2F1drtkj%2Fpages%2F3/full/full/0/default.jpg`. It is also possible to
 crop the image by changing some parameters [like so](https://iiif.eluxemburgensia.lu/iiif/2/ark:%2F70795%2Fwsvhwh%2Fpages%2F3/pct:74,0,100,100/full/0/default.jpg).
 This is helpful, because it makes the image smaller. The tables I'm interested in are always in the last column, so I can can use
@@ -79,14 +79,14 @@ download_image <- function(link){
 }
 ```
 
-the download links can be obtained using [@yvesmaurer](https://twitter.com/yvesmaurer)'s code. This code only downloads
+This code only downloads
 an image if the `ocr()` from the {tesseract} (which does, you guessed it, OCR) detects the string "marché de luxembourg" which
 is the title of the tables. This is a bit extreme, because if a single letter cannot be correctly detected by the OCR, the page will not
 be downloaded. But I figured that if this string could not be easily recognized, this would be a canary telling me that the text
 inside the table would also not be easily recognized. So it might be extreme, but my hope was that it would make detecting 
 the table itself easier. Turned out it wasn't so easy, but more on this later.
 
-## Prepare images
+## Preparing images
 
 Now that I have the images, I will prepare them to make character recognition easier. To do this, I'm using the `{magick}` 
 package:
