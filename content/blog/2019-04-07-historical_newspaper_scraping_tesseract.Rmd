@@ -21,6 +21,8 @@ For instance, you can find these tables that show the market prices of the day i
 ```{r, echo=FALSE}
 knitr::include_graphics("/img/market_price_table.png")
 ```
+
+
 I wanted to see how easy it was to extract these tables from the newspapers and then make it available. 
 It was a bit more
 
