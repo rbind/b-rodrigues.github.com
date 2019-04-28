@@ -1,0 +1,147 @@
+---
+date: 2019-04-28
+title: "Fast food, causality and R packages, part 1"
+tags: [R]
+menu:
+  main:
+    parent: Blog
+    identifier: /blog/diffindiff_part1
+    weight: 1
+---
+
+
+
+<div style="text-align:center;">
+<p><a href="https://en.wikipedia.org/wiki/Joke">
+<img src="/img/distracted_economist.jpg" title = "Soon, humanity will only communicate in memes"></a></p>
+</div>
+<p>I am currently working on a package for the R programming language; its initial goal was to simply
+distribute the data used in the Card and Krueger 1994 paper that you can read
+<a href="http://davidcard.berkeley.edu/papers/njmin-aer.pdf">here</a> (PDF warning).</p>
+<p>The gist of the paper is to try to answer the following question: <em>Do increases in minimum wages reduce employment?</em>
+According to Card and Krueger’s paper from 1994, no.
+The authors studied a change in legislation in New Jersey which increased the minimum wage from $4.25 an hour to
+$5.05 an hour. The neighbourghing state of Pennsylvania did not introduce such an increase. The authors thus used
+the State of Pennsylvania as a control for the State of New Jersey and studied how the increase in minimum wage impacted
+the employment in fast food restaurants and found, against what economic theory predicted, an
+increase and not a decrease in employment.
+The authors used a method called difference-in-differences to asses the impact of the minimum wage increase.</p>
+<p>This result was and still is controversial, with subsequent studies finding subtler results.
+For instance, showing that there is a reduction in employment following an increase in minimum wage,
+but only for large restaurants (see Ropponen and Olli, 2011).</p>
+<p>Anyways, this blog post will discuss how to create a package using to distribute the data. In a future
+blog post, I will discuss preparing the data to make it available as a demo dataset inside the
+package, and then writing and documenting functions.</p>
+<p>The first step to create a package, is to create a new project:</p>
+<p><img src="/img/package_01.png" /><!-- --></p>
+<p>Select “New Directory”:</p>
+<p><img src="/img/package_02.png" /><!-- --></p>
+<p>Then “R package”:</p>
+<p><img src="/img/package_03.png" /><!-- --></p>
+<p>and on the window that appears, you can choose the name of the package, as well as already some
+starting source files:</p>
+<p><img src="/img/package_04.png" /><!-- --></p>
+<p>Also, I’d highly recommend you click on the “Create a git repository” box and use git within your
+project for reproducibility and sharing your code more easily. If you do not know git, there’s a lot of
+online resources to get you started. It’s not super difficult, but it does require making some new
+habits, which can take some time.</p>
+<p>I called my package <code>{diffindiff}</code>, and clicked on “Create Project”. This opens up a new project
+with a <code>hello.R</code> script, which gives you some pointers:</p>
+<pre><code># Hello, world!
+#
+# This is an example function named &#39;hello&#39; 
+# which prints &#39;Hello, world!&#39;.
+#
+# You can learn more about package authoring with RStudio at:
+#
+#   http://r-pkgs.had.co.nz/
+#
+# Some useful keyboard shortcuts for package authoring:
+#
+#   Install Package:           &#39;Ctrl + Shift + B&#39;
+#   Check Package:             &#39;Ctrl + Shift + E&#39;
+#   Test Package:              &#39;Ctrl + Shift + T&#39;
+
+hello &lt;- function() {
+  print(&quot;Hello, world!&quot;)
+}</code></pre>
+<p>Now, to simplify the creation of your package, I highly recommend you use the <code>{usethis}</code> package.
+<code>{usethis}</code> removes a lot of the pain involved in creating packages.</p>
+<p>For instance, want to start by adding a README file? Simply run:</p>
+<pre class="r"><code>usethis::use_readme_md()</code></pre>
+<pre class="r"><code>✔ Setting active project to &#39;/path/to/your/package/diffindiff&#39;
+✔ Writing &#39;README.md&#39;
+● Modify &#39;README.md&#39;</code></pre>
+<p>This creates a <code>README.md</code> file in the root directory of your package. Simply change that file, and that’s it.</p>
+<p>The next step could be setting up your package to work with <code>{roxygen2}</code>, which is very useful for
+writing documentation:</p>
+<pre class="r"><code>usethis::use_roxygen_md()</code></pre>
+<pre class="r"><code>✔ Setting Roxygen field in DESCRIPTION to &#39;list(markdown = TRUE)&#39;
+✔ Setting RoxygenNote field in DESCRIPTION to &#39;6.1.1&#39;
+● Run `devtools::document()`</code></pre>
+<p>See how the output tells you to run <code>devtools::document()</code>? This function will document your package,
+transforming the comments you write to describe your functions to documentation and managing the NAMESPACE
+file. Let’s run this function too:</p>
+<pre class="r"><code>devtools::document()</code></pre>
+<pre class="r"><code>Updating diffindiff documentation
+First time using roxygen2. Upgrading automatically...
+Loading diffindiff
+Warning: The existing &#39;NAMESPACE&#39; file was not generated by roxygen2, and will not be overwritten.</code></pre>
+<p>You might have a similar message than me, telling you that the NAMESPACE file was not generated by
+<code>{roxygen2}</code>, and will thus not be overwritten. Simply remove the file and run <code>devtools::document()</code>
+again:</p>
+<pre class="r"><code>devtools::document()</code></pre>
+<pre class="r"><code>Updating diffindiff documentation
+First time using roxygen2. Upgrading automatically...
+Writing NAMESPACE
+Loading diffindiff</code></pre>
+<p>But what is actually the NAMESPACE file? This file is quite important, as it details where your
+package’s functions have to look for in order to use other functions. This means that if your package needs function
+<code>foo()</code> from package <code>{bar}</code>, it will consistently look for <code>foo()</code> inside <code>{bar}</code> and not confuse
+it with, say, the <code>foo()</code> function from the <code>{barley}</code> package, even if you load <code>{barley}</code> after
+<code>{bar}</code> in your interactive session. This can seem confusing now, but in the next blog posts I will
+detail this, and you will see that it’s not that difficult. Just know that it is an important file,
+and that you do not have to edit it by hand.</p>
+<p>Next, I like to run the following:</p>
+<pre class="r"><code>usethis::use_pipe()</code></pre>
+<pre class="r"><code>✔ Adding &#39;magrittr&#39; to Imports field in DESCRIPTION
+✔ Writing &#39;R/utils-pipe.R&#39;
+● Run `devtools::document()`</code></pre>
+<p>This makes the now famous <code>%&gt;%</code> function available internally to your package (so you can use it
+to write the functions that will be included in your package) but also available to the users that
+will load the package.</p>
+<p>Your package is still missing a license. If you plan on writing a package for your own personal use,
+for instance, a collection of functions, there is no need to think about licenses. But if you’re making
+your package available through CRAN, then you definitely need to think about it. For this package,
+I’ll be using the MIT license, because the package will distribute data which I do not own (I’ve got permission
+from Card to re-distribute it) and thus I think it would be better to use a permissive license (I don’t know
+if the GPL, another license, which is stricter in terms of redistribution, could be used in this case).</p>
+<pre class="r"><code>usethis::use_mit_license()</code></pre>
+<pre class="r"><code>✔ Setting License field in DESCRIPTION to &#39;MIT + file LICENSE&#39;
+✔ Writing &#39;LICENSE.md&#39;
+✔ Adding &#39;^LICENSE\\.md$&#39; to &#39;.Rbuildignore&#39;
+✔ Writing &#39;LICENSE&#39;</code></pre>
+<p>We’re almost done setting up the structure of the package. If we forget something though, it’s not an issue,
+we’ll just have to run the right <code>use_*</code> function later on. Let’s finish by preparing the folder
+that will contains the script to prepare the data:</p>
+<pre class="r"><code>usethis::use_data_raw()</code></pre>
+<pre class="r"><code>✔ Creating &#39;data-raw/&#39;
+✔ Adding &#39;^data-raw$&#39; to &#39;.Rbuildignore&#39;
+✔ Writing &#39;data-raw/DATASET.R&#39;
+● Modify &#39;data-raw/DATASET.R&#39;
+● Finish the data preparation script in &#39;data-raw/DATASET.R&#39;
+● Use `usethis::use_data()` to add prepared data to package</code></pre>
+<p>This creates the <code>data-raw</code> folder with the <code>DATASET.R</code> script inside. This is the script that will
+contain the code to download and prepare datasets that you want to include in your package. This will
+be the subject of the next blog post.</p>
+<p>Let’s now finish by documenting the package, and pushing everything to Github:</p>
+<pre class="r"><code>devtools::document()</code></pre>
+<p>The following lines will only work if you set up the Github repo:</p>
+<pre><code>git add .
+git commit -am &quot;first commit&quot;
+git push origin master</code></pre>
+<p>Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>.</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>

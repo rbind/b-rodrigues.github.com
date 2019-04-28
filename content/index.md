@@ -8,17 +8,18 @@ type: index
 
 
 <div style="float: left;margin: 0px 80px 50px 0px">
-    <img src="/img/profile.jpg" width="180 " height="294"/>
+    <img src="/img/profile.jpg" width="400" height="400"/>
 </div>
 
 Hi! My name is Bruno Rodrigues, and I'm a senior advisor at [PwC Luxembourg](https://www.pwc.lu/). 
 I mostly work on data related projects using R and Python.
 
-I'm an economist by training, but am interested in any subject that deals with statistics in general!
+I'm an economist by training, I hold a PhD from the University of Strasbourg, 
+but am interested in any subject that deals with statistics in general!
 
 I program mostly in R and love sharing my knowledge, that's why I started this blog.
-I share my posts also on [R-bloggers](http://www.r-bloggers.com) and [Rweekly](https://rweekly.org). In my posts, I discuss
-new packages I discovered or new ways of using packages.
+I share my posts also on [R-bloggers](http://www.r-bloggers.com) and [Rweekly](https://rweekly.org). 
+In my posts, I discuss new packages I discovered or new ways of using packages.
 
 If you were one of my students, and need some of the materials I taught, just drop me an [email](mailto:bruno@brodrigues.co).
 
