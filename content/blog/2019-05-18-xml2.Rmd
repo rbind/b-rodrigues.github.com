@@ -1,5 +1,5 @@
 ---
-date: 2019-05-04
+date: 2019-05-18
 title: "For posterity: install {xml2} on GNU/Linux distros"
 tags: [R]
 menu:
