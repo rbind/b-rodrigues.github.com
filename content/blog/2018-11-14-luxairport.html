@@ -204,8 +204,7 @@ whole cleaning workflow by clicking “Click to expand” below:</p>
                                      `O.R TAMBO INTERNATIONAL` = &quot;LU_ELLX_ZA_FAJS&quot;)) %&gt;%
     mutate(passengers = as.numeric(passengers)) %&gt;%
     select(unit, tra_meas, destination, date, passengers)</code></pre>
-<pre><code>## Warning in evalq(as.numeric(passengers), &lt;environment&gt;): NAs introduced by
-## coercion</code></pre>
+<pre><code>## Warning: NAs introduced by coercion</code></pre>
 </details>
 <p>There is quarterly data and monthly data. Let’s separate the two:</p>
 <pre class="r"><code>avia_clean_quarterly &lt;- avia_clean %&gt;%

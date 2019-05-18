@@ -172,10 +172,10 @@ summary(lmrobfit)</code></pre>
 ## 
 ## Coefficients:
 ##                     Estimate Std. Error t value Pr(&gt;|t|)   
-## (Intercept)       -156.37173  132.73829  -1.178  0.24526   
-## regionnortheast     20.64571   26.45381   0.780  0.43940   
-## regionsouth         10.79689   29.42749   0.367  0.71549   
-## regionwest          45.22583   33.07953   1.367  0.17867   
+## (Intercept)       -156.37169  132.73828  -1.178  0.24526   
+## regionnortheast     20.64576   26.45378   0.780  0.43940   
+## regionsouth         10.79695   29.42746   0.367  0.71549   
+## regionwest          45.22589   33.07950   1.367  0.17867   
 ## residents            0.03406    0.04412   0.772  0.44435   
 ## young_residents      0.57896    0.25512   2.269  0.02832 * 
 ## per_capita_income    0.04328    0.01442   3.000  0.00447 **
@@ -220,18 +220,18 @@ boot_education &lt;- education %&gt;%
 <p>Let’s take a look at the <code>boot_education</code> object:</p>
 <pre class="r"><code>boot_education</code></pre>
 <pre><code>## # A tibble: 100 x 2
-##    strap          .id  
-##    &lt;list&gt;         &lt;chr&gt;
-##  1 &lt;S3: resample&gt; 001  
-##  2 &lt;S3: resample&gt; 002  
-##  3 &lt;S3: resample&gt; 003  
-##  4 &lt;S3: resample&gt; 004  
-##  5 &lt;S3: resample&gt; 005  
-##  6 &lt;S3: resample&gt; 006  
-##  7 &lt;S3: resample&gt; 007  
-##  8 &lt;S3: resample&gt; 008  
-##  9 &lt;S3: resample&gt; 009  
-## 10 &lt;S3: resample&gt; 010  
+##    strap      .id  
+##    &lt;list&gt;     &lt;chr&gt;
+##  1 &lt;resample&gt; 001  
+##  2 &lt;resample&gt; 002  
+##  3 &lt;resample&gt; 003  
+##  4 &lt;resample&gt; 004  
+##  5 &lt;resample&gt; 005  
+##  6 &lt;resample&gt; 006  
+##  7 &lt;resample&gt; 007  
+##  8 &lt;resample&gt; 008  
+##  9 &lt;resample&gt; 009  
+## 10 &lt;resample&gt; 010  
 ## # … with 90 more rows</code></pre>
 <p>The column <code>strap</code> contains resamples of the original data. I will run my linear regression
 from before on each of the resamples:</p>
@@ -244,18 +244,18 @@ from before on each of the resamples:</p>
                            data = .))) 
 )</code></pre>
 <pre><code>## # A tibble: 100 x 3
-##    strap          .id   regressions
-##    &lt;list&gt;         &lt;chr&gt; &lt;list&gt;     
-##  1 &lt;S3: resample&gt; 001   &lt;S3: lm&gt;   
-##  2 &lt;S3: resample&gt; 002   &lt;S3: lm&gt;   
-##  3 &lt;S3: resample&gt; 003   &lt;S3: lm&gt;   
-##  4 &lt;S3: resample&gt; 004   &lt;S3: lm&gt;   
-##  5 &lt;S3: resample&gt; 005   &lt;S3: lm&gt;   
-##  6 &lt;S3: resample&gt; 006   &lt;S3: lm&gt;   
-##  7 &lt;S3: resample&gt; 007   &lt;S3: lm&gt;   
-##  8 &lt;S3: resample&gt; 008   &lt;S3: lm&gt;   
-##  9 &lt;S3: resample&gt; 009   &lt;S3: lm&gt;   
-## 10 &lt;S3: resample&gt; 010   &lt;S3: lm&gt;   
+##    strap      .id   regressions
+##    &lt;list&gt;     &lt;chr&gt; &lt;list&gt;     
+##  1 &lt;resample&gt; 001   &lt;lm&gt;       
+##  2 &lt;resample&gt; 002   &lt;lm&gt;       
+##  3 &lt;resample&gt; 003   &lt;lm&gt;       
+##  4 &lt;resample&gt; 004   &lt;lm&gt;       
+##  5 &lt;resample&gt; 005   &lt;lm&gt;       
+##  6 &lt;resample&gt; 006   &lt;lm&gt;       
+##  7 &lt;resample&gt; 007   &lt;lm&gt;       
+##  8 &lt;resample&gt; 008   &lt;lm&gt;       
+##  9 &lt;resample&gt; 009   &lt;lm&gt;       
+## 10 &lt;resample&gt; 010   &lt;lm&gt;       
 ## # … with 90 more rows</code></pre>
 <p>I have added a new column called <code>regressions</code> which contains the linear regressions on each
 bootstrapped sample. Now, I will create a list of tidied regression results:</p>
@@ -265,31 +265,31 @@ bootstrapped sample. Now, I will create a list of tidied regression results:</p>
                    map(regressions, broom::tidy))
 )</code></pre>
 <pre><code>## # A tibble: 100 x 4
-##    strap          .id   regressions tidy_lm         
-##    &lt;list&gt;         &lt;chr&gt; &lt;list&gt;      &lt;list&gt;          
-##  1 &lt;S3: resample&gt; 001   &lt;S3: lm&gt;    &lt;tibble [7 × 5]&gt;
-##  2 &lt;S3: resample&gt; 002   &lt;S3: lm&gt;    &lt;tibble [7 × 5]&gt;
-##  3 &lt;S3: resample&gt; 003   &lt;S3: lm&gt;    &lt;tibble [7 × 5]&gt;
-##  4 &lt;S3: resample&gt; 004   &lt;S3: lm&gt;    &lt;tibble [7 × 5]&gt;
-##  5 &lt;S3: resample&gt; 005   &lt;S3: lm&gt;    &lt;tibble [7 × 5]&gt;
-##  6 &lt;S3: resample&gt; 006   &lt;S3: lm&gt;    &lt;tibble [7 × 5]&gt;
-##  7 &lt;S3: resample&gt; 007   &lt;S3: lm&gt;    &lt;tibble [7 × 5]&gt;
-##  8 &lt;S3: resample&gt; 008   &lt;S3: lm&gt;    &lt;tibble [7 × 5]&gt;
-##  9 &lt;S3: resample&gt; 009   &lt;S3: lm&gt;    &lt;tibble [7 × 5]&gt;
-## 10 &lt;S3: resample&gt; 010   &lt;S3: lm&gt;    &lt;tibble [7 × 5]&gt;
+##    strap      .id   regressions tidy_lm         
+##    &lt;list&gt;     &lt;chr&gt; &lt;list&gt;      &lt;list&gt;          
+##  1 &lt;resample&gt; 001   &lt;lm&gt;        &lt;tibble [7 × 5]&gt;
+##  2 &lt;resample&gt; 002   &lt;lm&gt;        &lt;tibble [7 × 5]&gt;
+##  3 &lt;resample&gt; 003   &lt;lm&gt;        &lt;tibble [7 × 5]&gt;
+##  4 &lt;resample&gt; 004   &lt;lm&gt;        &lt;tibble [7 × 5]&gt;
+##  5 &lt;resample&gt; 005   &lt;lm&gt;        &lt;tibble [7 × 5]&gt;
+##  6 &lt;resample&gt; 006   &lt;lm&gt;        &lt;tibble [7 × 5]&gt;
+##  7 &lt;resample&gt; 007   &lt;lm&gt;        &lt;tibble [7 × 5]&gt;
+##  8 &lt;resample&gt; 008   &lt;lm&gt;        &lt;tibble [7 × 5]&gt;
+##  9 &lt;resample&gt; 009   &lt;lm&gt;        &lt;tibble [7 × 5]&gt;
+## 10 &lt;resample&gt; 010   &lt;lm&gt;        &lt;tibble [7 × 5]&gt;
 ## # … with 90 more rows</code></pre>
 <p><code>broom::tidy()</code> creates a data frame of the regression results. Let’s look at one of these:</p>
 <pre class="r"><code>tidied$tidy_lm[[1]]</code></pre>
 <pre><code>## # A tibble: 7 x 5
-##   term               estimate std.error statistic      p.value
-##   &lt;chr&gt;                 &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;        &lt;dbl&gt;
-## 1 (Intercept)       -668.      148.         -4.51 0.0000501   
-## 2 regionnortheast     37.6      19.9         1.89 0.0651      
-## 3 regionsouth         45.8      18.2         2.51 0.0158      
-## 4 regionwest          58.3      17.4         3.36 0.00166     
-## 5 residents           -0.0736    0.0574     -1.28 0.207       
-## 6 young_residents      1.57      0.389       4.04 0.000216    
-## 7 per_capita_income    0.0955    0.0144      6.63 0.0000000450</code></pre>
+##   term              estimate std.error statistic  p.value
+##   &lt;chr&gt;                &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;
+## 1 (Intercept)       -571.     109.        -5.22  4.92e- 6
+## 2 regionnortheast    -48.0     17.2       -2.80  7.71e- 3
+## 3 regionsouth        -21.3     15.1       -1.41  1.66e- 1
+## 4 regionwest           1.88    13.9        0.135 8.93e- 1
+## 5 residents           -0.134    0.0608    -2.21  3.28e- 2
+## 6 young_residents      1.50     0.308      4.89  1.47e- 5
+## 7 per_capita_income    0.100    0.0125     8.06  3.85e-10</code></pre>
 <p>This format is easier to handle than the standard <code>lm()</code> output:</p>
 <pre class="r"><code>tidied$regressions[[1]]</code></pre>
 <pre><code>## 
@@ -299,11 +299,11 @@ bootstrapped sample. Now, I will create a list of tidied regression results:</p>
 ## 
 ## Coefficients:
 ##       (Intercept)    regionnortheast        regionsouth  
-##        -668.24680           37.60644           45.76014  
+##         -571.0568           -48.0018           -21.3019  
 ##        regionwest          residents    young_residents  
-##          58.32840           -0.07360            1.57062  
+##            1.8808            -0.1341             1.5042  
 ## per_capita_income  
-##           0.09546</code></pre>
+##            0.1005</code></pre>
 <p>Now that I have all these regression results, I can compute any statistic I need. But first,
 let’s transform the data even further:</p>
 <pre class="r"><code>list_mods &lt;- tidied %&gt;% 
@@ -316,18 +316,18 @@ bind the rows together (by using <code>map2_df()</code> instead of <code>map2()<
 <p>Let’s take a look at the final object:</p>
 <pre class="r"><code>head(mods_df, 25)</code></pre>
 <pre><code>## # A tibble: 25 x 6
-##    term               estimate std.error statistic      p.value resample
-##    &lt;chr&gt;                 &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;        &lt;dbl&gt;    &lt;int&gt;
-##  1 (Intercept)       -668.      148.         -4.51 0.0000501           1
-##  2 regionnortheast     37.6      19.9         1.89 0.0651              1
-##  3 regionsouth         45.8      18.2         2.51 0.0158              1
-##  4 regionwest          58.3      17.4         3.36 0.00166             1
-##  5 residents           -0.0736    0.0574     -1.28 0.207               1
-##  6 young_residents      1.57      0.389       4.04 0.000216            1
-##  7 per_capita_income    0.0955    0.0144      6.63 0.0000000450        1
-##  8 (Intercept)       -794.      149.         -5.32 0.00000355          2
-##  9 regionnortheast     41.9      18.8         2.22 0.0316              2
-## 10 regionsouth         39.9      18.0         2.22 0.0318              2
+##    term              estimate std.error statistic  p.value resample
+##    &lt;chr&gt;                &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;    &lt;int&gt;
+##  1 (Intercept)       -571.     109.        -5.22  4.92e- 6        1
+##  2 regionnortheast    -48.0     17.2       -2.80  7.71e- 3        1
+##  3 regionsouth        -21.3     15.1       -1.41  1.66e- 1        1
+##  4 regionwest           1.88    13.9        0.135 8.93e- 1        1
+##  5 residents           -0.134    0.0608    -2.21  3.28e- 2        1
+##  6 young_residents      1.50     0.308      4.89  1.47e- 5        1
+##  7 per_capita_income    0.100    0.0125     8.06  3.85e-10        1
+##  8 (Intercept)        -97.2    145.        -0.672 5.05e- 1        2
+##  9 regionnortheast     -1.48    10.8       -0.136 8.92e- 1        2
+## 10 regionsouth         12.5     11.4        1.09  2.82e- 1        2
 ## # … with 15 more rows</code></pre>
 <p>Now this is a very useful format, because I now can group by the <code>term</code> column and compute any
 statistics I need, in the present case the standard deviation:</p>
@@ -339,13 +339,13 @@ statistics I need, in the present case the standard deviation:</p>
 <pre><code>## # A tibble: 7 x 2
 ##   term              r.std.error
 ##   &lt;chr&gt;                   &lt;dbl&gt;
-## 1 (Intercept)          213.    
-## 2 per_capita_income      0.0212
-## 3 regionnortheast       24.2   
-## 4 regionsouth           22.8   
-## 5 regionwest            23.8   
-## 6 residents              0.0691
-## 7 young_residents        0.475</code></pre>
+## 1 (Intercept)          220.    
+## 2 per_capita_income      0.0197
+## 3 regionnortheast       24.5   
+## 4 regionsouth           21.1   
+## 5 regionwest            22.7   
+## 6 residents              0.0607
+## 7 young_residents        0.498</code></pre>
 <p>We can append this column to the linear regression model result:</p>
 <pre class="r"><code>lmfit %&gt;% 
     broom::tidy() %&gt;% 
@@ -355,13 +355,13 @@ statistics I need, in the present case the standard deviation:</p>
 <pre><code>## # A tibble: 7 x 4
 ##   term               estimate std.error r.std.error
 ##   &lt;chr&gt;                 &lt;dbl&gt;     &lt;dbl&gt;       &lt;dbl&gt;
-## 1 (Intercept)       -467.      143.        213.    
-## 2 regionnortheast     15.7      18.2        24.2   
-## 3 regionsouth          7.09     17.3        22.8   
-## 4 regionwest          34.3      17.5        23.8   
-## 5 residents           -0.0346    0.0532      0.0691
-## 6 young_residents      1.30      0.357       0.475 
-## 7 per_capita_income    0.0720    0.0131      0.0212</code></pre>
+## 1 (Intercept)       -467.      143.        220.    
+## 2 regionnortheast     15.7      18.2        24.5   
+## 3 regionsouth          7.09     17.3        21.1   
+## 4 regionwest          34.3      17.5        22.7   
+## 5 residents           -0.0346    0.0532      0.0607
+## 6 young_residents      1.30      0.357       0.498 
+## 7 per_capita_income    0.0720    0.0131      0.0197</code></pre>
 <p>As you see, using the whole bootstrapping procedure is longer than simply using either one of
 the first two methods. However, this procedure is very flexible and can thus be adapted to a very
 large range of situations. Either way, in the case of heteroskedasticity, you can see that

@@ -97,16 +97,16 @@ we find some patterns.</p>
 <pre><code>## # A tibble: 2,085 x 2
 ##    Distro                                         n
 ##    &lt;chr&gt;                                      &lt;int&gt;
-##  1 ?                                              2
-##  2 &quot;\&quot;Arch Linux\&quot; (64 bit)&quot;                      1
-##  3 &quot;\&quot;Linux Mint 18.3 Sylvia 64bit&quot;               1
-##  4 &quot;\&quot;Manjaro Stable 64-bit (Kernel 4.14.66)&quot;     1
-##  5 &quot;\&quot;Solus\&quot; (64 bit)&quot;                           2
-##  6 (K)ubuntu 18.04 64-bit (Kernel 4.15.0)         2
-##  7 (L)Ubuntu 18.04.1 LTS                          1
-##  8 18.04.1                                        1
-##  9 18.04.1 LTS                                    2
-## 10 18.04.1 LTS (64 Bit)                           1
+##  1 &lt;NA&gt;                                           1
+##  2 ?                                              2
+##  3 &quot;\&quot;Arch Linux\&quot; (64 bit)&quot;                      1
+##  4 &quot;\&quot;Linux Mint 18.3 Sylvia 64bit&quot;               1
+##  5 &quot;\&quot;Manjaro Stable 64-bit (Kernel 4.14.66)&quot;     1
+##  6 &quot;\&quot;Solus\&quot; (64 bit)&quot;                           2
+##  7 (K)ubuntu 18.04 64-bit (Kernel 4.15.0)         2
+##  8 (L)Ubuntu 18.04.1 LTS                          1
+##  9 18.04.1                                        1
+## 10 18.04.1 LTS                                    2
 ## # … with 2,075 more rows</code></pre>
 <p>Ok the distro column is pretty messy. Let’s try to bring some order to it:</p>
 <pre class="r"><code>steam %&lt;&gt;%
@@ -165,6 +165,8 @@ steam %&gt;%
 
 steam %&gt;%
     count(CPU)</code></pre>
+<pre><code>## Warning: Factor `CPU` contains implicit NA, consider using
+## `forcats::fct_explicit_na`</code></pre>
 <pre><code>## # A tibble: 3 x 2
 ##   CPU       n
 ##   &lt;fct&gt; &lt;int&gt;
@@ -182,6 +184,8 @@ steam %&gt;%
 
 steam %&gt;%
     count(GPU)</code></pre>
+<pre><code>## Warning: Factor `GPU` contains implicit NA, consider using
+## `forcats::fct_explicit_na`</code></pre>
 <pre><code>## # A tibble: 4 x 2
 ##   GPU        n
 ##   &lt;fct&gt;  &lt;int&gt;
@@ -241,6 +245,11 @@ to run the same computation three times, I’ll write a function to do that.</p>
 ## 6 Other                  3.16</code></pre>
 <p>How about for hardware?</p>
 <pre class="r"><code>compute_avg(steam, GPU)</code></pre>
+<pre><code>## Warning: Factor `GPU` contains implicit NA, consider using
+## `forcats::fct_explicit_na`
+
+## Warning: Factor `GPU` contains implicit NA, consider using
+## `forcats::fct_explicit_na`</code></pre>
 <pre><code>## # A tibble: 4 x 2
 ##   GPU    average_rating
 ##   &lt;fct&gt;           &lt;dbl&gt;
@@ -249,6 +258,11 @@ to run the same computation three times, I’ll write a function to do that.</p>
 ## 3 Intel            3.01
 ## 4 &lt;NA&gt;            NA</code></pre>
 <pre class="r"><code>compute_avg(steam, CPU)</code></pre>
+<pre><code>## Warning: Factor `CPU` contains implicit NA, consider using
+## `forcats::fct_explicit_na`
+
+## Warning: Factor `CPU` contains implicit NA, consider using
+## `forcats::fct_explicit_na`</code></pre>
 <pre><code>## # A tibble: 3 x 2
 ##   CPU   average_rating
 ##   &lt;fct&gt;          &lt;dbl&gt;

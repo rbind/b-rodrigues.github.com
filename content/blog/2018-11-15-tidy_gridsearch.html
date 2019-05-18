@@ -290,14 +290,14 @@ plenty of time to browse the latest memes, but still quick enough that it justif
 Let’s take a look at the <code>models_df</code> object:</p>
 <pre class="r"><code>head(models_df)</code></pre>
 <pre><code>## # A tibble: 6 x 3
-##   order     season    models     
-##   &lt;list&gt;    &lt;list&gt;    &lt;list&gt;     
-## 1 &lt;int [3]&gt; &lt;dbl [4]&gt; &lt;S3: Arima&gt;
-## 2 &lt;int [3]&gt; &lt;dbl [4]&gt; &lt;S3: Arima&gt;
-## 3 &lt;int [3]&gt; &lt;dbl [4]&gt; &lt;S3: Arima&gt;
-## 4 &lt;int [3]&gt; &lt;dbl [4]&gt; &lt;S3: Arima&gt;
-## 5 &lt;int [3]&gt; &lt;dbl [4]&gt; &lt;S3: Arima&gt;
-## 6 &lt;int [3]&gt; &lt;dbl [4]&gt; &lt;S3: Arima&gt;</code></pre>
+##   order     season    models 
+##   &lt;list&gt;    &lt;list&gt;    &lt;list&gt; 
+## 1 &lt;int [3]&gt; &lt;dbl [4]&gt; &lt;Arima&gt;
+## 2 &lt;int [3]&gt; &lt;dbl [4]&gt; &lt;Arima&gt;
+## 3 &lt;int [3]&gt; &lt;dbl [4]&gt; &lt;Arima&gt;
+## 4 &lt;int [3]&gt; &lt;dbl [4]&gt; &lt;Arima&gt;
+## 5 &lt;int [3]&gt; &lt;dbl [4]&gt; &lt;Arima&gt;
+## 6 &lt;int [3]&gt; &lt;dbl [4]&gt; &lt;Arima&gt;</code></pre>
 <p>As you can see, the <code>models</code> column contains all the trained models. The model on the first row,
 was trained with the hyperparameters of row 1, and so on. But, our work is not over! We now need
 to find the best model. First, I add a new column to the tibble, which contains the forecast. From
@@ -341,14 +341,14 @@ from 2015 to 2018. Because I have to add it as a list of size 2304, I do that wi
 <p>This is how <code>models_df</code> looks now:</p>
 <pre class="r"><code>head(models_df)</code></pre>
 <pre><code>## # A tibble: 6 x 7
-##   order    season    models    forecast     point_forecast true_value  rmse
-##   &lt;list&gt;   &lt;list&gt;    &lt;list&gt;    &lt;list&gt;       &lt;list&gt;         &lt;list&gt;     &lt;dbl&gt;
-## 1 &lt;int [3… &lt;dbl [4]&gt; &lt;S3: Ari… &lt;S3: foreca… &lt;S3: ts&gt;       &lt;S3: ts&gt;   0.525
-## 2 &lt;int [3… &lt;dbl [4]&gt; &lt;S3: Ari… &lt;S3: foreca… &lt;S3: ts&gt;       &lt;S3: ts&gt;   0.236
-## 3 &lt;int [3… &lt;dbl [4]&gt; &lt;S3: Ari… &lt;S3: foreca… &lt;S3: ts&gt;       &lt;S3: ts&gt;   0.235
-## 4 &lt;int [3… &lt;dbl [4]&gt; &lt;S3: Ari… &lt;S3: foreca… &lt;S3: ts&gt;       &lt;S3: ts&gt;   0.217
-## 5 &lt;int [3… &lt;dbl [4]&gt; &lt;S3: Ari… &lt;S3: foreca… &lt;S3: ts&gt;       &lt;S3: ts&gt;   0.190
-## 6 &lt;int [3… &lt;dbl [4]&gt; &lt;S3: Ari… &lt;S3: foreca… &lt;S3: ts&gt;       &lt;S3: ts&gt;   0.174</code></pre>
+##   order     season    models  forecast   point_forecast true_value  rmse
+##   &lt;list&gt;    &lt;list&gt;    &lt;list&gt;  &lt;list&gt;     &lt;list&gt;         &lt;list&gt;     &lt;dbl&gt;
+## 1 &lt;int [3]&gt; &lt;dbl [4]&gt; &lt;Arima&gt; &lt;forecast&gt; &lt;ts&gt;           &lt;ts&gt;       0.525
+## 2 &lt;int [3]&gt; &lt;dbl [4]&gt; &lt;Arima&gt; &lt;forecast&gt; &lt;ts&gt;           &lt;ts&gt;       0.236
+## 3 &lt;int [3]&gt; &lt;dbl [4]&gt; &lt;Arima&gt; &lt;forecast&gt; &lt;ts&gt;           &lt;ts&gt;       0.235
+## 4 &lt;int [3]&gt; &lt;dbl [4]&gt; &lt;Arima&gt; &lt;forecast&gt; &lt;ts&gt;           &lt;ts&gt;       0.217
+## 5 &lt;int [3]&gt; &lt;dbl [4]&gt; &lt;Arima&gt; &lt;forecast&gt; &lt;ts&gt;           &lt;ts&gt;       0.190
+## 6 &lt;int [3]&gt; &lt;dbl [4]&gt; &lt;Arima&gt; &lt;forecast&gt; &lt;ts&gt;           &lt;ts&gt;       0.174</code></pre>
 <p>Now, I can finally select the best performing model. I select the model with minimum RMSE:</p>
 <pre class="r"><code>best_model &lt;- models_df %&gt;%
     filter(rmse == min(rmse, na.rm = TRUE))</code></pre>

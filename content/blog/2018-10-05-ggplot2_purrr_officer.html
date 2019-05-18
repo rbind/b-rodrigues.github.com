@@ -82,11 +82,11 @@ inside one:</p>
 Let’s take a look at <code>my_plots</code>:</p>
 <pre class="r"><code>my_plots</code></pre>
 <pre><code>## # A tibble: 3 x 3
-##   day                         data              plots   
-##   &lt;chr&gt;                       &lt;list&gt;            &lt;list&gt;  
-## 1 Year 2014_Monday til Friday &lt;tibble [10 × 4]&gt; &lt;S3: gg&gt;
-## 2 Year 2014_Saturday          &lt;tibble [10 × 4]&gt; &lt;S3: gg&gt;
-## 3 Year 2014_Sunday            &lt;tibble [10 × 4]&gt; &lt;S3: gg&gt;</code></pre>
+##   day                         data              plots 
+##   &lt;chr&gt;                       &lt;list&gt;            &lt;list&gt;
+## 1 Year 2014_Monday til Friday &lt;tibble [10 × 4]&gt; &lt;gg&gt;  
+## 2 Year 2014_Saturday          &lt;tibble [10 × 4]&gt; &lt;gg&gt;  
+## 3 Year 2014_Sunday            &lt;tibble [10 × 4]&gt; &lt;gg&gt;</code></pre>
 <p>The last column, called <code>plots</code> is a list where each element is a plot! We can take a look at one:</p>
 <pre class="r"><code>my_plots$plots[1]</code></pre>
 <pre><code>## [[1]]</code></pre>
@@ -118,6 +118,32 @@ the pptx.</p>
 a new pptx gets created. The rest of the code is very similar to the one from the documentation. Now,
 to create my pptx I simple need to map over the <code>plots</code> column and provide a <code>path</code>:</p>
 <pre class="r"><code>map(my_plots$plots, create_pptx, path = &quot;test.pptx&quot;)</code></pre>
+<pre><code>## Warning in doc_parse_file(con, encoding = encoding, as_html = as_html,
+## options = options): Failed to parse QName &#39;xsi:xmlns:&#39; [202]
+
+## Warning in doc_parse_file(con, encoding = encoding, as_html = as_html,
+## options = options): Failed to parse QName &#39;xsi:xmlns:&#39; [202]
+
+## Warning in doc_parse_file(con, encoding = encoding, as_html = as_html,
+## options = options): Failed to parse QName &#39;xsi:xmlns:&#39; [202]
+
+## Warning in doc_parse_file(con, encoding = encoding, as_html = as_html,
+## options = options): Failed to parse QName &#39;xsi:xmlns:&#39; [202]
+
+## Warning in doc_parse_file(con, encoding = encoding, as_html = as_html,
+## options = options): Failed to parse QName &#39;xsi:xmlns:&#39; [202]
+
+## Warning in doc_parse_file(con, encoding = encoding, as_html = as_html,
+## options = options): Failed to parse QName &#39;xsi:xmlns:&#39; [202]
+
+## Warning in doc_parse_file(con, encoding = encoding, as_html = as_html,
+## options = options): Failed to parse QName &#39;xsi:xmlns:&#39; [202]
+
+## Warning in doc_parse_file(con, encoding = encoding, as_html = as_html,
+## options = options): Failed to parse QName &#39;xsi:xmlns:&#39; [202]
+
+## Warning in doc_parse_file(con, encoding = encoding, as_html = as_html,
+## options = options): Failed to parse QName &#39;xsi:xmlns:&#39; [202]</code></pre>
 <pre><code>## [[1]]
 ## [1] &quot;/home/cbrunos/Documents/b-rodrigues.github.com/content/blog/test.pptx&quot;
 ## 

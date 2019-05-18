@@ -143,21 +143,21 @@ then I compute the RMSE.</p>
 <pre class="r"><code>starting_model &lt;- auto.arima(logged_train_data)
 summary(starting_model)</code></pre>
 <pre><code>## Series: logged_train_data 
-## ARIMA(1,0,2)(2,1,0)[12] 
+## ARIMA(3,0,0)(0,1,1)[12] with drift 
 ## 
 ## Coefficients:
-##          ar1      ma1     ma2     sar1     sar2
-##       0.9754  -0.7872  0.2091  -0.7285  -0.4413
-## s.e.  0.0261   0.1228  0.1213   0.1063   0.1150
+##          ar1     ar2     ar3     sma1   drift
+##       0.2318  0.2292  0.3661  -0.8498  0.0029
+## s.e.  0.1016  0.1026  0.1031   0.2101  0.0010
 ## 
-## sigma^2 estimated as 0.004514:  log likelihood=105.61
-## AIC=-199.22   AICc=-198.13   BIC=-184.64
+## sigma^2 estimated as 0.004009:  log likelihood=107.98
+## AIC=-203.97   AICc=-202.88   BIC=-189.38
 ## 
 ## Training set error measures:
-##                       ME       RMSE        MAE        MPE      MAPE
-## Training set 0.008398036 0.06095102 0.03882593 0.07009285 0.3339574
-##                   MASE       ACF1
-## Training set 0.4425794 0.02073886</code></pre>
+##                        ME       RMSE        MAE         MPE      MAPE
+## Training set 0.0009924108 0.05743719 0.03577996 0.006323241 0.3080978
+##                   MASE        ACF1
+## Training set 0.4078581 -0.02707016</code></pre>
 <p>Let’s compute the cost at this vector of parameters:</p>
 <pre class="r"><code>cost_function_rmse(c(1, 0, 2, 2, 1, 0),
               train_data = logged_train_data,

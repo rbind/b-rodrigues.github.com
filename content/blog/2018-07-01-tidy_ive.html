@@ -193,18 +193,18 @@ to really understand what happened.</p>
 <p>Now, let’s take a look at the result:</p>
 <pre class="r"><code>imp_wages_reg</code></pre>
 <pre><code>## # A tibble: 10 x 3
-##     .imp data                lin_reg 
-##    &lt;int&gt; &lt;list&gt;              &lt;list&gt;  
-##  1     1 &lt;tibble [753 × 17]&gt; &lt;S3: lm&gt;
-##  2     2 &lt;tibble [753 × 17]&gt; &lt;S3: lm&gt;
-##  3     3 &lt;tibble [753 × 17]&gt; &lt;S3: lm&gt;
-##  4     4 &lt;tibble [753 × 17]&gt; &lt;S3: lm&gt;
-##  5     5 &lt;tibble [753 × 17]&gt; &lt;S3: lm&gt;
-##  6     6 &lt;tibble [753 × 17]&gt; &lt;S3: lm&gt;
-##  7     7 &lt;tibble [753 × 17]&gt; &lt;S3: lm&gt;
-##  8     8 &lt;tibble [753 × 17]&gt; &lt;S3: lm&gt;
-##  9     9 &lt;tibble [753 × 17]&gt; &lt;S3: lm&gt;
-## 10    10 &lt;tibble [753 × 17]&gt; &lt;S3: lm&gt;</code></pre>
+##     .imp data                lin_reg
+##    &lt;int&gt; &lt;list&gt;              &lt;list&gt; 
+##  1     1 &lt;tibble [753 × 17]&gt; &lt;lm&gt;   
+##  2     2 &lt;tibble [753 × 17]&gt; &lt;lm&gt;   
+##  3     3 &lt;tibble [753 × 17]&gt; &lt;lm&gt;   
+##  4     4 &lt;tibble [753 × 17]&gt; &lt;lm&gt;   
+##  5     5 &lt;tibble [753 × 17]&gt; &lt;lm&gt;   
+##  6     6 &lt;tibble [753 × 17]&gt; &lt;lm&gt;   
+##  7     7 &lt;tibble [753 × 17]&gt; &lt;lm&gt;   
+##  8     8 &lt;tibble [753 × 17]&gt; &lt;lm&gt;   
+##  9     9 &lt;tibble [753 × 17]&gt; &lt;lm&gt;   
+## 10    10 &lt;tibble [753 × 17]&gt; &lt;lm&gt;</code></pre>
 <p><code>imp_wages_reg</code> now has a third column called <code>lin_reg</code> where each element is a linear model, estimated
 on the data from the <code>data</code> column! We can now pool the results of these 10 regressions using
 <code>mice::pool()</code>:</p>
@@ -255,18 +255,18 @@ is where I specify that I instrument education with the parents’ education.</p
 <p><code>imp_wages_reg</code> now looks like this:</p>
 <pre class="r"><code>imp_wages_reg</code></pre>
 <pre><code>## # A tibble: 10 x 4
-##     .imp data                lin_reg  iv_reg     
-##    &lt;int&gt; &lt;list&gt;              &lt;list&gt;   &lt;list&gt;     
-##  1     1 &lt;tibble [753 × 17]&gt; &lt;S3: lm&gt; &lt;S3: ivreg&gt;
-##  2     2 &lt;tibble [753 × 17]&gt; &lt;S3: lm&gt; &lt;S3: ivreg&gt;
-##  3     3 &lt;tibble [753 × 17]&gt; &lt;S3: lm&gt; &lt;S3: ivreg&gt;
-##  4     4 &lt;tibble [753 × 17]&gt; &lt;S3: lm&gt; &lt;S3: ivreg&gt;
-##  5     5 &lt;tibble [753 × 17]&gt; &lt;S3: lm&gt; &lt;S3: ivreg&gt;
-##  6     6 &lt;tibble [753 × 17]&gt; &lt;S3: lm&gt; &lt;S3: ivreg&gt;
-##  7     7 &lt;tibble [753 × 17]&gt; &lt;S3: lm&gt; &lt;S3: ivreg&gt;
-##  8     8 &lt;tibble [753 × 17]&gt; &lt;S3: lm&gt; &lt;S3: ivreg&gt;
-##  9     9 &lt;tibble [753 × 17]&gt; &lt;S3: lm&gt; &lt;S3: ivreg&gt;
-## 10    10 &lt;tibble [753 × 17]&gt; &lt;S3: lm&gt; &lt;S3: ivreg&gt;</code></pre>
+##     .imp data                lin_reg iv_reg 
+##    &lt;int&gt; &lt;list&gt;              &lt;list&gt;  &lt;list&gt; 
+##  1     1 &lt;tibble [753 × 17]&gt; &lt;lm&gt;    &lt;ivreg&gt;
+##  2     2 &lt;tibble [753 × 17]&gt; &lt;lm&gt;    &lt;ivreg&gt;
+##  3     3 &lt;tibble [753 × 17]&gt; &lt;lm&gt;    &lt;ivreg&gt;
+##  4     4 &lt;tibble [753 × 17]&gt; &lt;lm&gt;    &lt;ivreg&gt;
+##  5     5 &lt;tibble [753 × 17]&gt; &lt;lm&gt;    &lt;ivreg&gt;
+##  6     6 &lt;tibble [753 × 17]&gt; &lt;lm&gt;    &lt;ivreg&gt;
+##  7     7 &lt;tibble [753 × 17]&gt; &lt;lm&gt;    &lt;ivreg&gt;
+##  8     8 &lt;tibble [753 × 17]&gt; &lt;lm&gt;    &lt;ivreg&gt;
+##  9     9 &lt;tibble [753 × 17]&gt; &lt;lm&gt;    &lt;ivreg&gt;
+## 10    10 &lt;tibble [753 × 17]&gt; &lt;lm&gt;    &lt;ivreg&gt;</code></pre>
 <p>Let’s take a look at the results:</p>
 <pre class="r"><code>pool_iv_reg &lt;- pool(imp_wages_reg$iv_reg)
 
