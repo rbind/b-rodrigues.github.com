@@ -138,6 +138,16 @@ keystrokes I am typing to perform the actions. However, because I use the BÉPO 
 which is the french equivalent of the DVORAK layout, the keystrokes will be different than those 
 in a regular vi guide, which are mainly written for the QWERTY layout. 
 Also, to use Spacemacs for R, you need to enable the **ESS** layer, which I show how to do at the end.
+Enabling this layer will turn on auto-completion, as well as provide documentation in real time
+for your function in the minibuffer:
+
+```{r, echo=FALSE, fig.align = "center"}
+knitr::include_graphics("/img/spacemacs_autocompletion.png")
+```
+
+```{r, echo=FALSE, fig.align = "center"}
+knitr::include_graphics("/img/spacemacs_doc.png")
+```
 
 The first video shows Spacemacs divided into two windows. On the left, I am navigating around code
 using the **T** (move down) and **S** (move up) keys. To execute a region that I select, I type 
