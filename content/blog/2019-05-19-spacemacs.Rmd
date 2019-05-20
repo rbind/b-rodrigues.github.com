@@ -29,7 +29,8 @@ once a choice is made, one has, in my humble opinion, learn as many features of 
 possible to become as efficient as possible.
 
 As you can notice from the tweet above, I suggested the use of [Spacemacs](http://spacemacs.org/)...
-and my tweet did not get any likes or retweets. It is to set this great injustice straight that I
+and my tweet did not get any likes or retweets (as of the 19th of May, sympathetic readers of this 
+blog have liked the tweet). It is to set this great injustice straight that I
 decided to write this blog post.
 
 Spacemacs is a strange beast; if vi and Emacs had a baby, it would certainly look like Spacemacs. 
@@ -58,9 +59,9 @@ mode which can be entered by keying **:** from *Normal* mode and allows to enter
 Now you might be wondering why anyone would use such a convoluted way to type text. Well, this is
 because one can chain these commands quite easily to perform repetitive tasks very quickly.
 For instance, to delete a word, one types **daw** (in *Normal* mode), **d**elete **a** **w**ord. 
-To delete the next 3 words, you can type **3daw**. To edit the text between, for instance, 
-the to edit, you would type **ci(** (while in *Normal* mode and anywhere between the brackets containing
-the text to edit), **c**hange **i**n **(**. Same logic applies for **ci[** for instance. Can you guess
+To delete the next 3 words, you can type **3daw**. To edit the text between, for instance, **()**
+you would type **ci(** (while in *Normal* mode and anywhere between the braces 
+containing the text to edit), **c**hange **i**n **(**. Same logic applies for **ci[** for instance. Can you guess
 what **ciw** does? If you are in *Normal* mode, and you want to change the word the cursor is on, this
 command will erase the word and put you in *Insert* mode so that you can write the new word.
 
