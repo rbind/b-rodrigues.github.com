@@ -117,7 +117,10 @@ nn_model_forecast <- forecast(nn_model, h = 163)
 The `crost()` function estimates Croston's model, and the `h` argument produces the 
 forecast for the next 163 days. `mlp()` trains a multilayer perceptron, and the `hd.auto.type = "cv"`
 argument means that 5-fold cross-validation will be used to find the best number of hidden nodes. I
-then obtain the forecast using the `forecast()` function.
+then obtain the forecast using the `forecast()` function. As you can read from the Warning message
+above, the Neural Network was replaced by an auto-regressive model, AR(1), because no inputs were
+left after pre-selection... I am not exactly sure what that means, but if I remove the big outlier
+from before, this warning message disappears, and a Neural Network is successfully trained.
 
 In order to rank the models, I follow [this paper](https://www.sciencedirect.com/science/article/pii/S0169207006000239)
 from Rob J. Hyndman, who wrote a very useful book titled [Forecasting: Principles and Practice](https://otexts.com/fpp2/),
@@ -147,7 +150,7 @@ mase(train_data, test_data$count, nn_model_forecast$mean)
 ```
 
 Croston's method is the one that performs best from the three. Maybe surprisingly, the naive method
-performs just as well as the Neural Network! Let's also plot the predictions
+performs just as well as the Neural Network! (or rather, the AR(1) model) Let's also plot the predictions
 with the true values from the test set:
 
 ```{r}
