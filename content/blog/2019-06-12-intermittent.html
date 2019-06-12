@@ -1,0 +1,145 @@
+---
+date: 2019-06-12
+title: "Intermittent demand, Croston and Die Hard"
+tags: [R]
+menu:
+  main:
+    parent: Blog
+    identifier: /blog/intermittent
+    weight: 1
+---
+
+
+
+<div style="text-align:center;">
+<p><a href="https://en.wikipedia.org/wiki/List_of_Christmas_films">
+<img src="/img/diehard.jpg" title = "Die Hard is the best Christmas movie" width="600" height="400"></a></p>
+</div>
+<p>I have recently been confronted to a kind of data set and problem that I was not even aware existed:
+intermittent demand data. Intermittent demand arises when the demand for a certain good arrives
+sporadically. Let’s take a look at an example, by analyzing the number of downloads for the <code>{RDieHarder}</code>
+package:</p>
+<pre class="r"><code>library(tidyverse)
+library(tsintermittent)
+library(nnfor)
+library(cranlogs)
+library(brotools)</code></pre>
+<pre class="r"><code>rdieharder &lt;- cran_downloads(&quot;RDieHarder&quot;, from = &quot;2017-01-01&quot;)
+
+ggplot(rdieharder) +
+  geom_line(aes(y = count, x = date), colour = &quot;#82518c&quot;) +
+  theme_blog()</code></pre>
+<p><img src="/blog/2019-06-12-intermittent_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<p>Let’s take a look at just one month of data, because the above plot is not very clear, because of
+the outlier just before 2019… I wonder now, was that on Christmas day?</p>
+<pre class="r"><code>rdieharder %&gt;%
+  filter(count == max(count))</code></pre>
+<pre><code>##         date count    package
+## 1 2018-12-21   373 RDieHarder</code></pre>
+<p>Not exactly on Christmas day, but almost! Anyways, let’s look at one month of data:</p>
+<pre class="r"><code>january_2018 &lt;- rdieharder %&gt;%
+  filter(between(date, as.Date(&quot;2018-01-01&quot;), as.Date(&quot;2018-02-01&quot;)))
+
+ggplot(january_2018) +
+  geom_line(aes(y = count, x = date), colour = &quot;#82518c&quot;) +
+  theme_blog()</code></pre>
+<p><img src="/blog/2019-06-12-intermittent_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<p>Now, it is clear that this will be tricky to forecast. There is no discernible pattern,
+no trend, no seasonality… nothing that would make it “easy” for a model to learn how to forecast
+such data.</p>
+<p>This is typical intermittent demand data. Specific methods have been developed to forecast such
+data, the most well-known being Croston, as detailed in
+<a href="https://www.jstor.org/stable/3007885?seq=1#page_scan_tab_contents">this paper</a>.
+A function to estimate such models is available in the <code>{tsintermittent}</code> package, written by
+<a href="https://kourentzes.com/forecasting/2014/06/23/intermittent-demand-forecasting-package-for-r/">Nikolaos Kourentzes</a>
+who also wrote another package, <code>{nnfor}</code>, which uses Neural Networks to forecast time series data.
+I am going to use both to try to forecast the intermittent demand for the <code>{RDieHarder}</code> package
+for the year 2019.</p>
+<p>Let’s first load these packages:</p>
+<pre class="r"><code>library(tsintermittent)
+library(nnfor)</code></pre>
+<p>And as usual, split the data into training and testing sets:</p>
+<pre class="r"><code>train_data &lt;- rdieharder %&gt;%
+  filter(date &lt; as.Date(&quot;2019-01-01&quot;)) %&gt;%
+  pull(count) %&gt;%
+  ts()
+
+test_data &lt;- rdieharder %&gt;%
+  filter(date &gt;= as.Date(&quot;2019-01-01&quot;))</code></pre>
+<p>Let’s consider three models; a naive one, which simply uses the mean of the training set as the
+forecast for all future periods, Croston’s method, and finally a Neural Network from the <code>{nnfor}</code>
+package:</p>
+<pre class="r"><code>naive_model &lt;- mean(train_data)
+
+croston_model &lt;- crost(train_data, h = 163)
+
+nn_model &lt;- mlp(train_data, reps = 1, hd.auto.type = &quot;cv&quot;)</code></pre>
+<pre><code>## Warning in preprocess(y, m, lags, keep, difforder, sel.lag,
+## allow.det.season, : No inputs left in the network after pre-selection,
+## forcing AR(1).</code></pre>
+<pre class="r"><code>nn_model_forecast &lt;- forecast(nn_model, h = 163)</code></pre>
+<p>The <code>crost()</code> function estimates Croston’s model, and the <code>h</code> argument produces the
+forecast for the next 163 days. <code>mlp()</code> trains a multilayer perceptron, and the <code>hd.auto.type = &quot;cv&quot;</code>
+argument means that 5-fold cross-validation will be used to find the best number of hidden nodes. I
+then obtain the forecast using the <code>forecast()</code> function.</p>
+<p>In order to rank the models, I follow <a href="https://www.sciencedirect.com/science/article/pii/S0169207006000239">this paper</a>
+from Rob J. Hyndman, who wrote a very useful book titled <a href="https://otexts.com/fpp2/">Forecasting: Principles and Practice</a>,
+and use the Mean Absolute Scaled Error, or MASE. You can also read <a href="https://robjhyndman.com/papers/foresight.pdf">this shorter pdf</a>
+which also details how to use MASE to measure the accuracy for intermittent demand. Here is the
+function:</p>
+<pre class="r"><code>mase &lt;- function(train_ts, test_ts, outsample_forecast){
+
+  naive_insample_forecast &lt;- stats::lag(train_ts)
+
+  insample_mae &lt;- mean(abs(train_ts - naive_insample_forecast), na.rm = TRUE)
+  error_outsample &lt;- test_ts - outsample_forecast
+
+  ase &lt;- error_outsample / insample_mae
+  mean(abs(ase), na.rm = TRUE)
+}</code></pre>
+<p>It is now easy to compute the models’ accuracies:</p>
+<pre class="r"><code>mase(train_data, test_data$count, naive_model)</code></pre>
+<pre><code>## [1] 1.764385</code></pre>
+<pre class="r"><code>mase(train_data, test_data$count, croston_model$component$c.out[1])</code></pre>
+<pre><code>## [1] 1.397611</code></pre>
+<pre class="r"><code>mase(train_data, test_data$count, nn_model_forecast$mean)</code></pre>
+<pre><code>## [1] 1.767398</code></pre>
+<p>Croston’s method is the one that performs best from the three. Maybe surprisingly, the naive method
+performs just as well as the Neural Network! Let’s also plot the predictions
+with the true values from the test set:</p>
+<pre class="r"><code>test_data &lt;- test_data %&gt;%
+  mutate(naive_model_forecast = naive_model,
+         croston_model_forecast = croston_model$component$c.out[1],
+         nn_model_forecast = nn_model_forecast$mean) %&gt;%
+  select(-package) %&gt;%
+  rename(actual_value = count)
+
+
+test_data_longer &lt;- test_data %&gt;%
+  gather(models, value,
+         actual_value, naive_model_forecast, croston_model_forecast, nn_model_forecast)</code></pre>
+<pre><code>## Warning: attributes are not identical across measure variables;
+## they will be dropped</code></pre>
+<pre class="r"><code>ggplot(test_data_longer) +
+  geom_line(aes(y = value, x = date, colour = models)) +
+  theme_blog()</code></pre>
+<p><img src="/blog/2019-06-12-intermittent_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+<p>Just to make sure I didn’t make a mistake when writing the <code>mase()</code> function, let’s use the
+<code>accuracy()</code> function from the <code>{forecast}</code> package and compare the result for the Neural Network:</p>
+<pre class="r"><code>library(forecast)
+accuracy(nn_model_forecast, x = test_data$actual_value)</code></pre>
+<pre><code>##                       ME     RMSE      MAE  MPE MAPE      MASE
+## Training set 0.001535731 14.78897 4.050049  NaN  Inf 0.8314822
+## Test set     8.203928115 12.40121 8.635764 -Inf  Inf 1.7673980
+##                      ACF1
+## Training set -0.009666087
+## Test set               NA</code></pre>
+<p>The result is the same, so it does seem like the naive method is not that bad, actually! Now, in
+general, intermittent demand series have a lot of 0 values, which is not really the case here. I
+still think that the methodology fits to this particular data set.</p>
+<p>How else would you have forecast this data? Let me know via twitter!</p>
+<p>Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>.</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
