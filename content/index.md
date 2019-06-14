@@ -11,7 +11,7 @@ type: index
     <img src="/img/profile.jpg" width="400" height="400"/>
 </div>
 
-Hi! My name is Bruno Rodrigues, and I'm a senior advisor at [PwC Luxembourg](https://www.pwc.lu/). 
+Hi! My name is Bruno Rodrigues, and I'm a senior Data Scientist at [PwC Luxembourg](https://www.pwc.lu/). 
 I mostly work on data related projects using R and Python.
 
 I'm an economist by training, I hold a PhD from the University of Strasbourg, 

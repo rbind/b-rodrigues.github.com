@@ -31,7 +31,7 @@ function. I obtained this complex expression by using the <a href="https://selec
 extension for Google Chrome, and then selecting the right element of the web page.
 See this <a href="https://i.imgur.com/2cntugt.png">screenshot</a> if my description was not very clear.</p>
 <p>Then, the <code>extract_text()</code> function extracts the text from the letter. The only line that might be
-a bit complex is <code>discard(~`==`(., &quot;&quot;))</code> which removes every empty line.</p>
+a bit complex is <code>discard(~`==`(., ""))</code> which removes every empty line.</p>
 <p>Finally, there’s the <code>get_letter()</code> function that actually gets the letter by calling the first two
 functions. In the last line, I get all the letters into a list by mapping the list of urls to the
 <code>get_letter()</code> function.</p>
