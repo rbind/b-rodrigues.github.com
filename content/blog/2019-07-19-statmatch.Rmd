@@ -1,0 +1,41 @@
+---
+date: 2019-07-19
+title: "Statistical matching: when one single data source is not enough"
+tags: [R]
+menu:
+  main:
+    parent: Blog
+    identifier: /blog/statmatch
+    weight: 1
+---
+
+<div style="text-align:center;">
+  <a href="https://en.wikipedia.org/wiki/Row_and_column_vectors">
+    <img src="/img/columns.jpg" title = "Not that kind of columns" width="1119" height="720"></a>
+</div>
+
+I was recently asked how to go about matching several datasets where different samples of 
+individuals were interviewed. This sounds like a big problem; say that you have dataset A and B,
+and that A contain one sample of individuals, and B another sample of individuals, then how could
+you possibly match the datasets? Matching datasets requires a common identifier, for instance, 
+suppose that A contains socio-demographic information on a sample of individuals I, while B, 
+contains information on wages and hours worked on the same sample of individuals I, then yes, 
+it will be possible to match/merge/join both datasets.
+
+But that was not what I was asked about; I was asked about a situation where the same population
+gets sampled twice, and each sample answers to a different survey. For example the first survey
+is about labour market information and survey B is about family structure. Would it be possible to
+combine the information from both datasets?
+
+To me, this sounded a bit like missing data imputation problem, but where all the information
+about the variables of interest was missing! I started digging a bit, and found that not only there
+was already quite some literature on it, there is even a package for this, called `{StatMatch}` with 
+a very detailed [vignette](https://cran.r-project.org/web/packages/StatMatch/vignettes/Statistical_Matching_with_StatMatch.pdf).
+The vignette is so detailed, that I will not write any code, I just wanted to share this package!
+
+Hope you enjoyed! If you found this blog post useful, you might want to follow 
+me on [twitter](https://www.twitter.com/brodriguesco) for blog post updates and 
+[buy me an espresso](https://www.buymeacoffee.com/brodriguesco) or [paypal.me](https://www.paypal.me/brodriguesco).
+
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a>
+
