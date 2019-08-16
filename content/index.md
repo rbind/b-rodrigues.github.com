@@ -11,26 +11,33 @@ type: index
     <img src="/img/profile.jpg" width="400" height="400"/>
 </div>
 
-Hi! My name is Bruno Rodrigues, and I'm a senior Data Scientist at [PwC Luxembourg](https://www.pwc.lu/). 
+Hi! My name is Bruno Rodrigues, and I'm a manager in the data science team
+at [PwC Luxembourg](https://www.pwc.lu/). 
+
 I mostly work on data related projects using R and Python.
 
-I'm an economist by training, I hold a PhD from the University of Strasbourg, 
-but am interested in any subject that deals with statistics in general!
+I'm an economist by training and hold a PhD from the University of Strasbourg, 
+but am interested in any subject that deals with statistics and machine learning in general!
 
 I program mostly in R and love sharing my knowledge, that's why I started this blog.
 I share my posts also on [R-bloggers](http://www.r-bloggers.com) and [Rweekly](https://rweekly.org). 
 In my posts, I discuss new packages I discovered or new ways of using packages.
 
-If you were one of my students, and need some of the materials I taught, just drop me an [email](mailto:bruno@brodrigues.co).
+If you find this blog useful, you might want to follow 
+me on [twitter](https://www.twitter.com/brodriguesco) for blog post updates and 
+[buy me an espresso](https://www.buymeacoffee.com/brodriguesco) or [paypal.me](https://www.paypal.me/brodriguesco).
 
-You can follow me on [twitter](https://twitter.com/brodriguesco) for blog updates.
+I wrote an ebook called *Modern R with the tidyverse* that you can read for free
+[here](https://b-rodrigues.github.io/modern_R/).
+If you find it useful and want to contribute to this blog and future ebooks, you can also
+purchase a copy on [leanpub](https://leanpub.com/modern_tidyverse).
+This ebook is partly based of my [old one](https://b-rodrigues.github.io/fput/).
 
-I'm writing a book as a hobby about functional programming, unit testing and package
-development with R. You can read it for [free](https://b-rodrigues.github.io/fput/).
-
-You can also download my package, called [brotools](https://github.com/b-rodrigues/brotools),
+You can also download my package, called [{brotools}](https://github.com/b-rodrigues/brotools),
 which contains some functions I use daily. You might find them useful too! I also made a package
 called `{nethack}` that contains data from NetHack games played online from 2001 to 2018. You
-can get it [here](https://github.com/b-rodrigues/nethack).
+can get it [here](https://github.com/b-rodrigues/nethack). I also made another package, 
+[{michelRodange}](https://cran.r-project.org/web/packages/michelRodange/index.html), which contains
+texts written by the Luxembourguish author Michel Rodange, that can be used for text mining.
 
 # Blog posts
