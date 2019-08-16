@@ -70,6 +70,9 @@ But as I've written in the introduction of *Modern R*:
 
 Anyways, hope you'll enjoy *Modern R*, suggestions, criticisms and reviews welcome!
 
+By the way, the cover of the book is a painting by John William Waterhouse,depicting Diogenes of Sinope,
+an ancient Greek philosopher, and absolute mad lad. Read his Wikipedia page, it's worth it.
+
 Hope you enjoyed! If you found this blog post useful, you might want to follow 
 me on [twitter](https://www.twitter.com/brodriguesco) for blog post updates and 
 [buy me an espresso](https://www.buymeacoffee.com/brodriguesco) or [paypal.me](https://www.paypal.me/brodriguesco), or buy my ebook on [Leanpub](https://leanpub.com/modern_tidyverse)
