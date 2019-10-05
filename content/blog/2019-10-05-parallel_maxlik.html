@@ -55,7 +55,7 @@ Because our sample is composed of i.i.d. random variables, the probability that 
 our distribution <span class="math inline">\(D(\theta)\)</span> is:</p>
 <p><span class="math display">\[\prod_{i=1}^N Pr(X_i = x_i)\]</span></p>
 <p>It is customary to take the log of this expression:</p>
-<p><span class="math display">\[log(\prod_{i=1}^N Pr(X_i = x_i)) = \sum_{i=1}^N log(Pr(X_i = x_i))\]</span></p>
+<p><span class="math display">\[\log(\prod_{i=1}^N Pr(X_i = x_i)) = \sum_{i=1}^N \log(Pr(X_i = x_i))\]</span></p>
 <p>The expression above is called the <em>log-likelihood</em>, <span class="math inline">\(logL(\theta; x_1, ..., x_N)\)</span>. Maximizing this
 function yields <span class="math inline">\(\theta^*\)</span>, the value of the parameter that makes the sample the most probable.
 In the case of linear regression, the density function to use is the one from the Normal distribution.</p>
@@ -85,13 +85,13 @@ x_df &lt;- as.data.frame(x_data) %&gt;%
   rename(iota = V2)
 
 head(x_df)</code></pre>
-<pre><code>##        dep_y iota         x1         x2         x3
-## 1 -5.0615951    1  0.2237880  0.1663787 -1.6232062
-## 2  1.6420958    1  0.1846356 -0.2475585  0.1792022
-## 3  2.3162396    1  0.8581719 -2.4044610  1.3841125
-## 4  0.8874710    1  0.9732105 -0.2653403 -0.4266142
-## 5  4.5403132    1  0.8572603  0.9684731 -0.2076378
-## 6 -0.7087908    1 -1.0640633  0.4229749 -0.5913430</code></pre>
+<pre><code>##       dep_y iota         x1          x2         x3
+## 1  1.637044    1  0.2287198  0.91609653 -0.4006215
+## 2 -1.684578    1  1.2780291 -0.02468559 -1.4020914
+## 3  1.289595    1  1.0524842  0.30206515 -0.3553641
+## 4 -3.769575    1 -2.5763576  0.13864796 -0.3181661
+## 5 13.110239    1 -0.9376462  0.77965301  3.0351646
+## 6  5.059152    1  0.7488792 -0.10049061  0.1307225</code></pre>
 <p>Now that this is done, let’s write a function to perform Maximum Likelihood Estimation:</p>
 <pre class="r"><code>loglik_linmod &lt;- function(parameters, x_data){
   sum_log_likelihood &lt;- x_data %&gt;%
@@ -144,10 +144,10 @@ and then use <code>pull()</code> to convert it to an atomic vector, and finally 
 <p>Let’s now optimize this function:</p>
 <pre class="r"><code>optim(rep(1, 5), loglik_linmod_df, x_data = x_diskframe)</code></pre>
 <pre><code>## $par
-## [1] 1.496846 1.999714 3.003980 4.001170 1.001955
+## [1] 1.5351722 1.9566144 3.0067978 4.0202956 0.9889412
 ## 
 ## $value
-## [1] 710273
+## [1] 709977.2
 ## 
 ## $counts
 ## function gradient 

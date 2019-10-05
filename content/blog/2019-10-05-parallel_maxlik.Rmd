@@ -62,7 +62,7 @@ $$\prod_{i=1}^N Pr(X_i = x_i)$$
 
 It is customary to take the log of this expression:
 
-$$log(\prod_{i=1}^N Pr(X_i = x_i)) = \sum_{i=1}^N log(Pr(X_i = x_i))$$
+$$\log(\prod_{i=1}^N Pr(X_i = x_i)) = \sum_{i=1}^N \log(Pr(X_i = x_i))$$
 
 The expression above is called the *log-likelihood*, $logL(\theta; x_1, ..., x_N)$. Maximizing this
 function yields $\theta^*$, the value of the parameter that makes the sample the most probable.
