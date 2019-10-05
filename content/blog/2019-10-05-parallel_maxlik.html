@@ -55,7 +55,7 @@ Because our sample is composed of i.i.d. random variables, the probability that 
 our distribution <span class="math inline">\(D(\theta)\)</span> is:</p>
 <p><span class="math display">\[\prod_{i=1}^N Pr(X_i = x_i)\]</span></p>
 <p>It is customary to take the log of this expression:</p>
-<p><span class="math display">\[log(\prod_{i=1}^N Pr(X_i = x_i)) = \sum_{i=1}^N Pr(X_i = x_i)\]</span></p>
+<p><span class="math display">\[log(\prod_{i=1}^N Pr(X_i = x_i)) = \sum_{i=1}^N log(Pr(X_i = x_i))\]</span></p>
 <p>The expression above is called the <em>log-likelihood</em>, <span class="math inline">\(logL(\theta; x_1, ..., x_N)\)</span>. Maximizing this
 function yields <span class="math inline">\(\theta^*\)</span>, the value of the parameter that makes the sample the most probable.
 In the case of linear regression, the density function to use is the one from the Normal distribution.</p>
@@ -85,21 +85,21 @@ x_df &lt;- as.data.frame(x_data) %&gt;%
   rename(iota = V2)
 
 head(x_df)</code></pre>
-<pre><code>##       dep_y iota         x1         x2            x3
-## 1  4.942783    1  0.7407391  1.2352809 -0.7492147471
-## 2 -8.469244    1 -2.4884390  0.3159124 -1.8835399704
-## 3  6.882245    1 -0.5388960  1.5924313  0.0001544481
-## 4 12.708995    1  0.4488584 -0.1061873  2.3538566240
-## 5  0.123950    1 -2.1427623  0.9913970 -0.1536994360
-## 6  1.947939    1 -0.5926483 -0.1656621 -0.2214824049</code></pre>
+<pre><code>##        dep_y iota         x1         x2         x3
+## 1 -5.0615951    1  0.2237880  0.1663787 -1.6232062
+## 2  1.6420958    1  0.1846356 -0.2475585  0.1792022
+## 3  2.3162396    1  0.8581719 -2.4044610  1.3841125
+## 4  0.8874710    1  0.9732105 -0.2653403 -0.4266142
+## 5  4.5403132    1  0.8572603  0.9684731 -0.2076378
+## 6 -0.7087908    1 -1.0640633  0.4229749 -0.5913430</code></pre>
 <p>Now that this is done, let’s write a function to perform Maximum Likelihood Estimation:</p>
 <pre class="r"><code>loglik_linmod &lt;- function(parameters, x_data){
   sum_log_likelihood &lt;- x_data %&gt;%
-    mutate(likelihood =
+    mutate(log_likelihood =
              dnorm(dep_y,
                    mean = iota*parameters[1] + x1*parameters[2] + x2*parameters[3] + x3*parameters[4],
-                   sd = parameters[5])) %&gt;%
-    mutate(log_likelihood = log(likelihood)) %&gt;%
+                   sd = parameters[5],
+                   log = TRUE)) %&gt;%
     summarise(sum(log_likelihood))
 
   -1 * sum_log_likelihood
@@ -124,11 +124,11 @@ x_diskframe &lt;- as.disk.frame(x_df) #Convert the data frame to a disk.frame
 
 loglik_linmod_df &lt;- function(parameters, x_data){
   sum_log_likelihood &lt;- x_data %&gt;%
-    mutate(likelihood =
+    mutate(log_likelihood =
              dnorm(dep_y,
                    mean = iota*parameters[1] + x1*parameters[2] + x2*parameters[3] + x3*parameters[4],
-                   sd = parameters[5])) %&gt;%  
-    mutate(log_likelihood = log(likelihood)) %&gt;%
+                   sd = parameters[5],
+                   log = TRUE)) %&gt;% 
     chunk_summarise(sum(log_likelihood))
 
   out &lt;- sum_log_likelihood %&gt;%
@@ -143,6 +143,21 @@ inside each chunk. Thus, I first need to use <code>collect()</code> to transfer 
 and then use <code>pull()</code> to convert it to an atomic vector, and finally sum them all again.</p>
 <p>Let’s now optimize this function:</p>
 <pre class="r"><code>optim(rep(1, 5), loglik_linmod_df, x_data = x_diskframe)</code></pre>
+<pre><code>## $par
+## [1] 1.496846 1.999714 3.003980 4.001170 1.001955
+## 
+## $value
+## [1] 710273
+## 
+## $counts
+## function gradient 
+##      502       NA 
+## 
+## $convergence
+## [1] 1
+## 
+## $message
+## NULL</code></pre>
 <p>This is how you can use the split-apply-combine approach for maximum likelihood estimation of a
 linear model! This approach is quite powerful, and the familiar <code>map()</code> and <code>reduce()</code> functions
 included in <code>{purrr}</code> can also help with this task. However, this only works if you can split your

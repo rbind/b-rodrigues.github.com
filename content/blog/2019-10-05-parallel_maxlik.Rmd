@@ -62,7 +62,7 @@ $$\prod_{i=1}^N Pr(X_i = x_i)$$
 
 It is customary to take the log of this expression:
 
-$$log(\prod_{i=1}^N Pr(X_i = x_i)) = \sum_{i=1}^N Pr(X_i = x_i)$$
+$$log(\prod_{i=1}^N Pr(X_i = x_i)) = \sum_{i=1}^N log(Pr(X_i = x_i))$$
 
 The expression above is called the *log-likelihood*, $logL(\theta; x_1, ..., x_N)$. Maximizing this
 function yields $\theta^*$, the value of the parameter that makes the sample the most probable.
@@ -111,11 +111,11 @@ Now that this is done, let's write a function to perform Maximum Likelihood Esti
 ```{r}
 loglik_linmod <- function(parameters, x_data){
   sum_log_likelihood <- x_data %>%
-    mutate(likelihood =
+    mutate(log_likelihood =
              dnorm(dep_y,
                    mean = iota*parameters[1] + x1*parameters[2] + x2*parameters[3] + x3*parameters[4],
-                   sd = parameters[5])) %>%
-    mutate(log_likelihood = log(likelihood)) %>%
+                   sd = parameters[5],
+                   log = TRUE)) %>%
     summarise(sum(log_likelihood))
 
   -1 * sum_log_likelihood
@@ -157,11 +157,11 @@ x_diskframe <- as.disk.frame(x_df) #Convert the data frame to a disk.frame
 
 loglik_linmod_df <- function(parameters, x_data){
   sum_log_likelihood <- x_data %>%
-    mutate(likelihood =
+    mutate(log_likelihood =
              dnorm(dep_y,
                    mean = iota*parameters[1] + x1*parameters[2] + x2*parameters[3] + x3*parameters[4],
-                   sd = parameters[5])) %>%  
-    mutate(log_likelihood = log(likelihood)) %>%
+                   sd = parameters[5],
+                   log = TRUE)) %>% 
     chunk_summarise(sum(log_likelihood))
 
   out <- sum_log_likelihood %>%
@@ -179,7 +179,7 @@ and then use `pull()` to convert it to an atomic vector, and finally sum them al
 
 Let's now optimize this function:
 
-```{r, eval = FALSE}
+```{r}
 optim(rep(1, 5), loglik_linmod_df, x_data = x_diskframe)
 ```
 
