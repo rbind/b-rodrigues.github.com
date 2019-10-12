@@ -1,0 +1,135 @@
+---
+date: 2019-10-13
+title: "Cluster multiple time series using K-means"
+tags: [R]
+menu:
+main:
+  parent: Blog
+  identifier: /blog/k_means ts
+  weight: 1
+---
+
+<div style="text-align:center;">
+<a href="https://en.wikipedia.org/wiki/Elbow_method_(clustering)">
+  <img src="/img/deepfried_elbow.jpg" title = "A life saving skill"></a>
+</div>
+
+
+I have been recently confronted to the issue of finding similarities among time-series and though
+about using k-means to cluster them. To illustrate the method, I'll be using data from the 
+Penn World Tables, readily available in R (inside the `{pwt9}` package):
+
+```{r, include = FALSE}
+library(tidyverse)
+library(lubridate)
+library(pwt9)
+library(brotools)
+```
+```{r, eval = FALSE}
+library(tidyverse)
+library(lubridate)
+library(pwt9)
+library(brotools)
+```
+
+First, of all, let's only select the needed columns:
+
+```{r}
+pwt <- pwt9.0 %>%
+select(country, year, avh)
+```
+
+`avh` contains the average worked hours for a given country and year. The data looks like this:
+
+```{r}
+head(pwt)
+```
+
+For each country, there's yearly data on the `avh` variable. The goal here is to cluster the different
+countries by looking at how similar they are on the `avh` variable. Let's do some further cleaning.
+The k-means implementation in R expects a wide data frame (currently my data frame is in the long 
+format) and no missing values. These could potentially be imputed, but I can't be bothered:
+
+```{r}
+pwt_wide <- pwt %>%
+  pivot_wider(names_from = year, values_from = avh)  %>%
+  filter(!is.na(`1950`)) %>%
+  mutate_at(vars(-country), as.numeric)
+```
+
+To convert my data frame from long to wide, I use the fresh `pivot_wider()` function, instead of the 
+less intuitive `spread()` function.
+
+We're ready to use the k-means algorithm. To know how many clusters I should aim for, I'll be using
+the elbow method (if you're not familiar with this method, click on the image at the very top of
+this post):
+
+```{r}
+wss <- map_dbl(1:5, ~{kmeans(select(pwt_wide, -country), ., nstart=50,iter.max = 15 )$tot.withinss})
+
+n_clust <- 1:5
+
+elbow_df <- as.data.frame(cbind("n_clust" = n_clust, "wss" = wss))
+
+
+ggplot(elbow_df) +
+geom_line(aes(y = wss, x = n_clust), colour = "#82518c") +
+theme_blog()
+```
+
+Looks like 3 clusters is a good choice. Let's now run the kmeans algorithm:
+
+```{r}
+clusters <- kmeans(select(pwt_wide, -country), centers = 3)
+```
+
+`clusters` is a list with several interesting items. The item `centers` contains the "average" 
+time series:
+
+```{r}
+(centers <- rownames_to_column(as.data.frame(clusters$centers), "cluster"))
+```
+
+`clusters` also contains the `cluster` item, which tells me to which cluster the different countries
+belong to. I can easily add this to the original data frame:
+
+```{r}
+pwt_wide <- pwt_wide %>% 
+  mutate(cluster = clusters$cluster)
+```
+
+Now, let's prepare the data for visualisation. I have to go back to a long data frame for this:
+
+```{r}
+pwt_long <- pwt_wide %>%
+  pivot_longer(cols=c(-country, -cluster), names_to = "year", values_to = "avh") %>%
+  mutate(year = ymd(paste0(year, "-01-01")))
+
+centers_long <- centers %>%
+  pivot_longer(cols = -cluster, names_to = "year", values_to = "avh") %>%  
+  mutate(year = ymd(paste0(year, "-01-01")))
+```
+
+And I can now plot the different time series, by cluster and highlight the "average" time series
+for each cluster as well (yellow line):
+
+```{r} 
+ggplot() +
+  geom_line(data = pwt_long, aes(y = avh, x = year, group = country), colour = "#82518c") +
+  facet_wrap(~cluster, nrow = 1) + 
+  geom_line(data = centers_long, aes(y = avh, x = year, group = cluster), col = "#b58900", size = 2) +
+  theme_blog() +
+  labs(title = "Average hours worked in several countries", 
+       caption = "The different time series have been clustered using k-means.
+                 Cluster 1: Belgium, Switzerland, Germany, Denmark, France, Luxembourg, Netherlands,
+                 Norway, Sweden.\nCluster 2: Australia, Colombia, Ireland, Iceland, Japan, Mexico,
+                 Portugal, Turkey.\nCluster 3: Argentina, Austria, Brazil, Canada, Cyprus, Spain, Finland,
+                 UK, Italy, New Zealand, Peru, USA, Venezuela") +
+  theme(plot.caption = element_text(colour = "white"))
+```
+
+Hope you enjoyed! If you found this blog post useful, you might want to follow 
+me on [twitter](https://www.twitter.com/brodriguesco) for blog post updates and 
+[buy me an espresso](https://www.buymeacoffee.com/brodriguesco) or [paypal.me](https://www.paypal.me/brodriguesco), or buy my ebook on [Leanpub](https://leanpub.com/modern_tidyverse)
+
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a>
