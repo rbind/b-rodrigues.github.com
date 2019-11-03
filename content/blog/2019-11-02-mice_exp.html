@@ -962,18 +962,6 @@ compute whatever I need:</p>
     group_by(.feature) %&gt;% 
     summarise_at(.vars = vars(.interaction), 
                  .funs = funs(mean, sd, low_ci = quantile(., 0.05), high_ci = quantile(., 0.95)))</code></pre>
-<pre><code>## Warning: funs() is soft deprecated as of dplyr 0.8.0
-## Please use a list of either functions or lambdas: 
-## 
-##   # Simple named list: 
-##   list(mean = mean, median = median)
-## 
-##   # Auto named with `tibble::lst()`: 
-##   tibble::lst(mean, median)
-## 
-##   # Using lambdas
-##   list(~ mean(., trim = .2), ~ median(., na.rm = TRUE))
-## This warning is displayed once per session.</code></pre>
 <pre><code>## # A tibble: 13 x 5
 ##    .feature       mean     sd low_ci high_ci
 ##    &lt;chr&gt;         &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt;
