@@ -1,0 +1,654 @@
+---
+date: 2019-11-02
+title: "Multiple data imputation and explainability"
+tags: [R]
+menu:
+main:
+  parent: Blog
+  identifier: /blog/mice_exp
+  weight: 1
+---
+
+<div style="text-align:center;">
+<a href="https://xkcd.com/303/">
+  <img src="/img/kermit.png" title = "It is always so tempting"></a>
+</div>
+
+## Introduction
+
+Imputing missing values is quite an important task, but in my experience, very often, it is performed
+using very simplistic approaches. The basic approach is to impute missing values for 
+numerical features using the average of each feature, or using the mode for categorical features.
+There are better ways of imputing missing values, for instance by predicting the values using
+a regression model, or KNN. However, imputing only once is not enough, because each imputed
+value carries with it a certain level of uncertainty. To account for this, it is better to perform
+multiple imputation. This means that if you impute your dataset 10 times, you'll end up with 10
+different datasets. Then, you should perform your analysis 10 times, for instance, if training 
+a machine learning model, you should train it on the 10 datasets (and do a train/test split
+for each, even potentially tune a model for each). Finally, you should pool the results of 
+these 10 analyses.
+
+I have met this approach in the social sciences and statistical literature in general, but 
+very rarely in machine learning. Usually, in the social sciences, explainability is the goal of
+fitting statistical models to data, and the approach I described above is very well suited for this.
+Fit 10 (linear) regressions to each imputed dataset, and then pool the estimated coefficients/weights
+together. Rubin's rule is used to pool these estimates. You can read more about this rule
+[here](https://bookdown.org/mwheymans/bookmi/rubins-rules.html).
+In machine learning, the task is very often prediction; in this case, you should pool the 
+predictions. Computing the average and other statistics of the predictions
+seem to work just fine in practice.
+
+However, if you are mainly interested in explainability, how should you proceed? I've thought a 
+bit about it, and the answer, is "exactly the same way"... I think. 
+What I'm sure about, is you should impute m times, run the analysis m times
+(which in this case will include getting explanations) and then pool. So the idea is to be able to 
+pool explanations.
+
+## Explainability in the "standard" case (no missing values)
+
+To illustrate this idea, I'll be using the `{mice}` package for multiple imputation, 
+`{h2o}` for the machine learning bit and`{iml}` for explainability. Note that I could have used
+any other machine learning package instead of `{h2o}` as `{iml}` is totally *package-agnostic*.
+However, I have been experimenting with `{h2o}`'s automl implementation lately, so I happened
+to have code on hand. Let's start with the "standard" case where the data does not have any missing
+values.
+
+First let's load the needed packages and initialize `h2o` functions with `h2o.init()`:
+
+```{r, include = FALSE}
+library(tidyverse)
+library(Ecdat)
+library(mice)
+library(h2o)
+library(iml)
+h2o.init()
+```
+
+```{r, eval = FALSE}
+library(tidyverse)
+library(Ecdat)
+library(mice)
+library(h2o)
+library(iml)
+h2o.init()
+```
+
+I'll be using the `DoctorContacts` data. Here's a description:
+
+<details>
+<summary>Click to view the description of the data</summary>
+```
+DoctorContacts              package:Ecdat              R Documentation
+
+Contacts With Medical Doctor
+
+Description:
+
+     a cross-section from 1977-1978
+
+     _number of observations_ : 20186
+
+Usage:
+
+     data(DoctorContacts)
+     
+Format:
+
+     A time serie containing :
+
+     mdu number of outpatient visits to a medical doctor
+
+     lc log(coinsrate+1) where coinsurance rate is 0 to 100
+
+     idp individual deductible plan ?
+
+     lpi log(annual participation incentive payment) or 0 if no payment
+
+     fmde log(max(medical deductible expenditure)) if IDP=1 and MDE>1
+          or 0 otherw
+
+     physlim physical limitation ?
+
+     ndisease number of chronic diseases
+
+     health self-rate health (excellent,good,fair,poor)
+
+     linc log of annual family income (in \$)
+
+     lfam log of family size
+
+     educdec years of schooling of household head
+
+     age exact age
+
+     sex sex (male,female)
+
+     child age less than 18 ?
+
+     black is household head black ?
+
+Source:
+
+     Deb, P.  and P.K.  Trivedi (2002) “The Structure of Demand for
+     Medical Care: Latent Class versus Two-Part Models”, _Journal of
+     Health Economics_, *21*, 601-625.
+
+References:
+
+     Cameron, A.C.  and P.K.  Trivedi (2005) _Microeconometrics :
+     methods and applications_, Cambridge, pp. 553-556 and 565.
+```
+</details>
+
+The task is to predict `"mdu"`, the number of outpatient visits to an MD. Let's prepare the data
+and split it into 3; a training, validation and holdout set.
+
+```{r, include=FALSE}
+data("DoctorContacts")
+
+contacts <- as.h2o(DoctorContacts)
+```
+
+```{r, eval=FALSE}
+data("DoctorContacts")
+
+contacts <- as.h2o(DoctorContacts)
+```
+
+```{r}
+splits <- h2o.splitFrame(data=contacts, ratios = c(0.7, 0.2))
+
+original_train <- splits[[1]]
+
+validation <- splits[[2]]
+
+holdout <- splits[[3]]
+
+features_names <- setdiff(colnames(original_train), "mdu")
+```
+
+As you see, the ratios argument `c(0.7, 0.2)` does not add up to 1. 
+This means that the first of the splits will have 70% of the data, the second split 20% and 
+the final 10% will be the holdout set.
+
+Let's first go with a poisson regression. To obtain the same results as with R's built-in `glm()`
+function, I use the options below, as per H2o's glm 
+[faq](http://docs.h2o.ai/h2o/latest-stable/h2o-docs/data-science/glm.html#faq).
+
+If you read Cameron and Trivedi's *Microeconometrics*, where this data is presented in the
+context of count models, you'll see that they also fit a negative binomial model 2 to this data,
+as it allows for overdispersion. Here, I'll stick to a simple poisson regression, simply
+because the goal of this blog post is not to get the best model; as explained in the beginning,
+this is an attempt at pooling explanations when doing multiple imputation (and it's also because
+GBMs, which I use below, do not handle the negative binomial model).
+
+```{r, include=FALSE}
+glm_model <- h2o.glm(y = "mdu", x = features_names,
+                     training_frame = original_train,
+                     validation_frame = validation,
+                     compute_p_values = TRUE,
+                     solver = "IRLSM",
+                     lambda = 0,
+                     remove_collinear_columns = TRUE,
+                     score_each_iteration = TRUE,
+                     family = "poisson", 
+                     link = "log")
+```
+
+```{r, eval=FALSE}
+glm_model <- h2o.glm(y = "mdu", x = features_names,
+                     training_frame = original_train,
+                     validation_frame = validation,
+                     compute_p_values = TRUE,
+                     solver = "IRLSM",
+                     lambda = 0,
+                     remove_collinear_columns = TRUE,
+                     score_each_iteration = TRUE,
+                     family = "poisson", 
+                     link = "log")
+```
+
+Now that I have this simple model, which returns the (almost) same results as R's `glm()` function,
+I can take a look at coefficients and see which are important, because GLMs are easily 
+interpretable:
+
+<details>
+<summary>Click to view `h2o.glm()`'s output</summary>
+```{r, cache=TRUE}
+summary(glm_model)
+```
+</details>
+
+As a bonus, let's see the output of the `glm()` function:
+
+<details>
+<summary>Click to view `glm()`'s output</summary>
+```{r}
+train_tibble <- as_tibble(original_train)
+
+r_glm <- glm(mdu ~ ., data = train_tibble,
+            family = poisson(link = "log"))
+
+summary(r_glm)
+```
+</details>
+
+I could also use the excellent `{ggeffects}` package to see the marginal effects of 
+different variables, for instance `"linc"`:
+
+```{r}
+library(ggeffects)
+
+ggeffect(r_glm, "linc") %>% 
+    ggplot(aes(x, predicted)) +
+    geom_ribbon(aes(ymin = conf.low, ymax = conf.high), fill = "#0f4150") +
+    geom_line(colour = "#82518c") +
+    brotools::theme_blog()
+```
+
+We can see that as "linc" (and other covariates are held constant), the target variable increases.
+
+Let's also take a look at the marginal effect of a categorical variable, namely `"sex"`:
+
+<details>
+<summary>Click to view another example of marginal effects</summary>
+```{r}
+library(ggeffects)
+
+ggeffect(r_glm, "sex") %>% 
+    ggplot(aes(x, predicted)) +
+    geom_point(colour = "#82518c") +
+    geom_errorbar(aes(x, ymin = conf.low, ymax = conf.high), colour = "#82518c") +
+    brotools::theme_blog()
+```
+</details>
+
+In the case of the `"sex"` variable, men have significantly less doctor contacts than women.
+
+Now, let's suppose that I want to train a model with a more complicated name, in order to justify
+my salary. Suppose I go with one of those nifty *black-box* models, for instance a GBM, which
+very likely will perform better than the GLM from before. GBMs are available in `{h2o}` via the
+`h2o.gbm()` function:
+
+```{r, include=FALSE}
+gbm_model <- h2o.gbm(y = "mdu", x = features_names,
+            training_frame = original_train,
+            validation_frame = validation,
+            distribution = "poisson",
+            score_each_iteration = TRUE,
+            ntrees = 110,
+            max_depth = 20,
+            sample_rate = 0.6,
+            col_sample_rate = 0.8,
+            col_sample_rate_per_tree = 0.9,
+            learn_rate = 0.05)
+```
+
+```{r, eval=FALSE}
+gbm_model <- h2o.gbm(y = "mdu", x = features_names,
+            training_frame = original_train,
+            validation_frame = validation,
+            distribution = "poisson",
+            score_each_iteration = TRUE,
+            ntrees = 110,
+            max_depth = 20,
+            sample_rate = 0.6,
+            col_sample_rate = 0.8,
+            col_sample_rate_per_tree = 0.9,
+            learn_rate = 0.05)
+```
+
+To find a set of good hyper-parameter values, I actually used `h2o.automl()` and then used the 
+returned parameter values from the leader model. Maybe I'll write another blog post about 
+`h2o.automl()` one day, it's quite cool. Anyways, now, how do I get me some explainability out of
+this? The model does perform better than the GLM as indicated by all the different metrics, but 
+now I cannot compute any marginal effects, or anything like that. I do get feature importance
+by default with:
+
+```{r}
+h2o.varimp(gbm_model)
+```
+
+but that's it. And had I chosen a different "black-box" model, not based on trees, then I would
+not even have that.
+Thankfully, there's the amazing `{iml}` package that contains a lot of functions for model-agnostic
+explanations. If you are not familiar with this package and the methods it implements, I highly
+encourage you to read the free online [ebook](https://christophm.github.io/interpretable-ml-book/)
+written by the packages author, Christoph Molnar 
+(who you can follow on [Twitter](https://twitter.com/ChristophMolnar)).
+
+Out of the box, `{iml}` works with several machine learning frameworks, such as `{caret}` or `{mlr}`
+but not with `{h2o}`. However, this is not an issue; you only need to create a predict function
+which returns a data frame (`h2o.predict()` used for prediction with h2o models returns an 
+h2o frame). I have found this interesting blog post from 
+[business-science.io](https://www.business-science.io/business/2018/08/13/iml-model-interpretability.html)
+which explains how to do this. I highly recommend you read this blog post, as it goes much deeper
+into the capabilities of `{iml}`.
+
+So let's write a predict function that `{iml}` can use:
+
+```{r}
+#source: https://www.business-science.io/business/2018/08/13/iml-model-interpretability.html
+predict_for_iml <- function(model, newdata){
+  as_tibble(h2o.predict(model, as.h2o(newdata)))
+}
+```
+
+And let's now create a `Predictor` object. These objects are used by `{iml}` to create explanations:
+
+```{r}
+just_features <- as_tibble(holdout[, 2:15])
+actual_target <- as_tibble(holdout[, 1])
+
+predictor_original <- Predictor$new(
+  model = gbm_model, 
+  data = just_features, 
+  y = actual_target, 
+  predict.fun = predict_for_iml
+  )
+```
+
+`predictor_original` can now be used to compute all kinds of explanations. I won't go into much 
+detail here, as this blog post is already quite long (and I haven't even reached what I actually
+want to write about yet) and you can read more on the before-mentioned blog post or directly
+from Christoph Molnar's ebook linked above.
+
+First, let's compute a partial dependence plot, which shows the marginal effect of a variable 
+on the outcome. This is to compare it to the one from the GLM model:
+
+```{r, eval=FALSE}
+feature_effect_original <- FeatureEffect$new(predictor_original, "linc", method = "pdp")
+
+plot(feature_effect_original) +
+    brotools::theme_blog()
+```
+
+```{r, include=FALSE}
+feature_effect_original <- FeatureEffect$new(predictor_original, "linc", method = "pdp")
+```
+
+```{r, echo=FALSE}
+plot(feature_effect_original) +
+    brotools::theme_blog()
+```
+
+```{r, eval=FALSE}
+feature_effect_original <- FeatureEffect$new(predictor_original, "linc", method = "pdp")
+
+plot(feature_effect_original) +
+    brotools::theme_blog()
+```
+
+Quite similar to the marginal effects from the GLM! 
+Let's now compute model-agnostic feature importances:
+
+```{r, eval=FALSE}
+feature_importance_original <- FeatureImp$new(predictor_original, loss = "mse")
+
+plot(feature_importance_original)
+```
+
+```{r, include=FALSE}
+feature_importance_original <- FeatureImp$new(predictor_original, loss = "mse")
+```
+
+```{r, echo=FALSE}
+plot(feature_importance_original)
+```
+
+And finally, the interaction effect of the `sex` variable interacted with all the others: 
+
+```{r, eval=FALSE}
+interaction_sex_original <- Interaction$new(predictor_original, feature = "sex")
+
+plot(interaction_sex_original)
+```
+
+```{r, include=FALSE}
+interaction_sex_original <- Interaction$new(predictor_original, feature = "sex")
+```
+
+```{r, echo=FALSE}
+plot(interaction_sex_original)
+```
+
+Ok so let's assume that I'm happy with these explanations, and do need or want to go further. 
+This would be the end of it in an ideal world, but this is not an ideal world unfortunately,
+but it's the best we've got. In the real world, it often happens that data comes with missing values.
+
+## Missing data and explainability
+
+As explained in the beginning, I've been wondering how to deal with missing values when the goal
+of the analysis is explainability. How can the explanations be pooled? Let's start 
+with creating a data set with missing values, then perform multiple imputation, then perform
+the analysis.
+
+First, let me create a `patterns` matrix, that I will pass to the `ampute()` function from the 
+`{mice}` package. This function creates a dataset with missing values, and by using its `patterns`
+argument, I can decide which columns should have missing values:
+
+```{r, message=FALSE, cache=TRUE}
+patterns <- -1*(diag(1, nrow = 15, ncol = 15) - 1)
+
+patterns[ ,c(seq(1, 6), c(9, 13))] <- 0
+
+amputed_train <- ampute(as_tibble(original_train), prop = 0.1, patterns = patterns, mech = "MNAR")
+```
+
+Let's take a look at the missingness pattern:
+
+```{r}
+naniar::vis_miss(amputed_train$amp) + 
+    brotools::theme_blog() + 
+      theme(axis.text.x=element_text(angle=90, hjust=1))
+```
+
+Ok, so now let's suppose that this was the dataset I was given. As a serious data scientist, 
+I decide to perform multiple imputation first:
+
+```{r, eval=FALSE}
+imputed_train_data <- mice(data = amputed_train$amp, m = 10)
+
+long_train_data <- complete(imputed_train_data, "long")
+```
+
+So because I performed multiple imputation 10 times, I now have 10 different datasets. I should
+now perform my analysis on these 10 datasets, which means I should run my GBM on each of them, 
+and then get out the explanations for each of them. So let's do just that. But first, let's
+change the columns back to how they were; to perform amputation, the factor columns were 
+converted to numbers:
+
+```{r, eval=FALSE}
+long_train_data <- long_train_data %>% 
+    mutate(idp = ifelse(idp == 1, FALSE, TRUE),
+           physlim = ifelse(physlim == 1, FALSE, TRUE),
+           health = as.factor(case_when(health == 1 ~ "excellent",
+                              health == 2 ~ "fair",
+                              health == 3 ~ "good", 
+                              health == 4 ~  "poor")),
+           sex = as.factor(ifelse(sex == 1, "female", "male")),
+           child = ifelse(child == 1, FALSE, TRUE),
+           black = ifelse(black == 1, FALSE, TRUE))
+```
+
+Ok, so now we're ready to go. I will use the `h2o.gbm()` function on each imputed data set. 
+For this, I'll use the `group_by()`-`nest()` trick which consists in grouping the dataset by
+the `.imp` column, then nesting it, then mapping the `h2o.gbm()` function to each imputed
+dataset. If you are not familiar with this, you can read 
+[this other](https://www.brodrigues.co/blog/2017-03-29-make-ggplot2-purrr/) blog post, which
+explains the approach. I define a custom function, `train_on_imputed_data()` to run `h2o.gbm()` on 
+each imputed data set:
+
+```{r, eval=FALSE}
+train_on_imputed_data <- function(long_data){
+    long_data %>% 
+        group_by(.imp) %>% 
+        nest() %>% 
+        mutate(model = map(data, ~h2o.gbm(y = "mdu", x = features_names,
+            training_frame = as.h2o(.),
+            validation_frame = validation,
+            distribution = "poisson",
+            score_each_iteration = TRUE,
+            ntrees = 110,
+            max_depth = 20,
+            sample_rate = 0.6,
+            col_sample_rate = 0.8,
+            col_sample_rate_per_tree = 0.9,
+            learn_rate = 0.05)))
+}
+```
+
+Now the training takes place:
+
+```{r, eval=FALSE}
+imp_trained <- train_on_imputed_data(long_train_data)
+```
+
+```{r, include=FALSE}
+imp_trained <- readRDS("imp_trained.rds")
+```
+
+Let's take a look at `imp_trained`:
+
+```{r, include=FALSE}
+imp_trained <- imp_trained %>% 
+    select(-predictors, -effect_linc, -feat_imp, -interactions_sex)
+```
+
+```{r}
+imp_trained
+```
+
+```{r, include=FALSE}
+imp_trained <- readRDS("imp_trained.rds")
+```
+
+We see that the column `model` contains one model for each imputed dataset. Now comes the
+part I wanted to write about (finally): getting explanations out of this. Getting the explanations
+from each model is not the hard part, that's easily done using some `{tidyverse}` magic (if 
+you're following along, run this bit of code below, and go make dinner, have dinner, and
+wash the dishes, because it takes time to run):
+
+```{r, eval=FALSE}
+make_predictors <- function(model){
+    Predictor$new(
+        model = model, 
+        data = just_features, 
+        y = actual_target, 
+        predict.fun = predict_for_iml
+        )
+}
+
+make_effect <- function(predictor_object, feature = "linc", method = "pdp"){
+    FeatureEffect$new(predictor_object, feature, method)
+}
+
+make_feat_imp <- function(predictor_object, loss = "mse"){
+    FeatureImp$new(predictor_object, loss)
+}
+
+make_interactions <- function(predictor_object, feature = "sex"){
+    Interaction$new(predictor_object, feature = feature)
+}
+
+imp_trained <- imp_trained %>%
+    mutate(predictors = map(model, make_predictors)) %>% 
+    mutate(effect_linc = map(predictors, make_effect)) %>% 
+    mutate(feat_imp = map(predictors, make_feat_imp)) %>% 
+    mutate(interactions_sex = map(predictors, make_interactions))
+```
+
+Ok so now that I've got these explanations, I am done with my analysis. This is the time to
+pool the results together. Remember, in the case of regression models as used in the social 
+sciences, this means averaging the estimated model parameters and using Rubin's rule to 
+compute their standard errors. But in this case, this is not so obvious. Should the 
+explanations be averaged? Should I instead analyse them one by one, and see if they differ? 
+My gut feeling is that they shouldn't differ much, but who knows? Perhaps the answer is doing
+a bit of both. I have checked online for a paper that would shed some light into this, but 
+have not found any. So let's take a closer look to the explanations. Let's look at feature 
+importance:
+
+<details>
+<summary>Click to view the 10 feature importances</summary>
+```{r}
+imp_trained %>% 
+    pull(feat_imp)
+```
+</details>
+
+As you can see, the feature importances are quite different from each other, but I don't think 
+this comes from the imputations, but rather from the fact that feature importance 
+*depends on shuffling the feature, which adds randomness to the measurement* 
+(source: [https://christophm.github.io/interpretable-ml-book/feature-importance.html#disadvantages-9](https://christophm.github.io/interpretable-ml-book/feature-importance.html#disadvantages-9)).
+To mitigate this, Christoph Molnar suggests repeating the the permutation and averaging the 
+importance measures; I think that this would be my approach for *pooling* as well.
+
+Let's now take a look at interactions:
+
+<details>
+<summary>Click to view the 10 feature importances</summary>
+```{r}
+imp_trained %>% 
+    pull(interactions_sex)
+```
+</details>
+
+It would seem that interactions are a bit more stable. Let's average the values; for this
+I need to access the `results` element of the interactions object and the result out:
+
+```{r}
+interactions_sex_result <- imp_trained %>% 
+    mutate(interactions_results = map(interactions_sex, function(x)(x$results))) %>% 
+    pull()
+```
+
+`interactions_sex_result` is a list of dataframes, which means I can bind the rows together and
+compute whatever I need:
+
+```{r}
+interactions_sex_result %>% 
+    bind_rows() %>% 
+    group_by(.feature) %>% 
+    summarise_at(.vars = vars(.interaction), 
+                 .funs = funs(mean, sd, low_ci = quantile(., 0.05), high_ci = quantile(., 0.95)))
+```
+
+That seems pretty good. Now, what about the partial dependence? Let's take a closer look:
+
+<details>
+<summary>Click to view the 10 pdps</summary>
+```{r}
+imp_trained %>% 
+    pull(effect_linc)
+```
+</details>
+
+As you can see, the values are quite similar. I think that in the case of plots, the best way
+to visualize the impact of the imputation is to simply plot all the lines in a single plot:
+
+```{r}
+effect_linc_results <- imp_trained %>% 
+    mutate(effect_linc_results = map(effect_linc, function(x)(x$results))) %>% 
+    select(.imp, effect_linc_results) %>% 
+    unnest(effect_linc_results)
+
+effect_linc_results %>% 
+    bind_rows() %>% 
+    ggplot() + 
+    geom_line(aes(y = .y.hat, x = linc, group = .imp), colour = "#82518c") + 
+    brotools::theme_blog()
+```
+
+Overall, the partial dependence plot seems to behave in a very similar way across the different
+imputed datasets! 
+
+To conclude, I think that the approach I suggest here is nothing revolutionary; it is consistent
+with the way one should conduct an analysis with multiple imputed datasets. However, the pooling
+step is non-trivial and there is no magic recipe; it really depends on the goal of the analysis
+and what you want or need to show.
+
+Hope you enjoyed! If you found this blog post useful, you might want to follow 
+me on [twitter](https://www.twitter.com/brodriguesco) for blog post updates and 
+[buy me an espresso](https://www.buymeacoffee.com/brodriguesco) or [paypal.me](https://www.paypal.me/brodriguesco), or buy my ebook on [Leanpub](https://leanpub.com/modern_tidyverse).
+
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a>
