@@ -458,7 +458,7 @@ ggplot(all_buses) +
     geom_line(aes(y = odometer_reading, x = date, group = bus_id, col = bus_family)) + 
     geom_point(aes(y = ifelse(odometer_reading*replacement == 0, NA, odometer_reading*replacement), 
                               x = date), col = "red") +
-    labs(title = "Odometer readings and points in time where engine replacement ocurred") +
+    labs(title = "Odometer readings and points in time where engine replacement occurred") +
     brotools::theme_blog()
 ```
 
@@ -471,7 +471,7 @@ ggplot(all_buses) +
     geom_point(aes(y = ifelse(odometer_reading*replacement == 0, NA, odometer_reading*replacement), 
                               x = date), col = "red") +
     facet_wrap(~bus_family) + 
-    labs(title = "Odometer readings and points in time where engine replacement ocurred") +
+    labs(title = "Odometer readings and points in time where engine replacement occurred") +
     brotools::theme_blog()
 ```
 
