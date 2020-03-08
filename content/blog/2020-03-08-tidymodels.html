@@ -1,0 +1,629 @@
+---
+date: 2020-03-08
+title: "Machine learning with {tidymodels}"
+tags: [R]
+menu:
+main:
+  parent: Blog
+  identifier: /blog/tidymodels
+  weight: 1
+---
+
+
+
+<div style="text-align:center;">
+<p><a href="https://autonxt.net/bosozoku-japans-car-tuning-subculture/">
+<img src="/img/jap_tune.jpg" title = "Just because you tune your models, doesn't mean you can't overfit"></a></p>
+</div>
+</div>
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<div id="intro-what-is-tidymodels" class="section level2">
+<h2>Intro: what is <code>{tidymodels}</code></h2>
+<p>I have already written about <code>{tidymodels}</code> in the <a href="https://www.brodrigues.co/blog/2018-11-25-tidy_cv/">past</a>
+but since then, the <code>{tidymodels}</code> meta-package has evolved quite a lot. If you don’t know what
+<code>{tidymodels}</code> is, it is a suite of packages that make machine learning with R a breeze. R has many
+packages for machine learning, each with their own syntax and function arguments. <code>{tidymodels}</code> aims
+at providing an unified interface which allows data scientists to focus on the problem they’re trying
+to solve, instead of wasting time with learning package specificities.</p>
+<p>The packages included in <code>{tidymodels}</code> are:</p>
+<ul>
+<li><a href="https://tidymodels.github.io/parsnip/articles/parsnip_Intro.html">{parsnip}</a> for model definition</li>
+<li><a href="https://tidymodels.github.io/recipes/">{recipes}</a> for data preprocessing and feature engineering</li>
+<li><a href="https://tidymodels.github.io/rsample/">{rsample}</a> to resample data (useful for cross-validation)</li>
+<li><a href="https://tidymodels.github.io/yardstick/index.html">{yardstick}</a> to evaluate model performance</li>
+<li><a href="https://tidymodels.github.io/dials/index.html">{dials}</a> to define tuning parameters of your models</li>
+<li><a href="https://tidymodels.github.io/tune/">{tune}</a> for model tuning</li>
+<li><a href="https://tidymodels.github.io/workflows/">{workflows}</a> which allows you to bundle everything together and train models easily</li>
+</ul>
+<p>There are some others, but I will not cover these. This is a lot of packages, and you might be
+worried of getting lost; however, in practice I noticed that loading <code>{tidymodels}</code> and then using
+the functions I needed was good enough. Only rarely did I need to know from which package a certain
+function came, and the more you use these, the better you know them, obviously. Before continuing,
+one final and important note: these packages are still in heavy development, so you might not want
+to use them in production yet. I don’t know how likely it is that the api still evolves, but my guess
+is that it is likely. However, even though it might be a bit early to use these packages for production
+code, I think it is important to learn about them as soon as possible and see what is possible with them.</p>
+<p>As I will show you, these packages do make the process of training machine learning models a breeze, and of
+course they integrate very well with the rest of the <code>{tidyverse}</code> packages. The problem we’re going
+to tackle is to understand which variables play an important role in the probability of someone looking
+for a job. I’ll use Eustat’s microdata, which I already discussed in my <a href="https://www.brodrigues.co/blog/2020-02-23-synthpop/">previous blog post</a>.
+The dataset can be downloaded from <a href="https://en.eustat.eus/estadisticas/tema_37/opt_0/tipo_11/temas.html">here</a>, and is called
+<em>Population with relation to activity (PRA)</em>.</p>
+</div>
+<div id="the-problem-at-hand" class="section level2">
+<h2>The problem at hand</h2>
+<p>The dataset contains information on residents from the Basque country, and focuses on their labour supply.
+Thus, we have information on how many hours people work a week, if they work, in which industry, what
+is their educational attainment and whether they’re looking for a job.
+The first step, as usual, is to load the data and required packages:</p>
+<pre class="r"><code>library(tidyverse)
+library(tidymodels)
+library(readxl)
+library(naniar)
+library(janitor)
+library(furrr)
+
+list_data &lt;- Sys.glob(&quot;~/Documents/b-rodrigues.github.com/content/blog/MICRO*.csv&quot;)
+
+dataset &lt;- map(list_data, read_csv2) %&gt;%
+  bind_rows()
+
+dictionary &lt;- read_xlsx(&quot;~/Documents/b-rodrigues.github.com/content/blog/Microdatos_PRA_2019/diseño_registro_microdatos_pra.xlsx&quot;, sheet=&quot;Valores&quot;,
+                        col_names = FALSE)
+
+col_names &lt;- dictionary %&gt;%
+  filter(!is.na(...1)) %&gt;%
+  dplyr::select(1:2)
+
+english &lt;- readRDS(&quot;~/Documents/b-rodrigues.github.com/content/blog/english_col_names.rds&quot;)
+
+col_names$english &lt;- english
+
+colnames(dataset) &lt;- col_names$english
+
+dataset &lt;- janitor::clean_names(dataset)</code></pre>
+<p>Let’s take a look at the data:</p>
+<pre class="r"><code>head(dataset)</code></pre>
+<pre><code>## # A tibble: 6 x 33
+##   household_number survey_year reference_quart… territory capital   sex
+##              &lt;dbl&gt;       &lt;dbl&gt;            &lt;dbl&gt; &lt;chr&gt;       &lt;dbl&gt; &lt;dbl&gt;
+## 1                1        2019                1 48              9     6
+## 2                1        2019                1 48              9     1
+## 3                2        2019                1 48              1     1
+## 4                2        2019                1 48              1     6
+## 5                2        2019                1 48              1     6
+## 6                2        2019                1 48              1     1
+## # … with 27 more variables: place_of_birth &lt;dbl&gt;, age &lt;chr&gt;, nationality &lt;dbl&gt;,
+## #   level_of_studies_completed &lt;dbl&gt;, ruled_teaching_system &lt;chr&gt;,
+## #   occupational_training &lt;chr&gt;, retirement_situation &lt;dbl&gt;,
+## #   homework_situation &lt;dbl&gt;, part_time_employment &lt;dbl&gt;,
+## #   short_time_cause &lt;dbl&gt;, job_search &lt;chr&gt;, search_reasons &lt;dbl&gt;,
+## #   day_searched &lt;dbl&gt;, make_arrangements &lt;chr&gt;, search_form &lt;chr&gt;,
+## #   search_months &lt;dbl&gt;, availability &lt;chr&gt;,
+## #   relationship_with_the_activity &lt;dbl&gt;,
+## #   relationship_with_the_activity_2 &lt;chr&gt;, main_occupation &lt;dbl&gt;,
+## #   main_activity &lt;chr&gt;, main_professional_situation &lt;dbl&gt;,
+## #   main_institutional_sector &lt;dbl&gt;, type_of_contract &lt;dbl&gt;, hours &lt;dbl&gt;,
+## #   relationship &lt;dbl&gt;, elevator &lt;dbl&gt;</code></pre>
+<p>There are many columns, most of them are categorical variables and unfortunately the levels in the
+data are only some non-explicit codes. The excel file I have loaded, which I called <code>dictionary</code>
+contains the codes and their explanation. I kept the file opened while I was working, especially for
+missing values imputation. Indeed, there are missing values in the data, and one should always try
+to understand why before blindly imputing them. Indeed, there might be a very good reason why data
+might be missing for a particular column. For instance, if children are also surveyed, they would
+have an <code>NA</code> in the, say, <code>main_occupation</code> column which gives the main occupation of the surveyed
+person. This might seem very obvious, but sometimes these reasons are not so obvious at all. You should
+always go back with such questions to the data owners/producers, because if not, you will certainly
+miss something very important. Anyway, the way I tackled this issue was by looking at the variables
+with missing data and checking two-way tables with other variables. For instance, to go back to my
+example from before, I would take a look at the two-way frequency table between <code>age</code> and <code>main_occupation</code>.
+If all the missing values from <code>main_occupation</code> where only for people 16 or younger, then it would
+be quite safe to assume that I was right, and I could recode these <code>NA</code>s in <code>main_occupation</code> to
+<code>&quot;without occupation&quot;</code> for instance. I’ll spare you all this exploration, and go straight to the
+data cleaning:</p>
+<pre class="r"><code>dataset &lt;- dataset %&gt;%
+  mutate(main_occupation2 = ifelse(is.na(main_occupation),
+                                   &quot;without_occupation&quot;,
+                                   main_occupation))
+
+dataset &lt;- dataset %&gt;%
+  mutate(main_professional_situation2 = ifelse(is.na(main_professional_situation),
+                                               &quot;without_occupation&quot;,
+                                               main_professional_situation))
+
+# People with missing hours are actually not working, so I put them to 0
+dataset &lt;- dataset %&gt;%
+  mutate(hours = ifelse(is.na(hours), 0, hours))
+
+# Short time gives the reason why people are working less hours than specified in their contract
+dataset &lt;- dataset %&gt;%
+  mutate(short_time_cause = ifelse(hours == 0 | is.na(short_time_cause), 
+                                   &quot;without_occupation&quot;,
+                                   short_time_cause))
+
+dataset &lt;- dataset %&gt;%
+  mutate(type_of_contract = ifelse(is.na(type_of_contract),
+                                   &quot;other_contract&quot;,
+                                   type_of_contract))</code></pre>
+<p>Let’s now apply some further cleaning:</p>
+<pre class="r"><code>pra &lt;- dataset %&gt;%
+  filter(age %in% c(&quot;04&quot;, &quot;05&quot;, &quot;06&quot;, &quot;07&quot;, &quot;08&quot;, &quot;09&quot;, &quot;10&quot;, &quot;11&quot;, &quot;12&quot;, &quot;13&quot;)) %&gt;%
+  filter(retirement_situation == 4) %&gt;%    
+  filter(!is.na(job_search)) %&gt;%  
+  select(capital, sex, place_of_birth, age, nationality, level_of_studies_completed,
+         occupational_training, job_search, main_occupation2, type_of_contract,
+         hours, short_time_cause, homework_situation,
+         main_professional_situation2) %&gt;%
+  mutate_at(.vars = vars(-hours), .funs=as.character) %&gt;%
+  mutate(job_search = as.factor(job_search))</code></pre>
+<p>I only keep people that are not retired and of ages where they could work. I remove rows where
+<code>job_search</code>, the target, is missing, mutate all variables but <code>hours</code> to character and <code>job_search</code> to factor. At
+first, I made every categorical column a factor but I got problems for certain models. I think the
+issue came from the recipe that I defined (I’ll talk about it below), but the problem was resolved
+if categorical variables were defined as character variables. However, for certain models, the target
+(I think it was <code>xgboost</code>) needs to be a factor variable for classification problems.</p>
+<p>Let’s take a look at the data and check if any more data is missing:</p>
+<pre class="r"><code>str(pra)</code></pre>
+<pre><code>## Classes &#39;spec_tbl_df&#39;, &#39;tbl_df&#39;, &#39;tbl&#39; and &#39;data.frame&#39;: 29083 obs. of  14 variables:
+##  $ capital                     : chr  &quot;9&quot; &quot;9&quot; &quot;1&quot; &quot;1&quot; ...
+##  $ sex                         : chr  &quot;6&quot; &quot;1&quot; &quot;1&quot; &quot;6&quot; ...
+##  $ place_of_birth              : chr  &quot;1&quot; &quot;1&quot; &quot;1&quot; &quot;1&quot; ...
+##  $ age                         : chr  &quot;09&quot; &quot;09&quot; &quot;11&quot; &quot;10&quot; ...
+##  $ nationality                 : chr  &quot;1&quot; &quot;1&quot; &quot;1&quot; &quot;1&quot; ...
+##  $ level_of_studies_completed  : chr  &quot;1&quot; &quot;2&quot; &quot;3&quot; &quot;3&quot; ...
+##  $ occupational_training       : chr  &quot;N&quot; &quot;N&quot; &quot;N&quot; &quot;N&quot; ...
+##  $ job_search                  : Factor w/ 2 levels &quot;N&quot;,&quot;S&quot;: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ main_occupation2            : chr  &quot;5&quot; &quot;7&quot; &quot;3&quot; &quot;2&quot; ...
+##  $ type_of_contract            : chr  &quot;1&quot; &quot;other_contract&quot; &quot;other_contract&quot; &quot;1&quot; ...
+##  $ hours                       : num  36 40 40 40 0 0 22 38 40 0 ...
+##  $ short_time_cause            : chr  &quot;2&quot; &quot;2&quot; &quot;2&quot; &quot;2&quot; ...
+##  $ homework_situation          : chr  &quot;1&quot; &quot;2&quot; &quot;2&quot; &quot;2&quot; ...
+##  $ main_professional_situation2: chr  &quot;4&quot; &quot;2&quot; &quot;3&quot; &quot;4&quot; ...</code></pre>
+<pre class="r"><code>vis_miss(pra)</code></pre>
+<p><img src="/blog/2020-03-08-tidymodels_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<p>The final dataset contains 29083 observations. Look’s like we’re good to go.</p>
+</div>
+<div id="setting-up-the-training-resampling" class="section level2">
+<h2>Setting up the training: resampling</h2>
+<p>In order to properly train a model, one needs to split the data into two: a part for trying out
+models with different configuration of hyper-parameters, and another part for final evaluation of
+the model. This is achieved with <code>rsample::initial_split()</code>:</p>
+<pre class="r"><code>pra_split &lt;- initial_split(pra, prop = 0.9)</code></pre>
+<p><code>pra_split</code> now contains a training set and a testing set. We can get these by using the
+<code>rsample::training()</code> and <code>rsample::testing()</code> functions:</p>
+<pre class="r"><code>pra_train &lt;- training(pra_split)
+pra_test &lt;- testing(pra_split)</code></pre>
+<p>We can’t stop here though. First we need to split the training set further, in order to perform
+cross validation. Cross validation will allow us to select the best model; by best I mean a model
+that has a good hyper-parameter configuration, enabling the model to generalize well to unseen data.
+I do this by creating 10 splits from the training data (I won’t touch the testing data up until
+the very end. This testing data is thus sometimes called the holdout set as well):</p>
+<pre class="r"><code>pra_cv_splits &lt;- vfold_cv(pra_train, v = 10)</code></pre>
+<p>Let’s take a look at this object:</p>
+<pre class="r"><code>pra_cv_splits</code></pre>
+<pre><code>## #  10-fold cross-validation 
+## # A tibble: 10 x 2
+##    splits               id    
+##    &lt;named list&gt;         &lt;chr&gt; 
+##  1 &lt;split [23.6K/2.6K]&gt; Fold01
+##  2 &lt;split [23.6K/2.6K]&gt; Fold02
+##  3 &lt;split [23.6K/2.6K]&gt; Fold03
+##  4 &lt;split [23.6K/2.6K]&gt; Fold04
+##  5 &lt;split [23.6K/2.6K]&gt; Fold05
+##  6 &lt;split [23.6K/2.6K]&gt; Fold06
+##  7 &lt;split [23.6K/2.6K]&gt; Fold07
+##  8 &lt;split [23.6K/2.6K]&gt; Fold08
+##  9 &lt;split [23.6K/2.6K]&gt; Fold09
+## 10 &lt;split [23.6K/2.6K]&gt; Fold10</code></pre>
+</div>
+<div id="preprocessing-the-data" class="section level2">
+<h2>Preprocessing the data</h2>
+<p>I have already pre-processed the missing values in the dataset, so there is not much more that
+I can do. I will simply create dummy variables out of the categorical variables using <code>step_dummy()</code>:</p>
+<pre class="r"><code>preprocess &lt;- recipe(job_search ~ ., data = pra) %&gt;%
+  step_dummy(all_predictors())</code></pre>
+<p><code>preprocess</code> is a recipe that defines the transformations that must be applied to the training data
+before fitting. In this case there is only one step; transforming all the predictors into dummies
+(<code>hours</code> is a numeric variable and will be ignored by this step). The recipe also defines the
+formula that will be fitted by the models, <code>job_search ~ .</code>, and takes <code>data</code> as a further argument.
+This is only to give the data frame specification to <code>recipe()</code>: it could even be an empty data frame
+with the right column names and types. This is why I give it the original data <code>pra</code> and not the
+training set <code>pra_train</code>. Because this recipe is very simple, it could be applied to the original
+raw data <code>pra</code> and then I could do the split into training and testing set, as well as further
+splitting the training set into 10 cross-validation sets. However, this is not the recommended way
+of applying pre-processing steps. Pre-processing needs to happen inside the cross-validation loop,
+not outside of it. Why? Suppose that you are normalizing a numeric variable, meaning, substracting
+its mean from it and dividing by its standard deviation. If you do this operation outside of
+cross-validation, and even worse, before splitting the data into training and testing set, you will
+be leaking information from the testing set into the training set. The mean will contain information
+from the testing set, which will be picked up by the model.
+It is much better and “realistic” to first split the data and then apply
+the pre-processing (remember that <em>hiding</em> the test set from the model is supposed to simulate
+the fact that new, completely unseen data, is thrown at your model once it’s put into production). The
+same logic applies to cross-validation splits; each split contains now also a training and a testing
+set (which I will be calling analysis and assessment sets, following <code>{tidymodels}</code>’s author,
+<a href="https://twitter.com/topepos/status/1066131042615140353?s=20">Max Kuhn</a>) and thus the pre-processing
+needs to be applied inside the cross-validation loop, meaning that the analysis set will be processed
+on the fly.</p>
+</div>
+<div id="model-definition" class="section level2">
+<h2>Model definition</h2>
+<p>We come now to the very interesting part: model definition. With <code>{parsnip}</code>, another <code>{tidymodels}</code>
+package, defining models is always the same, regardless of the underlying package doing the heavy
+lifting. For instance, to define a logistic regression one would simply write:</p>
+<pre class="r"><code># logistic regression 
+logit_tune_pra &lt;- logistic_reg() %&gt;%
+  set_engine(&quot;glm&quot;)</code></pre>
+<p>This defines a standard logistic regression, powered by the <code>glm()</code> <em>engine</em> or function. The way
+to do this in vanilla R would be :</p>
+<pre class="r"><code>glm(y ~ ., data = mydata, family = &quot;binomial&quot;)</code></pre>
+<p>The difference here is that the formula is contained in the <code>glm()</code> function; in our case it is
+contained in the recipe, which is why I don’t repeat it in the model definition above. You might
+wonder what the added value of using <code>{tidymodels}</code> for this is. Well, suppose now that I would like
+to run a logistic regression but with regularization. I would use <code>{glmnet}</code> for this but would need
+to know the specific syntax of <code>glmnet()</code> which, as you will see, is very different than the one
+for <code>glm()</code>:</p>
+<pre class="r"><code>  glmnet(x_vars[train,], y_var[train], alpha = 1, lambda = 1.6)</code></pre>
+<p><code>glmnet()</code>, unlike <code>glm()</code>, does not use a formula as an input, but two matrices, one for the design
+matrix, and another for the target variable. Using <code>{parsnip}</code>, however, I simply need to change the
+engine from <code>&quot;glm&quot;</code> to <code>&quot;glmnet&quot;</code>:</p>
+<pre class="r"><code># logistic regression 
+logit_tune_pra &lt;- logistic_reg() %&gt;%
+  set_engine(&quot;glmnet&quot;)</code></pre>
+<p>This makes things much simpler as now users only need to learn how to use <code>{parsnip}</code>. However,
+it is of course still important to read the documentation of the original packages, because it is
+were hyper-parameters are discussed. Another advantage of <code>{parsnip}</code> is that the same words
+are used to speak of the same hyper-parameters . For instance for tree-based methods, the number of
+trees is sometimes <code>ntree</code> then in another package <code>num_trees</code>, and is again different in yet another package.
+In <code>{parsnip}</code>’s interface for tree-based methods, this parameter is simply
+called <code>tree</code>. Users can fix the value of hyper-parameters directly by passing values to, say, <code>tree</code>
+(as in <code>&quot;tree&quot; = 200</code>), or they can tune these hyper-parameters. To do so, one needs to tag them, like so:</p>
+<pre class="r"><code># logistic regression 
+logit_tune_pra &lt;- logistic_reg(penalty = tune(), mixture = tune()) %&gt;%
+  set_engine(&quot;glmnet&quot;)</code></pre>
+<p>This defines <code>logit_tune_pra</code> with 2 hyper-parameters that must be tuned using cross-validation,
+the penalty and the amount of mixture between penalties (this is for elasticnet regularization).</p>
+<p>Now, I will define 5 different models, with different hyper-parameters to tune, and I will also
+define a grid of hyper-parameters of size 10 for each model. This means that I will train these 5
+models 10 times, each time with a different hyper-parameter configuration. To define the grid, I use
+the <code>grid_max_entropy()</code> function from the <code>{dials}</code> package. This creates a grid with points that
+are randomly drawn from the parameter space in a way that ensures that the combination we get
+covers the whole space, or at least are not too far away from any portion of the space. Of course,
+the more configuration you try, the better, but the longer the training will run.</p>
+<pre class="r"><code># Logistic regression
+logit_tune_pra &lt;- logistic_reg(penalty = tune(), mixture = tune()) %&gt;%
+  set_engine(&quot;glmnet&quot;)
+
+# Hyperparameter grid
+logit_grid &lt;- logit_tune_pra %&gt;%
+  parameters() %&gt;%
+  grid_max_entropy(size = 10)
+
+# Workflow bundling every step 
+logit_wflow &lt;- workflow() %&gt;%
+  add_recipe(preprocess) %&gt;%
+  add_model(logit_tune_pra)
+
+# random forest
+rf_tune_pra &lt;- rand_forest(mtry = tune(), trees = tune()) %&gt;%
+  set_engine(&quot;ranger&quot;) %&gt;%
+  set_mode(&quot;classification&quot;)
+
+rf_grid &lt;- rf_tune_pra %&gt;%
+  parameters() %&gt;%
+  finalize(select(pra, -job_search)) %&gt;%  
+  grid_max_entropy(size = 10)
+
+rf_wflow &lt;- workflow() %&gt;%
+  add_recipe(preprocess) %&gt;%
+  add_model(rf_tune_pra)
+
+# mars model
+mars_tune_pra &lt;- mars(num_terms = tune(), prod_degree = 2, prune_method = tune()) %&gt;%
+  set_engine(&quot;earth&quot;) %&gt;%
+  set_mode(&quot;classification&quot;)
+
+mars_grid &lt;- mars_tune_pra %&gt;%
+  parameters() %&gt;%
+  grid_max_entropy(size = 10)
+
+mars_wflow &lt;- workflow() %&gt;%
+  add_recipe(preprocess) %&gt;%
+  add_model(mars_tune_pra)
+
+#boosted trees
+boost_tune_pra &lt;- boost_tree(mtry = tune(), tree = tune(),
+                             learn_rate = tune(), tree_depth = tune()) %&gt;%
+  set_engine(&quot;xgboost&quot;) %&gt;%
+  set_mode(&quot;classification&quot;)
+
+boost_grid &lt;- boost_tune_pra %&gt;%
+  parameters() %&gt;%
+  finalize(select(pra, -job_search)) %&gt;%  
+  grid_max_entropy(size = 10)
+
+boost_wflow &lt;- workflow() %&gt;%
+  add_recipe(preprocess) %&gt;%
+  add_model(boost_tune_pra)
+
+#neural nets
+keras_tune_pra &lt;- mlp(hidden_units = tune(), penalty = tune(), activation = &quot;relu&quot;) %&gt;%
+  set_engine(&quot;keras&quot;) %&gt;%
+  set_mode(&quot;classification&quot;)
+
+keras_grid &lt;- keras_tune_pra %&gt;%
+  parameters() %&gt;%
+  grid_max_entropy(size = 10)
+
+keras_wflow &lt;- workflow() %&gt;%
+  add_recipe(preprocess) %&gt;%
+  add_model(keras_tune_pra)</code></pre>
+<p>For each model, I defined three objects; the model itself, for instance <code>keras_tune_pra</code>, then a
+grid of hyper-parameters, and finally a workflow. To define the grid, I need to extract the parameters
+to tune using the <code>parameters()</code> function, and for tree based methods, I also need to use <code>finalize()</code>
+to set the <code>mtry</code> parameter. This is because <code>mtry</code> depends on the dimensions of the data (the value
+of <code>mtry</code> cannot be larger than the number of features), so I need to pass on this information
+to…well, finalize the grid. Then I can choose the size of the grid and how I want to create it
+(randomly, or using max entropy, or regularly spaced…).
+A workflow bundles the pre-processing and the model definition together, and makes fitting the model
+very easy. Workflows make it easy to run the pre-processing inside the cross-validation loop.
+Workflow objects can be passed to the fitting function, as we shall see in the next section.</p>
+</div>
+<div id="fitting-models-with-tidymodels" class="section level2">
+<h2>Fitting models with <code>{tidymodels}</code></h2>
+<p>Fitting one model with <code>{tidymodels}</code> is quite easy:</p>
+<pre class="r"><code>fitted_model &lt;- fit(model_formula, data = data_train)</code></pre>
+<p>and that’s it. If you define a workflow, which bundles pre-processing and model definition
+in one package, you need to pass it to <code>fit()</code> as well:</p>
+<pre class="r"><code>fitted_wflow &lt;- fit(model_wflow, data = data_train)</code></pre>
+<p>However, a single call to fit does not perform cross-validation. This simply trains the model on
+the training data, and that’s it. To perform cross validation, you can use either <code>fit_resamples()</code>:</p>
+<pre class="r"><code>fitted_resamples &lt;- fit_resamples(model_wflow,
+                               resamples = my_cv_splits,
+                               control = control_resamples(save_pred = TRUE))</code></pre>
+<p>or <code>tune_grid()</code>:</p>
+<pre class="r"><code>tuned_model &lt;- tune_grid(model_wflow,
+                         resamples = my_cv_splits,
+                         grid = my_grid,
+                         control = control_resamples(save_pred = TRUE))</code></pre>
+<p>As you probably guessed it, <code>fit_resamples()</code> does not perform tuning; it simply fits a model
+specification (without varying hyper-parameters) to all the analysis sets contained in the
+<code>my_cv_splits</code> object (which contains the resampled training data for cross-validation), while
+<code>tune_grid()</code> does the same, but allows for varying hyper-parameters.</p>
+<p>We thus are going to use <code>tune_grid()</code> to fit our models and perform hyper-paramater tuning.
+However, since I have 5 models and 5 grids, I’ll be using <code>map2()</code> for this. If you’re not familiar
+with <code>map2()</code>, here’s a quick example:</p>
+<pre class="r"><code>map2(c(1, 1, 1), c(2,2,2), `+`)</code></pre>
+<pre><code>## [[1]]
+## [1] 3
+## 
+## [[2]]
+## [1] 3
+## 
+## [[3]]
+## [1] 3</code></pre>
+<p><code>map2()</code> maps the <code>+()</code> function to each element of both vectors successively. I’m going to use
+this to map the <code>tune_grid()</code> function to a list of models and a list of grids. But because this is
+going to take some time to run, and because I have an AMD Ryzen 5 1600X processor with 6 physical
+cores and 12 logical cores, I’ll by running this in parallel using <code>furrr::future_map2()</code>.</p>
+<p><code>furrr::future_map2()</code> will run one model per core, and the way to do it is to simply define
+how many cores I want to use, then replace <code>map2()</code> in my code by <code>future_map2()</code>:</p>
+<pre class="r"><code>wflow_list &lt;- list(logit_wflow, rf_wflow, mars_wflow, boost_wflow, keras_wflow)
+grid_list &lt;- list(logit_grid, rf_grid, mars_grid, boost_grid, keras_grid)
+
+plan(multiprocess, workers = 6)
+
+trained_models_list &lt;- future_map2(.x = wflow_list,
+                                   .y = grid_list,
+                                   ~tune_grid(.x , resamples = pra_cv_splits, grid = .y))</code></pre>
+<p>Running this code took almost 3 hours. In the end, here is the result:</p>
+<pre class="r"><code>trained_models_list</code></pre>
+<pre><code>## [[1]]
+## #  10-fold cross-validation 
+## # A tibble: 10 x 4
+##    splits               id     .metrics          .notes          
+##  * &lt;list&gt;               &lt;chr&gt;  &lt;list&gt;            &lt;list&gt;          
+##  1 &lt;split [23.6K/2.6K]&gt; Fold01 &lt;tibble [20 × 5]&gt; &lt;tibble [1 × 1]&gt;
+##  2 &lt;split [23.6K/2.6K]&gt; Fold02 &lt;tibble [20 × 5]&gt; &lt;tibble [1 × 1]&gt;
+##  3 &lt;split [23.6K/2.6K]&gt; Fold03 &lt;tibble [20 × 5]&gt; &lt;tibble [1 × 1]&gt;
+##  4 &lt;split [23.6K/2.6K]&gt; Fold04 &lt;tibble [20 × 5]&gt; &lt;tibble [1 × 1]&gt;
+##  5 &lt;split [23.6K/2.6K]&gt; Fold05 &lt;tibble [20 × 5]&gt; &lt;tibble [1 × 1]&gt;
+##  6 &lt;split [23.6K/2.6K]&gt; Fold06 &lt;tibble [20 × 5]&gt; &lt;tibble [1 × 1]&gt;
+##  7 &lt;split [23.6K/2.6K]&gt; Fold07 &lt;tibble [20 × 5]&gt; &lt;tibble [1 × 1]&gt;
+##  8 &lt;split [23.6K/2.6K]&gt; Fold08 &lt;tibble [20 × 5]&gt; &lt;tibble [1 × 1]&gt;
+##  9 &lt;split [23.6K/2.6K]&gt; Fold09 &lt;tibble [20 × 5]&gt; &lt;tibble [1 × 1]&gt;
+## 10 &lt;split [23.6K/2.6K]&gt; Fold10 &lt;tibble [20 × 5]&gt; &lt;tibble [1 × 1]&gt;
+## 
+## [[2]]
+## #  10-fold cross-validation 
+## # A tibble: 10 x 4
+##    splits               id     .metrics          .notes          
+##  * &lt;list&gt;               &lt;chr&gt;  &lt;list&gt;            &lt;list&gt;          
+##  1 &lt;split [23.6K/2.6K]&gt; Fold01 &lt;tibble [20 × 5]&gt; &lt;tibble [1 × 1]&gt;
+##  2 &lt;split [23.6K/2.6K]&gt; Fold02 &lt;tibble [20 × 5]&gt; &lt;tibble [1 × 1]&gt;
+##  3 &lt;split [23.6K/2.6K]&gt; Fold03 &lt;tibble [20 × 5]&gt; &lt;tibble [1 × 1]&gt;
+##  4 &lt;split [23.6K/2.6K]&gt; Fold04 &lt;tibble [20 × 5]&gt; &lt;tibble [1 × 1]&gt;
+##  5 &lt;split [23.6K/2.6K]&gt; Fold05 &lt;tibble [20 × 5]&gt; &lt;tibble [1 × 1]&gt;
+##  6 &lt;split [23.6K/2.6K]&gt; Fold06 &lt;tibble [20 × 5]&gt; &lt;tibble [1 × 1]&gt;
+##  7 &lt;split [23.6K/2.6K]&gt; Fold07 &lt;tibble [20 × 5]&gt; &lt;tibble [1 × 1]&gt;
+##  8 &lt;split [23.6K/2.6K]&gt; Fold08 &lt;tibble [20 × 5]&gt; &lt;tibble [1 × 1]&gt;
+##  9 &lt;split [23.6K/2.6K]&gt; Fold09 &lt;tibble [20 × 5]&gt; &lt;tibble [1 × 1]&gt;
+## 10 &lt;split [23.6K/2.6K]&gt; Fold10 &lt;tibble [20 × 5]&gt; &lt;tibble [1 × 1]&gt;
+## 
+## [[3]]
+## #  10-fold cross-validation 
+## # A tibble: 10 x 4
+##    splits               id     .metrics          .notes          
+##  * &lt;list&gt;               &lt;chr&gt;  &lt;list&gt;            &lt;list&gt;          
+##  1 &lt;split [23.6K/2.6K]&gt; Fold01 &lt;tibble [20 × 5]&gt; &lt;tibble [1 × 1]&gt;
+##  2 &lt;split [23.6K/2.6K]&gt; Fold02 &lt;tibble [20 × 5]&gt; &lt;tibble [1 × 1]&gt;
+##  3 &lt;split [23.6K/2.6K]&gt; Fold03 &lt;tibble [20 × 5]&gt; &lt;tibble [1 × 1]&gt;
+##  4 &lt;split [23.6K/2.6K]&gt; Fold04 &lt;tibble [20 × 5]&gt; &lt;tibble [1 × 1]&gt;
+##  5 &lt;split [23.6K/2.6K]&gt; Fold05 &lt;tibble [20 × 5]&gt; &lt;tibble [1 × 1]&gt;
+##  6 &lt;split [23.6K/2.6K]&gt; Fold06 &lt;tibble [20 × 5]&gt; &lt;tibble [1 × 1]&gt;
+##  7 &lt;split [23.6K/2.6K]&gt; Fold07 &lt;tibble [20 × 5]&gt; &lt;tibble [1 × 1]&gt;
+##  8 &lt;split [23.6K/2.6K]&gt; Fold08 &lt;tibble [20 × 5]&gt; &lt;tibble [1 × 1]&gt;
+##  9 &lt;split [23.6K/2.6K]&gt; Fold09 &lt;tibble [20 × 5]&gt; &lt;tibble [1 × 1]&gt;
+## 10 &lt;split [23.6K/2.6K]&gt; Fold10 &lt;tibble [20 × 5]&gt; &lt;tibble [1 × 1]&gt;
+## 
+## [[4]]
+## #  10-fold cross-validation 
+## # A tibble: 10 x 4
+##    splits               id     .metrics          .notes          
+##  * &lt;list&gt;               &lt;chr&gt;  &lt;list&gt;            &lt;list&gt;          
+##  1 &lt;split [23.6K/2.6K]&gt; Fold01 &lt;tibble [20 × 7]&gt; &lt;tibble [1 × 1]&gt;
+##  2 &lt;split [23.6K/2.6K]&gt; Fold02 &lt;tibble [20 × 7]&gt; &lt;tibble [1 × 1]&gt;
+##  3 &lt;split [23.6K/2.6K]&gt; Fold03 &lt;tibble [20 × 7]&gt; &lt;tibble [1 × 1]&gt;
+##  4 &lt;split [23.6K/2.6K]&gt; Fold04 &lt;tibble [20 × 7]&gt; &lt;tibble [1 × 1]&gt;
+##  5 &lt;split [23.6K/2.6K]&gt; Fold05 &lt;tibble [20 × 7]&gt; &lt;tibble [1 × 1]&gt;
+##  6 &lt;split [23.6K/2.6K]&gt; Fold06 &lt;tibble [20 × 7]&gt; &lt;tibble [1 × 1]&gt;
+##  7 &lt;split [23.6K/2.6K]&gt; Fold07 &lt;tibble [20 × 7]&gt; &lt;tibble [1 × 1]&gt;
+##  8 &lt;split [23.6K/2.6K]&gt; Fold08 &lt;tibble [20 × 7]&gt; &lt;tibble [1 × 1]&gt;
+##  9 &lt;split [23.6K/2.6K]&gt; Fold09 &lt;tibble [20 × 7]&gt; &lt;tibble [1 × 1]&gt;
+## 10 &lt;split [23.6K/2.6K]&gt; Fold10 &lt;tibble [20 × 7]&gt; &lt;tibble [1 × 1]&gt;
+## 
+## [[5]]
+## #  10-fold cross-validation 
+## # A tibble: 10 x 4
+##    splits               id     .metrics          .notes          
+##  * &lt;list&gt;               &lt;chr&gt;  &lt;list&gt;            &lt;list&gt;          
+##  1 &lt;split [23.6K/2.6K]&gt; Fold01 &lt;tibble [20 × 5]&gt; &lt;tibble [1 × 1]&gt;
+##  2 &lt;split [23.6K/2.6K]&gt; Fold02 &lt;tibble [20 × 5]&gt; &lt;tibble [1 × 1]&gt;
+##  3 &lt;split [23.6K/2.6K]&gt; Fold03 &lt;tibble [20 × 5]&gt; &lt;tibble [1 × 1]&gt;
+##  4 &lt;split [23.6K/2.6K]&gt; Fold04 &lt;tibble [20 × 5]&gt; &lt;tibble [1 × 1]&gt;
+##  5 &lt;split [23.6K/2.6K]&gt; Fold05 &lt;tibble [20 × 5]&gt; &lt;tibble [1 × 1]&gt;
+##  6 &lt;split [23.6K/2.6K]&gt; Fold06 &lt;tibble [20 × 5]&gt; &lt;tibble [1 × 1]&gt;
+##  7 &lt;split [23.6K/2.6K]&gt; Fold07 &lt;tibble [20 × 5]&gt; &lt;tibble [1 × 1]&gt;
+##  8 &lt;split [23.6K/2.6K]&gt; Fold08 &lt;tibble [20 × 5]&gt; &lt;tibble [1 × 1]&gt;
+##  9 &lt;split [23.6K/2.6K]&gt; Fold09 &lt;tibble [20 × 5]&gt; &lt;tibble [1 × 1]&gt;
+## 10 &lt;split [23.6K/2.6K]&gt; Fold10 &lt;tibble [20 × 5]&gt; &lt;tibble [1 × 1]&gt;</code></pre>
+<p>I now have a list of 5 tibbles containing the analysis/assessment splits, the id identifying the
+cross-validation fold, a list-column containing information on model performance for that given
+split and some notes (if everything goes well, notes are empty). Let’s take a look at the column
+<code>.metrics</code> of the first model and for the first fold:</p>
+<pre class="r"><code>trained_models_list[[1]]$.metrics[[1]]</code></pre>
+<pre><code>## # A tibble: 20 x 5
+##     penalty mixture .metric  .estimator .estimate
+##       &lt;dbl&gt;   &lt;dbl&gt; &lt;chr&gt;    &lt;chr&gt;          &lt;dbl&gt;
+##  1 4.25e- 3  0.0615 accuracy binary         0.906
+##  2 4.25e- 3  0.0615 roc_auc  binary         0.895
+##  3 6.57e-10  0.0655 accuracy binary         0.908
+##  4 6.57e-10  0.0655 roc_auc  binary         0.897
+##  5 1.18e- 6  0.167  accuracy binary         0.908
+##  6 1.18e- 6  0.167  roc_auc  binary         0.897
+##  7 2.19e-10  0.371  accuracy binary         0.907
+##  8 2.19e-10  0.371  roc_auc  binary         0.897
+##  9 2.73e- 1  0.397  accuracy binary         0.885
+## 10 2.73e- 1  0.397  roc_auc  binary         0.5  
+## 11 1.72e- 6  0.504  accuracy binary         0.907
+## 12 1.72e- 6  0.504  roc_auc  binary         0.897
+## 13 1.25e- 9  0.633  accuracy binary         0.907
+## 14 1.25e- 9  0.633  roc_auc  binary         0.897
+## 15 6.62e- 6  0.880  accuracy binary         0.907
+## 16 6.62e- 6  0.880  roc_auc  binary         0.897
+## 17 6.00e- 1  0.899  accuracy binary         0.885
+## 18 6.00e- 1  0.899  roc_auc  binary         0.5  
+## 19 4.57e-10  0.989  accuracy binary         0.907
+## 20 4.57e-10  0.989  roc_auc  binary         0.897</code></pre>
+<p>This shows how the 10 different configurations of the elasticnet model performed. To see how the
+model performed on the second fold:</p>
+<pre class="r"><code>trained_models_list[[1]]$.metrics[[2]]</code></pre>
+<pre><code>## # A tibble: 20 x 5
+##     penalty mixture .metric  .estimator .estimate
+##       &lt;dbl&gt;   &lt;dbl&gt; &lt;chr&gt;    &lt;chr&gt;          &lt;dbl&gt;
+##  1 4.25e- 3  0.0615 accuracy binary         0.913
+##  2 4.25e- 3  0.0615 roc_auc  binary         0.874
+##  3 6.57e-10  0.0655 accuracy binary         0.913
+##  4 6.57e-10  0.0655 roc_auc  binary         0.877
+##  5 1.18e- 6  0.167  accuracy binary         0.913
+##  6 1.18e- 6  0.167  roc_auc  binary         0.878
+##  7 2.19e-10  0.371  accuracy binary         0.913
+##  8 2.19e-10  0.371  roc_auc  binary         0.878
+##  9 2.73e- 1  0.397  accuracy binary         0.901
+## 10 2.73e- 1  0.397  roc_auc  binary         0.5  
+## 11 1.72e- 6  0.504  accuracy binary         0.913
+## 12 1.72e- 6  0.504  roc_auc  binary         0.878
+## 13 1.25e- 9  0.633  accuracy binary         0.913
+## 14 1.25e- 9  0.633  roc_auc  binary         0.878
+## 15 6.62e- 6  0.880  accuracy binary         0.913
+## 16 6.62e- 6  0.880  roc_auc  binary         0.878
+## 17 6.00e- 1  0.899  accuracy binary         0.901
+## 18 6.00e- 1  0.899  roc_auc  binary         0.5  
+## 19 4.57e-10  0.989  accuracy binary         0.913
+## 20 4.57e-10  0.989  roc_auc  binary         0.878</code></pre>
+<p>Hyper-Parameters are the same; it is only the cross validation fold that is different. To get the
+best performing model from such objects you can use <code>show_best()</code> which will extract the best
+performing models across all the cross validation folds:</p>
+<pre class="r"><code>show_best(trained_models_list[[1]], metric = &quot;accuracy&quot;)</code></pre>
+<pre><code>## # A tibble: 5 x 7
+##    penalty mixture .metric  .estimator  mean     n std_err
+##      &lt;dbl&gt;   &lt;dbl&gt; &lt;chr&gt;    &lt;chr&gt;      &lt;dbl&gt; &lt;int&gt;   &lt;dbl&gt;
+## 1 6.57e-10  0.0655 accuracy binary     0.916    10 0.00179
+## 2 1.18e- 6  0.167  accuracy binary     0.916    10 0.00180
+## 3 1.72e- 6  0.504  accuracy binary     0.916    10 0.00182
+## 4 4.57e-10  0.989  accuracy binary     0.916    10 0.00181
+## 5 6.62e- 6  0.880  accuracy binary     0.916    10 0.00181</code></pre>
+<p>This shows the 5 best configurations for elasticnet when looking at accuracy. Now how to get the best
+performing elasticnet regression, random forest, boosted trees, etc? Easy, using <code>map()</code>:</p>
+<pre class="r"><code>map(trained_models_list, show_best, metric = &quot;accuracy&quot;)</code></pre>
+<pre><code>## [[1]]
+## # A tibble: 5 x 7
+##    penalty mixture .metric  .estimator  mean     n std_err
+##      &lt;dbl&gt;   &lt;dbl&gt; &lt;chr&gt;    &lt;chr&gt;      &lt;dbl&gt; &lt;int&gt;   &lt;dbl&gt;
+## 1 6.57e-10  0.0655 accuracy binary     0.916    10 0.00179
+## 2 1.18e- 6  0.167  accuracy binary     0.916    10 0.00180
+## 3 1.72e- 6  0.504  accuracy binary     0.916    10 0.00182
+## 4 4.57e-10  0.989  accuracy binary     0.916    10 0.00181
+## 5 6.62e- 6  0.880  accuracy binary     0.916    10 0.00181
+## 
+## [[2]]
+## # A tibble: 5 x 7
+##    mtry trees .metric  .estimator  mean     n std_err
+##   &lt;int&gt; &lt;int&gt; &lt;chr&gt;    &lt;chr&gt;      &lt;dbl&gt; &lt;int&gt;   &lt;dbl&gt;
+## 1    13  1991 accuracy binary     0.929    10 0.00172
+## 2    13  1180 accuracy binary     0.929    10 0.00168
+## 3    12   285 accuracy binary     0.928    10 0.00168
+## 4     8  1567 accuracy binary     0.927    10 0.00171
+## 5     8   647 accuracy binary     0.927    10 0.00191
+## 
+## [[3]]
+## # A tibble: 5 x 7
+##   num_terms prune_method .metric  .estimator  mean     n std_err
+##       &lt;int&gt; &lt;chr&gt;        &lt;chr&gt;    &lt;chr&gt;      &lt;dbl&gt; &lt;int&gt;   &lt;dbl&gt;
+## 1         5 backward     accuracy binary     0.904    10 0.00186
+## 2         5 forward      accuracy binary     0.902    10 0.00185
+## 3         4 exhaustive   accuracy binary     0.901    10 0.00167
+## 4         4 seqrep       accuracy binary     0.901    10 0.00167
+## 5         2 backward     accuracy binary     0.896    10 0.00209
+## 
+## [[4]]
+## # A tibble: 5 x 9
+##    mtry trees tree_depth learn_rate .metric  .estimator  mean     n std_err
+##   &lt;int&gt; &lt;int&gt;      &lt;int&gt;      &lt;dbl&gt; &lt;chr&gt;    &lt;chr&gt;      &lt;dbl&gt; &lt;int&gt;   &lt;dbl&gt;
+## 1    12  1245         12   7.70e- 2 accuracy binary     0.929    10 0.00175
+## 2     1   239          8   8.23e- 2 accuracy binary     0.927    10 0.00186
+## 3     1   835         14   8.53e-10 accuracy binary     0.913    10 0.00232
+## 4     4  1522         12   2.22e- 5 accuracy binary     0.896    10 0.00209
+## 5     6   313          2   1.21e- 8 accuracy binary     0.896    10 0.00209
+## 
+## [[5]]
+## # A tibble: 5 x 7
+##   hidden_units  penalty .metric  .estimator  mean     n std_err
+##          &lt;int&gt;    &lt;dbl&gt; &lt;chr&gt;    &lt;chr&gt;      &lt;dbl&gt; &lt;int&gt;   &lt;dbl&gt;
+## 1           10 3.07e- 6 accuracy binary     0.917    10 0.00209
+## 2            6 1.69e-10 accuracy binary     0.917    10 0.00216
+## 3            4 2.32e- 7 accuracy binary     0.916    10 0.00194
+## 4            7 5.52e- 5 accuracy binary     0.916    10 0.00163
+## 5            8 1.13e- 9 accuracy binary     0.916    10 0.00173</code></pre>
+<p>Now, we need to test these models on the holdout set, but this post is already quite long. In the next
+blog post, I will retrain the top best performing models for each type of model and see how they
+fare against the holdout set. I’ll be also looking at explainability, so stay tuned!</p>
+<p>Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and watch my
+<a href="https://www.youtube.com/channel/UCTZXht1RTL2Duc3eU8MYGzQ">youtube channel</a>. If you want to support
+my blog and channel, you could <a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or
+<a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my ebook on <a href="https://leanpub.com/modern_tidyverse">Leanpub</a>.</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
+</div>
