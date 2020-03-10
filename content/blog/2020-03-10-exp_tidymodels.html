@@ -168,14 +168,14 @@ predictions %&gt;%
 <pre><code>## # A tibble: 1 x 3
 ##   .metric  .estimator .estimate
 ##   &lt;chr&gt;    &lt;chr&gt;          &lt;dbl&gt;
-## 1 accuracy binary         0.926</code></pre>
+## 1 accuracy binary         0.924</code></pre>
 <pre class="r"><code>predictions %&gt;%
   mutate(job_search = as.factor(job_search)) %&gt;%  
   conf_mat(job_search, .pred_class) </code></pre>
 <pre><code>##           Truth
 ## Prediction    N    S
-##          N 2552  166
-##          S   50  140</code></pre>
+##          N 2539  156
+##          S   64  149</code></pre>
 <p>We see that predicting class <code>S</code> (“Si”, meaning, “yes” in Spanish) is tricky. One would probably need
 to use techniques such as <code>SMOTE</code> to deal with this (see this <a href="https://www.brodrigues.co/blog/2018-02-11-census-random_forest/">blog post</a>
 for more info). Anyways, this is not today’s topic.</p>
