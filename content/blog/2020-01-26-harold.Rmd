@@ -477,7 +477,7 @@ ggplot(all_buses) +
 
 In the next blog post, I'll explore how recent reinforcement learning methods might help us get
 the optimal policy from the data!
-
+    
 Hope you enjoyed! If you found this blog post useful, you might want to follow 
 me on [twitter](https://www.twitter.com/brodriguesco) for blog post updates and 
 [buy me an espresso](https://www.buymeacoffee.com/brodriguesco) or [paypal.me](https://www.paypal.me/brodriguesco), or buy my ebook on [Leanpub](https://leanpub.com/modern_tidyverse).
