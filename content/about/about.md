@@ -10,22 +10,13 @@ menu:
 My name is Bruno Rodrigues and hold a PhD in Economics from the 
 [University of Strasbourg](http://www.unistra.fr).
 
-I started working at [STATEC](http://www.statistiques.public.lu/en/index.html), which is the national
-statistical office of the [Grand-Duchy of Luxembourg](https://en.wikipedia.org/wiki/Luxembourg) in
-July 2016 until June 2018. I was part of the 
-[research division](http://www.statistiques.public.lu/en/actors/statec/organisation/red/)
-and my main mission was assisting the researchers with data issues.
+I'm currently employed as a statistician for the Ministry of Higher Education and Research in 
+Luxembourg. Before that I was senior data scientist and then manager in the data science team 
+at PwC Luxembourg, and before that I was a research assistant at [STATEC Research](http://www.statistiques.public.lu/en/actors/statec/organisation/red/).
 
-I am now a Senior Advisor at 
-[PwC Luxembourg in the data and analytics department](https://www.pwc.lu/en/digital-services/analytics.html).
-
-I mostly help our clients with Data Science-related challenges that they may face.
-
-My hobbies are boxing, lifting weights, cycling, cooking and reading.
-I try doing this things while listening to [FIP](http://www.fipradio.fr/player) or [Nightwave Plaza](https://plaza.one/).
+My hobbies are boxing, lifting weights, cycling, cooking and reading or listening to audiobooks, 
+which is more compatible with the life of a young father.
 I also enjoy learning about the R programming language and sharing my knowledge.
-That's why I made this blog and why I am currently writing a book about functional programming, unit
-testing and package development with R. You can read it for free [here](https://b-rodrigues.github.io/fput/) and
-you can buy a digital copy at [leanpub](http://www.leanpub.com/fput).
-
-I'm currently writing another one, that you can read [here](https://b-rodrigues.github.io/modern_R/).
+That's why I made this blog and also am writing an [ebook](https://b-rodrigues.github.io/modern_R/).
+I also have a [youtube channel](https://www.youtube.com/channel/UCTZXht1RTL2Duc3eU8MYGzQ), 
+where I show some tips and tricks with R, or rant about stuff.

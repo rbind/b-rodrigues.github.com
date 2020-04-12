@@ -22,11 +22,26 @@ To understand how version control systems came to be, one must be familiar with 
 In the introduction, I will present free software and its philosophy and show how version control systems make free software possible. 
 In the second section I present Git which is a widely used version control system. In the third section I show a basic usage of Git. In the fourth section, I conclude.
 
+### [The time and the transitions back to work in France after maternity](https://link.springer.com/epdf/10.1007/s11150-019-09442-5?author_access_token=-8DzvlxYPWLROjvdw5VGyfe4RwlQNchNByi7wbcMAY4iOtOLUELLUAH8KINOIU-enLWsYTjJqLbDc0CAKGOmj1lRXbtJQdbcY0hhvvSPKuIzaAiLvxBbteB4tinNq1kYX_v7NsB6V884NRUcks0E3Q%3D%3D)
+with Vincent Vergnat
+
+*Abstract* 
+
+Previous studies have shown that childrearing has a different impact on a mother’s
+professional career, depending, among other reasons, on how much time passed from birth to return
+to work. In this paper, we use a competing risks model to determine which variables may explain
+time out of work, as well as the transition back to work for young mothers in France. In our study,
+mothers can decide to go back to the same employer, change a personal but also a
+professionalemployer and/ or change labour supply. Our results show that it is mostly the age of
+the mothers at birth, their pre-birth wages, tenure, ﬁrm size as well as the state of the economy
+as a whole that play a large role in the way young mothers go back to work, if at all. This
+research highlights the key factors on which causal research should be based in order to advise
+ﬁrms and also policy-makers on how to inﬂuence mothers’ labour supply behaviors. 
 
 ## Working Papers
 
 
-### [The birth of a child and its impact on wages and worked hours: evidence from France]( http://www.beta-umr7522.fr/productions/publications/2016/2016-48.pdf), 2016, with Vincent Vergnat
+### [The birth of a child and its impact on wages and worked hours: evidence from France](http://www.beta-umr7522.fr/productions/publications/2016/2016-48.pdf), 2016, with Vincent Vergnat
 
 
 *Abstract*
@@ -37,37 +52,8 @@ We compare the impact for different education levels of both mothers and fathers
 the birth of a child, highly educated women suffer from a loss in daily and hourly wages as well as hours worked. 
 Educated men also decrease their labour supply.
 
-### The maternity leave duration in France: results from a competing risks model, coming soon, with
-Vincent Vergnat
 
-*Abstract*
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc purus dolor, pulvinar sed tellus iaculis,
-interdum suscipit dui. Maecenas diam elit, suscipit ut malesuada et, pellentesque vel urna. Donec posuere
-nulla libero, a varius sapien ultrices et. Quisque quis luctus lacus. Quisque at ante cursus, venenatis
-augue et, maximus orci. Sed at blandit diam. Pellentesque id risus eget libero facilisis blandit. Aliquam
-maximus lorem imperdiet laoreet iaculis. Donec eget diam rhoncus, maximus sem ac, placerat magna. Donec
-nibh erat, sagittis ac ornare sed, euismod non nibh. Aliquam ultricies vulputate mi et hendrerit. Aliquam
-sit amet neque neque. Quisque vel consequat neque. Integer tempor velit nec velit pretium lobortis. Proin
-nunc mi, pretium in euismod vitae, sollicitudin quis massa. Donec accumsan magna nec egestas aliquet.
-
-
-### The career and fertility decisions of highly educated women, 2013-2016, with Richard Blundell, Hans-Martin von Gaudecker, Bertrand Koebel, François Laisney and Holger Stichnoth.
-
-
-*Summary of the project*
-
-This project aims to estimate a structural model of fertility and career decisions of university educated women for Germany and France.
-
-Master's Thesis
+Phd Thesis
 ===============
 
-You can download my Master's Thesis [here.](http://min.us/l5AzLDg7Tyu58)  
-
-Here's a short description:
-
->The Great Moderation was a phenomenon characterized by great economic stability in all OECD countries. In my Master’s thesis, I study this phenomenon in the Euro Area using a medium-scale, Markov-switching DSGE model and find that the Great Moderation in the Euro Area was due to better policy by the monetary authorities.
-
-I'm currently working on two papers in collaboration with people from the ZEW (Raphael Abiry, François Laisney, Holger Stichnoth), University of Bonn (Hans-Martin von Gaudecker) and the IFS (Richard Blundell) on fertility and labor supply of highly educated women in Germany and France (the first project is financed by the SEEK and the other by the ANR-DFG). We estimate a dynamic discrete choice model with human capital accumulation and skills transferability between jobs. Links to the papers will be posted when they're done.
-
-With my thesis advisor, Betrand Kœbel, we are currently working on a paper where we explain how an employer, (which can decide to delegate the wage fixing decision to an employee), and his employee can cooperate and attain higher pay-offs despite having conflicting objectives. For this, we estimate a dynamic model with GMM using data from Charness (2012).
+You can download my Phd thesis [here.](http://www.theses.fr/2018STRAB012)
