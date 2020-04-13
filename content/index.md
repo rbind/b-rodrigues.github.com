@@ -11,13 +11,11 @@ type: index
     <img src="/img/profile.jpg" width="400" height="400"/>
 </div>
 
-Hi! My name is Bruno Rodrigues, and I'm a manager in the data science team
-at [PwC Luxembourg](https://www.pwc.lu/). 
-
-I mostly work on data related projects using R and Python.
+Hi! My name is Bruno Rodrigues, and I'm a statistician at the Ministry of Higher Education and Research
+in Luxembourg.
 
 I'm an economist by training and hold a PhD from the University of Strasbourg, 
-but am interested in any subject that deals with statistics and machine learning in general!
+but am interested in any subject that deals with statistics and machine learning in general.
 
 I program mostly in R and love sharing my knowledge, that's why I started this blog.
 I share my posts also on [R-bloggers](http://www.r-bloggers.com) and [Rweekly](https://rweekly.org). 
