@@ -8,7 +8,7 @@ disqusShortname = ""
 ignoreFiles = ["\\.Rmd$", "_files$", "_cache$"]
 
 [social]
-    bitbucket = "b-rodrigues"
+  youtube = "BrunoRodrigues1988"
 	github  = "b-rodrigues"
 	twitter  = "brodriguesco"
 
