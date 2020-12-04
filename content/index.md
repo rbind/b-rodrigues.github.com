@@ -20,6 +20,9 @@ but am interested in any subject that deals with statistics and machine learning
 I program mostly in R and love sharing my knowledge, that's why I started this blog.
 I share my posts also on [R-bloggers](http://www.r-bloggers.com) and [Rweekly](https://rweekly.org). 
 In my posts, I discuss new packages I discovered or new ways of using packages.
+ 
+I also have a [youtube channel](https://www.youtube.com/c/BrunoRodrigues1988) for those of you
+that prefer watching videos instead of reading.
 
 If you find this blog useful, you might want to follow 
 me on [twitter](https://www.twitter.com/brodriguesco) for blog post updates and 
