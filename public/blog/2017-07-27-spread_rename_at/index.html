@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<style type=text/css>body{font-family:monospace;}</style>
+	<title>tidyr::spread() and dplyr::rename_at() in action</title>
+	
+	
+	<link rel="stylesheet" href="/css/style.css">
+	
+	
+</head>
+<body>
+	<header>
+<p><a class="nav-link" href="/index.html">Econometrics and Free Software</a> by <a class="nav-link" href="/about/about">Bruno Rodrigues</a>.</p>
+<p>Follow me on <a href="https://twitter.com/brodriguesco" rel="nofollow">twitter</a>.</p>
+<p>Watch my <a href="https://www.youtube.com/user/cbrunos" rel="nofollow">youtube</a> channel.</p>
+</header>
+
+	
+	<main>
+		<article>
+			<h1>tidyr::spread() and dplyr::rename_at() in action</h1>
+			<b><time>2017/07/27</time></b>
+		       
+		           <a href="/tags/r">R</a>
+        	       
+
+			<div>
+				<p>I was recently confronted to a situation that required going from a long dataset to a wide dataset,
+but with a small twist: there were two datasets, which I had to merge into one. You might wonder
+what kinda crappy twist that is, right? Well, let’s take a look at the data:</p>
+<pre class="r"><code>data1; data2</code></pre>
+<pre><code>## # A tibble: 20 x 4
+##    country date       variable_1       value
+##    &lt;chr&gt;   &lt;chr&gt;      &lt;chr&gt;            &lt;int&gt;
+##  1 lu      01/01/2005 maybe               22
+##  2 lu      01/07/2005 maybe               13
+##  3 lu      01/01/2006 maybe               40
+##  4 lu      01/07/2006 maybe               25
+##  5 lu      01/01/2005 totally_agree       42
+##  6 lu      01/07/2005 totally_agree       17
+##  7 lu      01/01/2006 totally_agree       25
+##  8 lu      01/07/2006 totally_agree       16
+##  9 lu      01/01/2005 totally_disagree    39
+## 10 lu      01/07/2005 totally_disagree    17
+## 11 lu      01/01/2006 totally_disagree    23
+## 12 lu      01/07/2006 totally_disagree    21
+## 13 lu      01/01/2005 kinda_disagree      69
+## 14 lu      01/07/2005 kinda_disagree      12
+## 15 lu      01/01/2006 kinda_disagree      10
+## 16 lu      01/07/2006 kinda_disagree       9
+## 17 lu      01/01/2005 kinda_agree         38
+## 18 lu      01/07/2005 kinda_agree         31
+## 19 lu      01/01/2006 kinda_agree         19
+## 20 lu      01/07/2006 kinda_agree         12</code></pre>
+<pre><code>## # A tibble: 20 x 4
+##    country date       variable_2       value
+##    &lt;chr&gt;   &lt;chr&gt;      &lt;chr&gt;            &lt;int&gt;
+##  1 lu      01/01/2005 kinda_agree         22
+##  2 lu      01/07/2005 kinda_agree         13
+##  3 lu      01/01/2006 kinda_agree         40
+##  4 lu      01/07/2006 kinda_agree         25
+##  5 lu      01/01/2005 totally_agree       42
+##  6 lu      01/07/2005 totally_agree       17
+##  7 lu      01/01/2006 totally_agree       25
+##  8 lu      01/07/2006 totally_agree       16
+##  9 lu      01/01/2005 totally_disagree    39
+## 10 lu      01/07/2005 totally_disagree    17
+## 11 lu      01/01/2006 totally_disagree    23
+## 12 lu      01/07/2006 totally_disagree    21
+## 13 lu      01/01/2005 maybe               69
+## 14 lu      01/07/2005 maybe               12
+## 15 lu      01/01/2006 maybe               10
+## 16 lu      01/07/2006 maybe                9
+## 17 lu      01/01/2005 kinda_disagree      38
+## 18 lu      01/07/2005 kinda_disagree      31
+## 19 lu      01/01/2006 kinda_disagree      19
+## 20 lu      01/07/2006 kinda_disagree      12</code></pre>
+<p>As explained in <a href="http://vita.had.co.nz/papers/tidy-data.html">Hadley (2014)</a>, this is how you should keep your data… But for a particular
+purpose, I had to transform these datasets. What I was asked to do was to merge these into a single
+wide data frame. Doing this for one dataset is easy:</p>
+<pre class="r"><code>data1 %&gt;%
+  spread(variable_1, value)</code></pre>
+<pre><code>## # A tibble: 4 x 7
+##   country date       kinda_agree kinda_disagree maybe totally_agree
+##   &lt;chr&gt;   &lt;chr&gt;            &lt;int&gt;          &lt;int&gt; &lt;int&gt;         &lt;int&gt;
+## 1 lu      01/01/2005          38             69    22            42
+## 2 lu      01/01/2006          19             10    40            25
+## 3 lu      01/07/2005          31             12    13            17
+## 4 lu      01/07/2006          12              9    25            16
+## # ... with 1 more variable: totally_disagree &lt;int&gt;</code></pre>
+<p>But because <code>data1</code> and <code>data2</code> have the same levels for <code>variable_1</code> and <code>variable_2</code>, this would not
+work. So the solution I found online, in this <a href="https://stackoverflow.com/questions/43578723/conditional-replacement-of-column-name-in-tibble-using-dplyr">SO thread</a> was to use <code>tidyr::spread()</code> with
+<code>dplyr::rename_at()</code> like this:</p>
+<pre class="r"><code>data1 &lt;- data1 %&gt;%
+  spread(variable_1, value) %&gt;%
+  rename_at(vars(-country, -date), funs(paste0(&quot;variable1:&quot;, .)))
+
+glimpse(data1)</code></pre>
+<pre><code>## Observations: 4
+## Variables: 7
+## $ country                      &lt;chr&gt; &quot;lu&quot;, &quot;lu&quot;, &quot;lu&quot;, &quot;lu&quot;
+## $ date                         &lt;chr&gt; &quot;01/01/2005&quot;, &quot;01/01/2006&quot;, &quot;01/0...
+## $ `variable1:kinda_agree`      &lt;int&gt; 38, 19, 31, 12
+## $ `variable1:kinda_disagree`   &lt;int&gt; 69, 10, 12, 9
+## $ `variable1:maybe`            &lt;int&gt; 22, 40, 13, 25
+## $ `variable1:totally_agree`    &lt;int&gt; 42, 25, 17, 16
+## $ `variable1:totally_disagree` &lt;int&gt; 39, 23, 17, 21</code></pre>
+<pre class="r"><code>data2 &lt;- data2 %&gt;%
+  spread(variable_2, value) %&gt;%
+  rename_at(vars(-country, -date), funs(paste0(&quot;variable2:&quot;, .)))
+
+glimpse(data2)</code></pre>
+<pre><code>## Observations: 4
+## Variables: 7
+## $ country                      &lt;chr&gt; &quot;lu&quot;, &quot;lu&quot;, &quot;lu&quot;, &quot;lu&quot;
+## $ date                         &lt;chr&gt; &quot;01/01/2005&quot;, &quot;01/01/2006&quot;, &quot;01/0...
+## $ `variable2:kinda_agree`      &lt;int&gt; 22, 40, 13, 25
+## $ `variable2:kinda_disagree`   &lt;int&gt; 38, 19, 31, 12
+## $ `variable2:maybe`            &lt;int&gt; 69, 10, 12, 9
+## $ `variable2:totally_agree`    &lt;int&gt; 42, 25, 17, 16
+## $ `variable2:totally_disagree` &lt;int&gt; 39, 23, 17, 21</code></pre>
+<p><code>rename_at()</code> needs variables which you pass to <code>vars()</code>, a helper function to select variables, and
+a function that will do the renaming, passed to <code>funs()</code>. The function I use is simply <code>paste0()</code>,
+which pastes a string, for example “variable1:” with the name of the columns, given by the single ‘.’,
+a dummy argument. Now these datasets can be merged:</p>
+<pre class="r"><code>data1 %&gt;%
+  full_join(data2) %&gt;%
+  glimpse()</code></pre>
+<pre><code>## Joining, by = c(&quot;country&quot;, &quot;date&quot;)</code></pre>
+<pre><code>## Observations: 4
+## Variables: 12
+## $ country                      &lt;chr&gt; &quot;lu&quot;, &quot;lu&quot;, &quot;lu&quot;, &quot;lu&quot;
+## $ date                         &lt;chr&gt; &quot;01/01/2005&quot;, &quot;01/01/2006&quot;, &quot;01/0...
+## $ `variable1:kinda_agree`      &lt;int&gt; 38, 19, 31, 12
+## $ `variable1:kinda_disagree`   &lt;int&gt; 69, 10, 12, 9
+## $ `variable1:maybe`            &lt;int&gt; 22, 40, 13, 25
+## $ `variable1:totally_agree`    &lt;int&gt; 42, 25, 17, 16
+## $ `variable1:totally_disagree` &lt;int&gt; 39, 23, 17, 21
+## $ `variable2:kinda_agree`      &lt;int&gt; 22, 40, 13, 25
+## $ `variable2:kinda_disagree`   &lt;int&gt; 38, 19, 31, 12
+## $ `variable2:maybe`            &lt;int&gt; 69, 10, 12, 9
+## $ `variable2:totally_agree`    &lt;int&gt; 42, 25, 17, 16
+## $ `variable2:totally_disagree` &lt;int&gt; 39, 23, 17, 21</code></pre>
+<p>Hope this post helps you understand the difference between long and wide datasets better, as well
+as <code>dplyr::rename_at()</code>!</p>
+
+			</div>
+		</article>
+	</main>
+<aside>
+	<div>
+		<div>
+			<h3>LATEST POSTS</h3>
+		</div>
+		<div>
+			<ul>
+				
+				<li><a href="/blog/2020-12-30-year_review/">A year in review</a></li>
+				
+				<li><a href="/blog/2020-12-12-ethics_statistics/">(Half) Lies, (half) truths and (half) statistics</a></li>
+				
+				<li><a href="/blog/2020-12-05-poorman_translate/">Poorman&#39;s automated translation with R and Google Sheets using {googlesheets4}</a></li>
+				
+				<li><a href="/blog/2020-11-21-guis_mistake/">Graphical User Interfaces were a mistake but you can still make things right</a></li>
+				
+				<li><a href="/blog/2020-11-05-retire_data_science/">It&#39;s time to retire the &#34;data scientist&#34; label</a></li>
+				
+			</ul>
+		</div>
+	</div>
+</aside>
+
+
+	<footer>
+  <div class="row">
+    <div class="col-lg-12">
+      <p>2021, content by Bruno Rodrigues, unless otherwise stated, every content of this blog is licensed under the <a href="http://www.wtfpl.net/txt/copying/" rel="nofollow">WTFPL</a>.</p>
+      <p>The theme this blog uses is a slight variation of the <a href="https://github.com/colorchestra/smol" rel="nofollow">Smol</a> theme.</p>
+      <p><a class="nav-link" href="/index.html">Back to main page.</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

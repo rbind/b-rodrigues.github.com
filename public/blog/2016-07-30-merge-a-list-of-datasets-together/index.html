@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<style type=text/css>body{font-family:monospace;}</style>
+	<title>Merge a list of datasets together</title>
+	
+	
+	<link rel="stylesheet" href="/css/style.css">
+	
+	
+</head>
+<body>
+	<header>
+<p><a class="nav-link" href="/index.html">Econometrics and Free Software</a> by <a class="nav-link" href="/about/about">Bruno Rodrigues</a>.</p>
+<p>Follow me on <a href="https://twitter.com/brodriguesco" rel="nofollow">twitter</a>.</p>
+<p>Watch my <a href="https://www.youtube.com/user/cbrunos" rel="nofollow">youtube</a> channel.</p>
+</header>
+
+	
+	<main>
+		<article>
+			<h1>Merge a list of datasets together</h1>
+			<b><time>2016/07/30</time></b>
+		       
+		           <a href="/tags/r">R</a>
+        	       
+
+			<div>
+				<p><a href="http://www.brodrigues.co/2016/07/26/read-a-lot-of-datasets-at-once-with-r">Last week</a> I showed how to read a lot of datasets at once with R, and this week I’ll continue from there and show a very simple function that uses this list of read datasets and merges them all together.</p>
+<p>First we’ll use <code>read_list()</code> to read all the datasets at once (for more details read <a href="http://www.brodrigues.co/2016/07/26/read-a-lot-of-datasets-at-once-with-r">last week’s post</a>):</p>
+<pre class="r"><code>library(&quot;readr&quot;)
+library(&quot;tibble&quot;)
+
+data_files &lt;- list.files(pattern = &quot;.csv&quot;)
+
+print(data_files)</code></pre>
+<pre><code>## [1] &quot;data_1.csv&quot; &quot;data_2.csv&quot; &quot;data_3.csv&quot;</code></pre>
+<pre class="r"><code>list_of_data_sets &lt;- read_list(data_files, read_csv)
+
+glimpse(list_of_data_sets)</code></pre>
+<pre><code>## List of 3
+##  $ data_1:Classes 'tbl_df', 'tbl' and 'data.frame':  19 obs. of  3 variables:
+##   ..$ col1: chr [1:19] &quot;0,018930679&quot; &quot;0,8748013128&quot; &quot;0,1025635934&quot; &quot;0,6246140983&quot; ...
+##   ..$ col2: chr [1:19] &quot;0,0377725807&quot; &quot;0,5959457638&quot; &quot;0,4429121533&quot; &quot;0,558387159&quot; ...
+##   ..$ col3: chr [1:19] &quot;0,6241767189&quot; &quot;0,031324594&quot; &quot;0,2238059868&quot; &quot;0,2773350732&quot; ...
+##  $ data_2:Classes 'tbl_df', 'tbl' and 'data.frame':  19 obs. of  3 variables:
+##   ..$ col1: chr [1:19] &quot;0,9098418493&quot; &quot;0,1127788509&quot; &quot;0,5818891392&quot; &quot;0,1011773532&quot; ...
+##   ..$ col2: chr [1:19] &quot;0,7455905887&quot; &quot;0,4015039612&quot; &quot;0,6625796605&quot; &quot;0,029955339&quot; ...
+##   ..$ col3: chr [1:19] &quot;0,327232932&quot; &quot;0,2784035673&quot; &quot;0,8092386735&quot; &quot;0,1216045306&quot; ...
+##  $ data_3:Classes 'tbl_df', 'tbl' and 'data.frame':  19 obs. of  3 variables:
+##   ..$ col1: chr [1:19] &quot;0,9236124896&quot; &quot;0,6303271761&quot; &quot;0,6413583054&quot; &quot;0,5573887416&quot; ...
+##   ..$ col2: chr [1:19] &quot;0,2114708388&quot; &quot;0,6984538266&quot; &quot;0,0469865249&quot; &quot;0,9271510226&quot; ...
+##   ..$ col3: chr [1:19] &quot;0,4941919971&quot; &quot;0,7391538511&quot; &quot;0,3876723797&quot; &quot;0,2815014394&quot; ...</code></pre>
+<p>You see that all these datasets have the same column names. We can now merge them using this simple function:</p>
+<pre class="r"><code>multi_join &lt;- function(list_of_loaded_data, join_func, ...){
+
+    require(&quot;dplyr&quot;)
+
+    output &lt;- Reduce(function(x, y) {join_func(x, y, ...)}, list_of_loaded_data)
+
+    return(output)
+}</code></pre>
+<p>This function uses <code>Reduce()</code>. <code>Reduce()</code> is a very important function that can be found in all functional programming languages. What does <code>Reduce()</code> do? Let’s take a look at the following example:</p>
+<pre class="r"><code>Reduce(`+`, c(1, 2, 3, 4, 5))</code></pre>
+<pre><code>## [1] 15</code></pre>
+<p><code>Reduce()</code> has several arguments, but you need to specify at least two: a function, here <code>+</code> and a list, here <code>c(1, 2, 3, 4, 5)</code>. The next code block shows what <code>Reduce()</code> basically does:</p>
+<pre><code>0 + c(1, 2, 3, 4, 5)
+0 + 1 + c(2, 3, 4, 5)
+0 + 1 + 2 + c(3, 4, 5)
+0 + 1 + 2 + 3 + c(4, 5)
+0 + 1 + 2 + 3 + 4 + c(5)
+0 + 1 + 2 + 3 + 4 + 5</code></pre>
+<p><code>0</code> had to be added as in “init”. You can also specify this “init” to <code>Reduce()</code>:</p>
+<pre class="r"><code>Reduce(`+`, c(1, 2, 3, 4, 5), init = 20)</code></pre>
+<pre><code>## [1] 35</code></pre>
+<p>So what <code>multi_join()</code> does, is the same operation as in the example above, but where the function is a user supplied join or merge function, and the list of datasets is the one read with <code>read_list()</code>.</p>
+<p>Let’s see what happens when we use <code>multi_join()</code> on our list:</p>
+<pre class="r"><code>merged_data &lt;- multi_join(list_of_data_sets, full_join)</code></pre>
+<pre class="r"><code>class(merged_data)</code></pre>
+<pre><code>## [1] &quot;tbl_df&quot;     &quot;tbl&quot;        &quot;data.frame&quot;</code></pre>
+<pre class="r"><code>glimpse(merged_data)</code></pre>
+<pre><code>## Observations: 57
+## Variables: 3
+## $ col1 &lt;chr&gt; &quot;0,018930679&quot;, &quot;0,8748013128&quot;, &quot;0,1025635934&quot;, &quot;0,6246140...
+## $ col2 &lt;chr&gt; &quot;0,0377725807&quot;, &quot;0,5959457638&quot;, &quot;0,4429121533&quot;, &quot;0,558387...
+## $ col3 &lt;chr&gt; &quot;0,6241767189&quot;, &quot;0,031324594&quot;, &quot;0,2238059868&quot;, &quot;0,2773350...</code></pre>
+<p>You should make sure that all the data frames have the same column names but you can also join data frames with different column names if you give the argument <code>by</code> to the join function. This is possible thanks to <code>...</code> that allows you to pass further argument to <code>join_func()</code>.</p>
+<p>This function was inspired by the one found on the blog <a href="http://novicemetrics.blogspot.lu/2011/04/merging-multiple-data-files-into-one.html">Coffee and Econometrics in the Morning</a>.</p>
+
+			</div>
+		</article>
+	</main>
+<aside>
+	<div>
+		<div>
+			<h3>LATEST POSTS</h3>
+		</div>
+		<div>
+			<ul>
+				
+				<li><a href="/blog/2020-12-30-year_review/">A year in review</a></li>
+				
+				<li><a href="/blog/2020-12-12-ethics_statistics/">(Half) Lies, (half) truths and (half) statistics</a></li>
+				
+				<li><a href="/blog/2020-12-05-poorman_translate/">Poorman&#39;s automated translation with R and Google Sheets using {googlesheets4}</a></li>
+				
+				<li><a href="/blog/2020-11-21-guis_mistake/">Graphical User Interfaces were a mistake but you can still make things right</a></li>
+				
+				<li><a href="/blog/2020-11-05-retire_data_science/">It&#39;s time to retire the &#34;data scientist&#34; label</a></li>
+				
+			</ul>
+		</div>
+	</div>
+</aside>
+
+
+	<footer>
+  <div class="row">
+    <div class="col-lg-12">
+      <p>2021, content by Bruno Rodrigues, unless otherwise stated, every content of this blog is licensed under the <a href="http://www.wtfpl.net/txt/copying/" rel="nofollow">WTFPL</a>.</p>
+      <p>The theme this blog uses is a slight variation of the <a href="https://github.com/colorchestra/smol" rel="nofollow">Smol</a> theme.</p>
+      <p><a class="nav-link" href="/index.html">Back to main page.</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

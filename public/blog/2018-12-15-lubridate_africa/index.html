@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<style type=text/css>body{font-family:monospace;}</style>
+	<title>Manipulate dates easily with {lubridate}</title>
+	
+	
+	<link rel="stylesheet" href="/css/style.css">
+	
+	
+</head>
+<body>
+	<header>
+<p><a class="nav-link" href="/index.html">Econometrics and Free Software</a> by <a class="nav-link" href="/about/about">Bruno Rodrigues</a>.</p>
+<p>Follow me on <a href="https://twitter.com/brodriguesco" rel="nofollow">twitter</a>.</p>
+<p>Watch my <a href="https://www.youtube.com/user/cbrunos" rel="nofollow">youtube</a> channel.</p>
+</header>
+
+	
+	<main>
+		<article>
+			<h1>Manipulate dates easily with {lubridate}</h1>
+			<b><time>2018/12/15</time></b>
+		       
+		           <a href="/tags/r">R</a>
+        	       
+
+			<div>
+				<div style="text-align:center;">
+<p><a href="https://www.youtube.com/watch?v=FTQbiNvZqaY">
+<img width = "400" src="/img/africa.jpg" title = "One of my favourite songs"></a></p>
+</div>
+<script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+<p>This blog post is an excerpt of my ebook <em>Modern R with the tidyverse</em> that you can read for
+free <a href="https://b-rodrigues.github.io/modern_R/">here</a>. This is taken from Chapter 5, which presents
+the <code>{tidyverse}</code> packages and how to use them to compute descriptive statistics and manipulate data.
+In the text below, I scrape a table from Wikipedia, which shows when African countries gained
+independence from other countries. Then, using <code>{lubridate}</code> functions I show you how you can
+answers questions such as <em>Which countries gained independence before 1960?</em>.</p>
+<div id="set-up-scraping-some-data-from-wikipedia" class="section level2">
+<h2>Set-up: scraping some data from Wikipedia</h2>
+<p><code>{lubridate}</code> is yet another tidyverse package, that makes dealing with dates or duration data
+(and intervals) as painless as possible. I do not use every function contained in the package
+daily, and as such will only focus on some of the functions. However, if you have to deal with
+dates often, you might want to explore the package thoroughly.</p>
+<p>Let’s get some data from a Wikipedia table:</p>
+<pre class="r"><code>library(tidyverse)
+library(rvest)</code></pre>
+<pre class="r"><code>page &lt;- read_html(&quot;https://en.wikipedia.org/wiki/Decolonisation_of_Africa&quot;)
+
+independence &lt;- page %&gt;%
+    html_node(&quot;.wikitable&quot;) %&gt;%
+    html_table(fill = TRUE)
+
+independence &lt;- independence %&gt;%
+    select(-Rank) %&gt;%
+    map_df(~str_remove_all(., &quot;\\[.*\\]&quot;)) %&gt;%
+    rename(country = `Country[a]`,
+           colonial_name = `Colonial name`,
+           colonial_power = `Colonial power[b]`,
+           independence_date = `Independence date[c]`,
+           first_head_of_state = `First head of state[d]`,
+           independence_won_through = `Independence won through`)</code></pre>
+<p>This dataset was scraped from the following Wikipedia <a href="https://en.wikipedia.org/wiki/Decolonisation_of_Africa#Timeline">table</a>.
+It shows when African countries gained independence from which colonial powers. In Chapter 11, I
+will show you how to scrape Wikipedia pages using R. For now, let’s take a look at the contents
+of the dataset:</p>
+<pre class="r"><code>independence</code></pre>
+<pre><code>## # A tibble: 54 x 6
+##    country colonial_name colonial_power independence_da… first_head_of_s…
+##    &lt;chr&gt;   &lt;chr&gt;         &lt;chr&gt;          &lt;chr&gt;            &lt;chr&gt;           
+##  1 Liberia Liberia       United States  26 July 1847     Joseph Jenkins …
+##  2 South … Cape Colony … United Kingdom 31 May 1910      Louis Botha     
+##  3 Egypt   Sultanate of… United Kingdom 28 February 1922 Fuad I          
+##  4 Eritrea Italian Erit… Italy          10 February 1947 Haile Selassie  
+##  5 Libya   British Mili… United Kingdo… 24 December 1951 Idris           
+##  6 Sudan   Anglo-Egypti… United Kingdo… 1 January 1956   Ismail al-Azhari
+##  7 Tunisia French Prote… France         20 March 1956    Muhammad VIII a…
+##  8 Morocco French Prote… France Spain   2 March 19567 A… Mohammed V      
+##  9 Ghana   Gold Coast    United Kingdom 6 March 1957     Kwame Nkrumah   
+## 10 Guinea  French West … France         2 October 1958   Ahmed Sékou Tou…
+## # … with 44 more rows, and 1 more variable: independence_won_through &lt;chr&gt;</code></pre>
+<p>as you can see, the date of independence is in a format that might make it difficult to answer questions
+such as <em>Which African countries gained independence before 1960 ?</em> for two reasons. First of all,
+the date uses the name of the month instead of the number of the month (well, this is not such a
+big deal, but still), and second of all the type of
+the independence day column is <em>character</em> and not “date”. So our first task is to correctly define the column
+as being of type date, while making sure that R understands that <em>January</em> is supposed to be “01”, and so
+on.</p>
+</div>
+<div id="using-lubridate" class="section level2">
+<h2>Using <code>{lubridate}</code></h2>
+<p>There are several helpful functions included in <code>{lubridate}</code> to convert columns to dates. For instance
+if the column you want to convert is of the form “2012-11-21”, then you would use the function <code>ymd()</code>,
+for “year-month-day”. If, however the column is “2012-21-11”, then you would use <code>ydm()</code>. There’s
+a few of these helper functions, and they can handle a lot of different formats for dates. In our case,
+having the name of the month instead of the number might seem quite problematic, but it turns out
+that this is a case that <code>{lubridate}</code> handles painfully:</p>
+<pre class="r"><code>library(lubridate)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;lubridate&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:base&#39;:
+## 
+##     date</code></pre>
+<pre class="r"><code>independence &lt;- independence %&gt;%
+  mutate(independence_date = dmy(independence_date))</code></pre>
+<pre><code>## Warning: 5 failed to parse.</code></pre>
+<p>Some dates failed to parse, for instance for Morocco. This is because these countries have several
+independence dates; this means that the string to convert looks like:</p>
+<pre><code>&quot;2 March 1956
+7 April 1956
+10 April 1958
+4 January 1969&quot;</code></pre>
+<p>which obviously cannot be converted by <code>{lubridate}</code> without further manipulation. I ignore these cases for
+simplicity’s sake.</p>
+<p>Let’s take a look at the data now:</p>
+<pre class="r"><code>independence</code></pre>
+<pre><code>## # A tibble: 54 x 6
+##    country colonial_name colonial_power independence_da… first_head_of_s…
+##    &lt;chr&gt;   &lt;chr&gt;         &lt;chr&gt;          &lt;date&gt;           &lt;chr&gt;           
+##  1 Liberia Liberia       United States  1847-07-26       Joseph Jenkins …
+##  2 South … Cape Colony … United Kingdom 1910-05-31       Louis Botha     
+##  3 Egypt   Sultanate of… United Kingdom 1922-02-28       Fuad I          
+##  4 Eritrea Italian Erit… Italy          1947-02-10       Haile Selassie  
+##  5 Libya   British Mili… United Kingdo… 1951-12-24       Idris           
+##  6 Sudan   Anglo-Egypti… United Kingdo… 1956-01-01       Ismail al-Azhari
+##  7 Tunisia French Prote… France         1956-03-20       Muhammad VIII a…
+##  8 Morocco French Prote… France Spain   NA               Mohammed V      
+##  9 Ghana   Gold Coast    United Kingdom 1957-03-06       Kwame Nkrumah   
+## 10 Guinea  French West … France         1958-10-02       Ahmed Sékou Tou…
+## # … with 44 more rows, and 1 more variable: independence_won_through &lt;chr&gt;</code></pre>
+<p>As you can see, we now have a date column in the right format. We can now answer questions such as
+<em>Which countries gained independence before 1960?</em> quite easily, by using the functions <code>year()</code>,
+<code>month()</code> and <code>day()</code>. Let’s see which countries gained independence before 1960:</p>
+<pre class="r"><code>independence %&gt;%
+  filter(year(independence_date) &lt;= 1960) %&gt;%
+  pull(country)</code></pre>
+<pre><code>##  [1] &quot;Liberia&quot;                          &quot;South Africa&quot;                    
+##  [3] &quot;Egypt&quot;                            &quot;Eritrea&quot;                         
+##  [5] &quot;Libya&quot;                            &quot;Sudan&quot;                           
+##  [7] &quot;Tunisia&quot;                          &quot;Ghana&quot;                           
+##  [9] &quot;Guinea&quot;                           &quot;Cameroon&quot;                        
+## [11] &quot;Togo&quot;                             &quot;Mali&quot;                            
+## [13] &quot;Madagascar&quot;                       &quot;Democratic Republic of the Congo&quot;
+## [15] &quot;Benin&quot;                            &quot;Niger&quot;                           
+## [17] &quot;Burkina Faso&quot;                     &quot;Ivory Coast&quot;                     
+## [19] &quot;Chad&quot;                             &quot;Central African Republic&quot;        
+## [21] &quot;Republic of the Congo&quot;            &quot;Gabon&quot;                           
+## [23] &quot;Mauritania&quot;</code></pre>
+<p>You guessed it, <code>year()</code> extracts the year of the date column and converts it as a <em>numeric</em> so that we can work
+on it. This is the same for <code>month()</code> or <code>day()</code>. Let’s try to see if countries gained their independence on
+Christmas Eve:</p>
+<pre class="r"><code>independence %&gt;%
+  filter(month(independence_date) == 12,
+         day(independence_date) == 24) %&gt;%
+  pull(country)</code></pre>
+<pre><code>## [1] &quot;Libya&quot;</code></pre>
+<p>Seems like Libya was the only one! You can also operate on dates. For instance, let’s compute the difference between
+two dates, using the <code>interval()</code> column:</p>
+<pre class="r"><code>independence %&gt;%
+  mutate(today = lubridate::today()) %&gt;%
+  mutate(independent_since = interval(independence_date, today)) %&gt;%
+  select(country, independent_since)</code></pre>
+<pre><code>## # A tibble: 54 x 2
+##    country      independent_since             
+##    &lt;chr&gt;        &lt;S4: Interval&gt;                
+##  1 Liberia      1847-07-26 UTC--2019-02-10 UTC
+##  2 South Africa 1910-05-31 UTC--2019-02-10 UTC
+##  3 Egypt        1922-02-28 UTC--2019-02-10 UTC
+##  4 Eritrea      1947-02-10 UTC--2019-02-10 UTC
+##  5 Libya        1951-12-24 UTC--2019-02-10 UTC
+##  6 Sudan        1956-01-01 UTC--2019-02-10 UTC
+##  7 Tunisia      1956-03-20 UTC--2019-02-10 UTC
+##  8 Morocco      NA--NA                        
+##  9 Ghana        1957-03-06 UTC--2019-02-10 UTC
+## 10 Guinea       1958-10-02 UTC--2019-02-10 UTC
+## # … with 44 more rows</code></pre>
+<p>The <code>independent_since</code> column now contains an <em>interval</em> object that we can convert to years:</p>
+<pre class="r"><code>independence %&gt;%
+  mutate(today = lubridate::today()) %&gt;%
+  mutate(independent_since = interval(independence_date, today)) %&gt;%
+  select(country, independent_since) %&gt;%
+  mutate(years_independent = as.numeric(independent_since, &quot;years&quot;))</code></pre>
+<pre><code>## # A tibble: 54 x 3
+##    country      independent_since              years_independent
+##    &lt;chr&gt;        &lt;S4: Interval&gt;                             &lt;dbl&gt;
+##  1 Liberia      1847-07-26 UTC--2019-02-10 UTC             172. 
+##  2 South Africa 1910-05-31 UTC--2019-02-10 UTC             109. 
+##  3 Egypt        1922-02-28 UTC--2019-02-10 UTC              97.0
+##  4 Eritrea      1947-02-10 UTC--2019-02-10 UTC              72  
+##  5 Libya        1951-12-24 UTC--2019-02-10 UTC              67.1
+##  6 Sudan        1956-01-01 UTC--2019-02-10 UTC              63.1
+##  7 Tunisia      1956-03-20 UTC--2019-02-10 UTC              62.9
+##  8 Morocco      NA--NA                                      NA  
+##  9 Ghana        1957-03-06 UTC--2019-02-10 UTC              61.9
+## 10 Guinea       1958-10-02 UTC--2019-02-10 UTC              60.4
+## # … with 44 more rows</code></pre>
+<p>We can now see for how long the last country to gain independence has been independent.
+Because the data is not tidy (in some cases, an African country was colonized by two powers,
+see Libya), I will only focus on 4 European colonial powers: Belgium, France, Portugal and the United Kingdom:</p>
+<pre class="r"><code>independence %&gt;%
+  filter(colonial_power %in% c(&quot;Belgium&quot;, &quot;France&quot;, &quot;Portugal&quot;, &quot;United Kingdom&quot;)) %&gt;%
+  mutate(today = lubridate::today()) %&gt;%
+  mutate(independent_since = interval(independence_date, today)) %&gt;%
+  mutate(years_independent = as.numeric(independent_since, &quot;years&quot;)) %&gt;%
+  group_by(colonial_power) %&gt;%
+  summarise(last_colony_independent_for = min(years_independent, na.rm = TRUE))</code></pre>
+<pre><code>## # A tibble: 4 x 2
+##   colonial_power last_colony_independent_for
+##   &lt;chr&gt;                                &lt;dbl&gt;
+## 1 Belgium                               56.6
+## 2 France                                41.6
+## 3 Portugal                              43.2
+## 4 United Kingdom                        42.6</code></pre>
+<p><code>{lubridate}</code> contains many more functions. If you often work with dates, duration or interval data, <code>{lubridate}</code>
+is a package that you have to master.</p>
+<p>Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>.</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
+</div>
+
+			</div>
+		</article>
+	</main>
+<aside>
+	<div>
+		<div>
+			<h3>LATEST POSTS</h3>
+		</div>
+		<div>
+			<ul>
+				
+				<li><a href="/blog/2020-12-30-year_review/">A year in review</a></li>
+				
+				<li><a href="/blog/2020-12-12-ethics_statistics/">(Half) Lies, (half) truths and (half) statistics</a></li>
+				
+				<li><a href="/blog/2020-12-05-poorman_translate/">Poorman&#39;s automated translation with R and Google Sheets using {googlesheets4}</a></li>
+				
+				<li><a href="/blog/2020-11-21-guis_mistake/">Graphical User Interfaces were a mistake but you can still make things right</a></li>
+				
+				<li><a href="/blog/2020-11-05-retire_data_science/">It&#39;s time to retire the &#34;data scientist&#34; label</a></li>
+				
+			</ul>
+		</div>
+	</div>
+</aside>
+
+
+	<footer>
+  <div class="row">
+    <div class="col-lg-12">
+      <p>2021, content by Bruno Rodrigues, unless otherwise stated, every content of this blog is licensed under the <a href="http://www.wtfpl.net/txt/copying/" rel="nofollow">WTFPL</a>.</p>
+      <p>The theme this blog uses is a slight variation of the <a href="https://github.com/colorchestra/smol" rel="nofollow">Smol</a> theme.</p>
+      <p><a class="nav-link" href="/index.html">Back to main page.</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

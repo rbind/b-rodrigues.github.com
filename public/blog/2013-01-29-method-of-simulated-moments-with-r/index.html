@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<style type=text/css>body{font-family:monospace;}</style>
+	<title>Method of Simulated Moments with R</title>
+	
+	
+	<link rel="stylesheet" href="/css/style.css">
+	
+	
+</head>
+<body>
+	<header>
+<p><a class="nav-link" href="/index.html">Econometrics and Free Software</a> by <a class="nav-link" href="/about/about">Bruno Rodrigues</a>.</p>
+<p>Follow me on <a href="https://twitter.com/brodriguesco" rel="nofollow">twitter</a>.</p>
+<p>Watch my <a href="https://www.youtube.com/user/cbrunos" rel="nofollow">youtube</a> channel.</p>
+</header>
+
+	
+	<main>
+		<article>
+			<h1>Method of Simulated Moments with R</h1>
+			<b><time>2013/12/11</time></b>
+		       
+		           <a href="/tags/r">R</a>
+        	       
+
+			<div>
+				<!-- MathJax scripts -->
+
+<script type="text/javascript" async
+  src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+
+<p></head></p>
+
+<p><body></p>
+
+<p>This document details section <em>12.5.6. Unobserved Heterogeneity Example</em>. The original source code giving the results from table 12.3 are available from the authors&#39; site <a href="http://cameron.econ.ucdavis.edu/mmabook/mmaprograms.html">here</a> and written for Stata. This is an attempt to translate the code to R.</p>
+
+<p>Consult the original source code if you want to read the authors&#39; comments. If you want the R source code without all the commentaries, grab it here. This is not guaranteed to work, nor to be correct. It could set your pet on fire and/or eat your first born. Use at your own risk. I may, or may not, expand this example. Corrections, constructive criticism are welcome.</p>
+
+<p>The model is the same as the one described here, so I won&#39;t go into details. The moment condition used is \( E[(y_i-\theta-u_i)]=0 \), so we can replace the expectation operator by the empirical mean:</p>
+
+<p>\[ \dfrac{1}{N} \sum_{i=1}^N(y_i - \theta - E[u_i])=0 \]</p>
+
+<p>Supposing that \( E[\overline{u}] \) is unknown, we can instead use the method of simulated moments for \( \theta \) defined by:</p>
+
+<p>\[ \dfrac{1}{N} \sum_{i=1}^N(y_i - \theta - \dfrac{1}{S} \sum_{s=1}^S u_i^s)=0 \]</p>
+
+<h3>Import the data</h3>
+
+<p>You can consult the original source code to see how the authors simulated the data. To get the same results, and verify that I didn&#39;t make mistakes I prefer importing their data directly from their website.</p>
+
+<pre><code class="r">data &lt;- read.table(&quot;http://cameron.econ.ucdavis.edu/mmabook/mma12p2mslmsm.asc&quot;)
+u &lt;- data[, 1]
+e &lt;- data[, 2]
+y &lt;- data[, 3]
+numobs &lt;- length(u)
+simreps &lt;- 10000
+</code></pre>
+
+<h3>Simulation</h3>
+
+<p>In the code below, we simulate the equation defined above:</p>
+
+<pre><code class="r">usim &lt;- -log(-log(runif(simreps)))
+esim &lt;- rnorm(simreps, 0, 1)
+
+isim &lt;- 0
+while (isim &lt; simreps) {
+
+    usim = usim - log(-log(runif(simreps)))
+    esim = esim + rnorm(simreps, 0, 1)
+
+    isim = isim + 1
+
+}
+
+usimbar = usim/simreps
+esimbar = esim/simreps
+
+theta = y - usimbar - esimbar
+
+theta_msm &lt;- mean(theta)
+approx_sterror &lt;- sd(theta)/sqrt(simreps)
+</code></pre>
+
+<p>These steps yield the following results:</p>
+
+<pre><code>## Theta MSM= 1.188 Approximate Standard Error= 0.01676
+</code></pre>
+
+<p></body></p>
+
+			</div>
+		</article>
+	</main>
+<aside>
+	<div>
+		<div>
+			<h3>LATEST POSTS</h3>
+		</div>
+		<div>
+			<ul>
+				
+				<li><a href="/blog/2020-12-30-year_review/">A year in review</a></li>
+				
+				<li><a href="/blog/2020-12-12-ethics_statistics/">(Half) Lies, (half) truths and (half) statistics</a></li>
+				
+				<li><a href="/blog/2020-12-05-poorman_translate/">Poorman&#39;s automated translation with R and Google Sheets using {googlesheets4}</a></li>
+				
+				<li><a href="/blog/2020-11-21-guis_mistake/">Graphical User Interfaces were a mistake but you can still make things right</a></li>
+				
+				<li><a href="/blog/2020-11-05-retire_data_science/">It&#39;s time to retire the &#34;data scientist&#34; label</a></li>
+				
+			</ul>
+		</div>
+	</div>
+</aside>
+
+
+	<footer>
+  <div class="row">
+    <div class="col-lg-12">
+      <p>2021, content by Bruno Rodrigues, unless otherwise stated, every content of this blog is licensed under the <a href="http://www.wtfpl.net/txt/copying/" rel="nofollow">WTFPL</a>.</p>
+      <p>The theme this blog uses is a slight variation of the <a href="https://github.com/colorchestra/smol" rel="nofollow">Smol</a> theme.</p>
+      <p><a class="nav-link" href="/index.html">Back to main page.</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

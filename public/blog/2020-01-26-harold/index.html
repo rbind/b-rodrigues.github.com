@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<style type=text/css>body{font-family:monospace;}</style>
+	<title>Dynamic discrete choice models, reinforcement learning and Harold, part 1</title>
+	
+	
+	<link rel="stylesheet" href="/css/style.css">
+	
+	
+</head>
+<body>
+	<header>
+<p><a class="nav-link" href="/index.html">Econometrics and Free Software</a> by <a class="nav-link" href="/about/about">Bruno Rodrigues</a>.</p>
+<p>Follow me on <a href="https://twitter.com/brodriguesco" rel="nofollow">twitter</a>.</p>
+<p>Watch my <a href="https://www.youtube.com/user/cbrunos" rel="nofollow">youtube</a> channel.</p>
+</header>
+
+	
+	<main>
+		<article>
+			<h1>Dynamic discrete choice models, reinforcement learning and Harold, part 1</h1>
+			<b><time>2020/01/26</time></b>
+		       
+		           <a href="/tags/r">R</a>
+        	       
+
+			<div>
+				<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+<link href="/rmarkdown-libs/anchor-sections/anchor-sections.css" rel="stylesheet" />
+<script src="/rmarkdown-libs/anchor-sections/anchor-sections.js"></script>
+
+
+<div style="text-align:center;">
+<p><a href="https://www.youtube.com/watch?v=r30D3SW4OVw">
+<img src="/img/fork.jpg" title = "If this blog post had an OST, this would likely be it."></a></p>
+</div>
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>I want to write about an <em>Econometrica</em> paper written in 1987 (<a href="https://www.jstor.org/stable/1911259">jstor link</a>) by John Rust, currently Professor of Economics at
+Georgetown University, paper which has been on my mind for the past 10 years or so. Why? Because
+it is a seminal paper in the econometric literature, but it is quite a bizarre one in some aspects.
+In this paper, John Rust estimates a structural
+dynamic discrete choice model on real data, and Professor Rust even had to develop his own novel
+algorithm, which he called NFXP, which stands for <em>Nested Fixed Point</em> algorithm, to estimate the model.
+Such models hare now part of the toolbox of structural econometricians, because said models are
+suited to model decision making in a changing environment. How much should you save today for
+retirement? Should you go to university? If yes, which major should you choose? Should you get a
+PhD? Should you have kids? How many? With whom?
+As you see, kind reader, these models are at the center point of what makes life so interesting,
+and sometimes so scary as well; what will be the impact of our decisions today on future rewards?
+Some would say that only the Almighty would know, but structural econometricians now know as well,
+thanks to John Rust.</p>
+<p>It is thus completely natural that Professor Rust chose a very important topic and gathered some
+very important data to illustrate the inner workings of such a complicated, and yet fundamentally
+important model.</p>
+<p>John Rust chose to tell the story of one named Harold Zurcher, superintendent of the Madison,
+Wisconsin, Metropolitan Bus Company and his monthly decision making process on whether to replace
+the engine of the buses of the company’s fleet, or not.</p>
+</div>
+<div id="and-thine-ears-shall-hear-a-word-behind-thee-saying-this-is-the-way-walk-ye-in-it-when-ye-turn-to-the-right-hand-and-when-ye-turn-to-the-left.-isaiah-3021" class="section level2">
+<h2><em>And thine ears shall hear a word behind thee, saying, This is the way, walk ye in it, when ye turn to the right hand, and when ye turn to the left.</em>, Isaiah 30:21</h2>
+<p>John Rust’s goal is to write down a model of Harold Zurcher’s behaviour, which he assumes follows
+an optimal stopping rule: <em>a strategy which specifies whether or not to replace
+the current bus engine each period as a function of observed and unobserved
+state variables.</em> But, dear reader, you might wonder, <em>Why model the decisions of Harold Zurcher?
+Why not any other, more pressing, issue?</em></p>
+<p>Quoting the author gives an answer: <em>Admittedly, few people are likely to take particular interest in Harold Zurcher and bus engine replacement, per se. I focus on a particular individual and a
+specific capital good because it provides a simple, concrete framework to illustrate
+two ideas: (i) a “bottom-up” approach for modelling replacement investment
+and (ii) a “nested fixed point” algorithm for estimating dynamic programming
+models of discrete choice.</em> And this is what made me absolutely love this paper; I am 100% certain
+that today, anyone, especially when starting an academic career, could not, and would not, write
+a paper where one would model something so… non-consequential. And yet, John Rust not only wrote
+such a paper, his paper is seminal in the literature of structural econometrics. For me, this is
+one of the best papers I ever read. I read this paper around 2010-ish, and have thought about
+it on and off since then. I now want to explore the data from his paper, and make you discover
+it as well.</p>
+<p>In this blog post, I will focus on the data of the paper, which you can download in its raw,
+original format or tidy format in the github repo I set up
+<a href="https://github.com/b-rodrigues/rust/tree/master/datasets">here</a>. In the next blog post, I’ll
+discuss the model in greater detail, with a focus on Harold Zurcher’s decisions. I’ll then discuss
+the similarities between reinforcement learning (the title of this blog post was not 100% clickbait)
+and dynamic discrete stochastic models and use the <code>{ReinforcementLearning}</code> package to try to
+estimate the optimal policy. I haven’t tried the package’s function on this paper’s data yet, so
+I have no idea if it’s going to work out. We’ll see.</p>
+</div>
+<div id="the-papers-data" class="section level2">
+<h2>The paper’s data</h2>
+<p>Harold Zurcher provided monthly data on odometer readings from 162 buses of the Madison Metro fleet
+to John Rust.</p>
+<p>(</p>
+<p>I sometimes wonder how this discussion went.</p>
+<p><em>- Hello Mr Zurcher, I’m an economist, my name is John Rust, and I am interested in dynamic discrete
+choice models and their estimation. I would like to write an empirical paper for a prestigious journal,
+and would like to know if you would be so kind as to provide me with data for my paper.</em></p>
+<p><em>- You what?</em></p>
+<p>)</p>
+<p>The time period goes from December, 1974 to May, 1985. There are 9 groups of buses, but for a reason
+that is not explained in the paper only 8 groups of buses are studied. In addition to the monthly
+odometer readings, there is also the date of a first, or second engine replacement. This is the
+decision that Harold Zurcher faces each month: should he replace, or not, the engine?
+This is a simplification from the author; in actuality, Harold Zurcher could also perform a routine
+maintenance or replace individual components as well. The idea to focus on the third option
+(complete replacement of the engine) is justified by John Rust as being part of a general
+“preventive maintenance” strategy. Indeed, if a component of the engine fails at low mileage, it
+is rather safe to simply replace that component. However, should one component of the engine fail
+at a much higher mileage, then it is very likely that other components would fail as well in the
+near future. As such, it is much safer to completely replace the engine, either with a brand new one,
+or with one freshly rebuilt from the company’s machine shop. John Rust points out that Harold Zurcher
+assured him that <em>rebuilt engines are every bit as good, if not better, than engines purchased brand
+new</em>.</p>
+<p>Now, to the data itself. The data comes in a format unlike anything I had ever seen before. Let’s take a
+look at the head of one single file, for instance <code>a452372.asc</code> (<code>.asc</code> stands for ascii, as far as I know):</p>
+<pre><code>   4239 
+      2 
+     72 
+      1 
+     76 
+ 166100 
+      0 
+      0 
+      0 
+     12 
+     74 
+ 140953 
+ 142960 
+ 145380 
+ 148140 </code></pre>
+<p>Then, on line 138, the data for the second bus of this groups starts:</p>
+<pre><code>   4240 
+      2 
+     72 
+      1 
+     75 
+ 177900 
+      0 
+      0 
+      0 
+     12 
+     74 
+ 174402 
+ 175116 </code></pre>
+<p>and so on for each bus of this group. The other files are structured in the same way.</p>
+<p>This is quite cryptic, but thankfully, the data is well documented in the manual
+of the NFXP software that John Rust wrote for this paper (remember the algorithm he wrote to
+estimate the model? He shared his code with a nice manual, a very good practice that
+unfortunately is not widespread enough in econometric circles, even to this day).
+From this manual, we can read that the 11 first lines of the file are some kind of metadata:</p>
+<table>
+<thead>
+<tr class="header">
+<th align="right">Row  </th>
+<th>Meaning</th>
+<th align="right">Observation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">1  </td>
+<td>bus number</td>
+<td align="right">4239</td>
+</tr>
+<tr class="even">
+<td align="right">2  </td>
+<td>month purchased</td>
+<td align="right">2</td>
+</tr>
+<tr class="odd">
+<td align="right">3  </td>
+<td>year purchased</td>
+<td align="right">72</td>
+</tr>
+<tr class="even">
+<td align="right">4  </td>
+<td>month of 1st engine replacement</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="right">5  </td>
+<td>year of 1st engine replacement</td>
+<td align="right">76</td>
+</tr>
+<tr class="even">
+<td align="right">6  </td>
+<td>odometer at replacement</td>
+<td align="right">166100</td>
+</tr>
+<tr class="odd">
+<td align="right">7  </td>
+<td>month of 2nd replacement</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="right">8  </td>
+<td>year of 2nd replacement</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="right">9  </td>
+<td>odometer at replacement</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="right">10  </td>
+<td>month odometer data begins</td>
+<td align="right">12</td>
+</tr>
+<tr class="odd">
+<td align="right">11  </td>
+<td>year odometer data begins</td>
+<td align="right">74</td>
+</tr>
+<tr class="even">
+<td align="right">12  </td>
+<td>odometer reading</td>
+<td align="right">140953</td>
+</tr>
+</tbody>
+</table>
+<p>With this knowledge, the first step is thus to build a tidy data frame. To achieve this, I first
+load the relevant packages, and read in all the data at once:</p>
+<pre class="r"><code>library(tidyverse)
+library(lubridate)
+
+data_file_path &lt;- Sys.glob(&quot;datasets/*.asc&quot;)
+
+data_files &lt;- map(data_file_path, read_lines)</code></pre>
+<p><code>data_files</code> is a list of 9 elements, where each element is one of the raw data files
+(<code>a42372.asc</code>, <code>a452374.asc</code>, ….)</p>
+<pre class="r"><code>&gt; str(data_files)</code></pre>
+<pre class="r"><code>List of 9
+ $ : chr [1:2466] &quot;   4239 &quot; &quot;      2 &quot; &quot;     72 &quot; &quot;      1 &quot; ...
+ $ : chr [1:1370] &quot;   4287 &quot; &quot;     10 &quot; &quot;     74 &quot; &quot;     11 &quot; ...
+ $ : chr [1:2466] &quot;   5257 &quot; &quot;      5 &quot; &quot;     72 &quot; &quot;      6 &quot; ...
+ $ : chr [1:1644] &quot;   5275 &quot; &quot;     10 &quot; &quot;     74 &quot; &quot;      9 &quot; ...
+ $ : chr [1:4736] &quot;   5297 &quot; &quot;      8 &quot; &quot;     75 &quot; &quot;      4 &quot; ...
+ $ : chr [1:440] &quot;   1334 &quot; &quot;      3 &quot; &quot;     77 &quot; &quot;      0 &quot; ...
+ $ : chr [1:540] &quot;   4403 &quot; &quot;      5 &quot; &quot;     83 &quot; &quot;      0 &quot; ...
+ $ : chr [1:240] &quot;   2386 &quot; &quot;      5 &quot; &quot;     81 &quot; &quot;      0 &quot; ...
+ $ : chr [1:3888] &quot;   4338 &quot; &quot;      3 &quot; &quot;     79 &quot; &quot;      3 &quot; ...</code></pre>
+<p>to process all this data, I wrote this monster function:</p>
+<pre class="r"><code>process_bus_data &lt;- function(data_file){
+  data_file &lt;- as.numeric(data_file)
+  first_bus &lt;- data_file[1]
+  second_bus &lt;- first_bus + 1
+  second_bus_index &lt;- which(data_file == second_bus)
+
+  nb_data_points &lt;- second_bus_index - 1
+
+  nb_buses &lt;- length(data_file) / nb_data_points
+
+  indices &lt;- nb_data_points * seq(1, nb_buses)
+
+  indices &lt;- c(0, indices)
+
+  sep_data_sets &lt;- map(indices, ~`[`(data_file, (. + 1):(. + nb_data_points) ))
+
+  headers_list &lt;- map(sep_data_sets, ~`[`(., 1:11))
+
+  header_elements &lt;- c(&quot;bus number&quot;, &quot;month purchased&quot;, &quot;year purchased&quot;,
+                       &quot;month of 1st engine replacement&quot;, &quot;year of 1st engine replacement&quot;,
+                       &quot;odometer at replacement&quot;, &quot;month of 2nd replacement&quot;,
+                       &quot;year of 2nd replacement&quot;, &quot;odometer at replacement&quot;,
+                       &quot;month odometer data begins&quot;, &quot;year odometer data begins&quot;)
+
+  create_start_date &lt;- function(one_dataset){
+      one_dataset &lt;- pull(one_dataset)
+      month &lt;- one_dataset[10]
+      year &lt;- paste0(&quot;19&quot;, one_dataset[11])
+
+      month &lt;- ifelse(nchar(month) == 1, paste0(&quot;0&quot;, month), month)
+
+      ymd(paste0(year, &quot;-&quot;, month, &quot;-01&quot;))
+  }
+
+  create_first_replacement &lt;- function(one_dataset){
+      one_dataset &lt;- pull(one_dataset, odometer_reading)
+      month &lt;- one_dataset[4]
+      year &lt;- paste0(&quot;19&quot;, one_dataset[5])
+
+      month &lt;- ifelse(nchar(month) == 1, paste0(&quot;0&quot;, month), month)
+
+      ymd(paste0(year, &quot;-&quot;, month, &quot;-01&quot;))
+  }
+
+  create_second_replacement &lt;- function(one_dataset){
+      one_dataset &lt;- pull(one_dataset, odometer_reading)
+      month &lt;- one_dataset[7]
+      year &lt;- paste0(&quot;19&quot;, one_dataset[8])
+
+      month &lt;- ifelse(nchar(month) == 1, paste0(&quot;0&quot;, month), month)
+
+      ymd(paste0(year, &quot;-&quot;, month, &quot;-01&quot;))
+  }
+
+  get_bus_id &lt;- function(one_dataset){
+      one_dataset &lt;- pull(one_dataset, odometer_reading)
+      one_dataset[1]
+  }
+
+  named_headers &lt;- map(headers_list, ~set_names(., header_elements))
+
+
+  raw_data &lt;- map(sep_data_sets, ~tibble(&quot;odometer_reading&quot; = .))
+  raw_data &lt;- map(raw_data, ~mutate(., &quot;date&quot; = create_start_date(.)))
+  raw_data &lt;- map(raw_data, ~mutate(., &quot;first_replacement_date&quot; = create_first_replacement(.)))
+  raw_data &lt;- map(raw_data, ~mutate(., &quot;second_replacement_date&quot; = create_second_replacement(.)))
+  raw_data &lt;- map(raw_data, ~mutate(., &quot;bus_id&quot; = get_bus_id(.)))
+  raw_data &lt;- map(raw_data, ~slice(., -c(1:11)))
+
+  fill_dates &lt;- function(vector){
+      for(i in 2:length(vector)){
+          vector[i] &lt;- add_with_rollback(vector[i-1], months(1))
+          # the line below can be uncommented to skip the 2 months of strike in 1980
+          #vector[i] &lt;- if_else(vector[i] == ymd(&quot;1980-07-01&quot;), add_with_rollback(vector[i], months(2)),
+          #                    vector[i])
+      }
+      vector
+  }
+
+  raw_data &lt;- raw_data %&gt;%
+      map(~mutate(., date = fill_dates(date)))
+
+  raw_data &lt;- map(raw_data, ~mutate(., &quot;replacement_1&quot; = if_else(date == first_replacement_date, 1, 0, 0)))
+  raw_data &lt;- map(raw_data, ~mutate(., &quot;replacement_2&quot; = if_else(date == second_replacement_date, 1, 0, 0)))
+  raw_data &lt;- map(raw_data, ~mutate(., replacement = replacement_1 + replacement_2))
+  raw_data &lt;- map(raw_data, ~select(., bus_id, date, odometer_reading, replacement,
+                                    -replacement_1, -replacement_2, -first_replacement_date, -second_replacement_date))
+
+  return(raw_data)
+}</code></pre>
+<p>Now, as usual, I didn’t write this in one go. First, I experimented bits and pieces of code on
+one single dataset, and then only started putting these pieces together into this big function.</p>
+<p>I won’t go through this function line by line, because it would take me ages. I think there are
+two majors things to understand in this function:</p>
+<ul>
+<li>first identify the start of a particular bus’s data;</li>
+<li>second this function uses some intermediary <code>{purrr}</code> magic.</li>
+</ul>
+<p>So first step, identify the start of the monthly odometer reading for one bus. For the first bus
+this is quite simple, as it is simply the start of the file. But when does the data for the
+second bus start? Thankfully, buses’ ids are numbers, and they’re in incrementing order in the data.
+I use this to get the index of the second bus, and compute the number of rows between the id of
+the first and second bus, which gives me the number of months of odometer readings for the first
+bus.</p>
+<pre class="r"><code>  data_file &lt;- as.numeric(data_file)
+  first_bus &lt;- data_file[1]
+  second_bus &lt;- first_bus + 1
+  second_bus_index &lt;- which(data_file == second_bus)
+
+  nb_data_points &lt;- second_bus_index - 1</code></pre>
+<p>Then, I get the number of buses in the data, and create a vector with all the indices of the
+buses’ ids:</p>
+<pre class="r"><code>  nb_buses &lt;- length(data_file) / nb_data_points
+
+  indices &lt;- nb_data_points * seq(1, nb_buses)
+
+  indices &lt;- c(0, indices)
+
+  sep_data_sets &lt;- map(indices, ~`[`(data_file, (. + 1):(. + nb_data_points) ))</code></pre>
+<p>I end up with a list of lists, <code>sep_data_sets</code>.
+The first element of my list is now a list, with the data from the
+<code>a452372.asc</code> file, where each element is the data for a single bus.</p>
+<p>For instance, here is the first element of <code>sep_data_sets</code>:</p>
+<pre class="r"><code>str(sep_data_sets[[1]])
+List of 19
+ $ : num [1:137] 4239 2 72 1 76 ...
+ $ : num [1:137] 4240 2 72 1 75 ...
+ $ : num [1:137] 4241 2 72 5 75 ...
+ $ : num [1:137] 4242 2 72 2 76 ...
+ $ : num [1:137] 4243 2 72 4 76 ...
+ $ : num [1:137] 4244 2 72 3 78 ...
+ $ : num [1:137] 4245 2 72 1 75 ...
+ $ : num [1:137] 4246 2 72 3 75 ...
+ $ : num [1:137] 4247 2 72 9 80 ...
+ $ : num [1:137] 4248 2 72 2 75 ...
+ $ : num [1:137] 4249 2 72 7 75 ...
+ $ : num [1:137] 4250 2 72 4 80 ...
+ $ : num [1:137] 4251 2 72 1 79 ...
+ $ : num [1:137] 4252 2 72 5 76 ...
+ $ : num [1:137] 4253 2 72 1 77 ...
+ $ : num [1:137] 4254 2 72 3 76 ...
+ $ : num [1:137] 4255 2 72 1 76 ...
+ $ : num [1:137] 4256 2 72 9 77 ...
+ $ : num [1:137] NA NA NA NA NA NA NA NA NA NA ...</code></pre>
+<p>So there are 18 buses in the first group of data (the last line full of NA’s is due to the fact
+that I messed up my indices vector, I’ll simply remove these at the end).</p>
+<p>That’s the first step. The second step, is to make use of this list structure to apply some
+cleaning functions to each dataset using <code>{purrr}</code>. I explain the approach in my ebook, which you
+can read for free
+<a href="https://b-rodrigues.github.io/modern_R/functional-programming.html#list-based-workflows-for-efficiency">here</a>.
+The idea is to use a function that would work on a single element of your list, and then mapping
+this over all the elements of the list. For instance, remember that the 11 first elements of
+the data are some kind of header? To extract those for one single vector of observations, one
+would use:</p>
+<pre class="r"><code>my_vector[1:11]</code></pre>
+<p>or, equivalently:</p>
+<pre class="r"><code>`[`(my_vector, 1:11)</code></pre>
+<p>Well, when faced with a list of vectors, one maps this function over the whole list using <code>map()</code>:</p>
+<pre class="r"><code>map(my_list_of_vectors, `[`(1:11))</code></pre>
+<p>This is the logic of this big <code>process_bus_data()</code> function. If something’s not clear after you study
+it, drop me an email or tweet.</p>
+<p>Anyways, now that I cleaned the data, here’s how it looks:</p>
+<pre class="r"><code>all_buses &lt;- read_csv(&quot;https://raw.githubusercontent.com/b-rodrigues/rust/ee15fb87fc4ba5db28d055c97a898b328725f53c/datasets/processed_data/all_buses.csv&quot;)</code></pre>
+<pre><code>## Parsed with column specification:
+## cols(
+##   bus_id = col_double(),
+##   date = col_date(format = &quot;&quot;),
+##   odometer_reading = col_double(),
+##   replacement = col_double(),
+##   bus_family = col_character()
+## )</code></pre>
+<pre class="r"><code>head(all_buses)</code></pre>
+<pre><code>## # A tibble: 6 x 5
+##   bus_id date       odometer_reading replacement bus_family
+##    &lt;dbl&gt; &lt;date&gt;                &lt;dbl&gt;       &lt;dbl&gt; &lt;chr&gt;     
+## 1   4239 1974-12-01           140953           0 a452372   
+## 2   4239 1975-01-01           142960           0 a452372   
+## 3   4239 1975-02-01           145380           0 a452372   
+## 4   4239 1975-03-01           148140           0 a452372   
+## 5   4239 1975-04-01           150921           0 a452372   
+## 6   4239 1975-05-01           153839           0 a452372</code></pre>
+<p>This tidy data frame now has the bus id, the odometer readings with the right date, and whether
+a replacement occurred at that date. I said the right date, but in the original documentation of
+the data, John Rust mentions a two month strike in July and August 1980, and he removed these
+points from the data since the odometer readings where the same. I did not skip July and August
+when I created the dates, even though I have added the code to do it in the function above, because
+it does not matter.</p>
+<p>I have 166 in my sample, while John Rust writes in the paper that
+his sample contains 162. I do not know why I have 4 more buses.</p>
+<p>Let’s try to reproduce Table 2a of the paper (mileage at replacement):</p>
+<pre class="r"><code>all_buses %&gt;% 
+    group_by(bus_id) %&gt;% 
+    filter(replacement == 1) %&gt;% 
+    group_by(bus_family) %&gt;% 
+    summarise_at(.vars = vars(odometer_reading), 
+                 .funs = list(~max(.), ~min(.), ~mean(.), ~sd(.)))</code></pre>
+<pre><code>## # A tibble: 6 x 5
+##   bus_family    max    min    mean     sd
+##   &lt;chr&gt;       &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt;
+## 1 a452372    334393 130810 193175. 53533.
+## 2 a452374    237287  82370 151495  61246.
+## 3 a530872    413132 170508 278292. 78529.
+## 4 a530874    325336 117986 247119  60818.
+## 5 a530875    388254 120709 263405. 64556.
+## 6 t8h203     273369 125643 200685. 37120.</code></pre>
+<p>I find different slightly results, for instance, for bus family <code>t8h203</code> I find an average of
+200’685 miles, while the original author found 199’733. This difference comes very likely from
+the fact that the author probably uses the value from the header, “odometer at replacement”, at
+position 6, while I use the value of the odometer at that month, which is always slightly different.</p>
+<p>Let’s try to reproduce Table 2b, as well, mileage for buses who did not have a replacement:</p>
+<pre class="r"><code>all_buses %&gt;% 
+    group_by(bus_id) %&gt;% 
+    filter(all(replacement == 0)) %&gt;% 
+    group_by(bus_family) %&gt;% 
+    summarise_at(.vars = vars(odometer_reading), 
+                 .funs = list(~max(.), ~min(.), ~mean(.), ~sd(.)))</code></pre>
+<pre><code>## # A tibble: 7 x 5
+##   bus_family    max   min    mean      sd
+##   &lt;chr&gt;       &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;
+## 1 a452374    299040  4249 156135.  81992.
+## 2 a530874    326843 13065 197547.  86692.
+## 3 a530875    352450   129 188193. 104453.
+## 4 d309        65045   294  30643.  17063.
+## 5 g870       120151   483  49582.  32353.
+## 6 rt50       161748  1743  77506.  44674.
+## 7 t8h203     280802  2950 127964.  72300.</code></pre>
+<p>Here I find exactly the same values as the author. To finish this quite long blog post, let’s
+now plot the data:</p>
+<pre class="r"><code>ggplot(all_buses) + 
+    geom_line(aes(y = odometer_reading, x = date, group = bus_id, col = bus_family)) + 
+    labs(title = &quot;Odometer readings&quot;) +
+    brotools::theme_blog()</code></pre>
+<p><img src="/blog/2020-01-26-harold_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
+<p>Let’s add some dots to mark the points in time where replacements happened:</p>
+<pre class="r"><code>ggplot(all_buses) + 
+    geom_line(aes(y = odometer_reading, x = date, group = bus_id, col = bus_family)) + 
+    geom_point(aes(y = ifelse(odometer_reading*replacement == 0, NA, odometer_reading*replacement), 
+                              x = date), col = &quot;red&quot;) +
+    labs(title = &quot;Odometer readings and points in time where engine replacement occurred&quot;) +
+    brotools::theme_blog()</code></pre>
+<pre><code>## Warning: Removed 15840 rows containing missing values (geom_point).</code></pre>
+<p><img src="/blog/2020-01-26-harold_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
+<p>Let’s create a graph for each bus family:</p>
+<pre class="r"><code>ggplot(all_buses) + 
+    geom_line(aes(y = odometer_reading, x = date, group = bus_id), col = &quot;#82518c&quot;) +
+    geom_point(aes(y = ifelse(odometer_reading*replacement == 0, NA, odometer_reading*replacement), 
+                              x = date), col = &quot;red&quot;) +
+    facet_wrap(~bus_family) + 
+    labs(title = &quot;Odometer readings and points in time where engine replacement occurred&quot;) +
+    brotools::theme_blog()</code></pre>
+<pre><code>## Warning: Removed 15840 rows containing missing values (geom_point).</code></pre>
+<p><img src="/blog/2020-01-26-harold_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
+<p>In the next blog post, I’ll explore how recent reinforcement learning methods might help us get
+the optimal policy from the data!</p>
+<p>Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my ebook on <a href="https://leanpub.com/modern_tidyverse">Leanpub</a>.</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
+</div>
+
+			</div>
+		</article>
+	</main>
+<aside>
+	<div>
+		<div>
+			<h3>LATEST POSTS</h3>
+		</div>
+		<div>
+			<ul>
+				
+				<li><a href="/blog/2020-12-30-year_review/">A year in review</a></li>
+				
+				<li><a href="/blog/2020-12-12-ethics_statistics/">(Half) Lies, (half) truths and (half) statistics</a></li>
+				
+				<li><a href="/blog/2020-12-05-poorman_translate/">Poorman&#39;s automated translation with R and Google Sheets using {googlesheets4}</a></li>
+				
+				<li><a href="/blog/2020-11-21-guis_mistake/">Graphical User Interfaces were a mistake but you can still make things right</a></li>
+				
+				<li><a href="/blog/2020-11-05-retire_data_science/">It&#39;s time to retire the &#34;data scientist&#34; label</a></li>
+				
+			</ul>
+		</div>
+	</div>
+</aside>
+
+
+	<footer>
+  <div class="row">
+    <div class="col-lg-12">
+      <p>2021, content by Bruno Rodrigues, unless otherwise stated, every content of this blog is licensed under the <a href="http://www.wtfpl.net/txt/copying/" rel="nofollow">WTFPL</a>.</p>
+      <p>The theme this blog uses is a slight variation of the <a href="https://github.com/colorchestra/smol" rel="nofollow">Smol</a> theme.</p>
+      <p><a class="nav-link" href="/index.html">Back to main page.</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

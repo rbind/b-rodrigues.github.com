@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<style type=text/css>body{font-family:monospace;}</style>
+	<title>Searching for the optimal hyper-parameters of an ARIMA model in parallel: the tidy gridsearch approach</title>
+	
+	
+	<link rel="stylesheet" href="/css/style.css">
+	
+	
+</head>
+<body>
+	<header>
+<p><a class="nav-link" href="/index.html">Econometrics and Free Software</a> by <a class="nav-link" href="/about/about">Bruno Rodrigues</a>.</p>
+<p>Follow me on <a href="https://twitter.com/brodriguesco" rel="nofollow">twitter</a>.</p>
+<p>Watch my <a href="https://www.youtube.com/user/cbrunos" rel="nofollow">youtube</a> channel.</p>
+</header>
+
+	
+	<main>
+		<article>
+			<h1>Searching for the optimal hyper-parameters of an ARIMA model in parallel: the tidy gridsearch approach</h1>
+			<b><time>2018/11/15</time></b>
+		       
+		           <a href="/tags/r">R</a>
+        	       
+
+			<div>
+				<div style="text-align:center;">
+<p><a href="https://youtu.be/3NxM-AL18lU?t=33s">
+<img width = "400" src="/img/dank_memes.jpg" title = "What a time to be alive"></a></p>
+</div>
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>In this blog post, I’ll use the data that I cleaned in a previous
+<a href="https://www.brodrigues.co/blog/2018-11-14-luxairport/">blog post</a>, which you can download
+<a href="https://github.com/b-rodrigues/avia_par_lu/tree/master">here</a>. If you want to follow along,
+download the monthly data.</p>
+<p>In the previous blog post, I used the <code>auto.arima()</code> function to very quickly get a “good-enough”
+model to predict future monthly total passengers flying from LuxAirport. “Good-enough” models can
+be all you need in a lot of situations, but perhaps you’d like to have a better model. I will show
+here how you can get a better model by searching through a grid of hyper-parameters.</p>
+<p>This blog post was partially inspired by: <a href="https://drsimonj.svbtle.com/grid-search-in-the-tidyverse" class="uri">https://drsimonj.svbtle.com/grid-search-in-the-tidyverse</a></p>
+</div>
+<div id="the-problem" class="section level2">
+<h2>The problem</h2>
+<p>SARIMA models have a lot of hyper-parameters, 7 in total! Three trend hyper-parameters, <em>p, d, q</em>,
+same as for an ARIMA model, and four seasonal hyper-parameters, <em>P, D, Q, S</em>. The traditional way t
+o search for these hyper-parameters is the so-called Box-Jenkins method. You can read about it
+<a href="https://www.itl.nist.gov/div898/handbook/pmc/section4/pmc44a.htm">here</a>. This method was described
+in a 1970 book, <em>Time series analysis: Forecasting and control</em> by Box and Jenkins. The method
+requires that you first prepare the data by logging it and differencing it, in order to make the
+time series stationary. You then need to analyze ACF and PACF plots, in order to determine the
+right amount of lags… It take some time, but this method made sense in a time were computing
+power was very expensive. Today, we can simply let our computer search through thousands of models,
+check memes on the internet, and come back to the best fit. This blog post is for you, the busy
+data scientist meme connoisseurs who cannot waste time with theory and other such useless time drains,
+when there are literally thousands of new memes being created and shared every day. Every second counts.
+To determine what model is best, I will do pseudo out-of-sample forecasting and compute the RMSE
+for each model. I will then choose the model that has the lowest RMSE.</p>
+</div>
+<div id="setup" class="section level2">
+<h2>Setup</h2>
+<p>Let’s first load some libraries:</p>
+<pre class="r"><code>library(tidyverse)
+library(forecast)
+library(lubridate)
+library(furrr)
+library(tsibble)
+library(brotools)
+
+ihs &lt;- function(x){
+    log(x + sqrt(x**2 + 1))
+}</code></pre>
+<p>Now, let’s load the data:</p>
+<pre class="r"><code>avia_clean_monthly &lt;- read_csv(&quot;https://raw.githubusercontent.com/b-rodrigues/avia_par_lu/master/avia_clean_monthy.csv&quot;)</code></pre>
+<pre><code>## Parsed with column specification:
+## cols(
+##   destination = col_character(),
+##   date = col_date(format = &quot;&quot;),
+##   passengers = col_double()
+## )</code></pre>
+<p>Let’s split the data into a training set and into a testing set:</p>
+<pre class="r"><code>avia_clean_train &lt;- avia_clean_monthly %&gt;%
+    select(date, passengers) %&gt;%
+    filter(year(date) &lt; 2015) %&gt;%
+    group_by(date) %&gt;%
+    summarise(total_passengers = sum(passengers)) %&gt;%
+    pull(total_passengers) %&gt;%
+    ts(., frequency = 12, start = c(2005, 1))
+
+avia_clean_test &lt;- avia_clean_monthly %&gt;%
+    select(date, passengers) %&gt;%
+    filter(year(date) &gt;= 2015) %&gt;%
+    group_by(date) %&gt;%
+    summarise(total_passengers = sum(passengers)) %&gt;%
+    pull(total_passengers) %&gt;%
+    ts(., frequency = 12, start = c(2015, 1))
+
+logged_train_data &lt;- ihs(avia_clean_train)
+
+logged_test_data &lt;- ihs(avia_clean_test)</code></pre>
+<p>I also define a helper function:</p>
+<pre class="r"><code>to_tibble &lt;- function(forecast_object){
+    point_estimate &lt;- forecast_object$mean %&gt;%
+        as_tsibble() %&gt;%
+        rename(point_estimate = value,
+               date = index)
+
+    upper &lt;- forecast_object$upper %&gt;%
+        as_tsibble() %&gt;%
+        spread(key, value) %&gt;%
+        rename(date = index,
+               upper80 = `80%`,
+               upper95 = `95%`)
+
+    lower &lt;- forecast_object$lower %&gt;%
+        as_tsibble() %&gt;%
+        spread(key, value) %&gt;%
+        rename(date = index,
+               lower80 = `80%`,
+               lower95 = `95%`)
+
+    reduce(list(point_estimate, upper, lower), full_join)
+}</code></pre>
+<p>This function takes a <code>forecast</code> object as argument, and returns a nice tibble. This will be useful
+later, and is based on the code I already used in my previous
+<a href="https://www.brodrigues.co/blog/2018-11-14-luxairport/">blog post</a>.</p>
+<p>Now, let’s take a closer look at the <code>arima()</code> function:</p>
+<pre><code>ARIMA Modelling of Time Series
+
+Description
+
+Fit an ARIMA model to a univariate time series.
+
+Usage
+
+arima(x, order = c(0L, 0L, 0L),
+      seasonal = list(order = c(0L, 0L, 0L), period = NA),
+      xreg = NULL, include.mean = TRUE,
+      transform.pars = TRUE,
+      fixed = NULL, init = NULL,
+      method = c(&quot;CSS-ML&quot;, &quot;ML&quot;, &quot;CSS&quot;), n.cond,
+      SSinit = c(&quot;Gardner1980&quot;, &quot;Rossignol2011&quot;),
+      optim.method = &quot;BFGS&quot;,
+      optim.control = list(), kappa = 1e6)</code></pre>
+<p>The user is supposed to enter the hyper-parameters as two lists, one called <code>order</code> for <em>p, d, q</em>
+and one called <code>seasonal</code> for <em>P, D, Q, S</em>. So what we need is to define these lists:</p>
+<pre class="r"><code>order_list &lt;- list(&quot;p&quot; = seq(0, 3),
+                   &quot;d&quot; = seq(0, 2),
+                   &quot;q&quot; = seq(0, 3)) %&gt;%
+    cross() %&gt;%
+    map(lift(c))</code></pre>
+<p>I first start with <code>order_list</code>. This list has 3 elements, “p”, “d” and “q”. Each element is a
+sequence from 0 to 3 (2 in the case of “d”). When I pass this list to <code>purrr::cross()</code> I get the
+product set of the starting list, so in this case a list of 4*3*4 = 48 elements. However, this
+list looks pretty bad:</p>
+<pre class="r"><code>list(&quot;p&quot; = seq(0, 3),
+     &quot;d&quot; = seq(0, 2),
+     &quot;q&quot; = seq(0, 3)) %&gt;%
+    cross() %&gt;%
+    head(3)</code></pre>
+<pre><code>## [[1]]
+## [[1]]$p
+## [1] 0
+## 
+## [[1]]$d
+## [1] 0
+## 
+## [[1]]$q
+## [1] 0
+## 
+## 
+## [[2]]
+## [[2]]$p
+## [1] 1
+## 
+## [[2]]$d
+## [1] 0
+## 
+## [[2]]$q
+## [1] 0
+## 
+## 
+## [[3]]
+## [[3]]$p
+## [1] 2
+## 
+## [[3]]$d
+## [1] 0
+## 
+## [[3]]$q
+## [1] 0</code></pre>
+<p>I would like to have something like this instead:</p>
+<pre><code>[[1]]
+p d q 
+0 0 0 
+
+[[2]]
+p d q 
+1 0 0 
+
+[[3]]
+p d q 
+2 0 0 </code></pre>
+<p>This is possible with the last line, <code>map(lift(c))</code>. There’s a lot going on in this very small
+line of code. First of all, there’s <code>map()</code>. <code>map()</code> iterates over lists, and applies a function,
+in this case <code>lift(c)</code>. <code>purrr::lift()</code> is a very interesting function that lifts the domain of
+definition of a function from one type of input to another. The function whose input I am lifting
+is <code>c()</code>. So now, <code>c()</code> can take a list instead of a vector. Compare the following:</p>
+<pre class="r"><code># The usual
+
+c(&quot;a&quot;, &quot;b&quot;)</code></pre>
+<pre><code>## [1] &quot;a&quot; &quot;b&quot;</code></pre>
+<pre class="r"><code># Nothing happens
+c(list(&quot;a&quot;, &quot;b&quot;))</code></pre>
+<pre><code>## [[1]]
+## [1] &quot;a&quot;
+## 
+## [[2]]
+## [1] &quot;b&quot;</code></pre>
+<pre class="r"><code># Magic happens
+lift(c)(list(&quot;a&quot;, &quot;b&quot;))</code></pre>
+<pre><code>## [1] &quot;a&quot; &quot;b&quot;</code></pre>
+<p>So <code>order_list</code> is exactly what I wanted:</p>
+<pre class="r"><code>head(order_list)</code></pre>
+<pre><code>## [[1]]
+## p d q 
+## 0 0 0 
+## 
+## [[2]]
+## p d q 
+## 1 0 0 
+## 
+## [[3]]
+## p d q 
+## 2 0 0 
+## 
+## [[4]]
+## p d q 
+## 3 0 0 
+## 
+## [[5]]
+## p d q 
+## 0 1 0 
+## 
+## [[6]]
+## p d q 
+## 1 1 0</code></pre>
+<p>I do the same for <code>season_list</code>:</p>
+<pre class="r"><code>season_list &lt;- list(&quot;P&quot; = seq(0, 3),
+                    &quot;D&quot; = seq(0, 2),
+                    &quot;Q&quot; = seq(0, 3),
+                    &quot;period&quot; = 12)  %&gt;%
+    cross() %&gt;%
+    map(lift(c))</code></pre>
+<p>I now coerce these two lists of vectors to tibbles:</p>
+<pre class="r"><code>orderdf &lt;- tibble(&quot;order&quot; = order_list)
+
+seasondf &lt;- tibble(&quot;season&quot; = season_list)</code></pre>
+<p>And I can now finally create the grid of hyper-parameters:</p>
+<pre class="r"><code>hyper_parameters_df &lt;- crossing(orderdf, seasondf)
+
+nrows &lt;- nrow(hyper_parameters_df)
+
+head(hyper_parameters_df)</code></pre>
+<pre><code>## # A tibble: 6 x 2
+##   order     season   
+##   &lt;list&gt;    &lt;list&gt;   
+## 1 &lt;int [3]&gt; &lt;dbl [4]&gt;
+## 2 &lt;int [3]&gt; &lt;dbl [4]&gt;
+## 3 &lt;int [3]&gt; &lt;dbl [4]&gt;
+## 4 &lt;int [3]&gt; &lt;dbl [4]&gt;
+## 5 &lt;int [3]&gt; &lt;dbl [4]&gt;
+## 6 &lt;int [3]&gt; &lt;dbl [4]&gt;</code></pre>
+<p>The <code>hyper_parameters_df</code> data frame has 2304 rows, meaning, I will now estimate 2304
+models, and will do so in parallel. Let’s just take a quick look at the internals of <code>hyper_parameters_df</code>:</p>
+<pre class="r"><code>glimpse(hyper_parameters_df)</code></pre>
+<pre><code>## Observations: 2,304
+## Variables: 2
+## $ order  &lt;list&gt; [&lt;0, 0, 0&gt;, &lt;0, 0, 0&gt;, &lt;0, 0, 0&gt;, &lt;0, 0, 0&gt;, &lt;0, 0, 0&gt;, …
+## $ season &lt;list&gt; [&lt;0, 0, 0, 12&gt;, &lt;1, 0, 0, 12&gt;, &lt;2, 0, 0, 12&gt;, &lt;3, 0, 0, …</code></pre>
+<p>So in the <code>order</code> column, the vector <code>0, 0, 0</code> is repeated as many times as there are combinations
+of <em>P, D, Q, S</em> for <code>season</code>. Same for all the other vectors of the <code>order</code> column.</p>
+</div>
+<div id="training-the-models" class="section level2">
+<h2>Training the models</h2>
+<p>Because training these models might take some time, I will use the fantastic <code>{furrr}</code> package
+by <a href="https://twitter.com/dvaughan32">Davis Vaughan</a> to train the <code>arima()</code> function in parallel.
+For this, I first define 8 workers:</p>
+<pre class="r"><code>plan(multiprocess, workers = 8)</code></pre>
+<p>And then I run the code:</p>
+<pre class="r"><code>tic &lt;- Sys.time()
+models_df &lt;- hyper_parameters_df %&gt;%
+    mutate(models = future_map2(.x = order,
+                         .y = season,
+                         ~possibly(arima, otherwise = NULL)(x = logged_train_data,
+                                                                           order = .x, seasonal = .y)))
+running_time &lt;- Sys.time() - tic</code></pre>
+<p>I use <code>future_map2()</code>, which is just like <code>map2()</code> but running in parallel.
+I add a new column to the data called <code>models</code>, which will contain the models trained over all the
+different combinations of <code>order</code> and <code>season</code>. The models are trained on the <code>logged_train_data</code>.</p>
+<p>Training the 2304 models took 18 minutes, which is
+plenty of time to browse the latest memes, but still quick enough that it justifies the whole approach.
+Let’s take a look at the <code>models_df</code> object:</p>
+<pre class="r"><code>head(models_df)</code></pre>
+<pre><code>## # A tibble: 6 x 3
+##   order     season    models 
+##   &lt;list&gt;    &lt;list&gt;    &lt;list&gt; 
+## 1 &lt;int [3]&gt; &lt;dbl [4]&gt; &lt;Arima&gt;
+## 2 &lt;int [3]&gt; &lt;dbl [4]&gt; &lt;Arima&gt;
+## 3 &lt;int [3]&gt; &lt;dbl [4]&gt; &lt;Arima&gt;
+## 4 &lt;int [3]&gt; &lt;dbl [4]&gt; &lt;Arima&gt;
+## 5 &lt;int [3]&gt; &lt;dbl [4]&gt; &lt;Arima&gt;
+## 6 &lt;int [3]&gt; &lt;dbl [4]&gt; &lt;Arima&gt;</code></pre>
+<p>As you can see, the <code>models</code> column contains all the trained models. The model on the first row,
+was trained with the hyperparameters of row 1, and so on. But, our work is not over! We now need
+to find the best model. First, I add a new column to the tibble, which contains the forecast. From
+the forecast, I extract the point estimate:</p>
+<pre class="r"><code>models_df %&gt;%
+    mutate(forecast = map(models, ~possibly(forecast, otherwise = NULL)(., h = 39))) %&gt;%
+    mutate(point_forecast = map(forecast, ~.$`mean`)) %&gt;%
+    ....</code></pre>
+<p>You have to be familiar with a <code>forecast</code> object to understand the last line: a <code>forecast</code> object
+is a list with certain elements, the point estimates, the confidence intervals, and so on. To get
+the point estimates, I have to extract the “mean” element from the list. Hence the weird <code>~.$mean</code>.
+Then I need to add a new list-column, where each element is the vector of true values, meaning the data
+from 2015 to 2018. Because I have to add it as a list of size 2304, I do that with <code>purrr::rerun()</code>:</p>
+<pre class="r"><code>rerun(5, c(&quot;a&quot;, &quot;b&quot;, &quot;c&quot;))</code></pre>
+<pre><code>## [[1]]
+## [1] &quot;a&quot; &quot;b&quot; &quot;c&quot;
+## 
+## [[2]]
+## [1] &quot;a&quot; &quot;b&quot; &quot;c&quot;
+## 
+## [[3]]
+## [1] &quot;a&quot; &quot;b&quot; &quot;c&quot;
+## 
+## [[4]]
+## [1] &quot;a&quot; &quot;b&quot; &quot;c&quot;
+## 
+## [[5]]
+## [1] &quot;a&quot; &quot;b&quot; &quot;c&quot;</code></pre>
+<p>It is then easy to compute the RMSE, which I add as a column to the original data:</p>
+<pre class="r"><code>... %&gt;%
+    mutate(true_value = rerun(nrows, logged_test_data)) %&gt;%
+    mutate(rmse = map2_dbl(point_forecast, true_value,
+                           ~sqrt(mean((.x - .y) ** 2))))</code></pre>
+<p>The whole workflow is here:</p>
+<pre class="r"><code>models_df &lt;- models_df %&gt;%
+    mutate(forecast = map(models, ~possibly(forecast, otherwise = NULL)(., h = 39))) %&gt;%
+    mutate(point_forecast = map(forecast, ~.$`mean`)) %&gt;%
+    mutate(true_value = rerun(nrows, logged_test_data)) %&gt;%
+    mutate(rmse = map2_dbl(point_forecast, true_value,
+                           ~sqrt(mean((.x - .y) ** 2))))</code></pre>
+<p>This is how <code>models_df</code> looks now:</p>
+<pre class="r"><code>head(models_df)</code></pre>
+<pre><code>## # A tibble: 6 x 7
+##   order     season    models  forecast   point_forecast true_value  rmse
+##   &lt;list&gt;    &lt;list&gt;    &lt;list&gt;  &lt;list&gt;     &lt;list&gt;         &lt;list&gt;     &lt;dbl&gt;
+## 1 &lt;int [3]&gt; &lt;dbl [4]&gt; &lt;Arima&gt; &lt;forecast&gt; &lt;ts&gt;           &lt;ts&gt;       0.525
+## 2 &lt;int [3]&gt; &lt;dbl [4]&gt; &lt;Arima&gt; &lt;forecast&gt; &lt;ts&gt;           &lt;ts&gt;       0.236
+## 3 &lt;int [3]&gt; &lt;dbl [4]&gt; &lt;Arima&gt; &lt;forecast&gt; &lt;ts&gt;           &lt;ts&gt;       0.235
+## 4 &lt;int [3]&gt; &lt;dbl [4]&gt; &lt;Arima&gt; &lt;forecast&gt; &lt;ts&gt;           &lt;ts&gt;       0.217
+## 5 &lt;int [3]&gt; &lt;dbl [4]&gt; &lt;Arima&gt; &lt;forecast&gt; &lt;ts&gt;           &lt;ts&gt;       0.190
+## 6 &lt;int [3]&gt; &lt;dbl [4]&gt; &lt;Arima&gt; &lt;forecast&gt; &lt;ts&gt;           &lt;ts&gt;       0.174</code></pre>
+<p>Now, I can finally select the best performing model. I select the model with minimum RMSE:</p>
+<pre class="r"><code>best_model &lt;- models_df %&gt;%
+    filter(rmse == min(rmse, na.rm = TRUE))</code></pre>
+<p>And save the forecast into a new variable, as a <code>tibble</code>, using my <code>to_tibble()</code> function:</p>
+<pre class="r"><code>(best_model_forecast &lt;- to_tibble(best_model$forecast[[1]]))</code></pre>
+<pre><code>## Joining, by = &quot;date&quot;
+## Joining, by = &quot;date&quot;</code></pre>
+<pre><code>## # A tsibble: 39 x 6 [1M]
+##        date point_estimate upper80 upper95 lower80 lower95
+##       &lt;mth&gt;          &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;
+##  1 2015 Jan           11.9    12.1    12.1    11.8    11.7
+##  2 2015 Feb           11.9    12.0    12.1    11.7    11.6
+##  3 2015 Mar           12.1    12.3    12.3    11.9    11.9
+##  4 2015 Apr           12.2    12.3    12.4    12.0    11.9
+##  5 2015 May           12.2    12.4    12.5    12.1    12.0
+##  6 2015 Jun           12.3    12.4    12.5    12.1    12.0
+##  7 2015 Jul           12.2    12.3    12.4    12.0    11.9
+##  8 2015 Aug           12.3    12.5    12.6    12.2    12.1
+##  9 2015 Sep           12.3    12.5    12.6    12.2    12.1
+## 10 2015 Oct           12.2    12.4    12.5    12.1    12.0
+## # … with 29 more rows</code></pre>
+<p>And now, I can plot it:</p>
+<pre class="r"><code>avia_clean_monthly %&gt;%
+    group_by(date) %&gt;%
+    summarise(total = sum(passengers)) %&gt;%
+    mutate(total_ihs = ihs(total)) %&gt;%
+    ggplot() +
+    ggtitle(&quot;Logged data&quot;) +
+    geom_line(aes(y = total_ihs, x = date), colour = &quot;#82518c&quot;) +
+    scale_x_date(date_breaks = &quot;1 year&quot;, date_labels = &quot;%m-%Y&quot;) +
+    geom_ribbon(data = best_model_forecast, aes(x = date, ymin = lower95, ymax = upper95), 
+                fill = &quot;#666018&quot;, alpha = 0.2) +
+    geom_line(data = best_model_forecast, aes(x = date, y = point_estimate), linetype = 2, colour = &quot;#8e9d98&quot;) +
+    theme_blog()</code></pre>
+<p><img src="/blog/2018-11-15-tidy_gridsearch_files/figure-html/unnamed-chunk-28-1.png" width="672" /></p>
+<p>Compared to the previous <a href="https://www.brodrigues.co/blog/2018-11-14-luxairport/">blog post</a>, the
+dotted line now seems to follow the true line even better! However, this is not suprising, as I
+am using the test set as a validation set, which might lead to overfitting the hyperparameters
+to the test set. Also, I am not saying that you should always do a gridsearch whenever you have a
+problem like this one. In the case of univariate time series, I am still doubtful that a gridsearch like this is really necessary. The goal of this blog post was not to teach you how to look for
+hyperparameters per se, but more to show you how to do a grid search the tidy way. I’ll be writing
+about <em>proper</em> hyperparameter optimization in a future blog post.
+Also, the other thing I wanted to show was the power of <code>{furrr}</code>.</p>
+<p>Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates or
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a>.</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
+</div>
+
+			</div>
+		</article>
+	</main>
+<aside>
+	<div>
+		<div>
+			<h3>LATEST POSTS</h3>
+		</div>
+		<div>
+			<ul>
+				
+				<li><a href="/blog/2020-12-30-year_review/">A year in review</a></li>
+				
+				<li><a href="/blog/2020-12-12-ethics_statistics/">(Half) Lies, (half) truths and (half) statistics</a></li>
+				
+				<li><a href="/blog/2020-12-05-poorman_translate/">Poorman&#39;s automated translation with R and Google Sheets using {googlesheets4}</a></li>
+				
+				<li><a href="/blog/2020-11-21-guis_mistake/">Graphical User Interfaces were a mistake but you can still make things right</a></li>
+				
+				<li><a href="/blog/2020-11-05-retire_data_science/">It&#39;s time to retire the &#34;data scientist&#34; label</a></li>
+				
+			</ul>
+		</div>
+	</div>
+</aside>
+
+
+	<footer>
+  <div class="row">
+    <div class="col-lg-12">
+      <p>2021, content by Bruno Rodrigues, unless otherwise stated, every content of this blog is licensed under the <a href="http://www.wtfpl.net/txt/copying/" rel="nofollow">WTFPL</a>.</p>
+      <p>The theme this blog uses is a slight variation of the <a href="https://github.com/colorchestra/smol" rel="nofollow">Smol</a> theme.</p>
+      <p><a class="nav-link" href="/index.html">Back to main page.</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

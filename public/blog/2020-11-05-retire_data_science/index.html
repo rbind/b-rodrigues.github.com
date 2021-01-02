@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<style type=text/css>body{font-family:monospace;}</style>
+	<title>It&#39;s time to retire the &#34;data scientist&#34; label</title>
+	
+	
+	<link rel="stylesheet" href="/css/style.css">
+	
+	
+</head>
+<body>
+	<header>
+<p><a class="nav-link" href="/index.html">Econometrics and Free Software</a> by <a class="nav-link" href="/about/about">Bruno Rodrigues</a>.</p>
+<p>Follow me on <a href="https://twitter.com/brodriguesco" rel="nofollow">twitter</a>.</p>
+<p>Watch my <a href="https://www.youtube.com/user/cbrunos" rel="nofollow">youtube</a> channel.</p>
+</header>
+
+	
+	<main>
+		<article>
+			<h1>It&#39;s time to retire the &#34;data scientist&#34; label</h1>
+			<b><time>2020/11/05</time></b>
+		       
+		           <a href="/tags/r">R</a>
+        	       
+
+			<div>
+				<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<div style="text-align:center;">
+<p><a>
+<img src="/img/venn.png" title = "The correct data scientist venn diagram"></a></p>
+</div>
+<p>The “Data Scientist” label served its purpose; it allowed us to signal a transition happening in
+our profession from using only applied mathematical statistical methods to something else, which
+now also involves the use of a subset of software engineering practices. This transition was
+mentioned back in 2010 by Deborah Nolan
+(<a href="https://www.stat.berkeley.edu/~statcur/Preprints/ComputingCurric3.pdf" class="uri">https://www.stat.berkeley.edu/~statcur/Preprints/ComputingCurric3.pdf</a>), and this transition might
+now be complete. Version control systems, document generation from annotated source code (or even
+full reports generation <em>à la</em> rmarkdown), containers and build automation tools have now entered
+the toolbox of the run-of-the-mill statistician. Maybe not all of these tools, of course, it
+largely depends on what it is exactly you do, but certainly some of these. Same goes for software
+engineering practices. I have had the opportunity to work with some old-school statisticians (and
+still do), and the difference is clear; just like old school users of WYSIWYG editors like Word
+don’t use its “newest” features such as “Track changes” (and thus keep writing their text in
+different colors to signal which paragraphs are new), or the concept of versions of a document
+synced on Sharepoint (and thus keep multiple versions of the same document with different names)
+old school statisticians have not included the tools I mentioned before in their toolbox.</p>
+<p><img src="http://www.phdcomics.com/comics/archive/phd101212s.gif" /><!-- --></p>
+<p>Now don’t get me wrong here; that is absolutely ok. We need and respect old school statisticians
+because they’ve been in the business of getting insights from data for longer than I’ve been alive.
+This blog post is not a jab at them because they don’t know how to use git (if you interpret it
+like that, that’s on you). Old school statisticians now have very senior positions and for many of
+them, their job does not involve getting their hands dirty on data anymore; most of them are now
+more like managers or mentors, and share their deep knowledge with their more junior team members.
+(Obviously there’s exceptions, when I say <em>all</em> old school statisticians do this or that, I don’t
+mean <em>all</em> of them, but most of them. Of course, I don’t have any evidence to back that up).</p>
+<p>What this blog post is about is the label “Data Scientist” that gets used by these more junior team
+members and by companies that want to hire talented and motivated young people. This label,
+and the purported difference between a “Data Scientist” and “statistician” does not make any sense
+in 2020 anymore. (I know I’m beating a dead horse here, but this is my blog. I’ll blog about dead
+horses as much as I want thank you very much.)</p>
+<p>Firstly, this label has always been confusing. “Data Scientist”… what does it even mean? The fact
+it took so long to find a definition, and that almost everyone working in the profession has a
+different one speaks volumes. Also, don’t all scientists use data? Data from experiments, from
+observational studies, from surveys, from the literature?</p>
+<p>Secondly, I don’t believe that you can get a degree in statistics today without any exposition
+whatsoever to at least some of the tools I mentioned before. I really doubt that there’s people out
+there getting Master’s degrees in statistics without having <em>ever</em> touched these tools, or the unix
+command line. The degrees they’re going for might not focus a lot on these tools, true, but they
+certainly touch upon them. And of course, once they join a team at their first job, they’ll get
+more exposed to these tools and incorporate them in their day to day work. So, they’re not
+statisticians anymore? Their degree magically transformed into a data science degree?</p>
+<p>But what about data science degrees? Are the students graduating with these degrees statisticians?
+I’d argue that yes, they are indeed statisticians; it’s just that they took a statistics degree
+that might have focused more than usual on these “new” practices/tools, and changed its name to
+“Data Science degree” for marketing purposes.</p>
+<p>Anyways, the label “Data Scientist” is now completely defunct; as I mentioned in the very
+beginning, it served us well to signal that a transition was happening in the profession. I believe
+that this transition is now complete, or should be nearing its final stages. Also, this transition
+was not only about the tools used, but also about the deliverables. Statisticians now don’t only
+deliver tables, graphs and studies but more and more of them deliver <em>products</em>. This product can
+be a package implementing a bleeding edge statistical method for the profession as a whole, or it
+can be part of a piece of software that needs it to run (like your smartphone keyboard using a
+statistical model for word predictions). See
+<a href="https://www.tandfonline.com/doi/full/10.1080/10691898.2020.1845109?scroll=top&amp;needAccess=true&amp;">this paper</a> for
+an interesting exposition about how curricula and deliverables have evolved in the past two
+decades.</p>
+<p>Currently, this label gets used by people that try to get insights from data. But we already have a
+word for them; statisticians. It’s just that the tools of the statistician have evolved over the
+past decade or so. Actually, I would perhaps even make another distinction; we should reserve the
+label of “statistician” to people that do statistics without ever touching any data. The other
+statisticians, the ones that get dirty wrestling in the mud with the data (they’re the <em>pigs that
+like it</em> from that famous quote) should be called “data janitors”. I’m not even joking; not only
+does that term already exist and gets used, I think it suits what we do perfectly. What do janitors
+do? They clean stuff and put things in order. We clean data and put it in order; meaning creating
+summary tables, visualizations, interactive applications, and models. Oh, and we do so (preferably)
+in a reproducible way.</p>
+<p>Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my ebook on <a href="https://leanpub.com/modern_tidyverse">Leanpub</a>.</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
+
+			</div>
+		</article>
+	</main>
+<aside>
+	<div>
+		<div>
+			<h3>LATEST POSTS</h3>
+		</div>
+		<div>
+			<ul>
+				
+				<li><a href="/blog/2020-12-30-year_review/">A year in review</a></li>
+				
+				<li><a href="/blog/2020-12-12-ethics_statistics/">(Half) Lies, (half) truths and (half) statistics</a></li>
+				
+				<li><a href="/blog/2020-12-05-poorman_translate/">Poorman&#39;s automated translation with R and Google Sheets using {googlesheets4}</a></li>
+				
+				<li><a href="/blog/2020-11-21-guis_mistake/">Graphical User Interfaces were a mistake but you can still make things right</a></li>
+				
+				<li><a href="/blog/2020-11-05-retire_data_science/">It&#39;s time to retire the &#34;data scientist&#34; label</a></li>
+				
+			</ul>
+		</div>
+	</div>
+</aside>
+
+
+	<footer>
+  <div class="row">
+    <div class="col-lg-12">
+      <p>2021, content by Bruno Rodrigues, unless otherwise stated, every content of this blog is licensed under the <a href="http://www.wtfpl.net/txt/copying/" rel="nofollow">WTFPL</a>.</p>
+      <p>The theme this blog uses is a slight variation of the <a href="https://github.com/colorchestra/smol" rel="nofollow">Smol</a> theme.</p>
+      <p><a class="nav-link" href="/index.html">Back to main page.</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

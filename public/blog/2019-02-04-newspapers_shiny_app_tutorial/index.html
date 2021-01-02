@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<style type=text/css>body{font-family:monospace;}</style>
+	<title>Building a shiny app to explore historical newspapers: a step-by-step guide</title>
+	
+	
+	<link rel="stylesheet" href="/css/style.css">
+	
+	
+</head>
+<body>
+	<header>
+<p><a class="nav-link" href="/index.html">Econometrics and Free Software</a> by <a class="nav-link" href="/about/about">Bruno Rodrigues</a>.</p>
+<p>Follow me on <a href="https://twitter.com/brodriguesco" rel="nofollow">twitter</a>.</p>
+<p>Watch my <a href="https://www.youtube.com/user/cbrunos" rel="nofollow">youtube</a> channel.</p>
+</header>
+
+	
+	<main>
+		<article>
+			<h1>Building a shiny app to explore historical newspapers: a step-by-step guide</h1>
+			<b><time>2019/02/04</time></b>
+		       
+		           <a href="/tags/r">R</a>
+        	       
+
+			<div>
+				<div style="text-align:center;">
+<p><a href="https://brodriguesco.shinyapps.io/newspapers_app/">
+<img src="/img/tf_idf.png" title = "Click here to go the app"></a></p>
+</div>
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>I started off this year by exploring a world that was unknown to me, the world of historical newspapers.
+I did not know that historical newspapers data was a thing, and have been thoroughly enjoying myself
+exploring the different datasets published by the National Library of Luxembourg. You can find
+the data <a href="https://data.bnl.lu/data/historical-newspapers/">here</a>.</p>
+<p>In my <a href="https://www.brodrigues.co/blog/2019-01-04-newspapers/">first blog post</a>, I analyzed data from
+<em>L’indépendence Luxembourgeoise</em>. I focused on the ads, which were for the most part in the 4th and
+last page of the newspaper. I did so by extracting the data from the ALTO files. ALTO files contain
+the content of the newspapers, (basically, the words that make up the article). For this first
+exercise, I disregarded the METS files, for two reasons. First, I simply wanted to have something
+quick, and get used to the data. And second, I did not know about ALTO and METS files enough to
+truly make something out of them. The problem of disregarding the METS file is that I only had a big
+dump of words, and did not know which words came from which article, or ad in this case.</p>
+<p>In the <a href="https://www.brodrigues.co/blog/2019-01-13-newspapers_mets_alto/">second blog post</a>), I extracted
+data from the <em>L’Union</em> newspaper, this time by using the metadata from the METS files too. By
+combining the data from the ALTO files with the metadata from the METS files, I know which
+words came from which article, which would make further analysis much more interesting.</p>
+<p>In the <a href="https://www.brodrigues.co/blog/2019-01-31-newspapers_shiny_app/">third blog post</a> of this series,
+I built a Shiny app which makes it easy to explore the 10 years of publications of <em>L’Union</em>. In this
+blog post, I will explain in great detail how I created this app.</p>
+</div>
+<div id="part-1-getting-the-data-ready-for-the-shiny-app" class="section level2">
+<h2>Part 1: Getting the data ready for the Shiny app</h2>
+<div id="step-1-extracting-the-needed-data" class="section level3">
+<h3>Step 1: Extracting the needed data</h3>
+<p>If you want to follow along with a dataset from a single publication, you can download the following archive on
+<a href="https://www.dropbox.com/s/56ttqetz4cirsja/1533660_newspaper_lunion_1860-11-14.zip?dl=0">dropbox</a>.
+Extract this archive, and you will find the data exactly as you would get it from the the big
+archive you can download from the website of the National Library of Luxembourg. However, to keep
+the size of the archive small, I removed the .pdf and .jpeg scans.</p>
+<p>In the <a href="https://www.brodrigues.co/blog/2019-01-13-newspapers_mets_alto/">second blog post</a>) I wrote
+some functions that made extracting the needed data from the files easy. However, after I wrote the
+article, I noticed that in some cases these functions were not working exactly as intended. I
+rewrote them a little bit to overcome these issues. You can find the code I used right below. I won’t
+explain it too much, because you can read the details in the previous blog post. However, should
+something be unclear, just drop me an email or a tweet!</p>
+<details>
+<p><summary>Click if you want to see the code</summary></p>
+<pre class="r"><code># This functions will be used within the next functions to extract the relevant pieces
+
+extractor &lt;- function(string, regex, all = FALSE){
+    if(all) {
+        string %&gt;%
+            str_extract_all(regex) %&gt;%
+            flatten_chr() %&gt;%
+            str_remove_all(&quot;=|\\\&quot;&quot;) %&gt;%
+            #str_extract_all(&quot;[:alnum:]+|.|,|\\?|!&quot;, simplify = FALSE) %&gt;%
+            map(paste, collapse = &quot;&quot;) %&gt;%
+            flatten_chr()
+    } else {
+        string %&gt;%
+            str_extract(regex) %&gt;%
+            str_remove_all(&quot;=|\\\&quot;&quot;) %&gt;%
+            #str_extract_all(&quot;[:alnum:]+|.|,|\\?|!&quot;, simplify = TRUE) %&gt;%
+            paste(collapse = &quot; &quot;) %&gt;%
+            tolower()
+    }
+}
+
+# This function extracts the data from the METS files, and returns a tibble:
+
+extract_mets &lt;- function(article){
+    id &lt;- article %&gt;%
+        extractor(&quot;(?&lt;=ID)(.*?)(?=LABEL)&quot;)
+
+    label &lt;- article %&gt;%
+        extractor(&quot;(?&lt;=LABEL)(.*?)(?=TYPE)&quot;)
+
+    type &lt;- article %&gt;%
+        extractor(&quot;(?&lt;=TYPE)(.*?)(?=&gt;)&quot;)
+
+    begins &lt;- article %&gt;%
+        extractor(&quot;(?&lt;=BEGIN)(.*?)(?=BETYPE)&quot;, all = TRUE)
+
+    tibble::tribble(~label, ~type, ~begins, ~id,
+                    label, type, begins, id) %&gt;%
+        unnest()
+}
+
+# This function extracts the data from the ALTO files, and also returns a tibble:
+
+extract_alto &lt;- function(article){
+    begins &lt;- article[1] %&gt;%
+        extractor(&quot;(?&lt;=^ID)(.*?)(?=HPOS)&quot;, all = TRUE)
+
+    content &lt;- article %&gt;%
+        extractor(&quot;(?&lt;=CONTENT)(.*?)(?=WC)&quot;, all = TRUE)
+
+    tibble::tribble(~begins, ~content,
+                    begins, content) %&gt;%
+        unnest()
+}
+
+# This function takes the path to a page as an argument, and extracts the data from 
+# each article using the function defined above. It then writes a flat CSV to disk.
+
+alto_csv &lt;- function(page_path){
+
+    page &lt;- read_file(page_path)
+
+    doc_name &lt;- str_extract(page_path, &quot;(?&lt;=/text/).*&quot;)
+
+    alto_articles &lt;- page %&gt;%
+        str_split(&quot;TextBlock &quot;) %&gt;%
+        flatten_chr()
+
+    alto_df &lt;- map_df(alto_articles, extract_alto)
+
+    alto_df &lt;- alto_df %&gt;%
+        mutate(document = doc_name)
+
+    write_csv(alto_df, paste0(page_path, &quot;.csv&quot;))
+}
+
+# Same as above, but for the METS file:
+
+mets_csv &lt;- function(page_path){
+
+    page &lt;- read_file(page_path)
+
+    doc_name &lt;- str_extract(page_path, &quot;(?&lt;=/).*&quot;)
+
+    mets_articles &lt;- page %&gt;%
+        str_split(&quot;DMDID&quot;) %&gt;%
+        flatten_chr()
+
+    mets_df &lt;- map_df(mets_articles, extract_mets)
+
+    mets_df &lt;- mets_df %&gt;%
+        mutate(document = doc_name)
+
+    write_csv(mets_df, paste0(page_path, &quot;.csv&quot;))
+}
+
+# Time to use the above defined functions. First, let&#39;s save the path of all the ALTO files
+# into a list:
+
+pages_alto &lt;- str_match(list.files(path = &quot;./&quot;, all.files = TRUE, recursive = TRUE), &quot;.*/text/.*.xml&quot;) %&gt;%
+    discard(is.na)
+
+# I use the {furrr} library to do the extraction in parallel, using 8 cores:
+
+library(furrr)
+
+plan(multiprocess, workers = 8)
+
+tic &lt;- Sys.time()
+future_map(pages_alto, alto_csv)
+toc &lt;- Sys.time()
+
+toc - tic
+
+#Time difference of 18.64776 mins
+
+
+# Same for the METS files:
+
+pages_mets &lt;- str_match(list.files(path = &quot;./&quot;, all.files = TRUE, recursive = TRUE), &quot;.*mets.xml&quot;) %&gt;%
+    discard(is.na)
+
+
+library(furrr)
+
+plan(multiprocess, workers = 8)
+
+tic &lt;- Sys.time()
+future_map(pages_mets, mets_csv)
+toc &lt;- Sys.time()
+
+toc - tic
+
+#Time difference of 18.64776 mins</code></pre>
+</details>
+<p>If you want to try the above code for one ALTO and METS files, you can use the following lines
+(use the download link in the beginning of the blog post to get the required data):</p>
+<details>
+<p><summary>Click if you want to see the code</summary></p>
+<pre class="r"><code>mets &lt;- read_file(&quot;1533660_newspaper_lunion_1860-11-14/1533660_newspaper_lunion_1860-11-14-mets.xml&quot;)
+
+mets_articles2 &lt;- mets %&gt;%
+    str_split(&quot;DMDID&quot;) %&gt;%
+    flatten_chr()
+
+
+alto &lt;- read_file(&quot;1533660_newspaper_lunion_1860-11-14/text/1860-11-14_01-00001.xml&quot;)
+
+alto_articles &lt;- alto %&gt;%
+    str_split(&quot;TextBlock &quot;) %&gt;%
+    flatten_chr()
+
+mets_df2 &lt;- mets_articles2 %&gt;%
+    map_df(extract_mets)
+
+# Same exercice for ALTO
+
+alto_df &lt;- alto_articles %&gt;%
+    map_df(extract_alto)</code></pre>
+</details>
+</div>
+<div id="step-2-joining-the-data-and-the-metadata" class="section level3">
+<h3>Step 2: Joining the data and the metadata</h3>
+<p>Now that I extracted the data from the ALTO files, and the metadata from the METS files, I still
+need to join both data sets and do some cleaning. What is the goal of joining these two sources?
+Remember, by doing this I will know which words come from which article, which will make things
+much easier later on. I explain how the code works as comments in the code block below:</p>
+<details>
+<p><summary>Click if you want to see the code</summary></p>
+<pre class="r"><code>library(tidyverse)
+library(udpipe)
+library(textrank)
+library(tidytext)
+
+# First, I need the path to each folder that contains the ALTO and METS files. Each newspaper
+# data is inside its own folder, one folder per publication. Inside, there&#39;s `text` folder that
+# contains the ALTO and METS files. This is also where I saved the .csv files from before.
+
+pathdirs &lt;- list.dirs(recursive = FALSE) %&gt;%
+    str_match(&quot;.*lunion.*&quot;) %&gt;%
+    discard(is.na)
+
+# The following function imports the METS and the ALTO csv files, joins them, and does some 
+# basic cleaning. I used a trick to detect German articles (even though L&#39;Union is a French publication
+# some articles are in German) and then remove them.
+
+tidy_papers &lt;- function(path){
+    mets_path &lt;- paste0(path, &quot;/&quot;, list.files(path, &quot;.*.xml.csv&quot;))
+    mets_csv &lt;- data.table::fread(mets_path)
+
+    alto_path &lt;- paste0(path, &quot;/text/&quot;, list.files(paste0(path, &quot;/text/&quot;), &quot;.*.csv&quot;))
+    alto_csv &lt;- map_dfr(alto_path, data.table::fread)
+
+    final &lt;- full_join(alto_csv, mets_csv, by = &quot;begins&quot;) %&gt;%
+        mutate(content = tolower(content)) %&gt;%
+        mutate(content = if_else(str_detect(content, &quot;hyppart1&quot;), str_extract_all(content, &quot;(?&lt;=CONTENT_).*&quot;, simplify = TRUE), content)) %&gt;%
+        mutate(content = if_else(str_detect(content, &quot;hyppart2&quot;), NA_character_, content)) %&gt;%
+        # When words are separated by a hyphen and split over two lines, it looks like this in the data.
+        # ex SUBS_TYPEHypPart1 SUBS_CONTENTexceptée
+        # ceptée SUBS_TYPEHypPart2 SUBS_CONTENTexceptée
+        # Here, the word `exceptée` is split over two lines, so using a regular expression, I keep
+        # the string `exceptée`, which comes after the string `CONTENT`,  from the first line and 
+        # replace the second line by an NA_character_
+        mutate(content = if_else(str_detect(content, &quot;superscript&quot;), NA_character_, content)) %&gt;%
+        mutate(content = if_else(str_detect(content, &quot;subscript&quot;), NA_character_, content)) %&gt;%
+        filter(!is.na(content)) %&gt;%
+        filter(type == &quot;article&quot;) %&gt;%
+        group_by(id) %&gt;%
+        nest %&gt;%
+        # Below I create a list column with all the content of the article in a single string.
+        mutate(article_text = map(data, ~paste(.$content, collapse = &quot; &quot;))) %&gt;%
+        mutate(article_text = as.character(article_text)) %&gt;%
+        # Detecting and removing german articles
+        mutate(german = str_detect(article_text, &quot;wenn|wird|und&quot;)) %&gt;%
+        filter(german == FALSE) %&gt;%
+        select(-german) %&gt;%
+        # Finally, creating the label of the article (the title), and removing things that are 
+        # not articles, such as the daily feuilleton.
+        mutate(label = map(data, ~`[`(.$label, 1))) %&gt;%
+        filter(!str_detect(label, &quot;embranchement|ligne|bourse|abonnés|feuilleton&quot;)) %&gt;%
+        filter(label != &quot;na&quot;)
+
+    # Save the data in the rds format, as it is not a flat file
+    saveRDS(final, paste0(path, &quot;/&quot;, str_sub(path, 11, -1), &quot;.rds&quot;))
+}
+
+# Here again, I do this in parallel
+
+library(furrr)
+
+plan(multiprocess, workers = 8)
+
+future_map(pathdirs, tidy_papers)</code></pre>
+</details>
+<p>This is how one of these files looks like, after passing through this function:</p>
+<p><img src="/img/articles_rds.png" /><!-- --></p>
+<p>One line is one article. The first column is the id of the article, the second column contains
+a data frame, the text of the article and finally the title of the article.
+Let’s take a look at the content of the first element of the <em>data</em> column:</p>
+<p><img src="/img/merged_alto_mets.png" /><!-- --></p>
+<p>This is the result of the merger of the METS and ALTO csv files. The first column is the id of the
+article, the second column contains each individual word of the article, the <em>label</em> column the
+label, or title of the article.</p>
+</div>
+<div id="step-3-part-of-speech-annotation" class="section level3">
+<h3>Step 3: Part-of-speech annotation</h3>
+<p>Part-of-speech annotation is a technique with the aim of assigning to each word its part of speech.
+Basically, Pos annotation tells us whether a word is a verb, a noun, an adjective… This will
+be quite useful for the analysis. To perform Pos annotation, you need to install the <code>{udpipe}</code>
+package, and download the pre-trained model for the language you want to annotate, in my case French:</p>
+<details>
+<p><summary>Click if you want to see the code</summary></p>
+<pre class="r"><code># Only run this once. This downloads the model for French
+udpipe_download_model(language = &quot;french&quot;)
+
+# Load the model
+udmodel_french &lt;- udpipe_load_model(file = &#39;french-gsd-ud-2.3-181115.udpipe&#39;)
+
+# Save the path of the files to annotate in a list:
+pathrds &lt;- list.files(path = &quot;./&quot;, all.files = TRUE, recursive = TRUE) %&gt;% 
+  str_match(&quot;.*.rds&quot;) %&gt;%
+  discard(is.na)
+
+annotate_rds &lt;- function(path, udmodel){
+
+    newspaper &lt;- readRDS(path)
+
+    s &lt;- udpipe_annotate(udmodel, newspaper$article_text, doc_id = newspaper$label)
+    x &lt;- data.frame(s)
+
+    saveRDS(x, str_replace(path, &quot;.rds&quot;, &quot;_annotated.rds&quot;))
+}
+
+library(furrr)
+plan(multiprocess, workers = 8)
+tic &lt;- Sys.time()
+future_map(pathrds, annotate_rds, udmodel = udmodel_french)
+toc &lt;- Sys.time()
+toc - tic</code></pre>
+</details>
+<p>And here is the result:</p>
+<p><img src="/img/pos_article.png" /><!-- --></p>
+<p>The <em>upos</em> column contains the tags. Now I know which words are nouns, verbs, adjectives, stopwords…
+Meaning that I can easily focus on the type of words that interest me. Plus, as an added benefit, I
+can focus on the lemma of the words. For example, the word <em>viennent</em>, is the
+<a href="https://en.wikipedia.org/wiki/French_conjugation">conjugated</a> form of the verb <em>venir</em>. <em>venir</em> is
+thus the lemma of <em>viennent</em>. This means that I can focus my analysis on lemmata. This is useful,
+because if I compute the frequency of words, <em>viennent</em> would be different from <em>venir</em>, which is
+not really what we want.</p>
+</div>
+<div id="step-4-tf-idf" class="section level3">
+<h3>Step 4: tf-idf</h3>
+<p>Just like what I did in my <a href="https://www.brodrigues.co/blog/2019-01-04-newspapers/">first blog post</a>,
+I compute the tf-idf of words. The difference, is that here the “document” is the article. This means
+that I will get the most frequent words inside each article, but who are at the same time rare
+in the other articles. Doing this ensures that I will only get very relevant words for each article.</p>
+<p>In the lines below, I prepare the data to then make the plots. The files that are created using
+the code below are available in the following <a href="https://github.com/b-rodrigues/newspapers_shinyapp/tree/master/tf_idf_data">Github link</a>.</p>
+<p>In the Shiny app, I read the data directly from the repo. This way, I can keep the app small in size.</p>
+<details>
+<p><summary>Click if you want to see the code</summary></p>
+<pre class="r"><code>path_annotatedrds &lt;- list.files(path = &quot;./&quot;, all.files = TRUE, recursive = TRUE) %&gt;% str_match(&quot;.*_annotated.rds&quot;) %&gt;%
+    discard(is.na)
+
+prepare_tf_idf &lt;- function(path){
+
+    annotated_newspaper &lt;- readRDS(path)
+
+    tf_idf_data &lt;- annotated_newspaper %&gt;%
+        filter(upos %in% c(&quot;NOUN&quot;, &quot;VERB&quot;, &quot;ADJ&quot;, &quot;PROPN&quot;)) %&gt;%
+        filter(nchar(lemma) &gt; 3) %&gt;%
+        count(doc_id, lemma) %&gt;%
+        bind_tf_idf(lemma, doc_id, n) %&gt;%
+        arrange(desc(tf_idf)) %&gt;%
+        group_by(doc_id)
+
+    name_tf_idf_data &lt;- str_split(path, &quot;/&quot;, simplify = 1)[1] %&gt;%
+        paste0(&quot;_tf_idf_data.rds&quot;)  %&gt;%
+        str_sub(start = 9, -1)
+
+    saveRDS(tf_idf_data, paste0(&quot;tf_idf_data/&quot;, name_tf_idf_data))
+}
+
+library(furrr)
+plan(multiprocess, workers = 8)
+
+future_map(path_annotatedrds, prepare_tf_idf)</code></pre>
+</details>
+</div>
+<div id="step-5-summarizing-articles-by-extracting-the-most-relevant-sentences-using-textrank" class="section level3">
+<h3>Step 5: Summarizing articles by extracting the most relevant sentences, using <code>{textrank}</code></h3>
+<p>The last step in data preparation is to extract the most relevant sentences of each articles, using
+the <code>{textrank}</code> package. This packages implements the <em>PageRank</em> algorithm developed by Larry Page
+and Sergey Brin in 1995. This algorithm ranks pages by the number of links that point to the pages;
+the most popular and important pages are also the ones with more links to them. A similar approach
+is used by the implementation of <code>{textrank}</code>. The algorithm is explained in detail in the following
+<a href="https://web.eecs.umich.edu/~mihalcea/papers/mihalcea.emnlp04.pdf">paper</a>.</p>
+<p>However, I cannot simply apply <code>{textrank}</code> to the annotated data frame as it is. Because I have
+several articles, I have to run the <code>textrank_sentences()</code> function, which extracts the relevant
+sentences, article by article. For this I still need to transform the data set and also need to
+prepare the data in a way that makes it digestible by the function. I will not explain the code
+below line by line, since the documentation of the package is quite straightforward. However,
+keep in mind that I have to run the <code>textrank_sentences()</code> function for each article, which explains
+that as some point I use the following:</p>
+<pre class="r"><code>group_by(doc_id) %&gt;%
+    nest() %&gt;%</code></pre>
+<p>which then makes it easy to work by article (<em>doc_id</em> is the id of the articles). This part is
+definitely the most complex, so if you’re interested in the methodology described here, really
+take your time to understand this function. Let me know if I can clarify things!</p>
+<details>
+<p><summary>Click if you want to see the code</summary></p>
+<pre class="r"><code>library(textrank)
+library(brotools)
+
+path_annotatedrds &lt;- list.files(path = &quot;./&quot;, all.files = TRUE, recursive = TRUE) %&gt;% str_match(&quot;.*_annotated.rds&quot;) %&gt;%
+    discard(is.na)
+
+prepare_textrank &lt;- function(path){
+
+    annotated_newspaper &lt;- readRDS(path)
+
+    # sentences summary
+    x_text_rank &lt;- annotated_newspaper %&gt;%
+        group_by(doc_id) %&gt;%
+        nest() %&gt;%
+        mutate(textrank_id = map(data, ~unique_identifier(., c(&quot;paragraph_id&quot;, &quot;sentence_id&quot;)))) %&gt;%
+        mutate(cleaned = map2(.x = data, .y = textrank_id, ~cbind(.x, &quot;textrank_id&quot; = .y))) %&gt;%
+        select(doc_id, cleaned)
+
+    x_text_rank2 &lt;- x_text_rank %&gt;%
+        mutate(sentences = map(cleaned, ~select(., textrank_id, sentence))) %&gt;%
+        # one_row() is a function from my own package, which eliminates duplicates rows
+        # from a data frame
+        mutate(sentences = map(sentences, ~one_row(., c(&quot;textrank_id&quot;, &quot;sentence&quot;))))
+
+    x_terminology &lt;- x_text_rank %&gt;%
+        mutate(terminology = map(cleaned, ~filter(., upos %in% c(&quot;NOUN&quot;, &quot;ADJ&quot;)))) %&gt;%
+        mutate(terminology = map(terminology, ~select(., textrank_id, &quot;lemma&quot;))) %&gt;%
+        select(terminology)
+
+    x_final &lt;- bind_cols(x_text_rank2, x_terminology)
+
+    possibly_textrank_sentences &lt;- possibly(textrank_sentences, otherwise = NULL)
+
+    x_final &lt;- x_final %&gt;%
+        mutate(summary = map2(sentences, terminology, possibly_textrank_sentences)) %&gt;%
+        select(doc_id, summary)
+
+    name_textrank_data &lt;- str_split(path, &quot;/&quot;, simplify = 1)[1] %&gt;%
+        paste0(&quot;_textrank_data.rds&quot;) %&gt;%
+        str_sub(start = 9, -1)
+
+    saveRDS(x_final, paste0(&quot;textrank_data/&quot;, name_textrank_data))
+}
+
+library(furrr)
+plan(multiprocess, workers = 8)
+
+future_map(path_annotatedrds, prepare_textrank)</code></pre>
+</details>
+<p>You can download the annotated data sets from the following
+<a href="https://github.com/b-rodrigues/newspapers_shinyapp/tree/master/textrank_data">link</a>. This is how
+the data looks like:</p>
+<p><img src="/img/textrank_df.png" /><!-- --></p>
+<p>Using the <code>summary()</code> function on an element of the <em>summary</em> column returns the 5 most relevant
+sentences as extracted by <code>{textrank}</code>.</p>
+</div>
+</div>
+<div id="part-2-building-the-shiny-app" class="section level2">
+<h2>Part 2: Building the shiny app</h2>
+<p>The most difficult parts are behind us! Building a dashboard is quite easy thanks to the <code>{flexdashboard}</code>
+package. You need to know Markdown and some Shiny, but it’s way easier than building a complete
+Shiny app. First of all, install the <code>{fleshdashboard}</code> package, and start from a template, or
+from <a href="https://rmarkdown.rstudio.com/flexdashboard/layouts.html">this list of layouts</a>.</p>
+<p>I think that the only trick worth mentioning is that I put the data in a Github repo, and read it
+directly from the Shiny app. Users choose a date, which I save in a reactive variable. I then
+build the right url that points towards the right data set, and read it:</p>
+<pre class="r"><code>path_tf_idf &lt;- reactive({
+    paste0(&quot;https://raw.githubusercontent.com/b-rodrigues/newspapers_shinyapp/master/tf_idf_data/newspaper_lunion_&quot;, as.character(input$date2), &quot;_tf_idf_data.rds&quot;)
+})
+
+dfInput &lt;- reactive({
+        read_rds(url(path_tf_idf())) %&gt;%
+        top_n(as.numeric(input$tf_df_words), tf_idf) %&gt;%
+        mutate(word = reorder(lemma, tf_idf)) 
+})</code></pre>
+<p>Because I did all the computations beforehand, the app simply reads the data and creates the bar
+plots for the tf-idf data, or prints the sentences for the textrank data. To print the sentences
+correcly, I had to use some html tags, using the <code>{htmltools}</code> package. Below you can find the
+source code of the app:</p>
+<details>
+<p><summary>Click if you want to see the code</summary></p>
+<pre><code>---
+title: &quot;Exploring 10 years of daily publications of the Luxembourguish newspaper, *L&#39;Union*&quot;
+output: 
+  flexdashboard::flex_dashboard:
+    theme: yeti
+    orientation: columns
+    vertical_layout: fill
+runtime: shiny
+---
+
+`` `{r setup, include=FALSE}
+library(flexdashboard)
+library(shiny)
+library(tidyverse)
+library(textrank)
+library(tidytext)
+library(udpipe)
+library(plotly)
+library(ggthemes)
+`` `
+
+Sidebar {.sidebar}
+=====================================
+
+`` `{r}
+dateInput(&#39;date2&#39;,
+      label = paste(&#39;Select date&#39;),
+      value = as.character(as.Date(&quot;1860-11-14&quot;)),
+      min = as.Date(&quot;1860-11-12&quot;), max = as.Date(&quot;1869-12-31&quot;),
+      format = &quot;yyyy/mm/dd&quot;,
+      startview = &#39;year&#39;, language = &#39;en-GB&#39;, weekstart = 1
+    )
+selectInput(inputId = &quot;tf_df_words&quot;, 
+            label = &quot;Select number of unique words for tf-idf&quot;, 
+            choices = seq(1:10),
+            selected = 5)
+selectInput(inputId = &quot;textrank_n_sentences&quot;, 
+            label = &quot;Select the number of sentences for the summary of the article&quot;, 
+            choices = seq(1:20), 
+            selected = 5)
+`` `
+
+*The BnL has digitised over 800.000 pages of Luxembourg newspapers. From those, more than 700.000 
+pages have rich metadata using international XML standards such as METS and ALTO. 
+Multiple datasets are available for download. Each one is of different size and contains different
+newspapers. All the digitised material can also be found on our search platform a-z.lu 
+(Make sure to filter by “eluxemburgensia”). All datasets contain XML (METS + ALTO), PDF, original 
+TIFF and PNG files for every newspaper issue.* 
+Source: https://data.bnl.lu/data/historical-newspapers/
+
+This Shiny app allows you to get summaries of the 10 years of daily issues of the &quot;L&#39;Union&quot; newspaper.
+In the first tab, a simple word frequency per article is shown, using the tf-idf method. In the 
+second tab, summary sentences have been extracted using the `{textrank}` package.
+
+
+Word frequency per article
+===================================== 
+Row
+-----------------------------------------------------------------------
+
+### Note: there might be days without any publication. In case of an error, select another date.
+    
+`` `{r}
+path_tf_idf &lt;- reactive({
+    paste0(&quot;https://raw.githubusercontent.com/b-rodrigues/newspapers_shinyapp/master/tf_idf_data/newspaper_lunion_&quot;, as.character(input$date2), &quot;_tf_idf_data.rds&quot;)
+})
+dfInput &lt;- reactive({
+        read_rds(url(path_tf_idf())) %&gt;%
+        top_n(as.numeric(input$tf_df_words), tf_idf) %&gt;%
+        mutate(word = reorder(lemma, tf_idf)) 
+})
+renderPlotly({
+    df_tf_idf &lt;- dfInput()
+    p1 &lt;- ggplot(df_tf_idf,
+                 aes(word, tf_idf)) +
+                 geom_col(show.legend = FALSE, fill = &quot;#82518c&quot;) +
+                 labs(x = NULL, y = &quot;tf-doc_idf&quot;) +
+                 facet_wrap(~doc_id, ncol = 2, scales = &quot;free&quot;) +
+                 coord_flip() +
+                 theme_dark()
+    ggplotly(p1)
+})
+`` `
+
+Summary of articles {data-orientation=rows}
+===================================== 
+Row 
+-----------------------------------------------------------------------
+
+### The sentence in bold is the title of the article. You can show more sentences in the summary by using the input in the sidebar.
+    
+`` `{r}
+print_summary_textrank &lt;- function(doc_id, summary, n_sentences){
+    htmltools::HTML(paste0(&quot;&lt;b&gt;&quot;, doc_id, &quot;&lt;/b&gt;&quot;), paste(&quot;&lt;p&gt;&quot;, summary(summary, n_sentences), sep = &quot;&quot;, collapse = &quot;&lt;br/&gt;&quot;), &quot;&lt;/p&gt;&quot;)
+}
+path_textrank &lt;- reactive({
+    paste0(&quot;https://raw.githubusercontent.com/b-rodrigues/newspapers_shinyapp/master/textrank_data/newspaper_lunion_&quot;, as.character(input$date2), &quot;_textrank_data.rds&quot;)
+})
+dfInput2 &lt;- reactive({
+        read_rds(url(path_textrank()))
+})
+renderUI({
+    df_textrank &lt;- dfInput2()
+    
+df_textrank &lt;- df_textrank %&gt;% 
+    mutate(to_print = map2(doc_id, summary, print_summary_textrank, n_sentences = as.numeric(input$textrank_n_sentences)))
+df_textrank$to_print
+})
+`` `
+</code></pre>
+</details>
+<p>I host the app on Shinyapps.io, which is really easy to do from within Rstudio.</p>
+<p>That was quite long, I’m not sure that anyone will read this blog post completely, but oh well.
+Better to put the code online, might help someone one day, that leave it to rot on my hard drive.</p>
+<p>Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>.</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
+</div>
+
+			</div>
+		</article>
+	</main>
+<aside>
+	<div>
+		<div>
+			<h3>LATEST POSTS</h3>
+		</div>
+		<div>
+			<ul>
+				
+				<li><a href="/blog/2020-12-30-year_review/">A year in review</a></li>
+				
+				<li><a href="/blog/2020-12-12-ethics_statistics/">(Half) Lies, (half) truths and (half) statistics</a></li>
+				
+				<li><a href="/blog/2020-12-05-poorman_translate/">Poorman&#39;s automated translation with R and Google Sheets using {googlesheets4}</a></li>
+				
+				<li><a href="/blog/2020-11-21-guis_mistake/">Graphical User Interfaces were a mistake but you can still make things right</a></li>
+				
+				<li><a href="/blog/2020-11-05-retire_data_science/">It&#39;s time to retire the &#34;data scientist&#34; label</a></li>
+				
+			</ul>
+		</div>
+	</div>
+</aside>
+
+
+	<footer>
+  <div class="row">
+    <div class="col-lg-12">
+      <p>2021, content by Bruno Rodrigues, unless otherwise stated, every content of this blog is licensed under the <a href="http://www.wtfpl.net/txt/copying/" rel="nofollow">WTFPL</a>.</p>
+      <p>The theme this blog uses is a slight variation of the <a href="https://github.com/colorchestra/smol" rel="nofollow">Smol</a> theme.</p>
+      <p><a class="nav-link" href="/index.html">Back to main page.</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

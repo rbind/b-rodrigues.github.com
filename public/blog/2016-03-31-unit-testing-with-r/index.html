@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<style type=text/css>body{font-family:monospace;}</style>
+	<title>Unit testing with R</title>
+	
+	
+	<link rel="stylesheet" href="/css/style.css">
+	
+	
+</head>
+<body>
+	<header>
+<p><a class="nav-link" href="/index.html">Econometrics and Free Software</a> by <a class="nav-link" href="/about/about">Bruno Rodrigues</a>.</p>
+<p>Follow me on <a href="https://twitter.com/brodriguesco" rel="nofollow">twitter</a>.</p>
+<p>Watch my <a href="https://www.youtube.com/user/cbrunos" rel="nofollow">youtube</a> channel.</p>
+</header>
+
+	
+	<main>
+		<article>
+			<h1>Unit testing with R</h1>
+			<b><time>2016/03/31</time></b>
+		       
+		           <a href="/tags/r">R</a>
+        	       
+
+			<div>
+				<!-- MathJax scripts -->
+
+<script type="text/javascript" async
+  src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+
+<p><body>
+<p>I&#39;ve been introduced to unit testing while working with colleagues on quite a big project for which
+we use Python.</p></p>
+
+<p>At first I was a bit skeptical about the need of writing unit tests, but now I must admit that I 
+am seduced by the idea and by the huge time savings it allows. Naturally, I was wondering if the 
+same could be achieved with R, and was quite happy to find out that it also possible to write unit
+tests in R using a package called <code>testthat</code>.</p>
+
+<p>Unit tests (Not to be confused with unit root tests for time series) are small functions that test
+your code and help you make sure everything is alright. I&#39;m going to show how the <code>testthat</code> 
+packages works with a very trivial example, that might not do justice to the idea of
+unit testing. But you&#39;ll hopefully see why writing unit tests is not a waste of your time,
+especially if your project gets very complex (if you&#39;re writing a package for example).</p>
+
+<p>First, you&#39;ll need to download and install <code>testthat</code>. Some dependencies will also be installed.</p>
+
+<p>Now, you&#39;ll need a function to test. Let&#39;s suppose you&#39;ve written a function that returns the
+nth Fibonacci number:</p>
+
+<pre><code class="r">Fibonacci &lt;- function(n){
+    a &lt;- 0
+    b &lt;- 1
+    for (i in 1:n){
+        temp &lt;- b
+        b &lt;- a
+        a &lt;- a + temp
+    }
+    return(a)
+}
+</code></pre>
+
+<p>You then save this function in a file, let&#39;s call it <code>fibo.R</code>. What you&#39;ll probably do once you&#39;ve
+written this function, is to try it out:</p>
+
+<pre><code class="r">Fibonacci(5)
+</code></pre>
+
+<pre><code>## [1] 5
+</code></pre>
+
+<p>You&#39;ll see that the function returns the right result and continue programming. The idea behind
+unit testing is write a bunch of functions that you can run after you make changes to your code,
+just to check that everything is still running as it should.</p>
+
+<p>Let&#39;s create a script called <code>test_fibo.R</code> and write the following code in it:</p>
+
+<pre><code class="r">test_that(&quot;Test Fibo(15)&quot;,{
+  phi &lt;- (1 + sqrt(5))/2
+  psi &lt;- (1 - sqrt(5))/2
+  expect_equal(Fibonacci(15), (phi**15 - psi**15)/sqrt(5))
+})
+</code></pre>
+
+<p>The code above uses Binet&#39;s formula, a closed form formula that gives the nth Fibonacci number and compares it 
+our implementation of the algorithm. If you didn&#39;t know about Binet&#39;s formula, you could simply compute some numbers
+by hand and compare them to what your function returns, for example. The function <code>expect_equal</code> is a function from the 
+package <code>testthat</code> and does exactly what it tells. We expect the result of our implementation to be equal to the result of
+Binet&#39;s Formula. The file <code>test_fibo.R</code> can contain as many tests as you need. 
+Also, the file that contains the tests must start with the string <code>test</code>, so that <code>testthat</code> knows with files it has to run.</p>
+
+<p>Now, we&#39;re almost done, create yet another script, let&#39;s call it <code>run_tests.R</code> and write the following code in it:</p>
+
+<pre><code class="r">library(testthat) 
+
+source(&quot;path/to/fibo.R&quot;)
+
+test_results &lt;- test_dir(&quot;path/to/tests&quot;, reporter=&quot;summary&quot;)
+</code></pre>
+
+<p>After running these lines, and if everything goes well, you should see a message like this:</p>
+
+<pre><code>&gt; library(testthat)
+&gt; source(&quot;path/to/fibo.R&quot;)
+&gt; test_results &lt;- test_dir(&quot;path/to/tests&quot;, reporter=&quot;summary&quot;)
+
+.
+Your tests are dandy! 
+</code></pre>
+
+<p>Notice the small <code>.</code> over the message? This means that one test was run successfully. You&#39;ll get one dot per successful
+test. If you take a look at <code>test_results</code> you&#39;ll see this:</p>
+
+<pre><code>&gt; test_results
+         file context          test nb failed skipped error  user system  real
+1 test_fibo.R         Test Fibo(15)  1      0   FALSE FALSE 0.004      0 0.006
+</code></pre>
+
+<p>You&#39;ll see each file and each function inside the files that were tested, and also whether the test was skipped, failed
+etc. This may seem overkill for such a simple function, but imagine that you write dozens of functions that get more
+and more complex over time. You might have to change a lot of lines because as time goes by you add new functionality,
+but don&#39;t want to break what was working. Running your unit tests each time you make changes can help you pinpoint 
+regressions in your code. Unit tests can also help you start with your code. It can happen that sometimes you don&#39;t
+know exactly how to start; well you could start by writing a unit test that returns the result you want to have and 
+then try to write the code to make that unit test pass. This is called test-driven development.</p>
+
+<p>I hope that this post motivated you to write unit tests and make you a better R programmer!</p>
+
+<p></body></p>
+
+			</div>
+		</article>
+	</main>
+<aside>
+	<div>
+		<div>
+			<h3>LATEST POSTS</h3>
+		</div>
+		<div>
+			<ul>
+				
+				<li><a href="/blog/2020-12-30-year_review/">A year in review</a></li>
+				
+				<li><a href="/blog/2020-12-12-ethics_statistics/">(Half) Lies, (half) truths and (half) statistics</a></li>
+				
+				<li><a href="/blog/2020-12-05-poorman_translate/">Poorman&#39;s automated translation with R and Google Sheets using {googlesheets4}</a></li>
+				
+				<li><a href="/blog/2020-11-21-guis_mistake/">Graphical User Interfaces were a mistake but you can still make things right</a></li>
+				
+				<li><a href="/blog/2020-11-05-retire_data_science/">It&#39;s time to retire the &#34;data scientist&#34; label</a></li>
+				
+			</ul>
+		</div>
+	</div>
+</aside>
+
+
+	<footer>
+  <div class="row">
+    <div class="col-lg-12">
+      <p>2021, content by Bruno Rodrigues, unless otherwise stated, every content of this blog is licensed under the <a href="http://www.wtfpl.net/txt/copying/" rel="nofollow">WTFPL</a>.</p>
+      <p>The theme this blog uses is a slight variation of the <a href="https://github.com/colorchestra/smol" rel="nofollow">Smol</a> theme.</p>
+      <p><a class="nav-link" href="/index.html">Back to main page.</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

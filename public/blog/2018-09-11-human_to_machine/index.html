@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<style type=text/css>body{font-family:monospace;}</style>
+	<title>Going from a human readable Excel file to a machine-readable csv with {tidyxl}</title>
+	
+	
+	<link rel="stylesheet" href="/css/style.css">
+	
+	
+</head>
+<body>
+	<header>
+<p><a class="nav-link" href="/index.html">Econometrics and Free Software</a> by <a class="nav-link" href="/about/about">Bruno Rodrigues</a>.</p>
+<p>Follow me on <a href="https://twitter.com/brodriguesco" rel="nofollow">twitter</a>.</p>
+<p>Watch my <a href="https://www.youtube.com/user/cbrunos" rel="nofollow">youtube</a> channel.</p>
+</header>
+
+	
+	<main>
+		<article>
+			<h1>Going from a human readable Excel file to a machine-readable csv with {tidyxl}</h1>
+			<b><time>2018/09/11</time></b>
+		       
+		           <a href="/tags/r">R</a>
+        	       
+
+			<div>
+				<div style="text-align:center;">
+<p><a href="https://www.youtube.com/watch?v=m-PE3OkJ8XE">
+<img src="/img/1a9.gif"/></a></p>
+</div>
+<p>I won’t write a very long introduction; we all know that Excel is ubiquitous in business, and that
+it has a lot of very nice features, especially for business practitioners that do not know any
+programming. However, when people use Excel for purposes it was not designed for, it can be a
+hassle. Often, people use Excel as a reporting tool, which it is not; they create very elaborated
+and complicated spreadsheets that are human readable, but impossible to import within any other tool.</p>
+<p>In this blog post (which will probably be part of a series), I show you how you can go from this:</p>
+<p><img src="/img/time_use.png" /><!-- --></p>
+<p>to this:</p>
+<p><img src="/img/time_use2.png" /><!-- --></p>
+<p>You can find the data I will use <a href="http://statistiques.public.lu/stat/ReportFolders/ReportFolder.aspx?IF_Language=eng&amp;MainTheme=3&amp;FldrName=1&amp;RFPath=14306">here</a>. Click on the “Time use” folder and you can download the workbook.</p>
+<p>The Excel workbook contains several sheets (in French and English) of the amount of time Luxembourguish
+citizens spend from Monday to Sunday. For example, on average, people that are in employment spend
+almost 8 hours sleeping during the week days, and 8:45 hours on Saturday.</p>
+<p>As you can see from the screenshot, each sheet contains several tables that have lots of headers
+and these tables are next to one another. Trying to import these sheets with good ol’ <code>readxl::read_excel()</code>
+produces a monster.</p>
+<p>This is where <code>{tidyxl}</code> comes into play. Let’s import the workbook with <code>{tidyxl}</code>:</p>
+<pre class="r"><code>library(tidyverse)
+library(tidyxl)
+
+time_use_xl &lt;- xlsx_cells(&quot;time-use.xlsx&quot;)</code></pre>
+<p>Let’s see what happened:</p>
+<pre class="r"><code>head(time_use_xl)</code></pre>
+<pre><code>## # A tibble: 6 x 21
+##   sheet address   row   col is_blank data_type error logical numeric
+##   &lt;chr&gt; &lt;chr&gt;   &lt;int&gt; &lt;int&gt; &lt;lgl&gt;    &lt;chr&gt;     &lt;chr&gt; &lt;lgl&gt;     &lt;dbl&gt;
+## 1 Index A1          1     1 FALSE    character &lt;NA&gt;  NA           NA
+## 2 Index B1          1     2 TRUE     blank     &lt;NA&gt;  NA           NA
+## 3 Index C1          1     3 TRUE     blank     &lt;NA&gt;  NA           NA
+## 4 Index D1          1     4 TRUE     blank     &lt;NA&gt;  NA           NA
+## 5 Index E1          1     5 TRUE     blank     &lt;NA&gt;  NA           NA
+## 6 Index F1          1     6 TRUE     blank     &lt;NA&gt;  NA           NA
+## # … with 12 more variables: date &lt;dttm&gt;, character &lt;chr&gt;,
+## #   character_formatted &lt;list&gt;, formula &lt;chr&gt;, is_array &lt;lgl&gt;,
+## #   formula_ref &lt;chr&gt;, formula_group &lt;int&gt;, comment &lt;chr&gt;, height &lt;dbl&gt;,
+## #   width &lt;dbl&gt;, style_format &lt;chr&gt;, local_format_id &lt;int&gt;</code></pre>
+<p>As you can see, the sheet was imported, but the result might be unexpected. Actually, <code>time_use_xl</code>
+is a <code>tibble</code> object, where each row is one cell of the Excel sheet. This might seem very complicated
+to handle, but you will see that it actually makes things way easier.</p>
+<p>I only want to work on the English sheets so I use the following code to ignore the French ones:</p>
+<pre class="r"><code>sheets &lt;- xlsx_sheet_names(&quot;time-use.xlsx&quot;) %&gt;%
+    keep(grepl(pattern = &quot;.*day$&quot;, .))</code></pre>
+<p>Also, there’s a sheet that aggregates the results for week days and weekends, which I also ignore.</p>
+<p>Now, to extract the tables from each sheet I wrote the following function:</p>
+<pre class="r"><code>extract_data &lt;- function(sheet){
+    activities &lt;- sheet %&gt;%
+        filter(col == 2) %&gt;%
+        select(row, character) %&gt;%
+        filter(row %in% seq(6,58)) %&gt;%
+        rename(activities = character) %&gt;%
+        select(-row)
+    
+    cols_to_extract &lt;- sheet %&gt;% 
+        filter(grepl(&quot;Population who completed.*&quot;, character)) %&gt;% 
+        pull(col)
+    
+    headers_pos &lt;- cols_to_extract - 1
+    
+    headers &lt;- sheet %&gt;%
+        filter(col %in% headers_pos, row == 3) %&gt;%
+        pull(character)
+    
+    cols_to_extract %&gt;% 
+        map(~filter(sheet, col %in% .)) %&gt;%
+        map(~select(., sheet, address, row, col, character)) %&gt;%
+        map(~filter(., row %in% seq(6,58))) %&gt;%
+        map(~select(., character)) %&gt;%
+        map2(.x = ., .y = headers, ~mutate(.x, &quot;population&quot; = .y)) %&gt;%
+        map(., ~bind_cols(activities, .)) %&gt;%
+        bind_rows()
+}</code></pre>
+<p>Let’s study it step by step and see how it works. First, there’s the argument, <code>sheet</code>. This function
+will be mapped to each sheet of the workbook. Then, the first block I wrote, extracts the
+activities:</p>
+<pre class="r"><code>    activities &lt;- sheet %&gt;%
+        filter(col == 2) %&gt;%
+        select(row, character) %&gt;%
+        filter(row %in% seq(6,58)) %&gt;%
+        rename(activities = character) %&gt;%
+        select(-row)</code></pre>
+<p>I only keep the second column (<code>filter(col == 2)</code>); <code>col</code> is a column of the <code>tibble</code> and if you
+look inside the workbook, you will notice that the activities are on the second column, or the B
+column. Then, I select two columns, the <code>row</code> and the <code>character</code> column. <code>row</code> is self-explanatory
+and <code>character</code> actually contains whatever is written inside the cells. Then, I only keep rows
+6 to 58, because that is what interests me; the rest is either empty cells, or unneeded. Finally,
+I rename the <code>character</code> column to activities and remove the <code>row</code> column.</p>
+<p>The second block:</p>
+<pre class="r"><code>    cols_to_extract &lt;- sheet %&gt;% 
+        filter(grepl(&quot;Population who completed.*&quot;, character)) %&gt;% 
+        pull(col)</code></pre>
+<p>returns the index of the columns I want to extract. I am only interested in the people that have
+completed the activities, so using <code>grepl()</code> inside <code>filter()</code>, I located these columns, and use
+<code>pull()</code>… to pull them out of the data frame! <code>cols_to_extract</code> is thus a nice atomic vector of
+columns that I want to keep.</p>
+<p>In the third block, I extract the headers:</p>
+<pre class="r"><code>    headers_pos &lt;- cols_to_extract - 1</code></pre>
+<p>Why <code>- 1</code>? This is because if you look in the Excel, you will see that the headers are one column before
+the column labeled “People who completed the activity”. For example on column G, I have “People who completed the activity”
+and on column F I have the header, in this case “Male”.</p>
+<p>Now I actually extract the headers:</p>
+<pre class="r"><code>    headers &lt;- sheet %&gt;%
+        filter(col %in% headers_pos, row == 3) %&gt;%
+        pull(character)</code></pre>
+<p>Headers are always on the third row, but on different columns, hence the <code>col %in% headers_pos</code>. I
+then pull out the values inside the cells with <code>pull(character)</code>. So my <code>headers</code> object will be
+an atomic vector with “All”, “Male”, “Female”, “10 - 19 years”, etc… everything on row 3.</p>
+<p>Finally, the last block, actually extracts the data:</p>
+<pre class="r"><code>    cols_to_extract %&gt;% 
+        map(~filter(sheet, col %in% .)) %&gt;%
+        map(~select(., sheet, address, row, col, character)) %&gt;%
+        map(~filter(., row %in% seq(6,58))) %&gt;%
+        map(~select(., character)) %&gt;%
+        map2(.x = ., .y = headers, ~mutate(.x, &quot;population&quot; = .y)) %&gt;%
+        map(., ~bind_cols(activities, .)) %&gt;%
+        bind_rows()</code></pre>
+<p><code>cols_to_extract</code> is a vector with the positions of the columns that interest me. So for example
+“4”, “7”, “10” and so on. I map this vector to the sheet, which returns me a list of extracted
+data frames. I pass this down to a <code>select()</code> (which is inside <code>map()</code>… why? Because the input
+parameter is a list of data frames). So for each data frame inside the list, I select the columns
+<code>sheet</code>, <code>address</code>, <code>row</code>, <code>col</code> and <code>character</code>. Then, for each data frame inside the list,
+I use <code>filter()</code> to only keep the rows from position 6 to 58. Then, I only select the <code>character</code>
+column, which actually contains the text inside the cell. Then, using <code>map2()</code>, I add the values
+inside the <code>headers</code> object as a new column, called <code>population</code>. Then, I bind the <code>activities</code>
+column to the data frame and bind all the rows together.</p>
+<p>Time to use this function! Let’s see:</p>
+<pre class="r"><code>clean_data &lt;- sheets %&gt;%
+    map(~filter(time_use_xl, sheet %in% .)) %&gt;%
+    set_names(sheets) %&gt;%
+    map(extract_data) %&gt;%
+    map2(.x = ., .y = sheets, ~mutate(.x, &quot;day&quot; = .y)) %&gt;%
+    bind_rows() %&gt;%
+    select(day, population, activities, time = character)
+
+glimpse(clean_data)</code></pre>
+<pre><code>## Observations: 2,968
+## Variables: 4
+## $ day        &lt;chr&gt; &quot;Year 2014_Monday til Friday&quot;, &quot;Year 2014_Monday til …
+## $ population &lt;chr&gt; &quot;All&quot;, &quot;All&quot;, &quot;All&quot;, &quot;All&quot;, &quot;All&quot;, &quot;All&quot;, &quot;All&quot;, &quot;All…
+## $ activities &lt;chr&gt; &quot;Personal care&quot;, &quot;Sleep&quot;, &quot;Eating&quot;, &quot;Other personal c…
+## $ time       &lt;chr&gt; &quot;11:07&quot;, &quot;08:26&quot;, &quot;01:47&quot;, &quot;00:56&quot;, &quot;07:37&quot;, &quot;07:47&quot;,…</code></pre>
+<p>So I map my list of sheets to the <code>tibble</code> I imported with <code>readxl</code>, use <code>set_names</code> to
+name the elements of my list (which is superfluous, but I wanted to show this; might interest you!)
+and then map this result to my little function. I could stop here,
+but I then add a new column to each data frame that contains the day on which the data was
+measured, bind the rows together and reorder the columns. Done!</p>
+<p>Now, how did I come up with this function? I did not start with a function. I started by writing
+some code that did what I wanted for one table only, inside one sheet only. Only when I got
+something that worked, did I start to generalize to several tables and then to several sheets. Most
+of the time spent was actually in trying to find patterns in the Excel sheet that I could use
+to write my function (for example noticing that the headers I wanted where always one column before
+the column I was interested in). This is my advice when working with function programming; always
+solve the issue for one element, wrap this code inside a function, and then simply map this function
+to a list of elements!</p>
+<p>If you found this blog post useful, you might want to follow me on <a href="https://www.twitter.com/brodriguesco">twitter</a>
+for blog post updates.</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
+
+			</div>
+		</article>
+	</main>
+<aside>
+	<div>
+		<div>
+			<h3>LATEST POSTS</h3>
+		</div>
+		<div>
+			<ul>
+				
+				<li><a href="/blog/2020-12-30-year_review/">A year in review</a></li>
+				
+				<li><a href="/blog/2020-12-12-ethics_statistics/">(Half) Lies, (half) truths and (half) statistics</a></li>
+				
+				<li><a href="/blog/2020-12-05-poorman_translate/">Poorman&#39;s automated translation with R and Google Sheets using {googlesheets4}</a></li>
+				
+				<li><a href="/blog/2020-11-21-guis_mistake/">Graphical User Interfaces were a mistake but you can still make things right</a></li>
+				
+				<li><a href="/blog/2020-11-05-retire_data_science/">It&#39;s time to retire the &#34;data scientist&#34; label</a></li>
+				
+			</ul>
+		</div>
+	</div>
+</aside>
+
+
+	<footer>
+  <div class="row">
+    <div class="col-lg-12">
+      <p>2021, content by Bruno Rodrigues, unless otherwise stated, every content of this blog is licensed under the <a href="http://www.wtfpl.net/txt/copying/" rel="nofollow">WTFPL</a>.</p>
+      <p>The theme this blog uses is a slight variation of the <a href="https://github.com/colorchestra/smol" rel="nofollow">Smol</a> theme.</p>
+      <p><a class="nav-link" href="/index.html">Back to main page.</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

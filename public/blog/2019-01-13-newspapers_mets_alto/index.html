@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<style type=text/css>body{font-family:monospace;}</style>
+	<title>Making sense of the METS and ALTO XML standards</title>
+	
+	
+	<link rel="stylesheet" href="/css/style.css">
+	
+	
+</head>
+<body>
+	<header>
+<p><a class="nav-link" href="/index.html">Econometrics and Free Software</a> by <a class="nav-link" href="/about/about">Bruno Rodrigues</a>.</p>
+<p>Follow me on <a href="https://twitter.com/brodriguesco" rel="nofollow">twitter</a>.</p>
+<p>Watch my <a href="https://www.youtube.com/user/cbrunos" rel="nofollow">youtube</a> channel.</p>
+</header>
+
+	
+	<main>
+		<article>
+			<h1>Making sense of the METS and ALTO XML standards</h1>
+			<b><time>2019/01/13</time></b>
+		       
+		           <a href="/tags/r">R</a>
+        	       
+
+			<div>
+				<div style="text-align:center;">
+<p><a href="https://www.youtube.com/watch?v=V1qpvpH26fo">
+<img src="/img/union.png" title = "The 19th century was a tough place"></a></p>
+</div>
+<p>Last week I wrote a <a href="https://www.brodrigues.co/blog/2019-01-04-newspapers/">blog post</a> where I analyzed
+one year of newspapers ads from 19th century newspapers. The data is made available by the
+<a href="https://data.bnl.lu/data/historical-newspapers/">national library of Luxembourg</a>.
+In this blog post, which is part 1 of a 2 part series, I extract data from the 257gb archive, which
+contains 10 years of publications of the <em>L’Union</em>, another 19th century Luxembourguish newspaper
+written in French. As I explained in the previous post, to make life easier to data scientists,
+the national library also included ALTO and METS files (which are a XML files used to
+describe the layout and contents of physical text sources, such as pages of a book or newspaper)
+which can be easily parsed by R.</p>
+<p>This is how a ALTO file looks like:</p>
+<p><img src="/img/alto.png" /><!-- --></p>
+<p>Each page of the newspaper of a given day has one ALTO file.
+This is how a METS file looks like:</p>
+<p><img src="/img/mets.png" /><!-- --></p>
+<p>For each daily issue of the newspaper, there is a METS file. So 1 METS file for 4 ALTO files.</p>
+<p>In my last blog post, I only extracted the words from the ALTO file (red rectangles of the first
+screenshot) and did not touch the METS file.
+The problem of doing this is that I get all the words for each page, without knowing which
+come from the same article. If I want to know which words come from the same article, I need to use
+the info from the METS file. From the METS file I have the ID of the article, and some other
+metadata, such as the title of the article and the type of the article (which can be <em>article</em>,
+<em>advertisement</em>, etc). The information highlighted with the green rectangles in the METS file
+can be linked to the green rectangles from the ALTO files. My goal is to get the following data
+frame from the METS file:</p>
+<p><img src="/img/mets_df.png" /><!-- --></p>
+<p>and this data frame from the ALTO files:</p>
+<p><img src="/img/alto_df.png" /><!-- --></p>
+<p>As you can see, by combining both data frames I can know which words come from the same article,
+which will be helpful for further analysis.
+<a href="https://en.wikipedia.org/wiki/1860s">A lot of things happened in the 1860s.</a>
+I am really curious to see if and how these events where reported in a Luxembourguish newspaper.
+I am particularly curious about how long it took to report certain news from far away, such as the
+assassination of Abraham Lincoln. But before that I need to extract the data!</p>
+<p>I will only focus on the METS file. The logic for the ALTO file is the same. All the source code
+will be in the appendix of this blog post.</p>
+<p>First, let’s take a look at a METS file:</p>
+<pre class="r"><code>library(tidyverse)
+mets &lt;- read_file(&quot;1533660_newspaper_lunion_1860-11-14/1533660_newspaper_lunion_1860-11-14-mets.xml&quot;)</code></pre>
+<p>This is how it looks like:</p>
+<pre><code>&quot;&lt;?xml version=&#39;1.0&#39; encoding=&#39;utf-8&#39;?&gt;\r\n&lt;mets xmlns=\&quot;http://www.loc.gov/METS/\&quot; xmlns:mix=\&quot;http://www.loc.gov/mix/v20\&quot; xmlns:mods=\&quot;http://www.loc.gov/mods/v3\&quot; xmlns:xlink=\&quot;http://www.w3.org/1999/xlink\&quot; xmlns:xsi=\&quot;http://www.w3.org/2001/XMLSchema-instance\&quot; LABEL=\&quot;L&#39;UNION. 1860-11-14_01\&quot; OBJID=\&quot;https://persist.lu/ark:/70795/m62fcm\&quot; TYPE=\&quot;Newspaper\&quot; xsi:schemaLocation=\&quot;http://www.loc.gov/METS/ http://www.loc.gov/standards/mets/mets.xsd http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/v3/mods-3-6.xsd http://www.loc.gov/mix/v20 http://www.loc.gov/standards/mix/mix.xsd\&quot;&gt;\r\n  &lt;metsHdr CREATEDATE=\&quot;2010-12-03T20:35:05\&quot; LASTMODDATE=\&quot;2018-05-09T05:35:51Z\&quot;&gt;\r\n    &lt;agent OTHERTYPE=\&quot;SOFTWARE\&quot; ROLE=\&quot;CREATOR\&quot; TYPE=\&quot;OTHER\&quot;&gt;\r\n      &lt;name&gt;CCS docWORKS/METAe Version 6.4-3&lt;/name&gt;\r\n      &lt;note&gt;docWORKS-ID: 101636&lt;/note&gt;\r\n    &lt;/agent&gt;\r\n  &lt;/metsHdr&gt;\r\n  &lt;dmdSec ID=\&quot;MODSMD_COLLECTION\&quot;&gt;\r\n    &lt;mdWrap LABEL=\&quot;Bibliographic meta-data of the collection\&quot; MDTYPE=\&quot;MODS\&quot; MIMETYPE=\&quot;text/xml\&quot;&gt;\r\n      &lt;xmlData&gt;\r\n        &lt;mods:mods&gt;\r\n          &lt;mods:identifier type=\&quot;local\&quot;&gt;lunion&lt;/mods:identifier&gt;\r\n          &lt;mods:titleInfo ID=\&quot;MODSMD_COLLECTION_TI1\&quot; xml:lang=\&quot;fr\&quot;&gt;\r\n            &lt;mods:title&gt;L&#39;UNION.&lt;/mods:title&gt;\r\n          &lt;/mods:titleInfo&gt;\r\n        &lt;/mods:mods&gt;\r\n      &lt;/xmlData&gt;\r\n    &lt;/mdWrap&gt;\r\n  &lt;/dmdSec&gt;\r\n  &lt;dmdSec ID=\&quot;MODSMD_SECTION1\&quot;&gt;\r\n    &lt;mdWrap MDTYPE=\&quot;MODS\&quot; MIMETYPE=\&quot;text/xml\&quot;&gt;\r\n      &lt;xmlData&gt;\r\n        &lt;mods:mods&gt;\r\n          &lt;mods:titleInfo ID=\&quot;MODSMD_SECTION1_TI1\&quot; xml:lang=\&quot;fr\&quot;&gt;\r\n            &lt;mods:title&gt;Chemins de fer. — Service d&#39;hiver.&lt;/mods:title&gt;\r\n          &lt;/mods:titleInfo&gt;\r\n          &lt;mods:language&gt;\r\n            &lt;mods:languageTerm authority=\&quot;rfc3066\&quot; type=\&quot;code\&quot;&gt;fr&lt;/mods:languageTerm&gt;\r\n ....&quot;</code></pre>
+<p>As usual when you import text files like this, it’s always a good idea to split the file. I will
+split at the <code>"DMDID"</code> character. Take a look back at the second screenshot. The very first tag,
+first row, first word after <code>div</code> is <code>"DMDID"</code>. By splitting at this level, I will get back a list,
+where each element is the content of this <code>div DMDID</code> block. This is exactly what I need, since
+this block contains the information from the green rectangles.
+So let’s split the <code>mets</code> variable at this level:</p>
+<pre class="r"><code>mets_articles &lt;- mets %&gt;%
+    str_split(&quot;DMDID&quot;) %&gt;%
+    flatten_chr()</code></pre>
+<p>Let’s take a look at <code>mets_articles</code>:</p>
+<pre class="r"><code>str(mets_articles)</code></pre>
+<pre><code> chr [1:25] &quot;&lt;?xml version=&#39;1.0&#39; encoding=&#39;utf-8&#39;?&gt;\r\n&lt;mets xmlns=\&quot;http://www.loc.gov/METS/\&quot; xmlns:mix=\&quot;http://www.loc.g&quot;| __truncated__ ...</code></pre>
+<p>Doesn’t seem to be very helpful, but actually it is. We can see that <code>mets_articles</code> is a now a list
+of 25 elements.</p>
+<p>This means that for each element of <code>mets_articles</code>, I need to get the identifier, the label, the type
+(the red rectangles from the screenshot), but also the information from the <code>"BEGIN"</code> element (the green
+rectangle).</p>
+<p>To do this, I’ll be using regular expressions. In general, I start by experimenting in the console,
+and then when things start looking good, I write a function. Here is this function:</p>
+<pre class="r"><code>extractor &lt;- function(string, regex, all = FALSE){
+    if(all) {
+        string %&gt;%
+            str_extract_all(regex) %&gt;%
+            flatten_chr() %&gt;%
+            str_extract_all(&quot;[:alnum:]+&quot;, simplify = FALSE) %&gt;%
+            map(paste, collapse = &quot;_&quot;) %&gt;%
+            flatten_chr()
+    } else {
+        string %&gt;%
+            str_extract(regex) %&gt;%
+            str_extract_all(&quot;[:alnum:]+&quot;, simplify = TRUE) %&gt;%
+            paste(collapse = &quot; &quot;) %&gt;%
+            tolower()
+    }
+}</code></pre>
+<p>This function may seem complicated, but it simply encapsulates some pretty standard steps to get
+the data I need. I had to consider two cases. The first case is when I need to extract all the
+elements with <code>str_extract_all()</code>, or only the first occurrence, with <code>str_extract()</code>.
+Let’s test it on the first article of the <code>mets_articles</code> list:</p>
+<pre class="r"><code>mets_articles_1 &lt;- mets_articles[1]</code></pre>
+<pre class="r"><code>extractor(mets_articles_1, &quot;ID&quot;, all = FALSE)</code></pre>
+<pre><code>## [1] &quot;id&quot;</code></pre>
+<p>Let’s see what happens with <code>all = TRUE</code>:</p>
+<pre class="r"><code>extractor(mets_articles_1, &quot;ID&quot;, all = TRUE)</code></pre>
+<pre><code>##   [1] &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot;
+##  [15] &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot;
+##  [29] &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot;
+##  [43] &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot;
+##  [57] &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot;
+##  [71] &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot;
+##  [85] &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot;
+##  [99] &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot;
+## [113] &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot;
+## [127] &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot; &quot;ID&quot;</code></pre>
+<p>This seems to work as intended. Since I need to call this function several times, I’ll be writing
+another function that extracts all I need:</p>
+<pre class="r"><code>extract_mets &lt;- function(article){
+
+    id &lt;- article %&gt;%
+        extractor(&quot;(?&lt;=ID)(.*?)(?=LABEL)&quot;)
+
+    label &lt;- article %&gt;%
+        extractor(&quot;(?&lt;=LABEL)(.*?)(?=TYPE)&quot;)
+
+    type &lt;- article %&gt;%
+        extractor(&quot;(?&lt;=TYPE)(.*?)(?=&gt;)&quot;)
+
+    begins &lt;- article %&gt;%
+        extractor(&quot;(?&lt;=BEGIN)(.*?)(?=BETYPE)&quot;, all = TRUE)
+
+    tibble::tribble(~label, ~type, ~begins, ~id,
+                    label, type, begins, id) %&gt;%
+        unnest()
+}</code></pre>
+<p>This function uses complex regular expressions to extract the strings I need, and then puts
+the result into a data frame, with the <code>tibble()</code> function. I then use <code>unnest()</code>, because <code>label</code>,
+<code>type</code>, <code>begins</code> and <code>id</code> are not the same length. <code>label</code>, <code>type</code> and <code>id</code> are of length 1, while
+<code>begins</code> is longer. This means that when I put them into a data frame it looks like this:</p>
+<pre class="r"><code>tribble(~a, ~b,
+&quot;a&quot;, rep(&quot;b&quot;, 4))</code></pre>
+<pre><code>## # A tibble: 1 x 2
+##   a     b        
+##   &lt;chr&gt; &lt;list&gt;   
+## 1 a     &lt;chr [4]&gt;</code></pre>
+<p>With <code>unnest()</code>, I get a nice data frame:</p>
+<pre class="r"><code>tribble(~a, ~b,
+&quot;a&quot;, rep(&quot;b&quot;, 4)) %&gt;% 
+  unnest()</code></pre>
+<pre><code>## # A tibble: 4 x 2
+##   a     b    
+##   &lt;chr&gt; &lt;chr&gt;
+## 1 a     b    
+## 2 a     b    
+## 3 a     b    
+## 4 a     b</code></pre>
+<p>Now, I simply need to map this function to all the files and that’s it! For this, I will write yet
+another helper function:</p>
+<pre class="r"><code>mets_csv &lt;- function(page_path){
+    
+    page &lt;- read_file(page_path)
+    
+    doc_name &lt;- str_extract(page_path, &quot;(?&lt;=/).*&quot;)
+    
+    mets_articles &lt;- page %&gt;%
+        str_split(&quot;DMDID&quot;) %&gt;%
+        flatten_chr()
+    
+    mets_df &lt;- map_df(mets_articles, extract_mets)
+    
+    mets_df &lt;- mets_df %&gt;%
+        mutate(document = doc_name)
+    
+    write_csv(mets_df, paste0(page_path, &quot;.csv&quot;))
+}</code></pre>
+<p>This function takes the path to a METS file as input, and processes it using the steps I explained
+above. The only difference is that I add a column containing the name of the file that was processed,
+and write the resulting data frame directly to disk as a data frame. Finally, I can map this function to all the METS
+files:</p>
+<pre class="r"><code># Extract content from METS files
+
+pages_mets &lt;- str_match(list.files(path = &quot;./&quot;, all.files = TRUE, recursive = TRUE), &quot;.*mets.xml&quot;) %&gt;%
+    discard(is.na)
+
+library(furrr)
+
+plan(multiprocess, workers = 8)
+
+tic &lt;- Sys.time()
+future_map(pages_mets, mets_csv)
+toc &lt;- Sys.time()
+
+toc - tic</code></pre>
+<p>I use <code>{furrr}</code> to extract the data from all the files in parallel, by putting 8 cores of my CPU to
+work. This took around 3 minutes and 20 seconds to finish.</p>
+<p>That’s it for now, stay tuned for part 2 where I will analyze this fresh data!</p>
+<p>Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>.</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
+<div id="appendix" class="section level2">
+<h2>Appendix</h2>
+<pre class="r"><code>extract_alto &lt;- function(article){
+    begins &lt;- article[1] %&gt;%
+        extractor(&quot;(?&lt;=^ID)(.*?)(?=HPOS)&quot;, all = TRUE)
+
+    content &lt;- article %&gt;%
+        extractor(&quot;(?&lt;=CONTENT)(.*?)(?=WC)&quot;, all = TRUE)
+
+    tibble::tribble(~begins, ~content,
+                    begins, content) %&gt;%
+        unnest()
+}
+
+alto_csv &lt;- function(page_path){
+
+    page &lt;- read_file(page_path)
+
+    doc_name &lt;- str_extract(page_path, &quot;(?&lt;=/text/).*&quot;)
+
+    alto_articles &lt;- page %&gt;%
+        str_split(&quot;TextBlock &quot;) %&gt;%
+        flatten_chr()
+
+    alto_df &lt;- map_df(alto_articles, extract_alto)
+
+    alto_df &lt;- alto_df %&gt;%
+        mutate(document = doc_name)
+
+    write_csv(alto_df, paste0(page_path, &quot;.csv&quot;))
+}
+
+
+alto &lt;- read_file(&quot;1533660_newspaper_lunion_1860-11-14/text/1860-11-14_01-00001.xml&quot;)
+
+
+# Extract content from alto files
+
+pages_alto &lt;- str_match(list.files(path = &quot;./&quot;, all.files = TRUE, recursive = TRUE), &quot;.*/text/.*.xml&quot;) %&gt;%
+    discard(is.na)
+
+
+library(furrr)
+
+plan(multiprocess, workers = 8)
+
+tic &lt;- Sys.time()
+future_map(pages_alto, alto_csv)
+toc &lt;- Sys.time()
+
+toc - tic
+
+#Time difference of 18.64776 mins</code></pre>
+</div>
+
+			</div>
+		</article>
+	</main>
+<aside>
+	<div>
+		<div>
+			<h3>LATEST POSTS</h3>
+		</div>
+		<div>
+			<ul>
+				
+				<li><a href="/blog/2020-12-30-year_review/">A year in review</a></li>
+				
+				<li><a href="/blog/2020-12-12-ethics_statistics/">(Half) Lies, (half) truths and (half) statistics</a></li>
+				
+				<li><a href="/blog/2020-12-05-poorman_translate/">Poorman&#39;s automated translation with R and Google Sheets using {googlesheets4}</a></li>
+				
+				<li><a href="/blog/2020-11-21-guis_mistake/">Graphical User Interfaces were a mistake but you can still make things right</a></li>
+				
+				<li><a href="/blog/2020-11-05-retire_data_science/">It&#39;s time to retire the &#34;data scientist&#34; label</a></li>
+				
+			</ul>
+		</div>
+	</div>
+</aside>
+
+
+	<footer>
+  <div class="row">
+    <div class="col-lg-12">
+      <p>2021, content by Bruno Rodrigues, unless otherwise stated, every content of this blog is licensed under the <a href="http://www.wtfpl.net/txt/copying/" rel="nofollow">WTFPL</a>.</p>
+      <p>The theme this blog uses is a slight variation of the <a href="https://github.com/colorchestra/smol" rel="nofollow">Smol</a> theme.</p>
+      <p><a class="nav-link" href="/index.html">Back to main page.</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
