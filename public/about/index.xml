@@ -2,20 +2,20 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Abouts on Econometrics and Free Software</title>
-    <link>https://www.brodrigues.co/about/</link>
+    <link>/about/</link>
     <description>Recent content in Abouts on Econometrics and Free Software</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     
-        <atom:link href="https://www.brodrigues.co/about/index.xml" rel="self" type="application/rss+xml" />
+        <atom:link href="/about/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>Who am I?</title>
-      <link>https://www.brodrigues.co/about/about/</link>
+      <link>/about/about/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>https://www.brodrigues.co/about/about/</guid>
+      <guid>/about/about/</guid>
       <description>&lt;p&gt;My name is Bruno Rodrigues and hold a PhD in Economics from the
 &lt;a href=&#34;http://www.unistra.fr&#34;&gt;University of Strasbourg&lt;/a&gt;.&lt;/p&gt;
 
