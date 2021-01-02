@@ -2,20 +2,20 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Abouts on Econometrics and Free Software</title>
-    <link>/about/</link>
+    <link>http://example.org/about/</link>
     <description>Recent content in Abouts on Econometrics and Free Software</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     
-	<atom:link href="/about/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="http://example.org/about/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>Who am I?</title>
-      <link>/about/about/</link>
+      <link>http://example.org/about/about/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>/about/about/</guid>
+      <guid>http://example.org/about/about/</guid>
       <description>My name is Bruno Rodrigues and hold a PhD in Economics from the University of Strasbourg.
 I&amp;rsquo;m currently employed as a statistician for the Ministry of Higher Education and Research in Luxembourg. Before that I was senior data scientist and then manager in the data science team at PwC Luxembourg, and before that I was a research assistant at STATEC Research.
 My hobbies are boxing, lifting weights, cycling, cooking and reading or listening to audiobooks, which is more compatible with the life of a young father.</description>

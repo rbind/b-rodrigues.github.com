@@ -2,21 +2,21 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Econometrics and Free Software</title>
-    <link>/</link>
+    <link>http://example.org/</link>
     <description>Recent content on Econometrics and Free Software</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Wed, 30 Dec 2020 00:00:00 +0000</lastBuildDate>
     
-	<atom:link href="/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="http://example.org/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>A year in review</title>
-      <link>/post/2020-12-30-year_review/</link>
+      <link>http://example.org/post/2020-12-30-year_review/</link>
       <pubDate>Wed, 30 Dec 2020 00:00:00 +0000</pubDate>
       
-      <guid>/post/2020-12-30-year_review/</guid>
+      <guid>http://example.org/post/2020-12-30-year_review/</guid>
       <description>This blog post just contains the links I mention in my video that you can watch here.
 I mention the following books, packages, and people in my video:
  echarts4r targets easystats Applied Economics with R coolbutuseless Data Science ZJ and disk.frame Statistical Rethinking Golem and Engineering production-grade shiny apps ModernDive  Many others created and shared amazing content during the year, so sorry I could not mention everyone!</description>
@@ -24,10 +24,10 @@ I mention the following books, packages, and people in my video:
     
     <item>
       <title>(Half) Lies, (half) truths and (half) statistics</title>
-      <link>/post/2020-12-12-ethics_statistics/</link>
+      <link>http://example.org/post/2020-12-12-ethics_statistics/</link>
       <pubDate>Sat, 12 Dec 2020 00:00:00 +0000</pubDate>
       
-      <guid>/post/2020-12-12-ethics_statistics/</guid>
+      <guid>http://example.org/post/2020-12-12-ethics_statistics/</guid>
       <description>Note: if you’re reading this and images are not showing, visit the original post on my blog. The blog post contains interactive plots which help in understanding the point I’m making.
 I’ve recently come across this graph (on Twitter) from the Economist:
 You can read the article here (archived for posterity). There are many things wrong with this chart. First of all, the economist is fitting a linear regression to some data points, and does not provide anything else to the reader, namely the regression coefficients, their standard errors, and the R².</description>
@@ -35,68 +35,68 @@ You can read the article here (archived for posterity). There are many things wr
     
     <item>
       <title>Poorman&#39;s automated translation with R and Google Sheets using {googlesheets4}</title>
-      <link>/post/2020-12-05-poorman_translate/</link>
+      <link>http://example.org/post/2020-12-05-poorman_translate/</link>
       <pubDate>Sat, 05 Dec 2020 00:00:00 +0000</pubDate>
       
-      <guid>/post/2020-12-05-poorman_translate/</guid>
+      <guid>http://example.org/post/2020-12-05-poorman_translate/</guid>
       <description>A little trick I thought about this week; using Google Sheets, which includes a “googletranslate()” function to translate a survey that we’re preparing at work, from French to English, and using R of course. You’ll need a Google account for this. Also, keep in mind that you’ll be sending the text you want to translate to Google, so don’t go sending out anything sensitive.
 First, let’s load the needed packages:</description>
     </item>
     
     <item>
       <title>Graphical User Interfaces were a mistake but you can still make things right</title>
-      <link>/post/2020-11-21-guis_mistake/</link>
+      <link>http://example.org/post/2020-11-21-guis_mistake/</link>
       <pubDate>Sat, 21 Nov 2020 00:00:00 +0000</pubDate>
       
-      <guid>/post/2020-11-21-guis_mistake/</guid>
+      <guid>http://example.org/post/2020-11-21-guis_mistake/</guid>
       <description>Some weeks ago I tweeted this:
 GUIs were a mistake — Bruno Rodrigues (@brodriguesco) October 9, 2020   you might think that I tweeted this as an unfunny joke, but it’s not. GUIs were one of the worst things to happen for statisticians. Clickable interfaces for data analysis is probably one of the greatest source of mistakes and errors in data processing, very likely costing many millions to companies worldwide and is a source of constant embarassment when mistakes happen which cost the reputation, and money, of institutions or people.</description>
     </item>
     
     <item>
       <title>It&#39;s time to retire the &#34;data scientist&#34; label</title>
-      <link>/post/2020-11-05-retire_data_science/</link>
+      <link>http://example.org/post/2020-11-05-retire_data_science/</link>
       <pubDate>Thu, 05 Nov 2020 00:00:00 +0000</pubDate>
       
-      <guid>/post/2020-11-05-retire_data_science/</guid>
+      <guid>http://example.org/post/2020-11-05-retire_data_science/</guid>
       <description>The “Data Scientist” label served its purpose; it allowed us to signal a transition happening in our profession from using only applied mathematical statistical methods to something else, which now also involves the use of a subset of software engineering practices. This transition was mentioned back in 2010 by Deborah Nolan (https://www.stat.berkeley.edu/~statcur/Preprints/ComputingCurric3.pdf), and this transition might now be complete. Version control systems, document generation from annotated source code (or even full reports generation à la rmarkdown), containers and build automation tools have now entered the toolbox of the run-of-the-mill statistician.</description>
     </item>
     
     <item>
       <title>Building apps with {shinipsum} and {golem}</title>
-      <link>/post/2020-09-27-golemdemo/</link>
+      <link>http://example.org/post/2020-09-27-golemdemo/</link>
       <pubDate>Sun, 27 Sep 2020 00:00:00 +0000</pubDate>
       
-      <guid>/post/2020-09-27-golemdemo/</guid>
+      <guid>http://example.org/post/2020-09-27-golemdemo/</guid>
       <description>In my previous blog post I showed you how I set up my own Shiny server using a Raspberry Pi 4B. If you visited the following link you’ll be connecting to my Raspberry Pi and can play around with a Shiny app that I called golemDemo. It’s been quite a few months that I wanted to discuss this app:
 A little prototype app I&amp;#39;m working on to learn more about @thinkR_fr &amp;#39;s {golem} and interaction between modules, YouTube video coming later this week pic.</description>
     </item>
     
     <item>
       <title>The Raspberry Pi 4B as a shiny server</title>
-      <link>/post/2020-09-20-shiny_raspberry/</link>
+      <link>http://example.org/post/2020-09-20-shiny_raspberry/</link>
       <pubDate>Sun, 20 Sep 2020 00:00:00 +0000</pubDate>
       
-      <guid>/post/2020-09-20-shiny_raspberry/</guid>
+      <guid>http://example.org/post/2020-09-20-shiny_raspberry/</guid>
       <description>This blog post will not have any code, but will document how I went from hosting apps on shinyapps.io to hosting shiny apps on my own server, which is a Raspberry Pi 4B with 8 gigs of ram. First of all, why hosting apps on a Raspberry Pi? And why not continue on shinyapps.io? Or why not get one of hose nifty droplets on DigitalOcean? Well for two reasons; one is that I wanted to have full control of the server, and learn some basic web dev/web engineering skills that I lacked.</description>
     </item>
     
     <item>
       <title>Gotta go fast with &#34;{tidytable}&#34;</title>
-      <link>/post/2020-09-05-tidytable/</link>
+      <link>http://example.org/post/2020-09-05-tidytable/</link>
       <pubDate>Sat, 05 Sep 2020 00:00:00 +0000</pubDate>
       
-      <guid>/post/2020-09-05-tidytable/</guid>
+      <guid>http://example.org/post/2020-09-05-tidytable/</guid>
       <description>I’m back in business! After almost 5 months of hiatus, during which I was very busy with my new job, and new house, I’m in a position where I can write again. To celebrate my comeback, I’ll introduce to you the {tidytable} package, which I learned about this week on Twitter.
 {tidytable} is a package that allows you to manipulate data.table objects with the speed of {data.table} and the convenience of the {tidyverse} syntax.</description>
     </item>
     
     <item>
       <title>Exploring NACE codes</title>
-      <link>/post/2020-04-27-nace_explorer/</link>
+      <link>http://example.org/post/2020-04-27-nace_explorer/</link>
       <pubDate>Mon, 27 Apr 2020 00:00:00 +0000</pubDate>
       
-      <guid>/post/2020-04-27-nace_explorer/</guid>
+      <guid>http://example.org/post/2020-04-27-nace_explorer/</guid>
       <description>A quick one today. If you work with economic data, you’ll be confronted to NACE code sooner or later. NACE stands for Nomenclature statistique des Activités économiques dans la Communauté Européenne. It’s a standard classification of economic activities. It has 4 levels, and you can learn more about it here.
 Each level adds more details; consider this example:
 C - Manufacturing C10 - Manufacture of food products C10.1 - Processing and preserving of meat and production of meat products C10.</description>
@@ -104,102 +104,102 @@ C - Manufacturing C10 - Manufacture of food products C10.1 - Processing and pres
     
     <item>
       <title>No excuse not to be a Bayesian anymore</title>
-      <link>/post/2020-04-20-no_excuse/</link>
+      <link>http://example.org/post/2020-04-20-no_excuse/</link>
       <pubDate>Mon, 20 Apr 2020 00:00:00 +0000</pubDate>
       
-      <guid>/post/2020-04-20-no_excuse/</guid>
+      <guid>http://example.org/post/2020-04-20-no_excuse/</guid>
       <description>My first encounter with Bayesian statistics was around 10 years ago, when I was doing my econometrics master’s degree. I was immediately very interested by the Bayesian approach to fit econometric models, because, when you’re reading about Bayesian approaches, it just sounds so easy and natural. You have a model, you might have some prior beliefs about the models parameters, and Bayes’ rule tells you how your beliefs should change when confronting the model to data (evidence).</description>
     </item>
     
     <item>
       <title>How to basic: bar plots</title>
-      <link>/post/2020-04-12-basic_ggplot2/</link>
+      <link>http://example.org/post/2020-04-12-basic_ggplot2/</link>
       <pubDate>Sun, 12 Apr 2020 00:00:00 +0000</pubDate>
       
-      <guid>/post/2020-04-12-basic_ggplot2/</guid>
+      <guid>http://example.org/post/2020-04-12-basic_ggplot2/</guid>
       <description>This blog post shows how to make bar plots and area charts. It’s mostly a list of recipes, indented for myself. These are plots I have often to do in reports and would like to have the code handy somewhere. Maybe this will be helpful to some of you as well. Actually, this post is exactly how I started my blog post. I wanted to have a repository of recipes, and with time the blog grew to what it is now (tutorials and me exploring methods and datasets with R).</description>
     </item>
     
     <item>
       <title>What would a keyboard optimised for Luxembourguish look like?</title>
-      <link>/post/2020-03-26-bepo_lu/</link>
+      <link>http://example.org/post/2020-03-26-bepo_lu/</link>
       <pubDate>Fri, 27 Mar 2020 00:00:00 +0000</pubDate>
       
-      <guid>/post/2020-03-26-bepo_lu/</guid>
+      <guid>http://example.org/post/2020-03-26-bepo_lu/</guid>
       <description>I’ve been using the BÉPO layout for my keyboard since 2010-ish, and it’s been one of the best computing decisions I’ve ever taken. The BÉPO layout is an optimized layout for French, but it works quite well for many European languages, English included (the only issue you might have with the BÉPO layout for English is that the w is a bit far away).
 To come up with the BÉPO layout, ideas from a man named August Dvorak were applied for the French language.</description>
     </item>
     
     <item>
       <title>Explainbility of {tidymodels} models with {iml}</title>
-      <link>/post/2020-03-10-exp_tidymodels/</link>
+      <link>http://example.org/post/2020-03-10-exp_tidymodels/</link>
       <pubDate>Tue, 10 Mar 2020 00:00:00 +0000</pubDate>
       
-      <guid>/post/2020-03-10-exp_tidymodels/</guid>
+      <guid>http://example.org/post/2020-03-10-exp_tidymodels/</guid>
       <description>In my previous blog post, I have shown how you could use {tidymodels} to train several machine learning models. Now, let’s take a look at getting some explanations out of them, using the {iml} package. Originally I did not intend to create a separate blog post, but I have encountered… an issue, or bug, when using both {iml} and {tidymodels} and I felt that it was important that I write about it.</description>
     </item>
     
     <item>
       <title>Machine learning with {tidymodels}</title>
-      <link>/post/2020-03-08-tidymodels/</link>
+      <link>http://example.org/post/2020-03-08-tidymodels/</link>
       <pubDate>Sun, 08 Mar 2020 00:00:00 +0000</pubDate>
       
-      <guid>/post/2020-03-08-tidymodels/</guid>
+      <guid>http://example.org/post/2020-03-08-tidymodels/</guid>
       <description>Intro: what is {tidymodels} I have already written about {tidymodels} in the past but since then, the {tidymodels} meta-package has evolved quite a lot. If you don’t know what {tidymodels} is, it is a suite of packages that make machine learning with R a breeze. R has many packages for machine learning, each with their own syntax and function arguments. {tidymodels} aims at providing an unified interface which allows data scientists to focus on the problem they’re trying to solve, instead of wasting time with learning package specificities.</description>
     </item>
     
     <item>
       <title>Synthetic micro-datasets: a promising middle ground between data privacy and data analysis</title>
-      <link>/post/2020-02-23-synthpop/</link>
+      <link>http://example.org/post/2020-02-23-synthpop/</link>
       <pubDate>Sun, 23 Feb 2020 00:00:00 +0000</pubDate>
       
-      <guid>/post/2020-02-23-synthpop/</guid>
+      <guid>http://example.org/post/2020-02-23-synthpop/</guid>
       <description>Intro: the need for microdata, and the risk of disclosure Survey and administrative data are essential for scientific research, however accessing such datasets can be very tricky, or even impossible. In my previous job I was responsible for getting access to such “scientific micro-datasets” from institutions like Eurostat. In general, getting access to these micro datasets was only a question of filling out some forms and signing NDAs.</description>
     </item>
     
     <item>
       <title>Dynamic discrete choice models, reinforcement learning and Harold, part 2</title>
-      <link>/post/2020-02-08-harold_part2/</link>
+      <link>http://example.org/post/2020-02-08-harold_part2/</link>
       <pubDate>Fri, 14 Feb 2020 00:00:00 +0000</pubDate>
       
-      <guid>/post/2020-02-08-harold_part2/</guid>
+      <guid>http://example.org/post/2020-02-08-harold_part2/</guid>
       <description>In this blog post, I present a paper that has really interested me for a long time. This is part2, where I will briefly present the model of the paper, and try to play around with the data. If you haven’t, I suggest you read part 1 where I provide more context.
 Rust’s model Welcome to part 2 of this series, which might or might not have a part 3.</description>
     </item>
     
     <item>
       <title>Dynamic discrete choice models, reinforcement learning and Harold, part 1</title>
-      <link>/post/2020-01-26-harold/</link>
+      <link>http://example.org/post/2020-01-26-harold/</link>
       <pubDate>Sun, 26 Jan 2020 00:00:00 +0000</pubDate>
       
-      <guid>/post/2020-01-26-harold/</guid>
+      <guid>http://example.org/post/2020-01-26-harold/</guid>
       <description>Introduction I want to write about an Econometrica paper written in 1987 (jstor link) by John Rust, currently Professor of Economics at Georgetown University, paper which has been on my mind for the past 10 years or so. Why? Because it is a seminal paper in the econometric literature, but it is quite a bizarre one in some aspects. In this paper, John Rust estimates a structural dynamic discrete choice model on real data, and Professor Rust even had to develop his own novel algorithm, which he called NFXP, which stands for Nested Fixed Point algorithm, to estimate the model.</description>
     </item>
     
     <item>
       <title>Intrumental variable regression and machine learning</title>
-      <link>/post/2019-11-06-explainability_econometrics/</link>
+      <link>http://example.org/post/2019-11-06-explainability_econometrics/</link>
       <pubDate>Sat, 09 Nov 2019 00:00:00 +0000</pubDate>
       
-      <guid>/post/2019-11-06-explainability_econometrics/</guid>
+      <guid>http://example.org/post/2019-11-06-explainability_econometrics/</guid>
       <description>Intro Just like the question “what’s the difference between machine learning and statistics” has shed a lot of ink (since at least Breiman (2001)), the same question but where statistics is replaced by econometrics has led to a lot of discussion, as well. I like this presentation by Hal Varian from almost 6 years ago. There’s a slide called “What econometrics can learn from machine learning”, which summarises in a few bullet points Varian (2014) and the rest of the presentation discusses what machine learning can learn from econometrics.</description>
     </item>
     
     <item>
       <title>Multiple data imputation and explainability</title>
-      <link>/post/2019-11-02-mice_exp/</link>
+      <link>http://example.org/post/2019-11-02-mice_exp/</link>
       <pubDate>Sat, 02 Nov 2019 00:00:00 +0000</pubDate>
       
-      <guid>/post/2019-11-02-mice_exp/</guid>
+      <guid>http://example.org/post/2019-11-02-mice_exp/</guid>
       <description>Introduction Imputing missing values is quite an important task, but in my experience, very often, it is performed using very simplistic approaches. The basic approach is to impute missing values for numerical features using the average of each feature, or using the mode for categorical features. There are better ways of imputing missing values, for instance by predicting the values using a regression model, or KNN. However, imputing only once is not enough, because each imputed value carries with it a certain level of uncertainty.</description>
     </item>
     
     <item>
       <title>Cluster multiple time series using K-means</title>
-      <link>/post/2019-10-12-cluster_ts/</link>
+      <link>http://example.org/post/2019-10-12-cluster_ts/</link>
       <pubDate>Sun, 13 Oct 2019 00:00:00 +0000</pubDate>
       
-      <guid>/post/2019-10-12-cluster_ts/</guid>
+      <guid>http://example.org/post/2019-10-12-cluster_ts/</guid>
       <description>I have been recently confronted to the issue of finding similarities among time-series and though about using k-means to cluster them. To illustrate the method, I’ll be using data from the Penn World Tables, readily available in R (inside the {pwt9} package):
 library(tidyverse) library(lubridate) library(pwt9) library(brotools) First, of all, let’s only select the needed columns:
 pwt &amp;lt;- pwt9.0 %&amp;gt;% select(country, year, avh) avh contains the average worked hours for a given country and year.</description>
@@ -207,29 +207,29 @@ pwt &amp;lt;- pwt9.0 %&amp;gt;% select(country, year, avh) avh contains the aver
     
     <item>
       <title>Split-apply-combine for Maximum Likelihood Estimation of a linear model</title>
-      <link>/post/2019-10-05-parallel_maxlik/</link>
+      <link>http://example.org/post/2019-10-05-parallel_maxlik/</link>
       <pubDate>Sat, 05 Oct 2019 00:00:00 +0000</pubDate>
       
-      <guid>/post/2019-10-05-parallel_maxlik/</guid>
+      <guid>http://example.org/post/2019-10-05-parallel_maxlik/</guid>
       <description>Intro Maximum likelihood estimation is a very useful technique to fit a model to data used a lot in econometrics and other sciences, but seems, at least to my knowledge, to not be so well known by machine learning practitioners (but I may be wrong about that). Other useful techniques to confront models to data used in econometrics are the minimum distance family of techniques such as the general method of moments or Bayesian approaches, while machine learning practitioners seem to favor the minimization of a loss function (the mean squared error in the case of linear regression for instance).</description>
     </item>
     
     <item>
       <title>{disk.frame} is epic</title>
-      <link>/post/2019-09-03-disk_frame/</link>
+      <link>http://example.org/post/2019-09-03-disk_frame/</link>
       <pubDate>Tue, 03 Sep 2019 00:00:00 +0000</pubDate>
       
-      <guid>/post/2019-09-03-disk_frame/</guid>
+      <guid>http://example.org/post/2019-09-03-disk_frame/</guid>
       <description>Note: When I started writing this blog post, I encountered a bug and filed a bug report that I encourage you to read. The responsiveness of the developer was exemplary. Not only did Zhuo solve the issue in record time, he provided ample code snippets to illustrate the solutions. Hats off to him!
 This blog post is a short presentation of {disk.frame} a package that makes it easy to work with data that is too large to fit on RAM, but not large enough that it could be called big data.</description>
     </item>
     
     <item>
       <title>Modern R with the tidyverse is available on Leanpub</title>
-      <link>/post/2019-08-17-modern_r/</link>
+      <link>http://example.org/post/2019-08-17-modern_r/</link>
       <pubDate>Sat, 17 Aug 2019 00:00:00 +0000</pubDate>
       
-      <guid>/post/2019-08-17-modern_r/</guid>
+      <guid>http://example.org/post/2019-08-17-modern_r/</guid>
       <description>Yesterday I released an ebook on Leanpub, called Modern R with the tidyverse, which you can also read for free here.
 In this blog post, I want to give some context.
 Modern R with the tidyverse is the second ebook I release on Leanpub. I released the first one, called Functional programming and unit testing for data munging with R around Christmas 2016 (I’ve retired it on Leanpub, but you can still read it for free here) .</description>
@@ -237,57 +237,57 @@ Modern R with the tidyverse is the second ebook I release on Leanpub. I released
     
     <item>
       <title>Using linear models with binary dependent variables, a simulation study</title>
-      <link>/post/2019-08-14-lpm/</link>
+      <link>http://example.org/post/2019-08-14-lpm/</link>
       <pubDate>Wed, 14 Aug 2019 00:00:00 +0000</pubDate>
       
-      <guid>/post/2019-08-14-lpm/</guid>
+      <guid>http://example.org/post/2019-08-14-lpm/</guid>
       <description>This blog post is an excerpt of my ebook Modern R with the tidyverse that you can read for free here. This is taken from Chapter 8, in which I discuss advanced functional programming methods for modeling.
 As written just above (note: as written above in the book), map() simply applies a function to a list of inputs, and in the previous section we mapped ggplot() to generate many plots at once.</description>
     </item>
     
     <item>
       <title>Statistical matching, or when one single data source is not enough</title>
-      <link>/post/2019-07-19-statmatch/</link>
+      <link>http://example.org/post/2019-07-19-statmatch/</link>
       <pubDate>Fri, 19 Jul 2019 00:00:00 +0000</pubDate>
       
-      <guid>/post/2019-07-19-statmatch/</guid>
+      <guid>http://example.org/post/2019-07-19-statmatch/</guid>
       <description>I was recently asked how to go about matching several datasets where different samples of individuals were interviewed. This sounds like a big problem; say that you have dataset A and B, and that A contain one sample of individuals, and B another sample of individuals, then how could you possibly match the datasets? Matching datasets requires a common identifier, for instance, suppose that A contains socio-demographic information on a sample of individuals I, while B, contains information on wages and hours worked on the same sample of individuals I, then yes, it will be possible to match/merge/join both datasets.</description>
     </item>
     
     <item>
       <title>Curly-Curly, the successor of Bang-Bang</title>
-      <link>/post/2019-06-20-tidy_eval_saga/</link>
+      <link>http://example.org/post/2019-06-20-tidy_eval_saga/</link>
       <pubDate>Sat, 29 Jun 2019 00:00:00 +0000</pubDate>
       
-      <guid>/post/2019-06-20-tidy_eval_saga/</guid>
+      <guid>http://example.org/post/2019-06-20-tidy_eval_saga/</guid>
       <description>Writing functions that take data frame columns as arguments is a problem that most R users have been confronted with at some point. There are different ways to tackle this issue, and this blog post will focus on the solution provided by the latest release of the {rlang} package. You can read the announcement here, which explains really well what was wrong with the old syntax, and how the new syntax works now.</description>
     </item>
     
     <item>
       <title>Intermittent demand, Croston and Die Hard</title>
-      <link>/post/2019-06-12-intermittent/</link>
+      <link>http://example.org/post/2019-06-12-intermittent/</link>
       <pubDate>Wed, 12 Jun 2019 00:00:00 +0000</pubDate>
       
-      <guid>/post/2019-06-12-intermittent/</guid>
+      <guid>http://example.org/post/2019-06-12-intermittent/</guid>
       <description>I have recently been confronted to a kind of data set and problem that I was not even aware existed: intermittent demand data. Intermittent demand arises when the demand for a certain good arrives sporadically. Let’s take a look at an example, by analyzing the number of downloads for the {RDieHarder} package:
 library(tidyverse) library(tsintermittent) library(nnfor) library(cranlogs) library(brotools) rdieharder &amp;lt;- cran_downloads(&amp;quot;RDieHarder&amp;quot;, from = &amp;quot;2017-01-01&amp;quot;) ggplot(rdieharder) + geom_line(aes(y = count, x = date), colour = &amp;quot;#82518c&amp;quot;) + theme_blog() Let’s take a look at just one month of data, because the above plot is not very clear, because of the outlier just before 2019… I wonder now, was that on Christmas day?</description>
     </item>
     
     <item>
       <title>Using cosine similarity to find matching documents: a tutorial using Seneca&#39;s letters to his friend Lucilius</title>
-      <link>/post/2019-06-04-cosine_sim/</link>
+      <link>http://example.org/post/2019-06-04-cosine_sim/</link>
       <pubDate>Tue, 04 Jun 2019 00:00:00 +0000</pubDate>
       
-      <guid>/post/2019-06-04-cosine_sim/</guid>
+      <guid>http://example.org/post/2019-06-04-cosine_sim/</guid>
       <description>Lately I’ve been interested in trying to cluster documents, and to find similar documents based on their contents. In this blog post, I will use Seneca’s Moral letters to Lucilius and compute the pairwise cosine similarity of his 124 letters. Computing the cosine similarity between two vectors returns how similar these vectors are. A cosine similarity of 1 means that the angle between the two vectors is 0, and thus both vectors have the same direction.</description>
     </item>
     
     <item>
       <title>The never-ending editor war (?)</title>
-      <link>/post/2019-05-19-spacemacs/</link>
+      <link>http://example.org/post/2019-05-19-spacemacs/</link>
       <pubDate>Sun, 19 May 2019 00:00:00 +0000</pubDate>
       
-      <guid>/post/2019-05-19-spacemacs/</guid>
+      <guid>http://example.org/post/2019-05-19-spacemacs/</guid>
       <description>The creation of this blog post was prompted by this tweet, asking an age-old question:
 @spacemacs
 &amp;mdash; Bruno Rodrigues (@brodriguesco) May 16, 2019  This is actually a very important question, that I have been asking myself for a long time. An IDE, and plain text editors, are a very important tools to anyone writing code. Most working hours are spent within such a program, which means that one has to be careful about choosing the right one, and once a choice is made, one has, in my humble opinion, learn as many features of this program as possible to become as efficient as possible.</description>
@@ -295,147 +295,147 @@ library(tidyverse) library(tsintermittent) library(nnfor) library(cranlogs) libr
     
     <item>
       <title>For posterity: install {xml2} on GNU/Linux distros</title>
-      <link>/post/2019-05-18-xml2/</link>
+      <link>http://example.org/post/2019-05-18-xml2/</link>
       <pubDate>Sat, 18 May 2019 00:00:00 +0000</pubDate>
       
-      <guid>/post/2019-05-18-xml2/</guid>
+      <guid>http://example.org/post/2019-05-18-xml2/</guid>
       <description>Today I’ve removed my system’s R package and installed MRO instead. While re-installing all packages, I’ve encountered one of the most frustrating error message for someone installing packages from source:
 Error : /tmp/Rtmpw60aCp/R.INSTALL7819efef27e/xml2/man/read_xml.Rd:47: unable to load shared object &amp;#39;/usr/lib64/R/library/xml2/libs/xml2.so&amp;#39;: libicui18n.so.58: cannot open shared object file: No such file or directory ERROR: installing Rd objects failed for package ‘xml2’  This library, libicui18n.so.58 is a pain in the butt. However, you can easily install it if you install miniconda.</description>
     </item>
     
     <item>
       <title>Fast food, causality and R packages, part 2</title>
-      <link>/post/2019-05-04-diffindiff_part2/</link>
+      <link>http://example.org/post/2019-05-04-diffindiff_part2/</link>
       <pubDate>Sat, 04 May 2019 00:00:00 +0000</pubDate>
       
-      <guid>/post/2019-05-04-diffindiff_part2/</guid>
+      <guid>http://example.org/post/2019-05-04-diffindiff_part2/</guid>
       <description>I am currently working on a package for the R programming language; its initial goal was to simply distribute the data used in the Card and Krueger 1994 paper that you can read here (PDF warning). However, I decided that I would add code to perform diff-in-diff.
 In my previous blog post I showed how to set up the structure of your new package. In this blog post, I will only focus on getting Card and Krueger’s data and prepare it for distribution.</description>
     </item>
     
     <item>
       <title>Fast food, causality and R packages, part 1</title>
-      <link>/post/2019-04-28-diffindiff_part1/</link>
+      <link>http://example.org/post/2019-04-28-diffindiff_part1/</link>
       <pubDate>Sun, 28 Apr 2019 00:00:00 +0000</pubDate>
       
-      <guid>/post/2019-04-28-diffindiff_part1/</guid>
+      <guid>http://example.org/post/2019-04-28-diffindiff_part1/</guid>
       <description>I am currently working on a package for the R programming language; its initial goal was to simply distribute the data used in the Card and Krueger 1994 paper that you can read here (PDF warning).
 The gist of the paper is to try to answer the following question: Do increases in minimum wages reduce employment? According to Card and Krueger’s paper from 1994, no. The authors studied a change in legislation in New Jersey which increased the minimum wage from $4.</description>
     </item>
     
     <item>
       <title>Historical newspaper scraping with {tesseract} and R</title>
-      <link>/post/2019-04-07-historical_newspaper_scraping_tesseract/</link>
+      <link>http://example.org/post/2019-04-07-historical_newspaper_scraping_tesseract/</link>
       <pubDate>Sun, 07 Apr 2019 00:00:00 +0000</pubDate>
       
-      <guid>/post/2019-04-07-historical_newspaper_scraping_tesseract/</guid>
+      <guid>http://example.org/post/2019-04-07-historical_newspaper_scraping_tesseract/</guid>
       <description>I have been playing around with historical newspapers data for some months now. The “obvious” type of analysis to do is NLP, but there is also a lot of numerical data inside historical newspapers. For instance, you can find these tables that show the market prices of the day in the L’Indépendance Luxembourgeoise:
 I wanted to see how easy it was to extract these tables from the newspapers and then make it available.</description>
     </item>
     
     <item>
       <title>Get text from pdfs or images using OCR: a tutorial with {tesseract} and {magick}</title>
-      <link>/post/2019-03-31-tesseract/</link>
+      <link>http://example.org/post/2019-03-31-tesseract/</link>
       <pubDate>Sun, 31 Mar 2019 00:00:00 +0000</pubDate>
       
-      <guid>/post/2019-03-31-tesseract/</guid>
+      <guid>http://example.org/post/2019-03-31-tesseract/</guid>
       <description>In this blog post I’m going to show you how you can extract text from scanned pdf files, or pdf files where no text recognition was performed. (For pdfs where text recognition was performed, you can read my other blog post).
 The pdf I’m going to use can be downloaded from here. It’s a poem titled, D’Léierchen (Dem Léiweckerche säi Lidd), written by Michel Rodange, arguably Luxembourg’s most well known writer and poet.</description>
     </item>
     
     <item>
       <title>Pivoting data frames just got easier thanks to `pivot_wide()` and `pivot_long()`</title>
-      <link>/post/2019-03-20-pivot/</link>
+      <link>http://example.org/post/2019-03-20-pivot/</link>
       <pubDate>Wed, 20 Mar 2019 00:00:00 +0000</pubDate>
       
-      <guid>/post/2019-03-20-pivot/</guid>
+      <guid>http://example.org/post/2019-03-20-pivot/</guid>
       <description>There’s a lot going on in the development version of {tidyr}. New functions for pivoting data frames, pivot_wide() and pivot_long() are coming, and will replace the current functions, spread() and gather(). spread() and gather() will remain in the package though:
 You may have heard a rumour that gather/spread are going away. This is simply not true (they’ll stay around forever) but I am working on better replacements which you can learn about at https://t.</description>
     </item>
     
     <item>
       <title>Classification of historical newspapers content: a tutorial combining R, bash and Vowpal Wabbit, part 2</title>
-      <link>/post/2019-03-05-historical_vowpal_part2/</link>
+      <link>http://example.org/post/2019-03-05-historical_vowpal_part2/</link>
       <pubDate>Tue, 05 Mar 2019 00:00:00 +0000</pubDate>
       
-      <guid>/post/2019-03-05-historical_vowpal_part2/</guid>
+      <guid>http://example.org/post/2019-03-05-historical_vowpal_part2/</guid>
       <description>In part 1 of this series I set up Vowpal Wabbit to classify newspapers content. Now, let’s use the model to make predictions and see how and if we can improve the model. Then, let’s train the model on the whole data.
 Step 1: prepare the data The first step consists in importing the test data and preparing it. The test data need not be large and thus can be imported and worked on in R.</description>
     </item>
     
     <item>
       <title>Classification of historical newspapers content: a tutorial combining R, bash and Vowpal Wabbit, part 1</title>
-      <link>/post/2019-03-03-historical_vowpal/</link>
+      <link>http://example.org/post/2019-03-03-historical_vowpal/</link>
       <pubDate>Sun, 03 Mar 2019 00:00:00 +0000</pubDate>
       
-      <guid>/post/2019-03-03-historical_vowpal/</guid>
+      <guid>http://example.org/post/2019-03-03-historical_vowpal/</guid>
       <description>Can I get enough of historical newspapers data? Seems like I don’t. I already wrote four (1, 2, 3 and 4) blog posts, but there’s still a lot to explore. This blog post uses a new batch of data announced on twitter:
 For all who love to analyse text, the BnL released half a million of processed newspaper articles. Historical news from 1841-1878. They directly contain the full text as well as other metadata.</description>
     </item>
     
     <item>
       <title>Manipulating strings with the {stringr} package</title>
-      <link>/post/2019-02-10-stringr_package/</link>
+      <link>http://example.org/post/2019-02-10-stringr_package/</link>
       <pubDate>Sun, 10 Feb 2019 00:00:00 +0000</pubDate>
       
-      <guid>/post/2019-02-10-stringr_package/</guid>
+      <guid>http://example.org/post/2019-02-10-stringr_package/</guid>
       <description>This blog post is an excerpt of my ebook Modern R with the tidyverse that you can read for free here. This is taken from Chapter 4, in which I introduce the {stringr} package.
 Manipulate strings with {stringr} {stringr} contains functions to manipulate strings. In Chapter 10, I will teach you about regular expressions, but the functions contained in {stringr} allow you to already do a lot of work on strings, without needing to be a regular expression expert.</description>
     </item>
     
     <item>
       <title>Building a shiny app to explore historical newspapers: a step-by-step guide</title>
-      <link>/post/2019-02-04-newspapers_shiny_app_tutorial/</link>
+      <link>http://example.org/post/2019-02-04-newspapers_shiny_app_tutorial/</link>
       <pubDate>Mon, 04 Feb 2019 00:00:00 +0000</pubDate>
       
-      <guid>/post/2019-02-04-newspapers_shiny_app_tutorial/</guid>
+      <guid>http://example.org/post/2019-02-04-newspapers_shiny_app_tutorial/</guid>
       <description>Introduction I started off this year by exploring a world that was unknown to me, the world of historical newspapers. I did not know that historical newspapers data was a thing, and have been thoroughly enjoying myself exploring the different datasets published by the National Library of Luxembourg. You can find the data here.
 In my first blog post, I analyzed data from L’indépendence Luxembourgeoise. I focused on the ads, which were for the most part in the 4th and last page of the newspaper.</description>
     </item>
     
     <item>
       <title>Using Data Science to read 10 years of Luxembourguish newspapers from the 19th century</title>
-      <link>/post/2019-01-31-newspapers_shiny_app/</link>
+      <link>http://example.org/post/2019-01-31-newspapers_shiny_app/</link>
       <pubDate>Thu, 31 Jan 2019 00:00:00 +0000</pubDate>
       
-      <guid>/post/2019-01-31-newspapers_shiny_app/</guid>
+      <guid>http://example.org/post/2019-01-31-newspapers_shiny_app/</guid>
       <description>I have been playing around with historical newspaper data (see here and here). I have extracted the data from the largest archive available, as described in the previous blog post, and now created a shiny dashboard where it is possible to visualize the most common words per article, as well as read a summary of each article. The summary was made using a method called textrank, using the {textrank} package, which extracts relevant sentences using the Pagerank (developed by Google) algorithm.</description>
     </item>
     
     <item>
       <title>Making sense of the METS and ALTO XML standards</title>
-      <link>/post/2019-01-13-newspapers_mets_alto/</link>
+      <link>http://example.org/post/2019-01-13-newspapers_mets_alto/</link>
       <pubDate>Sun, 13 Jan 2019 00:00:00 +0000</pubDate>
       
-      <guid>/post/2019-01-13-newspapers_mets_alto/</guid>
+      <guid>http://example.org/post/2019-01-13-newspapers_mets_alto/</guid>
       <description>Last week I wrote a blog post where I analyzed one year of newspapers ads from 19th century newspapers. The data is made available by the national library of Luxembourg. In this blog post, which is part 1 of a 2 part series, I extract data from the 257gb archive, which contains 10 years of publications of the L’Union, another 19th century Luxembourguish newspaper written in French. As I explained in the previous post, to make life easier to data scientists, the national library also included ALTO and METS files (which are a XML files used to describe the layout and contents of physical text sources, such as pages of a book or newspaper) which can be easily parsed by R.</description>
     </item>
     
     <item>
       <title>Looking into 19th century ads from a Luxembourguish newspaper with R</title>
-      <link>/post/2019-01-04-newspapers/</link>
+      <link>http://example.org/post/2019-01-04-newspapers/</link>
       <pubDate>Fri, 04 Jan 2019 00:00:00 +0000</pubDate>
       
-      <guid>/post/2019-01-04-newspapers/</guid>
+      <guid>http://example.org/post/2019-01-04-newspapers/</guid>
       <description>The national library of Luxembourg published some very interesting data sets; scans of historical newspapers! There are several data sets that you can download, from 250mb up to 257gb. I decided to take a look at the 32gb “ML Starter Pack”. It contains high quality scans of one year of the L’indépendence Luxembourgeoise (Luxembourguish independence) from the year 1877. To make life easier to data scientists, the national library also included ALTO and METS files (which is a XML schema that is used to describe the layout and contents of physical text sources, such as pages of a book or newspaper) which can be easily parsed by R.</description>
     </item>
     
     <item>
       <title>R or Python? Why not both? Using Anaconda Python within R with {reticulate}</title>
-      <link>/post/2018-12-30-reticulate/</link>
+      <link>http://example.org/post/2018-12-30-reticulate/</link>
       <pubDate>Sun, 30 Dec 2018 00:00:00 +0000</pubDate>
       
-      <guid>/post/2018-12-30-reticulate/</guid>
+      <guid>http://example.org/post/2018-12-30-reticulate/</guid>
       <description>This short blog post illustrates how easy it is to use R and Python in the same R Notebook thanks to the {reticulate} package. For this to work, you might need to upgrade RStudio to the current preview version. Let’s start by importing {reticulate}:
 library(reticulate) {reticulate} is an RStudio package that provides “a comprehensive set of tools for interoperability between Python and R”. With it, it is possible to call Python and use Python libraries within an R session, or define Python chunks in R markdown.</description>
     </item>
     
     <item>
       <title>Some fun with {gganimate}</title>
-      <link>/post/2018-12-27-fun_gganimate/</link>
+      <link>http://example.org/post/2018-12-27-fun_gganimate/</link>
       <pubDate>Thu, 27 Dec 2018 00:00:00 +0000</pubDate>
       
-      <guid>/post/2018-12-27-fun_gganimate/</guid>
+      <guid>http://example.org/post/2018-12-27-fun_gganimate/</guid>
       <description>Your browser does not support the video tag.   In this short blog post I show you how you can use the {gganimate} package to create animations from {ggplot2} graphs with data from UNU-WIDER.
 WIID data Just before Christmas, UNU-WIDER released a new edition of their World Income Inequality Database:
 *NEW #DATA*
@@ -445,48 +445,48 @@ WIID4 includes #data from 7 new countries, now totalling 189, and reaches the ye
     
     <item>
       <title>Objects types and some useful R functions for beginners</title>
-      <link>/post/2018-12-24-modern_objects/</link>
+      <link>http://example.org/post/2018-12-24-modern_objects/</link>
       <pubDate>Mon, 24 Dec 2018 00:00:00 +0000</pubDate>
       
-      <guid>/post/2018-12-24-modern_objects/</guid>
+      <guid>http://example.org/post/2018-12-24-modern_objects/</guid>
       <description>This blog post is an excerpt of my ebook Modern R with the tidyverse that you can read for free here. This is taken from Chapter 2, which explains the different R objects you can manipulate as well as some functions to get you started.
 Objects, types and useful R functions to get started All objects in R have a given type. You already know most of them, as these types are also used in mathematics.</description>
     </item>
     
     <item>
       <title>Using the tidyverse for more than data manipulation: estimating pi with Monte Carlo methods</title>
-      <link>/post/2018-12-21-tidyverse_pi/</link>
+      <link>http://example.org/post/2018-12-21-tidyverse_pi/</link>
       <pubDate>Fri, 21 Dec 2018 00:00:00 +0000</pubDate>
       
-      <guid>/post/2018-12-21-tidyverse_pi/</guid>
+      <guid>http://example.org/post/2018-12-21-tidyverse_pi/</guid>
       <description>This blog post is an excerpt of my ebook Modern R with the tidyverse that you can read for free here. This is taken from Chapter 5, which presents the {tidyverse} packages and how to use them to compute descriptive statistics and manipulate data. In the text below, I show how you can use the {tidyverse} functions and principles for the estimation of \(\pi\) using Monte Carlo simulation.</description>
     </item>
     
     <item>
       <title>Manipulate dates easily with {lubridate}</title>
-      <link>/post/2018-12-15-lubridate_africa/</link>
+      <link>http://example.org/post/2018-12-15-lubridate_africa/</link>
       <pubDate>Sat, 15 Dec 2018 00:00:00 +0000</pubDate>
       
-      <guid>/post/2018-12-15-lubridate_africa/</guid>
+      <guid>http://example.org/post/2018-12-15-lubridate_africa/</guid>
       <description>This blog post is an excerpt of my ebook Modern R with the tidyverse that you can read for free here. This is taken from Chapter 5, which presents the {tidyverse} packages and how to use them to compute descriptive statistics and manipulate data. In the text below, I scrape a table from Wikipedia, which shows when African countries gained independence from other countries. Then, using {lubridate} functions I show you how you can answers questions such as Which countries gained independence before 1960?</description>
     </item>
     
     <item>
       <title>What hyper-parameters are, and what to do with them; an illustration with ridge regression</title>
-      <link>/post/2018-12-02-hyper-parameters/</link>
+      <link>http://example.org/post/2018-12-02-hyper-parameters/</link>
       <pubDate>Sun, 02 Dec 2018 00:00:00 +0000</pubDate>
       
-      <guid>/post/2018-12-02-hyper-parameters/</guid>
+      <guid>http://example.org/post/2018-12-02-hyper-parameters/</guid>
       <description>This blog post is an excerpt of my ebook Modern R with the tidyverse that you can read for free here. This is taken from Chapter 7, which deals with statistical models. In the text below, I explain what hyper-parameters are, and as an example I run a ridge regression using the {glmnet} package. The book is still being written, so comments are more than welcome!
 Hyper-parameters Hyper-parameters are parameters of the model that cannot be directly learned from the data.</description>
     </item>
     
     <item>
       <title>A tutorial on tidy cross-validation with R</title>
-      <link>/post/2018-11-25-tidy_cv/</link>
+      <link>http://example.org/post/2018-11-25-tidy_cv/</link>
       <pubDate>Sun, 25 Nov 2018 00:00:00 +0000</pubDate>
       
-      <guid>/post/2018-11-25-tidy_cv/</guid>
+      <guid>http://example.org/post/2018-11-25-tidy_cv/</guid>
       <description>Introduction This blog posts will use several packages from the {tidymodels} collection of packages, namely {recipes}, {rsample} and {parsnip} to train a random forest the tidy way. I will also use {mlrMBO} to tune the hyper-parameters of the random forest.
  Set up Let’s load the needed packages:
 library(&amp;quot;tidyverse&amp;quot;) library(&amp;quot;tidymodels&amp;quot;) library(&amp;quot;parsnip&amp;quot;) library(&amp;quot;brotools&amp;quot;) library(&amp;quot;mlbench&amp;quot;) Load the data, included in the {mlrbench} package:
@@ -495,10 +495,10 @@ data(&amp;quot;BostonHousing2&amp;quot;) I will train a random forest to predict
     
     <item>
       <title>The best way to visit Luxembourguish castles is doing data science &#43; combinatorial optimization</title>
-      <link>/post/2018-11-21-lux_castle/</link>
+      <link>http://example.org/post/2018-11-21-lux_castle/</link>
       <pubDate>Wed, 21 Nov 2018 00:00:00 +0000</pubDate>
       
-      <guid>/post/2018-11-21-lux_castle/</guid>
+      <guid>http://example.org/post/2018-11-21-lux_castle/</guid>
       <description>Inspired by David Schoch’s blog post, Traveling Beerdrinker Problem. Check out his blog, he has some amazing posts!
 Introduction Luxembourg, as any proper European country, is full of castles. According to Wikipedia,
 “By some optimistic estimates, there are as many as 130 castles in Luxembourg but more realistically there are probably just over a hundred, although many of these could be considered large residences or manor houses rather than castles”.</description>
@@ -506,39 +506,39 @@ Introduction Luxembourg, as any proper European country, is full of castles. Acc
     
     <item>
       <title>Using a genetic algorithm for the hyperparameter optimization of a SARIMA model</title>
-      <link>/post/2018-11-16-rgenoud_arima/</link>
+      <link>http://example.org/post/2018-11-16-rgenoud_arima/</link>
       <pubDate>Fri, 16 Nov 2018 00:00:00 +0000</pubDate>
       
-      <guid>/post/2018-11-16-rgenoud_arima/</guid>
+      <guid>http://example.org/post/2018-11-16-rgenoud_arima/</guid>
       <description>Introduction In this blog post, I’ll use the data that I cleaned in a previous blog post, which you can download here. If you want to follow along, download the monthly data. In my last blog post I showed how to perform a grid search the “tidy” way. As an example, I looked for the right hyperparameters of a SARIMA model. However, the goal of the post was not hyperparameter optimization per se, so I did not bother with tuning the hyperparameters on a validation set, and used the test set for both validation of the hyperparameters and testing the forecast.</description>
     </item>
     
     <item>
       <title>Searching for the optimal hyper-parameters of an ARIMA model in parallel: the tidy gridsearch approach</title>
-      <link>/post/2018-11-15-tidy_gridsearch/</link>
+      <link>http://example.org/post/2018-11-15-tidy_gridsearch/</link>
       <pubDate>Thu, 15 Nov 2018 00:00:00 +0000</pubDate>
       
-      <guid>/post/2018-11-15-tidy_gridsearch/</guid>
+      <guid>http://example.org/post/2018-11-15-tidy_gridsearch/</guid>
       <description>Introduction In this blog post, I’ll use the data that I cleaned in a previous blog post, which you can download here. If you want to follow along, download the monthly data.
 In the previous blog post, I used the auto.arima() function to very quickly get a “good-enough” model to predict future monthly total passengers flying from LuxAirport. “Good-enough” models can be all you need in a lot of situations, but perhaps you’d like to have a better model.</description>
     </item>
     
     <item>
       <title>Easy time-series prediction with R: a tutorial with air traffic data from Lux Airport</title>
-      <link>/post/2018-11-14-luxairport/</link>
+      <link>http://example.org/post/2018-11-14-luxairport/</link>
       <pubDate>Wed, 14 Nov 2018 00:00:00 +0000</pubDate>
       
-      <guid>/post/2018-11-14-luxairport/</guid>
+      <guid>http://example.org/post/2018-11-14-luxairport/</guid>
       <description>In this blog post, I will show you how you can quickly and easily forecast a univariate time series. I am going to use data from the EU Open Data Portal on air passenger transport. You can find the data here. I downloaded the data in the TSV format for Luxembourg Airport, but you could repeat the analysis for any airport.
 Once you have the data, load some of the package we are going to need:</description>
     </item>
     
     <item>
       <title>Analyzing NetHack data, part 2: What players kill the most</title>
-      <link>/post/2018-11-10-nethack_analysis_part2/</link>
+      <link>http://example.org/post/2018-11-10-nethack_analysis_part2/</link>
       <pubDate>Sat, 10 Nov 2018 00:00:00 +0000</pubDate>
       
-      <guid>/post/2018-11-10-nethack_analysis_part2/</guid>
+      <guid>http://example.org/post/2018-11-10-nethack_analysis_part2/</guid>
       <description>Link to webscraping the data
 Link to Analysis, part 1
 Introduction This is the third blog post that deals with data from the game NetHack, and oh boy, did a lot of things happen since the last blog post! Here’s a short timeline of the events:
@@ -547,10 +547,10 @@ Introduction This is the third blog post that deals with data from the game NetH
     
     <item>
       <title>Analyzing NetHack data, part 1: What kills the players</title>
-      <link>/post/2018-11-03-nethack_analysis/</link>
+      <link>http://example.org/post/2018-11-03-nethack_analysis/</link>
       <pubDate>Sat, 03 Nov 2018 00:00:00 +0000</pubDate>
       
-      <guid>/post/2018-11-03-nethack_analysis/</guid>
+      <guid>http://example.org/post/2018-11-03-nethack_analysis/</guid>
       <description>Abstract In this post, I will analyse the data I scraped and put into an R package, which I called {nethack}. NetHack is a roguelike game; for more context, read my previous blog post. You can install the {nethack} package and play around with the data yourself by installing it from github:
 devtools::install_github(&amp;quot;b-rodrigues/nethack&amp;quot;) And to use it:
 library(nethack) data(&amp;quot;nethack&amp;quot;) The data contains information on games played from 2001 to 2018; 322485 rows and 14 columns.</description>
@@ -558,10 +558,10 @@ library(nethack) data(&amp;quot;nethack&amp;quot;) The data contains information
     
     <item>
       <title>From webscraping data to releasing it as an R package to share with the world: a full tutorial with data from NetHack</title>
-      <link>/post/2018-11-01-nethack/</link>
+      <link>http://example.org/post/2018-11-01-nethack/</link>
       <pubDate>Thu, 01 Nov 2018 00:00:00 +0000</pubDate>
       
-      <guid>/post/2018-11-01-nethack/</guid>
+      <guid>http://example.org/post/2018-11-01-nethack/</guid>
       <description>If someone told me a decade ago (back before I&amp;#39;d ever heard the term &amp;quot;roguelike&amp;quot;) what I&amp;#39;d be doing today, I would have trouble believing this...
 Yet here we are. pic.twitter.com/N6Hh6A4tWl
 &amp;mdash; Josh Ge (@GridSageGames) June 21, 2018  Update 07-11-2018 The {nethack} package currently on Github contains a sample of 6000 NetHack games played on the alt.org/nethack public server between April and November 2018. This data was kindly provided by @paxed.</description>
@@ -569,39 +569,39 @@ Yet here we are. pic.twitter.com/N6Hh6A4tWl
     
     <item>
       <title>Maps with pie charts on top of each administrative division: an example with Luxembourg&#39;s elections data</title>
-      <link>/post/2018-10-27-lux_elections_analysis/</link>
+      <link>http://example.org/post/2018-10-27-lux_elections_analysis/</link>
       <pubDate>Sat, 27 Oct 2018 00:00:00 +0000</pubDate>
       
-      <guid>/post/2018-10-27-lux_elections_analysis/</guid>
+      <guid>http://example.org/post/2018-10-27-lux_elections_analysis/</guid>
       <description>Abstract You can find the data used in this blog post here: https://github.com/b-rodrigues/elections_lux
 This is a follow up to a previous blog post where I extracted data of the 2018 Luxembourguish elections from Excel Workbooks. Now that I have the data, I will create a map of Luxembourg by commune, with pie charts of the results on top of each commune! To do this, I use good ol’ {ggplot2} and another packages called {scatterpie}.</description>
     </item>
     
     <item>
       <title>Getting the data from the Luxembourguish elections out of Excel</title>
-      <link>/post/2018-10-21-lux_elections/</link>
+      <link>http://example.org/post/2018-10-21-lux_elections/</link>
       <pubDate>Sun, 21 Oct 2018 00:00:00 +0000</pubDate>
       
-      <guid>/post/2018-10-21-lux_elections/</guid>
+      <guid>http://example.org/post/2018-10-21-lux_elections/</guid>
       <description>In this blog post, similar to a previous blog post I am going to show you how we can go from an Excel workbook that contains data to flat file. I will taking advantage of the structure of the tables inside the Excel sheets by writing a function that extracts the tables and then mapping it to each sheet!
 Last week, October 14th, Luxembourguish nationals went to the polls to elect the Grand Duke!</description>
     </item>
     
     <item>
       <title>Exporting editable plots from R to Powerpoint: making ggplot2 purrr with officer</title>
-      <link>/post/2018-10-05-ggplot2_purrr_officer/</link>
+      <link>http://example.org/post/2018-10-05-ggplot2_purrr_officer/</link>
       <pubDate>Fri, 05 Oct 2018 00:00:00 +0000</pubDate>
       
-      <guid>/post/2018-10-05-ggplot2_purrr_officer/</guid>
+      <guid>http://example.org/post/2018-10-05-ggplot2_purrr_officer/</guid>
       <description>A kind reader let me know that the function create_pptx() is now outdated, and proposed an update which you can find here: here. Thank you @Jeremy! I was recently confronted to the following problem: creating hundreds of plots that could still be edited by our client. What this meant was that I needed to export the graphs in Excel or Powerpoint or some other such tool that was familiar to the client, and not export the plots directly to pdf or png as I would normally do.</description>
     </item>
     
     <item>
       <title>How Luxembourguish residents spend their time: a small {flexdashboard} demo using the Time use survey data</title>
-      <link>/post/2018-09-15-time_use/</link>
+      <link>http://example.org/post/2018-09-15-time_use/</link>
       <pubDate>Fri, 14 Sep 2018 00:00:00 +0000</pubDate>
       
-      <guid>/post/2018-09-15-time_use/</guid>
+      <guid>http://example.org/post/2018-09-15-time_use/</guid>
       <description>In a previous blog post I have showed how you could use the {tidyxl} package to go from a human readable Excel Workbook to a tidy data set (or flat file, as they are also called). Some people then contributed their solutions, which is always something I really enjoy when it happens. This way, I also get to learn things!
 @expersso proposed a solution without {tidyxl}:
 Interesting data wrangling exercise in #rstats.</description>
@@ -609,38 +609,38 @@ Interesting data wrangling exercise in #rstats.</description>
     
     <item>
       <title>Going from a human readable Excel file to a machine-readable csv with {tidyxl}</title>
-      <link>/post/2018-09-11-human_to_machine/</link>
+      <link>http://example.org/post/2018-09-11-human_to_machine/</link>
       <pubDate>Tue, 11 Sep 2018 00:00:00 +0000</pubDate>
       
-      <guid>/post/2018-09-11-human_to_machine/</guid>
+      <guid>http://example.org/post/2018-09-11-human_to_machine/</guid>
       <description>I won’t write a very long introduction; we all know that Excel is ubiquitous in business, and that it has a lot of very nice features, especially for business practitioners that do not know any programming. However, when people use Excel for purposes it was not designed for, it can be a hassle. Often, people use Excel as a reporting tool, which it is not; they create very elaborated and complicated spreadsheets that are human readable, but impossible to import within any other tool.</description>
     </item>
     
     <item>
       <title>The year of the GNU&#43;Linux desktop is upon us: using user ratings of Steam Play compatibility to play around with regex and the tidyverse</title>
-      <link>/post/2018-09-08-steam_linux/</link>
+      <link>http://example.org/post/2018-09-08-steam_linux/</link>
       <pubDate>Sat, 08 Sep 2018 00:00:00 +0000</pubDate>
       
-      <guid>/post/2018-09-08-steam_linux/</guid>
+      <guid>http://example.org/post/2018-09-08-steam_linux/</guid>
       <description>I’ve been using GNU+Linux distros for about 10 years now, and have settled for openSUSE as my main operating system around 3 years ago, perhaps even more. If you’re a gamer, you might have heard about SteamOS and how more and more games are available on GNU+Linux. I don’t really care about games, I play the occasional one (currently Tangledeep) when I find the time, but still follow the news about gaming on GNU+Linux.</description>
     </item>
     
     <item>
       <title>Dealing with heteroskedasticity; regression with robust standard errors using R</title>
-      <link>/post/2018-07-08-rob_stderr/</link>
+      <link>http://example.org/post/2018-07-08-rob_stderr/</link>
       <pubDate>Sun, 08 Jul 2018 00:00:00 +0000</pubDate>
       
-      <guid>/post/2018-07-08-rob_stderr/</guid>
+      <guid>http://example.org/post/2018-07-08-rob_stderr/</guid>
       <description>First of all, is it heteroskedasticity or heteroscedasticity? According to McCulloch (1985), heteroskedasticity is the proper spelling, because when transliterating Greek words, scientists use the Latin letter k in place of the Greek letter κ (kappa). κ sometimes is transliterated as the Latin letter c, but only when these words entered the English language through French, such as scepter.
 Now that this is out of the way, we can get to the meat of this blogpost (foreshadowing pun).</description>
     </item>
     
     <item>
       <title>Missing data imputation and instrumental variables regression: the tidy approach</title>
-      <link>/post/2018-07-01-tidy_ive/</link>
+      <link>http://example.org/post/2018-07-01-tidy_ive/</link>
       <pubDate>Sun, 01 Jul 2018 00:00:00 +0000</pubDate>
       
-      <guid>/post/2018-07-01-tidy_ive/</guid>
+      <guid>http://example.org/post/2018-07-01-tidy_ive/</guid>
       <description>In this blog post I will discuss missing data imputation and instrumental variables regression. This is based on a short presentation I will give at my job. You can find the data used here on this website: http://eclr.humanities.manchester.ac.uk/index.php/IV_in_R
 The data is used is from Wooldridge’s book, Econometrics: A modern Approach. You can download the data by clicking here.
 This is the variable description:
@@ -649,29 +649,29 @@ This is the variable description:
     
     <item>
       <title>Forecasting my weight with R</title>
-      <link>/post/2018-06-24-fun_ts/</link>
+      <link>http://example.org/post/2018-06-24-fun_ts/</link>
       <pubDate>Sun, 24 Jun 2018 00:00:00 +0000</pubDate>
       
-      <guid>/post/2018-06-24-fun_ts/</guid>
+      <guid>http://example.org/post/2018-06-24-fun_ts/</guid>
       <description>I’ve been measuring my weight almost daily for almost 2 years now; I actually started earlier, but not as consistently. The goal of this blog post is to get re-acquaiented with time series; I haven’t had the opportunity to work with time series for a long time now and I have seen that quite a few packages that deal with time series have been released on CRAN. In this blog post, I will explore my weight measurements using some functions from the {tsibble} and {tibbletime} packages, and then do some predictions with the {forecast} package.</description>
     </item>
     
     <item>
       <title>Getting data from pdfs using the pdftools package</title>
-      <link>/post/2018-06-10-scraping_pdfs/</link>
+      <link>http://example.org/post/2018-06-10-scraping_pdfs/</link>
       <pubDate>Sun, 10 Jun 2018 00:00:00 +0000</pubDate>
       
-      <guid>/post/2018-06-10-scraping_pdfs/</guid>
+      <guid>http://example.org/post/2018-06-10-scraping_pdfs/</guid>
       <description>It is often the case that data is trapped inside pdfs, but thankfully there are ways to extract it from the pdfs. A very nice package for this task is pdftools (Github link) and this blog post will describe some basic functionality from that package.
 First, let’s find some pdfs that contain interesting data. For this post, I’m using the diabetes country profiles from the World Health Organization. You can find them here.</description>
     </item>
     
     <item>
       <title>{pmice}, an experimental package for missing data imputation in parallel using {mice} and {furrr}</title>
-      <link>/post/2018-04-15-announcing_pmice/</link>
+      <link>http://example.org/post/2018-04-15-announcing_pmice/</link>
       <pubDate>Sun, 15 Apr 2018 00:00:00 +0000</pubDate>
       
-      <guid>/post/2018-04-15-announcing_pmice/</guid>
+      <guid>http://example.org/post/2018-04-15-announcing_pmice/</guid>
       <description>Yesterday I wrote this blog post which showed how one could use {furrr} and {mice} to impute missing data in parallel, thus speeding up the process tremendously.
 To make using this snippet of code easier, I quickly cobbled together an experimental package called {pmice} that you can install from Github:
 devtools::install_github(&amp;quot;b-rodrigues/pmice&amp;quot;) For now, it returns a list of mids objects and not a mids object like mice::mice() does, but I’ll be working on it.</description>
@@ -679,10 +679,10 @@ devtools::install_github(&amp;quot;b-rodrigues/pmice&amp;quot;) For now, it retu
     
     <item>
       <title>Imputing missing values in parallel using {furrr}</title>
-      <link>/post/2018-04-14-playing_with_furrr/</link>
+      <link>http://example.org/post/2018-04-14-playing_with_furrr/</link>
       <pubDate>Sat, 14 Apr 2018 00:00:00 +0000</pubDate>
       
-      <guid>/post/2018-04-14-playing_with_furrr/</guid>
+      <guid>http://example.org/post/2018-04-14-playing_with_furrr/</guid>
       <description>Today I saw this tweet on my timeline:
 For those of us that just can&amp;#39;t wait until RStudio officially supports parallel purrr in #rstats, boy have I got something for you. Introducing `furrr`, parallel purrr through the use of futures. Go ahead, break things, you know you want to:https://t.co/l9z1UC2Tew
 &amp;mdash; Davis Vaughan (@dvaughan32) April 13, 2018  and as a heavy {purrr} user, as well as the happy owner of a 6-core AMD Ryzen 5 1600X cpu, I was very excited to try out {furrr}.</description>
@@ -690,67 +690,67 @@ For those of us that just can&amp;#39;t wait until RStudio officially supports p
     
     <item>
       <title>Get basic summary statistics for all the variables in a data frame</title>
-      <link>/post/2018-04-10-brotools_describe/</link>
+      <link>http://example.org/post/2018-04-10-brotools_describe/</link>
       <pubDate>Tue, 10 Apr 2018 00:00:00 +0000</pubDate>
       
-      <guid>/post/2018-04-10-brotools_describe/</guid>
+      <guid>http://example.org/post/2018-04-10-brotools_describe/</guid>
       <description>I have added a new function to my {brotools} package, called describe(), which takes a data frame as an argument, and returns another data frame with descriptive statistics. It is very much inspired by the {skmir} package but also by assist::describe() (click on the packages to be redirected to the respective Github repos) but I wanted to write my own for two reasons: first, as an exercice, and second I really only needed the function skim_to_wide() from {skimr}.</description>
     </item>
     
     <item>
       <title>Getting {sparklyr}, {h2o}, {rsparkling} to work together and some fun with bash</title>
-      <link>/post/2018-03-03-sparklyr_h2o_rsparkling/</link>
+      <link>http://example.org/post/2018-03-03-sparklyr_h2o_rsparkling/</link>
       <pubDate>Sat, 03 Mar 2018 00:00:00 +0000</pubDate>
       
-      <guid>/post/2018-03-03-sparklyr_h2o_rsparkling/</guid>
+      <guid>http://example.org/post/2018-03-03-sparklyr_h2o_rsparkling/</guid>
       <description>This is going to be the type of blog posts that would perhaps be better as a gist, but it is easier for me to use my blog as my own personal collection of gists. Plus, someone else might find this useful, so here it is! In this blog post I am going to show a little trick to randomly sample rows from a text file using bash, and then train a model using the {h2o} package.</description>
     </item>
     
     <item>
       <title>Keep trying that api call with purrr::possibly()</title>
-      <link>/post/2018-03-12-keep_trying/</link>
+      <link>http://example.org/post/2018-03-12-keep_trying/</link>
       <pubDate>Sat, 03 Mar 2018 00:00:00 +0000</pubDate>
       
-      <guid>/post/2018-03-12-keep_trying/</guid>
+      <guid>http://example.org/post/2018-03-12-keep_trying/</guid>
       <description>Sometimes you need to call an api to get some result from a web service, but sometimes this call might fail. You might get an error 500 for example, or maybe you’re making too many calls too fast. Regarding this last point, I really encourage you to read Ethics in Web Scraping.
 In this blog post I will show you how you can keep trying to make this api call using purrr::possibly().</description>
     </item>
     
     <item>
       <title>Importing 30GB of data into R with sparklyr</title>
-      <link>/post/2018-02-16-importing_30gb_of_data/</link>
+      <link>http://example.org/post/2018-02-16-importing_30gb_of_data/</link>
       <pubDate>Fri, 16 Feb 2018 00:00:00 +0000</pubDate>
       
-      <guid>/post/2018-02-16-importing_30gb_of_data/</guid>
+      <guid>http://example.org/post/2018-02-16-importing_30gb_of_data/</guid>
       <description>Disclaimer: the first part of this blog post draws heavily from Working with CSVs on the Command Line, which is a beautiful resource that lists very nice tips and tricks to work with CSV files before having to load them into R, or any other statistical software. I highly recommend it! Also, if you find this interesting, read also Data Science at the Command Line another great resource!
 In this blog post I am going to show you how to analyze 30GB of data.</description>
     </item>
     
     <item>
       <title>Predicting job search by training a random forest on an unbalanced dataset</title>
-      <link>/post/2018-02-11-census-random_forest/</link>
+      <link>http://example.org/post/2018-02-11-census-random_forest/</link>
       <pubDate>Sun, 11 Feb 2018 00:00:00 +0000</pubDate>
       
-      <guid>/post/2018-02-11-census-random_forest/</guid>
+      <guid>http://example.org/post/2018-02-11-census-random_forest/</guid>
       <description>In this blog post, I am going to train a random forest on census data from the US to predict the probability that someone is looking for a job. To this end, I downloaded the US 1990 census data from the UCI Machine Learning Repository. Having a background in economics, I am always quite interested by such datasets. I downloaded the raw data which is around 820mb uncompressed. You can download it from this folder here.</description>
     </item>
     
     <item>
       <title>Mapping a list of functions to a list of datasets with a list of columns as arguments</title>
-      <link>/post/2018-01-19-mapping_functions_with_any_cols/</link>
+      <link>http://example.org/post/2018-01-19-mapping_functions_with_any_cols/</link>
       <pubDate>Fri, 19 Jan 2018 00:00:00 +0000</pubDate>
       
-      <guid>/post/2018-01-19-mapping_functions_with_any_cols/</guid>
+      <guid>http://example.org/post/2018-01-19-mapping_functions_with_any_cols/</guid>
       <description>This week I had the opportunity to teach R at my workplace, again. This course was the “advanced R” course, and unlike the one I taught at the end of last year, I had one more day (so 3 days in total) where I could show my colleagues the joys of the tidyverse and R.
 To finish the section on programming with R, which was the very last section of the whole 3 day course I wanted to blow their minds; I had already shown them packages from the tidyverse in the previous days, such as dplyr, purrr and stringr, among others.</description>
     </item>
     
     <item>
       <title>It&#39;s lists all the way down, part 2: We need to go deeper</title>
-      <link>/post/2018-01-05-lists_all_the_way2/</link>
+      <link>http://example.org/post/2018-01-05-lists_all_the_way2/</link>
       <pubDate>Fri, 05 Jan 2018 00:00:00 +0000</pubDate>
       
-      <guid>/post/2018-01-05-lists_all_the_way2/</guid>
+      <guid>http://example.org/post/2018-01-05-lists_all_the_way2/</guid>
       <description>Shortly after my previous blog post, I saw this tweet on my timeline:
 The purrr resolution for 2018 - learn at least one purrr function per week - is officially launched with encouragement and inspiration from @statwonk and @hadleywickham. We start with modify_depth: https://t.co/dCMnSHP7Pl. Please join to learn and share. #rstats
 &amp;mdash; Isabella R. Ghement (@IsabellaGhement) January 3, 2018  This is a great initiative, and a big coincidence, as I just had blogged about nested lists and how to map over them.</description>
@@ -758,10 +758,10 @@ The purrr resolution for 2018 - learn at least one purrr function per week - is 
     
     <item>
       <title>It&#39;s lists all the way down</title>
-      <link>/post/2018-01-03-lists_all_the_way/</link>
+      <link>http://example.org/post/2018-01-03-lists_all_the_way/</link>
       <pubDate>Wed, 03 Jan 2018 00:00:00 +0000</pubDate>
       
-      <guid>/post/2018-01-03-lists_all_the_way/</guid>
+      <guid>http://example.org/post/2018-01-03-lists_all_the_way/</guid>
       <description>There’s a part 2 to this post: read it here.
 Today, I had the opportunity to help someone over at the R for Data Science Slack group (read more about this group here) and I thought that the question asked could make for an interesting blog post, so here it is!
 Disclaimer: the way I’m doing things here is totally not optimal, but I want to illustrate how to map functions over nested lists.</description>
@@ -769,20 +769,20 @@ Disclaimer: the way I’m doing things here is totally not optimal, but I want t
     
     <item>
       <title>Building formulae</title>
-      <link>/post/2017-12-27-build_formulae/</link>
+      <link>http://example.org/post/2017-12-27-build_formulae/</link>
       <pubDate>Wed, 27 Dec 2017 00:00:00 +0000</pubDate>
       
-      <guid>/post/2017-12-27-build_formulae/</guid>
+      <guid>http://example.org/post/2017-12-27-build_formulae/</guid>
       <description>This Stackoverflow question made me think about how to build formulae. For example, you might want to programmatically build linear model formulae and then map these models on data. For example, suppose the following (output suppressed):
 data(mtcars) lm(mpg ~ hp, data = mtcars) lm(mpg ~I(hp^2), data = mtcars) lm(mpg ~I(hp^3), data = mtcars) lm(mpg ~I(hp^4), data = mtcars) lm(mpg ~I(hp^5), data = mtcars) lm(mpg ~I(hp^6), data = mtcars) To avoid doing this, one can write a function that builds the formulae:</description>
     </item>
     
     <item>
       <title>Teaching the tidyverse to beginners</title>
-      <link>/post/2017-12-17-teaching_tidyverse/</link>
+      <link>http://example.org/post/2017-12-17-teaching_tidyverse/</link>
       <pubDate>Sun, 17 Dec 2017 00:00:00 +0000</pubDate>
       
-      <guid>/post/2017-12-17-teaching_tidyverse/</guid>
+      <guid>http://example.org/post/2017-12-17-teaching_tidyverse/</guid>
       <description>End October I tweeted this:
 will teach #rstats soon again but this time following @drob &amp;#39;s suggestion of the tidyverse first as laid out here: https://t.co/js8SsUs8Nv
 &amp;mdash; Bruno Rodrigues (@brodriguesco) October 24, 2017  and it generated some discussion. Some people believe that this is the right approach, and some others think that one should first present base R and then show how the tidyverse complements it. This year, I taught three classes; a 12-hour class to colleagues that work with me, a 15-hour class to master’s students and 3 hours again to some of my colleagues.</description>
@@ -790,28 +790,28 @@ will teach #rstats soon again but this time following @drob &amp;#39;s suggestio
     
     <item>
       <title>Functional peace of mind</title>
-      <link>/post/2017-11-14-peace_r/</link>
+      <link>http://example.org/post/2017-11-14-peace_r/</link>
       <pubDate>Tue, 14 Nov 2017 00:00:00 +0000</pubDate>
       
-      <guid>/post/2017-11-14-peace_r/</guid>
+      <guid>http://example.org/post/2017-11-14-peace_r/</guid>
       <description>I think what I enjoy the most about functional programming is the peace of mind that comes with it. With functional programming, there’s a lot of stuff you don’t need to think about. You can write functions that are general enough so that they solve a variety of problems. For example, imagine for a second that R does not have the sum() function anymore. If you want to compute the sum of, say, the first 100 integers, you could write a loop that would do that for you:</description>
     </item>
     
     <item>
       <title>Easy peasy STATA-like marginal effects with R</title>
-      <link>/post/2017-10-26-margins_r/</link>
+      <link>http://example.org/post/2017-10-26-margins_r/</link>
       <pubDate>Thu, 26 Oct 2017 00:00:00 +0000</pubDate>
       
-      <guid>/post/2017-10-26-margins_r/</guid>
+      <guid>http://example.org/post/2017-10-26-margins_r/</guid>
       <description>Model interpretation is essential in the social sciences. If one wants to know the effect of variable x on the dependent variable y, marginal effects are an easy way to get the answer. STATA includes a margins command that has been ported to R by Thomas J. Leeper of the London School of Economics and Political Science. You can find the source code of the package on github. In this short blog post, I demo some of the functionality of margins.</description>
     </item>
     
     <item>
       <title>Why I find tidyeval useful</title>
-      <link>/post/2017-08-27-why_tidyeval/</link>
+      <link>http://example.org/post/2017-08-27-why_tidyeval/</link>
       <pubDate>Sun, 27 Aug 2017 00:00:00 +0000</pubDate>
       
-      <guid>/post/2017-08-27-why_tidyeval/</guid>
+      <guid>http://example.org/post/2017-08-27-why_tidyeval/</guid>
       <description>First thing’s first: maybe you shouldn’t care about tidyeval. Maybe you don’t need it. If you exclusively work interactively, I don’t think that learning about tidyeval is important. I can only speak for me, and explain to you why I personally find tidyeval useful.
 I wanted to write this blog post after reading this twitter thread and specifically this question.
 Mara Averick then wrote this blogpost linking to 6 other blog posts that give some tidyeval examples.</description>
@@ -819,59 +819,59 @@ Mara Averick then wrote this blogpost linking to 6 other blog posts that give so
     
     <item>
       <title>tidyr::spread() and dplyr::rename_at() in action</title>
-      <link>/post/2017-07-27-spread_rename_at/</link>
+      <link>http://example.org/post/2017-07-27-spread_rename_at/</link>
       <pubDate>Thu, 27 Jul 2017 00:00:00 +0000</pubDate>
       
-      <guid>/post/2017-07-27-spread_rename_at/</guid>
+      <guid>http://example.org/post/2017-07-27-spread_rename_at/</guid>
       <description>I was recently confronted to a situation that required going from a long dataset to a wide dataset, but with a small twist: there were two datasets, which I had to merge into one. You might wonder what kinda crappy twist that is, right? Well, let’s take a look at the data:
 data1; data2 ## # A tibble: 20 x 4 ## country date variable_1 value ## &amp;lt;chr&amp;gt; &amp;lt;chr&amp;gt; &amp;lt;chr&amp;gt; &amp;lt;int&amp;gt; ## 1 lu 01/01/2005 maybe 22 ## 2 lu 01/07/2005 maybe 13 ## 3 lu 01/01/2006 maybe 40 ## 4 lu 01/07/2006 maybe 25 ## 5 lu 01/01/2005 totally_agree 42 ## 6 lu 01/07/2005 totally_agree 17 ## 7 lu 01/01/2006 totally_agree 25 ## 8 lu 01/07/2006 totally_agree 16 ## 9 lu 01/01/2005 totally_disagree 39 ## 10 lu 01/07/2005 totally_disagree 17 ## 11 lu 01/01/2006 totally_disagree 23 ## 12 lu 01/07/2006 totally_disagree 21 ## 13 lu 01/01/2005 kinda_disagree 69 ## 14 lu 01/07/2005 kinda_disagree 12 ## 15 lu 01/01/2006 kinda_disagree 10 ## 16 lu 01/07/2006 kinda_disagree 9 ## 17 lu 01/01/2005 kinda_agree 38 ## 18 lu 01/07/2005 kinda_agree 31 ## 19 lu 01/01/2006 kinda_agree 19 ## 20 lu 01/07/2006 kinda_agree 12 ## # A tibble: 20 x 4 ## country date variable_2 value ## &amp;lt;chr&amp;gt; &amp;lt;chr&amp;gt; &amp;lt;chr&amp;gt; &amp;lt;int&amp;gt; ## 1 lu 01/01/2005 kinda_agree 22 ## 2 lu 01/07/2005 kinda_agree 13 ## 3 lu 01/01/2006 kinda_agree 40 ## 4 lu 01/07/2006 kinda_agree 25 ## 5 lu 01/01/2005 totally_agree 42 ## 6 lu 01/07/2005 totally_agree 17 ## 7 lu 01/01/2006 totally_agree 25 ## 8 lu 01/07/2006 totally_agree 16 ## 9 lu 01/01/2005 totally_disagree 39 ## 10 lu 01/07/2005 totally_disagree 17 ## 11 lu 01/01/2006 totally_disagree 23 ## 12 lu 01/07/2006 totally_disagree 21 ## 13 lu 01/01/2005 maybe 69 ## 14 lu 01/07/2005 maybe 12 ## 15 lu 01/01/2006 maybe 10 ## 16 lu 01/07/2006 maybe 9 ## 17 lu 01/01/2005 kinda_disagree 38 ## 18 lu 01/07/2005 kinda_disagree 31 ## 19 lu 01/01/2006 kinda_disagree 19 ## 20 lu 01/07/2006 kinda_disagree 12 As explained in Hadley (2014), this is how you should keep your data… But for a particular purpose, I had to transform these datasets.</description>
     </item>
     
     <item>
       <title>Lesser known dplyr 0.7* tricks</title>
-      <link>/post/2017-06-19-dplyr-0-70-tutorial/</link>
+      <link>http://example.org/post/2017-06-19-dplyr-0-70-tutorial/</link>
       <pubDate>Sun, 02 Jul 2017 00:00:00 +0000</pubDate>
       
-      <guid>/post/2017-06-19-dplyr-0-70-tutorial/</guid>
+      <guid>http://example.org/post/2017-06-19-dplyr-0-70-tutorial/</guid>
       <description>This blog post is an update to an older one I wrote in March. In the post from March, dplyr was at version 0.50, but since then a major update introduced some changes that make some of the tips in that post obsolete. So here I revisit the blog post from March by using dplyr 0.70.
 Create new columns with mutate() and case_when() The basic things such as selecting columns, renaming them, filtering, etc did not change with this new version.</description>
     </item>
     
     <item>
       <title>Make ggplot2 purrr</title>
-      <link>/post/2017-03-29-make-ggplot2-purrr/</link>
+      <link>http://example.org/post/2017-03-29-make-ggplot2-purrr/</link>
       <pubDate>Wed, 29 Mar 2017 06:45:48 +0200</pubDate>
       
-      <guid>/post/2017-03-29-make-ggplot2-purrr/</guid>
+      <guid>http://example.org/post/2017-03-29-make-ggplot2-purrr/</guid>
       <description>Update: I’ve included another way of saving a separate plot by group in this article, as pointed out by @monitus. Actually, this is the preferred solution; using dplyr::do() is deprecated, according to Hadley Wickham himself.
 I’ll be honest: the title is a bit misleading. I will not use purrr that much in this blog post. Actually, I will use one single purrr function, at the very end. I use dplyr much more.</description>
     </item>
     
     <item>
       <title>Introducing brotools</title>
-      <link>/post/2017-03-27-introducing_brotools/</link>
+      <link>http://example.org/post/2017-03-27-introducing_brotools/</link>
       <pubDate>Mon, 27 Mar 2017 09:23:56 +0200</pubDate>
       
-      <guid>/post/2017-03-27-introducing_brotools/</guid>
+      <guid>http://example.org/post/2017-03-27-introducing_brotools/</guid>
       <description>I’m happy to announce my first R package, called brotools. This is a package that contains functions that are specific to my needs but that you might find also useful. I blogged about some of these functions, so if you follow my blog you might already be familiar with some of them. It is not on CRAN and might very well never be. The code is hosted on bitbucket and you can install the package with</description>
     </item>
     
     <item>
       <title>Lesser known purrr tricks</title>
-      <link>/post/2017-03-24-lesser_known_purrr/</link>
+      <link>http://example.org/post/2017-03-24-lesser_known_purrr/</link>
       <pubDate>Fri, 24 Mar 2017 12:00:00 +0100</pubDate>
       
-      <guid>/post/2017-03-24-lesser_known_purrr/</guid>
+      <guid>http://example.org/post/2017-03-24-lesser_known_purrr/</guid>
       <description>purrr is a package that extends R’s functional programming capabilities. It brings a lot of new stuff to the table and in this post I show you some of the most useful (at least to me) functions included in purrr.
 Getting rid of loops with map() library(purrr) numbers &amp;lt;- list(11, 12, 13, 14) map_dbl(numbers, sqrt) ## [1] 3.316625 3.464102 3.605551 3.741657 You might wonder why this might be preferred to a for loop?</description>
     </item>
     
     <item>
       <title>Lesser known dplyr tricks</title>
-      <link>/post/2017-02-17-lesser_known_tricks/</link>
+      <link>http://example.org/post/2017-02-17-lesser_known_tricks/</link>
       <pubDate>Wed, 08 Mar 2017 12:00:00 +0100</pubDate>
       
-      <guid>/post/2017-02-17-lesser_known_tricks/</guid>
+      <guid>http://example.org/post/2017-02-17-lesser_known_tricks/</guid>
       <description>In this blog post I share some lesser-known (at least I believe they are) tricks that use mainly functions from dplyr.
 Removing unneeded columns Did you know that you can use - in front of a column name to remove it from a data frame?
 mtcars %&amp;gt;% select(-disp) %&amp;gt;% head() ## mpg cyl hp drat wt qsec vs am gear carb ## Mazda RX4 21.0 6 110 3.90 2.620 16.46 0 1 4 4 ## Mazda RX4 Wag 21.</description>
@@ -879,28 +879,28 @@ mtcars %&amp;gt;% select(-disp) %&amp;gt;% head() ## mpg cyl hp drat wt qsec vs 
     
     <item>
       <title>How to use jailbreakr</title>
-      <link>/post/2017-02-17-how_to_use_jailbreakr/</link>
+      <link>http://example.org/post/2017-02-17-how_to_use_jailbreakr/</link>
       <pubDate>Fri, 17 Feb 2017 12:51:00 +0100</pubDate>
       
-      <guid>/post/2017-02-17-how_to_use_jailbreakr/</guid>
+      <guid>http://example.org/post/2017-02-17-how_to_use_jailbreakr/</guid>
       <description>What is jailbreakr The jailbreakr package is probably one of the most interesting packages I came across recently. This package makes it possible to extract messy data from spreadsheets. What is meant by messy? I am sure you already had to deal with spreadsheets that contained little tables inside a single sheet for example. As far as I know, there is no simple way of extracting these tables without having to fiddle around a lot.</description>
     </item>
     
     <item>
       <title>Functional programming and unit testing for data munging with R available on Leanpub</title>
-      <link>/post/2016-12-24-functional-programming-and-unit-testing-for-data-munging-with-r-available-on-leanpub/</link>
+      <link>http://example.org/post/2016-12-24-functional-programming-and-unit-testing-for-data-munging-with-r-available-on-leanpub/</link>
       <pubDate>Sat, 24 Dec 2016 00:00:00 +0000</pubDate>
       
-      <guid>/post/2016-12-24-functional-programming-and-unit-testing-for-data-munging-with-r-available-on-leanpub/</guid>
+      <guid>http://example.org/post/2016-12-24-functional-programming-and-unit-testing-for-data-munging-with-r-available-on-leanpub/</guid>
       <description>The book I&amp;rsquo;ve been working on these pasts months (you can read about it here, and read it for free here) is now available on Leanpub! You can grab a copy and read it on your ebook reader or on your computer, and what&amp;rsquo;s even better is that it is available for free (but you can also decide to buy it if you really like it). Here is the link on Leanpub.</description>
     </item>
     
     <item>
       <title>My free book has a cover!</title>
-      <link>/post/2017-01-07-my-free-book-has-a-cover/</link>
+      <link>http://example.org/post/2017-01-07-my-free-book-has-a-cover/</link>
       <pubDate>Sat, 24 Dec 2016 00:00:00 +0000</pubDate>
       
-      <guid>/post/2017-01-07-my-free-book-has-a-cover/</guid>
+      <guid>http://example.org/post/2017-01-07-my-free-book-has-a-cover/</guid>
       <description>I&amp;rsquo;m currently writing a book as a hobby. It&amp;rsquo;s titled Functional programming and unit testing for data munging with R and you can get it for free here. You can also read it online for free on my webpage What&amp;rsquo;s the book about?
 Here&amp;rsquo;s the teaser text:
  Learn the basics of functional programming, unit testing and package development for the R programming language in order to make your data tidy!</description>
@@ -908,29 +908,29 @@ Here&amp;rsquo;s the teaser text:
     
     <item>
       <title>Work on lists of datasets instead of individual datasets by using functional programming</title>
-      <link>/post/2016-12-21-work-on-lists-of-datasets-instead-of-individual-datasets-by-using-functional-programming/</link>
+      <link>http://example.org/post/2016-12-21-work-on-lists-of-datasets-instead-of-individual-datasets-by-using-functional-programming/</link>
       <pubDate>Wed, 21 Dec 2016 00:00:00 +0000</pubDate>
       
-      <guid>/post/2016-12-21-work-on-lists-of-datasets-instead-of-individual-datasets-by-using-functional-programming/</guid>
+      <guid>http://example.org/post/2016-12-21-work-on-lists-of-datasets-instead-of-individual-datasets-by-using-functional-programming/</guid>
       <description>Analyzing a lot of datasets can be tedious. In my work, I often have to compute descriptive statistics, or plot some graphs for some variables for a lot of datasets. The variables in question have the same name accross the datasets but are measured for different years. As an example, imagine you have this situation:
 data2000 &amp;lt;- mtcars data2001 &amp;lt;- mtcars For the sake of argument, imagine that data2000 is data from a survey conducted in the year 2000 and data2001 is the same survey but conducted in the year 2001.</description>
     </item>
     
     <item>
       <title>I&#39;ve started writing a &#39;book&#39;: Functional programming and unit testing for data munging with R</title>
-      <link>/post/2016-11-04-ive-started-writing-a-book-functional-programming-and-unit-testing-for-data-munging-with-r/</link>
+      <link>http://example.org/post/2016-11-04-ive-started-writing-a-book-functional-programming-and-unit-testing-for-data-munging-with-r/</link>
       <pubDate>Fri, 04 Nov 2016 00:00:00 +0000</pubDate>
       
-      <guid>/post/2016-11-04-ive-started-writing-a-book-functional-programming-and-unit-testing-for-data-munging-with-r/</guid>
+      <guid>http://example.org/post/2016-11-04-ive-started-writing-a-book-functional-programming-and-unit-testing-for-data-munging-with-r/</guid>
       <description>I have started writing a &amp;lsquo;book&amp;rsquo; using the awesome bookdown package. In the book I explain and show why using functional programming and putting your functions in your own packages is the way to go when you want to clean, prepare and transform large data sets. It makes testing and documenting your code easier. You don&amp;rsquo;t need to think about managing paths either. The book is far from complete, but I plan on working on it steadily.</description>
     </item>
     
     <item>
       <title>Merge a list of datasets together</title>
-      <link>/post/2016-07-30-merge-a-list-of-datasets-together/</link>
+      <link>http://example.org/post/2016-07-30-merge-a-list-of-datasets-together/</link>
       <pubDate>Sat, 30 Jul 2016 00:00:00 +0000</pubDate>
       
-      <guid>/post/2016-07-30-merge-a-list-of-datasets-together/</guid>
+      <guid>http://example.org/post/2016-07-30-merge-a-list-of-datasets-together/</guid>
       <description>Last week I showed how to read a lot of datasets at once with R, and this week I’ll continue from there and show a very simple function that uses this list of read datasets and merges them all together.
 First we’ll use read_list() to read all the datasets at once (for more details read last week’s post):
 library(&amp;quot;readr&amp;quot;) library(&amp;quot;tibble&amp;quot;) data_files &amp;lt;- list.files(pattern = &amp;quot;.csv&amp;quot;) print(data_files) ## [1] &amp;quot;data_1.csv&amp;quot; &amp;quot;data_2.csv&amp;quot; &amp;quot;data_3.</description>
@@ -938,30 +938,30 @@ library(&amp;quot;readr&amp;quot;) library(&amp;quot;tibble&amp;quot;) data_file
     
     <item>
       <title>Read a lot of datasets at once with R</title>
-      <link>/post/2016-07-26-read-a-lot-of-datasets-at-once-with-r/</link>
+      <link>http://example.org/post/2016-07-26-read-a-lot-of-datasets-at-once-with-r/</link>
       <pubDate>Tue, 26 Jul 2016 00:00:00 +0000</pubDate>
       
-      <guid>/post/2016-07-26-read-a-lot-of-datasets-at-once-with-r/</guid>
+      <guid>http://example.org/post/2016-07-26-read-a-lot-of-datasets-at-once-with-r/</guid>
       <description>I often have to read a lot of datasets at once using R. So I’ve wrote the following function to solve this issue:
 read_list &amp;lt;- function(list_of_datasets, read_func){ read_and_assign &amp;lt;- function(dataset, read_func){ dataset_name &amp;lt;- as.name(dataset) dataset_name &amp;lt;- read_func(dataset) } # invisible is used to suppress the unneeded output output &amp;lt;- invisible( sapply(list_of_datasets, read_and_assign, read_func = read_func, simplify = FALSE, USE.NAMES = TRUE)) # Remove the extension at the end of the data set names names_of_datasets &amp;lt;- c(unlist(strsplit(list_of_datasets, &amp;quot;[.</description>
     </item>
     
     <item>
       <title>Data frame columns as arguments to dplyr functions</title>
-      <link>/post/2016-07-18-data-frame-columns-as-arguments-to-dplyr-functions/</link>
+      <link>http://example.org/post/2016-07-18-data-frame-columns-as-arguments-to-dplyr-functions/</link>
       <pubDate>Mon, 18 Jul 2016 00:00:00 +0000</pubDate>
       
-      <guid>/post/2016-07-18-data-frame-columns-as-arguments-to-dplyr-functions/</guid>
+      <guid>http://example.org/post/2016-07-18-data-frame-columns-as-arguments-to-dplyr-functions/</guid>
       <description>Suppose that you would like to create a function which does a series of computations on a data frame. You would like to pass a column as this function’s argument. Something like:
 data(cars) convertToKmh &amp;lt;- function(dataset, col_name){ dataset$col_name &amp;lt;- dataset$speed * 1.609344 return(dataset) } This example is obviously not very interesting (you don’t need a function for this), but it will illustrate the point. You would like to append a column called speed_in_kmh with the speed in kilometers per hour to this dataset, but this is what happens:</description>
     </item>
     
     <item>
       <title>Careful with tryCatch</title>
-      <link>/post/2016-06-21-careful-with-trycatch/</link>
+      <link>http://example.org/post/2016-06-21-careful-with-trycatch/</link>
       <pubDate>Thu, 31 Mar 2016 00:00:00 +0000</pubDate>
       
-      <guid>/post/2016-06-21-careful-with-trycatch/</guid>
+      <guid>http://example.org/post/2016-06-21-careful-with-trycatch/</guid>
       <description>tryCatch is one of the functions that allows the users to handle errors in a simple way. With it, you can do things like: if(error), then(do this).
 Take the following example:
 sqrt(&amp;quot;a&amp;quot;) Error in sqrt(&amp;quot;a&amp;quot;) : non-numeric argument to mathematical function Now maybe you’d want something to happen when such an error happens. You can achieve that with tryCatch:
@@ -970,121 +970,121 @@ tryCatch(sqrt(&amp;quot;a&amp;quot;), error=function(e) print(&amp;quot;You can&
     
     <item>
       <title>Unit testing with R</title>
-      <link>/post/2016-03-31-unit-testing-with-r/</link>
+      <link>http://example.org/post/2016-03-31-unit-testing-with-r/</link>
       <pubDate>Thu, 31 Mar 2016 00:00:00 +0000</pubDate>
       
-      <guid>/post/2016-03-31-unit-testing-with-r/</guid>
+      <guid>http://example.org/post/2016-03-31-unit-testing-with-r/</guid>
       <description>I&amp;#39;ve been introduced to unit testing while working with colleagues on quite a big project for which we use Python.
 At first I was a bit skeptical about the need of writing unit tests, but now I must admit that I am seduced by the idea and by the huge time savings it allows. Naturally, I was wondering if the same could be achieved with R, and was quite happy to find out that it also possible to write unit tests in R using a package called testthat.</description>
     </item>
     
     <item>
       <title>Bootstrapping standard errors for difference-in-differences estimation with R</title>
-      <link>/post/2015-11-11-bootstrapping-did-with-r/</link>
+      <link>http://example.org/post/2015-11-11-bootstrapping-did-with-r/</link>
       <pubDate>Wed, 11 Nov 2015 00:00:00 +0000</pubDate>
       
-      <guid>/post/2015-11-11-bootstrapping-did-with-r/</guid>
+      <guid>http://example.org/post/2015-11-11-bootstrapping-did-with-r/</guid>
       <description>I’m currently working on a paper (with my colleague Vincent Vergnat who is also a Phd candidate at BETA) where I want to estimate the causal impact of the birth of a child on hourly and daily wages as well as yearly worked hours. For this we are using non-parametric difference-in-differences (henceforth DiD) and thus have to bootstrap the standard errors. In this post, I show how this is possible using the function boot.</description>
     </item>
     
     <item>
       <title>Update to Introduction to programming econometrics with R</title>
-      <link>/post/2015-05-03-update-introduction-r-programming/</link>
+      <link>http://example.org/post/2015-05-03-update-introduction-r-programming/</link>
       <pubDate>Sun, 03 May 2015 00:00:00 +0000</pubDate>
       
-      <guid>/post/2015-05-03-update-introduction-r-programming/</guid>
+      <guid>http://example.org/post/2015-05-03-update-introduction-r-programming/</guid>
       <description>This semester I taught a course on applied econometrics with the R programming language. For this, I created a document that I gave to my students and shared online. This is the kind of document I would have liked to read when I first started using R. I already had some programming experience in C and Pascal but this is not necessarily the case for everyone that is confronted to R when they start learning about econometrics.</description>
     </item>
     
     <item>
       <title>Export R output to a file</title>
-      <link>/post/2015-02-22-export-r-output-to-file/</link>
+      <link>http://example.org/post/2015-02-22-export-r-output-to-file/</link>
       <pubDate>Sun, 22 Feb 2015 00:00:00 +0000</pubDate>
       
-      <guid>/post/2015-02-22-export-r-output-to-file/</guid>
+      <guid>http://example.org/post/2015-02-22-export-r-output-to-file/</guid>
       <description>Sometimes it is useful to export the output of a long-running R command. For example, you might want to run a time consuming regression just before leaving work on Friday night, but would like to get the output saved inside your Dropbox folder to take a look at the results before going back to work on Monday.
 This can be achieved very easily using capture.output() and cat() like so:</description>
     </item>
     
     <item>
       <title>Introduction to programming econometrics with R</title>
-      <link>/post/2015-01-12-introduction-to-programming-econometrics-with-r/</link>
+      <link>http://example.org/post/2015-01-12-introduction-to-programming-econometrics-with-r/</link>
       <pubDate>Mon, 12 Jan 2015 00:00:00 +0000</pubDate>
       
-      <guid>/post/2015-01-12-introduction-to-programming-econometrics-with-r/</guid>
+      <guid>http://example.org/post/2015-01-12-introduction-to-programming-econometrics-with-r/</guid>
       <description>This semester, I&amp;rsquo;ll be teaching an introduction to applied econometrics with R, so I&amp;rsquo;ve decided to write a very small book called &amp;ldquo;Introduction to programming Econometrics with R&amp;rdquo;. This is primarily intended for bachelor students and the focus is not much on econometric theory, but more on how to implement econometric theory into computer code, using the R programming language. It&amp;rsquo;s very basic and doesn&amp;rsquo;t cover any advanced topics in econometrics and is intended for people with 0 previous programming knowledge.</description>
     </item>
     
     <item>
       <title>R, R with Atlas, R with OpenBLAS and Revolution R Open: which is fastest?</title>
-      <link>/post/2014-11-11-benchmarks-r-blas-atlas-rro/</link>
+      <link>http://example.org/post/2014-11-11-benchmarks-r-blas-atlas-rro/</link>
       <pubDate>Tue, 11 Nov 2014 00:00:00 +0000</pubDate>
       
-      <guid>/post/2014-11-11-benchmarks-r-blas-atlas-rro/</guid>
+      <guid>http://example.org/post/2014-11-11-benchmarks-r-blas-atlas-rro/</guid>
       <description>In this short post, I benchmark different &amp;ldquo;versions&amp;rdquo; of R. I compare the execution speeds of R, R linked against OpenBLAS, R linked against ATLAS and Revolution R Open. Revolution R Open is a new open source version of R made by Revolution Analytics. It is linked against MKL and should offer huge speed improvements over vanilla R. Also, it uses every cores of your computer by default, without any change whatsoever to your code.</description>
     </item>
     
     <item>
       <title>Object Oriented Programming with R: An example with a Cournot duopoly</title>
-      <link>/post/2014-04-23-r-s4-rootfinding/</link>
+      <link>http://example.org/post/2014-04-23-r-s4-rootfinding/</link>
       <pubDate>Wed, 23 Apr 2014 00:00:00 +0000</pubDate>
       
-      <guid>/post/2014-04-23-r-s4-rootfinding/</guid>
+      <guid>http://example.org/post/2014-04-23-r-s4-rootfinding/</guid>
       <description>I started reading Applied Computational Economics &amp;amp; Finance by Mario J. Miranda and Paul L. Fackler. It is a very interesting book that I recommend to every one of my colleagues. The only issue I have with this book, is that the programming language they use is Matlab, which is proprietary. While there is a free as in freedom implementation of the Matlab language, namely Octave, I still prefer using R.</description>
     </item>
     
     <item>
       <title>Using R as a Computer Algebra System with Ryacas</title>
-      <link>/post/2013-12-31-r-cas/</link>
+      <link>http://example.org/post/2013-12-31-r-cas/</link>
       <pubDate>Tue, 31 Dec 2013 00:00:00 +0000</pubDate>
       
-      <guid>/post/2013-12-31-r-cas/</guid>
+      <guid>http://example.org/post/2013-12-31-r-cas/</guid>
       <description>R is used to perform statistical analysis and doesn&amp;#39;t focus on symbolic maths. But it is sometimes useful to let the computer derive a function for you (and have the analytic expression of said derivative), but maybe you don&amp;#39;t want to leave your comfy R shell. It is possible to turn R into a full-fledged computer algebra system. CASs are tools that perform symbolic operations, such as getting the expression of the derivative of a user-defined (and thus completely arbitrary) function.</description>
     </item>
     
     <item>
       <title>Method of Simulated Moments with R</title>
-      <link>/post/2013-01-29-method-of-simulated-moments-with-r/</link>
+      <link>http://example.org/post/2013-01-29-method-of-simulated-moments-with-r/</link>
       <pubDate>Wed, 11 Dec 2013 00:00:00 +0000</pubDate>
       
-      <guid>/post/2013-01-29-method-of-simulated-moments-with-r/</guid>
+      <guid>http://example.org/post/2013-01-29-method-of-simulated-moments-with-r/</guid>
       <description>This document details section 12.5.6. Unobserved Heterogeneity Example. The original source code giving the results from table 12.3 are available from the authors&amp;#39; site here and written for Stata. This is an attempt to translate the code to R.
 Consult the original source code if you want to read the authors&amp;#39; comments. If you want the R source code without all the commentaries, grab it here. This is not guaranteed to work, nor to be correct.</description>
     </item>
     
     <item>
       <title>Simulated Maximum Likelihood with R</title>
-      <link>/post/2013-01-16-simulated-maximum-likelihood-with-r/</link>
+      <link>http://example.org/post/2013-01-16-simulated-maximum-likelihood-with-r/</link>
       <pubDate>Wed, 11 Dec 2013 00:00:00 +0000</pubDate>
       
-      <guid>/post/2013-01-16-simulated-maximum-likelihood-with-r/</guid>
+      <guid>http://example.org/post/2013-01-16-simulated-maximum-likelihood-with-r/</guid>
       <description>This document details section 12.4.5. Unobserved Heterogeneity Example from Cameron and Trivedi&#39;s book - MICROECONOMETRICS: Methods and Applications. The original source code giving the results from table 12.2 are available from the authors&amp;#39; site here and written for Stata. This is an attempt to translate the code to R. I&#39;d like to thank Reddit user anonemouse2010 for his advice which helped me write the function.</description>
     </item>
     
     <item>
       <title>Nonlinear Gmm with R - Example with a logistic regression</title>
-      <link>/post/2013-11-07-gmm-with-rmd/</link>
+      <link>http://example.org/post/2013-11-07-gmm-with-rmd/</link>
       <pubDate>Thu, 07 Nov 2013 00:00:00 +0000</pubDate>
       
-      <guid>/post/2013-11-07-gmm-with-rmd/</guid>
+      <guid>http://example.org/post/2013-11-07-gmm-with-rmd/</guid>
       <description>In this post, I will explain how you can use the R gmm package to estimate a non-linear model, and more specifically a logit model. For my research, I have to estimate Euler equations using the Generalized Method of Moments. I contacted Pierre Chaussé, the creator of the gmm library for help, since I was having some difficulties. I am very grateful for his help (without him, I&amp;#39;d still probably be trying to estimate my model!</description>
     </item>
     
     <item>
       <title></title>
-      <link>/about/</link>
+      <link>http://example.org/about/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>/about/</guid>
+      <guid>http://example.org/about/</guid>
       <description>this is inside content and is html</description>
     </item>
     
     <item>
       <title>Who am I?</title>
-      <link>/about/about/</link>
+      <link>http://example.org/about/about/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>/about/about/</guid>
+      <guid>http://example.org/about/about/</guid>
       <description>My name is Bruno Rodrigues and hold a PhD in Economics from the University of Strasbourg.
 I&amp;rsquo;m currently employed as a statistician for the Ministry of Higher Education and Research in Luxembourg. Before that I was senior data scientist and then manager in the data science team at PwC Luxembourg, and before that I was a research assistant at STATEC Research.
 My hobbies are boxing, lifting weights, cycling, cooking and reading or listening to audiobooks, which is more compatible with the life of a young father.</description>
