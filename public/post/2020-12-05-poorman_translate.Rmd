@@ -1,0 +1,129 @@
+---
+date: 2020-12-05
+title: Poorman's automated translation with R and Google Sheets using {googlesheets4}
+tags: [R]
+menu:
+main:
+  parent: Blog
+  identifier: /blog/poorman_translate
+  weight: 1
+---
+
+
+<div style="text-align:center;">
+<a href="https://www.youtube.com/watch?v=2kArCRjT29w">
+<img src="/img/omelette_du_fromage.gif" title = "A classic."></a>
+</div>
+
+```{r, include = FALSE}
+library(googlesheets4)
+library(dplyr)
+library(tibble)
+```
+
+A little trick I thought about this week; using Google Sheets, which includes a "googletranslate()"
+function to translate a survey that we're preparing at work, from French to English, and using
+R of course. You'll need a Google account for this. Also, keep in mind that you'll be sending
+the text you want to translate to Google, so don't go sending out anything sensitive.
+
+First, let's load the needed packages:
+
+```{r}
+library(googlesheets4)
+library(dplyr)
+library(tibble)
+```
+
+As an example, I'll be defining a tibble with one column, and two rows. Each cell contains a 
+sentence in French from the best show in the entire French speaking world, Kaamelott:
+
+```{r}
+my_french_tibble <- tribble(~french,
+                  "J'apprécie les fruits au sirop",
+                  "C'est pas faux")
+```
+
+To this tibble, I'm now adding two more columns, that contain the following string: "=googletranslate(A:A, "fr", "en")".
+This is exactly what you would write in the formula bar in Sheets. Then, we need to convert that to 
+an actual Google Sheets formula using `gs4_formula()`:
+
+```{r}
+(
+my_french_tibble <- my_french_tibble %>%
+  mutate(english = '=googletranslate(A:A, "fr", "en")') %>%
+  mutate(portuguese = '=googletranslate(A:A, "fr", "pt")') %>%
+  mutate(english = gs4_formula(english),
+         portuguese = gs4_formula(portuguese))
+)
+```
+
+We're ready to send this to Google Sheets. As soon as the sheet gets uploaded, the formulas will be 
+evaluated, yielding translations in both English and Portuguese.
+
+To upload the tibble to sheets, run the following:
+
+```{r, eval = FALSE}
+french_sheet <- gs4_create("repliques_kaamelott",
+                           sheets = list(perceval = my_french_tibble))
+```
+
+You'll be asked if you want to cache your credentials so that you don't need to re-authenticate
+between R sessions:
+
+![](/img/gs4_oauth.png)
+
+Your browser will the open a tab asking you to login to Google:
+
+![](/img/gs4_login.png)
+
+At this point, you might get a notification on your phone, alerting you that there was a login to your account:
+
+![](/img/gs4_android_notification.png)
+
+If you go on your Google Sheets account, this is what you'll see:
+
+![](/img/gs4_repliques_kaamelott.png)
+
+And if you open the sheet:
+
+![](/img/gs4_repliques_kaamelott_result.png)
+
+Pretty nice, no? You can of course download the workbook, or better yet, never leave your R session at all
+and simply get back the workbook using either the `{googledrive}` package, which simply needs the name
+of the workbook (`{googledrive}` also needs authentication):
+
+```{r, eval = FALSE}
+(
+translations <- googledrive::drive_get("repliques_kaamelott") %>%
+  read_sheet
+)
+```
+
+You'll get a new data frame with the translation:
+
+```
+Reading from "repliques_kaamelott"
+Range "perceval"
+# A tibble: 2 x 3
+  french                    english                     portuguese              
+  <chr>                     <chr>                       <chr>                   
+1 J'apprécie les fruits au… I appreciate the fruits in… I apreciar os frutos em…
+2 C'est pas faux            It is not false             Não é falsa             
+```
+
+Or you can use the link to the sheet (which does not require to re-authenticate at this point):
+
+```{r, eval = FALSE}
+translations <- read_sheet("the_link_goes_here", "perceval")
+```
+
+You could of course encapsulate all these steps into a function and have any text translated
+very easily! Just be careful not to send out any confidential information out...
+
+Hope you enjoyed! If you found this blog post useful, you might want to follow 
+me on [twitter](https://www.twitter.com/brodriguesco) for blog post updates and 
+[buy me an espresso](https://www.buymeacoffee.com/brodriguesco) or [paypal.me](https://www.paypal.me/brodriguesco), or buy my ebook on [Leanpub](https://leanpub.com/modern_tidyverse).
+You can also watch my videos on [youtube](https://www.youtube.com/c/BrunoRodrigues1988/).
+So much content for you to consoom!
+
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a>

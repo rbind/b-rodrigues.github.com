@@ -16,6 +16,8 @@ at PwC Luxembourg, and before that I was a research assistant at [STATEC Researc
 
 My hobbies are boxing, lifting weights, cycling, cooking and reading or listening to audiobooks, 
 which is more compatible with the life of a young father.
+I started this blog to share my enthusiasm for statistics. My blog posts are reshared on 
+[R-bloggers](https://www.r-bloggers.com/) and [RWeekly](https://rweekly.org/).
 I also enjoy learning about the R programming language and sharing my knowledge.
 That's why I made this blog and also am writing an [ebook](https://b-rodrigues.github.io/modern_R/).
 I also have a [youtube channel](https://www.youtube.com/channel/UCTZXht1RTL2Duc3eU8MYGzQ), 

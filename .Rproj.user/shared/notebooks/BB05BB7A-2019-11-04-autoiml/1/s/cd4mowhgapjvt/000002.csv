@@ -1,0 +1,59 @@
+"0","train_data <- read_csv(""../../static/assets/train.csv"") %>% "
+"0","    mutate(Survived = as.factor(Survived))"
+"2","Parsed with column specification:
+cols(
+  PassengerId = col_double(),
+  Survived = col_double(),
+  Pclass = col_double(),
+  Name = col_character(),
+  Sex = col_character(),
+  Age = col_double(),
+  SibSp = col_double(),
+  Parch = col_double(),
+  Ticket = col_character(),
+  Fare = col_double(),
+  Cabin = col_character(),
+  Embarked = col_character()
+)
+"
+"0","test_data <- read_csv(""../../static/assets/test.csv"") %>%"
+"0","    mutate(Pclass = as.factor(Pclass),"
+"0","           Sex = as.factor(Sex),"
+"0","           Embarked = as.factor(Embarked)) %>%"
+"0","    mutate(family_size = SibSp + Parch + 1) %>%"
+"0","    #mutate(has_cabin = !is.na(Cabin)) %>%"
+"0","    mutate(Pclass = as.factor(Pclass)) %>%"
+"0","    mutate(Fare = Fare/family_size) %>%"
+"0","    mutate(Fare = scale(Fare)[,1]) %>%"
+"0","    mutate(Age = scale(Age)[,1]) %>%"
+"0","    mutate(Cabin = str_extract(Cabin, ""."")) %>% "
+"0","    mutate(Cabin = if_else(is.na(Cabin), ""N"", Cabin)) %>% "
+"0","    select(-Name, -Ticket, -SibSp, -Parch)"
+"2","Parsed with column specification:
+cols(
+  PassengerId = col_double(),
+  Pclass = col_double(),
+  Name = col_character(),
+  Sex = col_character(),
+  Age = col_double(),
+  SibSp = col_double(),
+  Parch = col_double(),
+  Ticket = col_character(),
+  Fare = col_double(),
+  Cabin = col_character(),
+  Embarked = col_character()
+)
+"
+"0","train_data <- train_data %>%"
+"0","    mutate(Pclass = as.factor(Pclass),"
+"0","           Sex = as.factor(Sex),"
+"0","           Embarked = as.factor(Embarked)) %>%"
+"0","    mutate(family_size = SibSp + Parch + 1) %>%"
+"0","    #mutate(has_cabin = !is.na(Cabin)) %>%"
+"0","    mutate(Pclass = as.factor(Pclass)) %>%"
+"0","    mutate(Fare = Fare/family_size) %>%"
+"0","    mutate(Fare = scale(Fare)[,1]) %>%"
+"0","    mutate(Age = scale(Age)[,1]) %>%"
+"0","    mutate(Cabin = str_extract(Cabin, ""."")) %>% "
+"0","    mutate(Cabin = if_else(is.na(Cabin), ""N"", Cabin)) %>% "
+"0","    select(-PassengerId, -Name, -Ticket, -SibSp, -Parch)"

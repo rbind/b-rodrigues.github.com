@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<style type=text/css>body{font-family:monospace;}</style>
+	<title>Historical newspaper scraping with {tesseract} and R</title>
+	
+	
+	<link rel="stylesheet" href="/css/style.css">
+	
+	
+</head>
+<body>
+	<header>
+<p><a class="nav-link" href="/index.html">Econometrics and Free Software</a> by <a class="nav-link" href="/about/about">Bruno Rodrigues</a>.</p>
+<p>Follow me on <a href="https://twitter.com/brodriguesco" rel="nofollow">twitter</a>.</p>
+<p>Watch my <a href="https://www.youtube.com/user/cbrunos" rel="nofollow">youtube</a> channel.</p>
+</header>
+
+	
+	<main>
+		<article>
+			<h1>Historical newspaper scraping with {tesseract} and R</h1>
+			<b><time>2019/04/07</time></b>
+		       
+		           <a href="/tags/r">R</a>
+        	       
+
+			<div>
+				<div style="text-align:center;">
+<p><a href="https://en.wikipedia.org/wiki/Cliometrics">
+<img src="/img/clio.jpg" title = "Historical newspapers as a source to practice cliometrics?"></a></p>
+</div>
+<p>I have been playing around with historical newspapers data for some months now. The “obvious” type of analysis
+to do is NLP, but there is also a lot of numerical data inside historical newspapers.
+For instance, you can find these tables that show the market prices of the day in the <em>L’Indépendance Luxembourgeoise</em>:</p>
+<p><img src="/img/market_price_table.png" /><!-- --></p>
+<p>I wanted to see how easy it was to extract these tables from the newspapers and then make it available.
+It was a bit more complicated than anticipated.</p>
+<div id="download-data" class="section level2">
+<h2>Download data</h2>
+<p>The first step is to download the data. For this, I have used the code <a href="https://twitter.com/yvesmaurer"><code>@yvesmaurer</code></a> which you
+can find <a href="https://github.com/ymaurer/eluxemburgensia-opendata-ark">here</a>. This code makes it easy to download individual
+pages of certain newspapers,
+for instance <a href="https://iiif.eluxemburgensia.lu/iiif/2/ark:%2F70795%2F1drtkj%2Fpages%2F1/full/full/0/default.jpg">this one</a>. The
+pages I am interested in are pages 3, which contain the tables I need, for example
+<a href="https://iiif.eluxemburgensia.lu/iiif/2/ark:%2F70795%2F1drtkj%2Fpages%2F3/full/full/0/default.jpg">here</a>.
+<a href="https://twitter.com/yvesmaurer"><code>@yvesmaurer</code></a>’s code makes it easy to find the download links, which look like
+this: <code>https://iiif.eluxemburgensia.lu/iiif/2/ark:%2F70795%2F1drtkj%2Fpages%2F3/full/full/0/default.jpg</code>. It is also possible to
+crop the image by changing some parameters <a href="https://iiif.eluxemburgensia.lu/iiif/2/ark:%2F70795%2Fwsvhwh%2Fpages%2F3/pct:74,0,100,100/full/0/default.jpg">like so</a>.
+This is helpful, because it makes the image smaller. The tables I’m interested in are always in the last column, so I can can use
+this feature to get smaller images. However, not every issue contains these tables, and I only want to download the ones
+that have these tables. So I wrote the following code to download the images I’m interested in:</p>
+<pre class="r"><code>library(tidyverse)
+library(magick)
+library(tesseract)
+library(furrr)
+
+download_image &lt;- function(link){
+
+    print(link)
+
+    isok &lt;- image_read(link) %&gt;%
+        ocr(engine = &quot;fra&quot;) %&gt;%
+        str_to_lower() %&gt;%
+        str_detect(&quot;marché de luxembourg&quot;)
+
+    if(isok){
+        date_link &lt;- link %&gt;%
+            str_replace(&quot;pages%2f3&quot;, &quot;pages%2f1&quot;) %&gt;%
+            str_replace(&quot;pct:74,0,100,100&quot;, &quot;pct:76,1,17,5&quot;)
+
+        paper_date &lt;- image_read(date_link) %&gt;%
+            ocr(engine = &quot;fra&quot;) %&gt;%
+            str_squish() %&gt;%
+            str_remove(&quot;%&quot;) %&gt;%
+            str_remove(&quot;&amp;&quot;) %&gt;%
+            str_remove(&quot;/&quot;)
+
+        ark &lt;- link %&gt;%
+            str_sub(53, 60)
+
+        download.file(link, paste0(&quot;indep_pages/&quot;, ark, &quot;-&quot;, paper_date, &quot;.jpg&quot;))
+    } else {
+        NULL
+        }
+}</code></pre>
+<p>This code only downloads
+an image if the <code>ocr()</code> from the {tesseract} (which does, you guessed it, OCR) detects the string “marché de luxembourg” which
+is the title of the tables. This is a bit extreme, because if a single letter cannot be correctly detected by the OCR, the page will not
+be downloaded. But I figured that if this string could not be easily recognized, this would be a canary telling me that the text
+inside the table would also not be easily recognized. So it might be extreme, but my hope was that it would make detecting
+the table itself easier. Turned out it wasn’t so easy, but more on this later.</p>
+</div>
+<div id="preparing-images" class="section level2">
+<h2>Preparing images</h2>
+<p>Now that I have the images, I will prepare them to make character recognition easier. To do this, I’m using the <code>{magick}</code>
+package:</p>
+<pre class="r"><code>library(tidyverse)
+library(magick)
+library(tesseract)
+library(furrr)
+
+prepare_image &lt;- function(image_path){
+    image &lt;- image_read(image_path)
+
+    image &lt;- image %&gt;%
+        image_modulate(brightness = 150) %&gt;%
+        image_convolve(&#39;DoG:0,0,2&#39;, scaling = &#39;1000, 100%&#39;) %&gt;%
+        image_despeckle(times = 10)
+
+    image_write(image, paste0(getwd(), &quot;/edited/&quot;, str_remove(image_path, &quot;.jpg&quot;), &quot;edited.jpg&quot;))
+}
+
+
+image_paths &lt;- dir(path = &quot;indep_pages&quot;, pattern = &quot;*.jpg&quot;, full.names = TRUE)
+
+plan(multiprocess, workers = 8)
+
+image_paths %&gt;%
+    future_map(prepare_image)</code></pre>
+<p>The picture below shows the result:</p>
+<p><img src="/img/table_and_edit.jpg" /><!-- --></p>
+<p>Now comes the complicated part, which is going from the image above, to the dataset below:</p>
+<pre><code>good_fr,good_en,unit,market_date,price,source_url
+Froment,Wheat,hectolitre,1875-08-28,23,https://iiif.eluxemburgensia.lu/iiif/2/ark:%2F70795%2F02grxj%2Fpages%2F1/full/full/0/default.jpg
+Métail,Meslin,hectolitre,1875-08-28,21,https://iiif.eluxemburgensia.lu/iiif/2/ark:%2F70795%2F02grxj%2Fpages%2F1/full/full/0/default.jpg
+Seigle,Rye,hectolitre,1875-08-28,15,https://iiif.eluxemburgensia.lu/iiif/2/ark:%2F70795%2F02grxj%2Fpages%2F1/full/full/0/default.jpg
+Orge,Barley,hectolitre,1875-08-28,16,https://iiif.eluxemburgensia.lu/iiif/2/ark:%2F70795%2F02grxj%2Fpages%2F1/full/full/0/default.jpg
+Orge mondé,Pot Barley,kilogram,1875-08-28,0.85,https://iiif.eluxemburgensia.lu/iiif/2/ark:%2F70795%2F02grxj%2Fpages%2F1/full/full/0/default.jpg
+Orge perlé,Pearl barley,kilogram,1875-08-28,0.8,https://iiif.eluxemburgensia.lu/iiif/2/ark:%2F70795%2F02grxj%2Fpages%2F1/full/full/0/default.jpg
+Avoine,Oats,hectolitre,1875-08-28,8.5,https://iiif.eluxemburgensia.lu/iiif/2/ark:%2F70795%2F02grxj%2Fpages%2F1/full/full/0/default.jpg
+Pois,Peas,hectolitre,1875-08-28,NA,https://iiif.eluxemburgensia.lu/iiif/2/ark:%2F70795%2F02grxj%2Fpages%2F1/full/full/0/default.jpg</code></pre>
+</div>
+<div id="ocr-with-tesseract" class="section level2">
+<h2>OCR with {tesseract}</h2>
+<p>The first step was to get the date. For this, I have used the following function, which will then
+be used inside another function, which will extract the data and prices.</p>
+<pre class="r"><code>library(tidyverse)
+library(lubridate)
+library(magick)
+library(tesseract)
+library(furrr)
+library(janitor)
+
+is_empty_line &lt;- function(line){
+    ifelse(line == &quot;&quot;, TRUE, FALSE)
+}
+
+Sys.setlocale(&#39;LC_TIME&#39;, &quot;fr_FR&quot;)
+
+get_date &lt;- function(string, annee){
+
+    liste_mois &lt;- c(&quot;janvier&quot;, &quot;février&quot;, &quot;mars&quot;, &quot;avril&quot;, &quot;mai&quot;, &quot;juin&quot;, &quot;juillet&quot;,
+                    &quot;août&quot;, &quot;septembre&quot;, &quot;octobre&quot;, &quot;novembre&quot;, &quot;décembre&quot;)
+
+    raw_date &lt;- string %&gt;%
+      str_to_lower() %&gt;%
+        str_remove_all(&quot;\\.&quot;) %&gt;%
+        str_extract(&quot;\\d{1,2} .{3,9}(\\s+)?\\d{0,4}&quot;) %&gt;%
+        str_split(&quot;\\s+&quot;, simplify = TRUE)
+
+    if(ncol(raw_date) == 2){
+        raw_date &lt;- cbind(raw_date, &quot;annee&quot;)
+    }
+
+    raw_date[1, 3] &lt;- annee
+
+    raw_date &lt;- str_to_lower(raw_date[1:1, 1:3])
+
+    long_month &lt;- case_when(
+      raw_date[2] == &quot;janv&quot; ~ &quot;janvier&quot;,
+      raw_date[2] == &quot;févr&quot; ~ &quot;février&quot;,
+      raw_date[2] == &quot;sept&quot; ~ &quot;septembre&quot;,
+      raw_date[2] == &quot;oct&quot; ~ &quot;octobre&quot;,
+      raw_date[2] == &quot;nov&quot; ~ &quot;novembre&quot;,
+      raw_date[2] == &quot;dec&quot; ~ &quot;décembre&quot;,
+      TRUE ~ as.character(raw_date[2]))
+
+    raw_date[2] &lt;- long_month
+
+    is_it_date &lt;- as.Date(paste0(raw_date, collapse = &quot;-&quot;), format = &quot;%d-%b-%Y&quot;) %&gt;%
+        is.na() %&gt;% `!`()
+
+    if(is_it_date){
+        return(as.Date(paste0(raw_date, collapse = &quot;-&quot;), format = &quot;%d-%b-%Y&quot;))
+    } else {
+        if(!(raw_date[2] %in% liste_mois)){
+            raw_date[2] &lt;- liste_mois[stringdist::amatch(raw_date[2], liste_mois, maxDist = 2)]
+            return(as.Date(paste0(raw_date, collapse = &quot;-&quot;), format = &quot;%d-%b-%Y&quot;))
+        }
+    }
+}</code></pre>
+<p>This function is more complicated than I had hoped. This is because dates come in different formats.
+For example, there are dates written like this “21 Janvier 1872”, or “12 Septembre” or “12 sept.”.
+The biggest problem here is that sometimes the year is missing. I deal with this in the next
+function, which is again, more complicated than what I had hoped. I won’t go into details and
+explain every step of the function above, but the idea is to extract the data from the raw text,
+replace abbreviated months with the full month name if needed, and then check if I get a valid date.
+If not, I try my luck with <code>stringdist::amatch()</code>, to try to match, say “jonvier” with “janvier”.
+This is in case the OCR made a mistake. I am not very happy with this solution, because it is very
+approximative, but oh well.</p>
+<p>The second step is to get the data. I noticed that the rows stay consistent, but do change
+after June 1st 1876. So I simply hardcoded the goods names, and was only concerned with extracting
+the prices. I also apply some manual corrections inside the function; mainly dates that were
+wrongly recognized by the OCR engine, and which were causing problems. Again, not an optimal solution,
+the other alternative was to simply drop this data, which I did not want to do. Here is the function:</p>
+<pre class="r"><code>extract_table &lt;- function(image_path){
+
+  image &lt;- image_read(image_path)
+
+  annee &lt;- image_path %&gt;%
+    str_extract(&quot;187\\d&quot;)
+
+  ark &lt;- image_path %&gt;%
+    str_sub(22, 27)
+
+  source_url &lt;- str_glue(&quot;https://iiif.eluxemburgensia.lu/iiif/2/ark:%2F70795%2F{ark}%2Fpages%2F1/full/full/0/default.jpg&quot;,
+                         ark = ark)
+
+  text &lt;- ocr(image, engine = &quot;fra&quot;)
+
+    text &lt;- text %&gt;%
+      str_split(&quot;\n&quot;) %&gt;%
+      unlist %&gt;%
+      str_squish() %&gt;%
+      str_remove_all(&quot;^.{1,10}$&quot;) %&gt;%
+      discard(is_empty_line) %&gt;%
+      str_replace(&quot;Mercuriale du \\+ Nov. 1831.&quot;, &quot;Mercuriale du 4 Nov. 1831.&quot;) %&gt;%
+      str_replace(&quot;….u .T juillet.&quot;, &quot;du 7 juillet&quot;) %&gt;%
+      str_replace(&quot;octobré&quot;, &quot;octobre&quot;) %&gt;%
+      str_replace(&quot;AT octobre&quot;, &quot;17 octobre&quot;) %&gt;% # correction for &quot;f8g6kq8-18  LUNDI 19 OCTOBRÉ 1874. BUREAUX de fa RÉDACTIGedited.jpg&quot;
+      str_replace(&quot;T norembre&quot;, &quot;7 novembre&quot;) %&gt;%  # correction for fcrhrn5-LE 8  LUNDI 9 NOVEMBRE 1874 BUREAUX de la RÉDedited.jpg
+      str_replace(&quot;À oc demain 5&quot;, &quot;27 mai&quot;) %&gt;% # correction for fd61vzp-MARDI 50. MAI 1876 BUREAUX de la. RED, n VE DE L’ADMINISTRAedited.jpg
+      str_replace(&quot;G&quot;, &quot;6&quot;) %&gt;%
+      str_replace(&quot;Hercariale du 80 nov. 1872,&quot;, &quot;du 30 novembre 1872&quot;) %&gt;%
+      str_replace(&quot;….u .T juillet.&quot;, &quot;du 7 juillet&quot;) %&gt;%
+      str_replace(&quot;Rs ne its du 28-octobré.: :!: :&quot;, &quot;28 octobre&quot;) %&gt;%
+      str_replace(&quot;De routes due 98-juilléle. à eat&quot;, &quot;28 juillet&quot;) %&gt;%
+      str_replace(&quot;\\| Mereariale dn 14 dre. 1872,&quot;, &quot;14 décembre 1872&quot;)
+
+
+  start &lt;- text %&gt;%
+    str_which(&quot;MARCH(É|E).*D(E|É).*LUXEMBOUR(G|6)&quot;) + 2
+
+  start &lt;- ifelse(is_empty(start), str_which(text, &quot;.*D.*UXEM.*&quot;) + 2, start)
+
+  end &lt;- start + 40
+
+  pricing_date &lt;- text[start - 1] %&gt;%
+    str_remove(&quot;%&quot;) %&gt;%
+    str_remove(&quot;er&quot;) %&gt;%
+    str_remove(&quot;\\.+&quot;) %&gt;%
+    str_remove(&quot;\\*&quot;) %&gt;%
+    str_remove(&quot;®&quot;) %&gt;%
+    str_remove(&quot;:&quot;) %&gt;%
+    str_remove(&quot;\\?&quot;) %&gt;%
+    str_replace(&quot;\\$&quot;, &quot;9&quot;) %&gt;%
+    str_remove(&quot;°&quot;) %&gt;%
+    str_replace(&quot;‘du 14août.. - ; En&quot;, &quot;14 août&quot;) %&gt;%
+    str_replace(&quot;OP PE CN AP PP&quot;, &quot;du 28 juin&quot;) %&gt;%
+    str_replace(&quot;‘ du 81 janvi Le&quot;, &quot;31 janvier&quot;) %&gt;%
+    str_replace(&quot;\\| \\| du AT août&quot;, &quot;17 août&quot;) %&gt;%
+    str_replace(&quot;Su”  du 81 juillet. L&quot;, &quot;31 juillet&quot;) %&gt;%
+    str_replace(&quot;0 du 29 avril \&quot; \\|&quot;, &quot;29 avril&quot;) %&gt;%
+    str_replace(&quot;LU 0 du 28 ail&quot;, &quot;28 avril&quot;) %&gt;%
+    str_replace(&quot;Rs ne its du 28-octobre :!: :&quot;, &quot;23 octobre&quot;) %&gt;%
+    str_replace(&quot;7 F \\|  du 13 octobre LA LOTS&quot;, &quot;13 octobre&quot;) %&gt;%
+    str_replace(&quot;À. du 18 juin UT ET&quot;, &quot;13 juin&quot;)
+
+
+  market_date &lt;- get_date(pricing_date, annee)
+
+  items &lt;- c(&quot;Froment&quot;, &quot;Métail&quot;, &quot;Seigle&quot;, &quot;Orge&quot;, &quot;Orge mondé&quot;, &quot;Orge perlé&quot;, &quot;Avoine&quot;, &quot;Pois&quot;, &quot;Haricots&quot;,
+             &quot;Lentilles&quot;, &quot;Pommes de terre&quot;, &quot;Bois de hêtre&quot;, &quot;Bois de chêne&quot;, &quot;Beurre&quot;, &quot;Oeufs&quot;, &quot;Foin&quot;,
+             &quot;Paille&quot;, &quot;Viande de boeuf&quot;, &quot;Viande de vache&quot;, &quot;Viande de veau&quot;, &quot;Viande de mouton&quot;,
+             &quot;Viande fraîche de cochon&quot;, &quot;Viande fumée de cochon&quot;, &quot;Haricots&quot;, &quot;Pois&quot;, &quot;Lentilles&quot;,
+             &quot;Farines de froment&quot;, &quot;Farines de méteil&quot;, &quot;Farines de seigle&quot;)
+
+  items_en &lt;- c(&quot;Wheat&quot;, &quot;Meslin&quot;, &quot;Rye&quot;, &quot;Barley&quot;, &quot;Pot Barley&quot;, &quot;Pearl barley&quot;, &quot;Oats&quot;, &quot;Peas&quot;, &quot;Beans&quot;,
+    &quot;Lentils&quot;, &quot;Potatoes&quot;, &quot;Beech wood&quot;, &quot;Oak wood&quot;, &quot;Butter&quot;, &quot;Eggs&quot;, &quot;Hay&quot;, &quot;Straw&quot;, &quot;Beef meat&quot;,
+    &quot;Cow meat&quot;, &quot;Veal meat&quot;, &quot;Sheep meat&quot;, &quot;Fresh pig meat&quot;, &quot;Smoked pig meat&quot;, &quot;Beans&quot;, &quot;Peas&quot;,
+    &quot;Lentils&quot;, &quot;Wheat flours&quot;, &quot;Meslin flours&quot;, &quot;Rye flours&quot;)
+
+
+  unit &lt;- c(&quot;hectolitre&quot;, &quot;hectolitre&quot;, &quot;hectolitre&quot;, &quot;hectolitre&quot;, &quot;kilogram&quot;, &quot;kilogram&quot;, &quot;hectolitre&quot;,
+            &quot;hectolitre&quot;, &quot;hectolitre&quot;, &quot;hectolitre&quot;, &quot;hectolitre&quot;, &quot;stere&quot;, &quot;stere&quot;, &quot;kilogram&quot;, &quot;dozen&quot;,
+            &quot;500 kilogram&quot;, &quot;500 kilogram&quot;, &quot;kilogram&quot;, &quot;kilogram&quot;, &quot;kilogram&quot;, &quot;kilogram&quot;, &quot;kilogram&quot;,
+            &quot;kilogram&quot;, &quot;litre&quot;, &quot;litre&quot;, &quot;litre&quot;, &quot;kilogram&quot;, &quot;kilogram&quot;, &quot;kilogram&quot;)
+
+  # starting with june 1876, the order of the items changes
+  items_06_1876 &lt;- c(&quot;Froment&quot;, &quot;Métail&quot;, &quot;Seigle&quot;, &quot;Orge&quot;, &quot;Avoine&quot;, &quot;Pois&quot;, &quot;Haricots&quot;, &quot;Lentilles&quot;,
+                     &quot;Pommes de terre&quot;, &quot;Farines de froment&quot;, &quot;Farines de méteil&quot;, &quot;Farines de seigle&quot;, &quot;Orge mondé&quot;,
+                     &quot;Beurre&quot;, &quot;Oeufs&quot;, &quot;Foins&quot;, &quot;Paille&quot;, &quot;Bois de hêtre&quot;, &quot;Bois de chêne&quot;, &quot;Viande de boeuf&quot;, &quot;Viande de vache&quot;,
+                     &quot;Viande de veau&quot;, &quot;Viande de mouton&quot;, &quot;Viande fraîche de cochon&quot;, &quot;Viande fumée de cochon&quot;)
+
+  items_06_1876_en &lt;- c(&quot;Wheat&quot;, &quot;Meslin&quot;, &quot;Rye&quot;, &quot;Barley&quot;, &quot;Oats&quot;, &quot;Peas&quot;, &quot;Beans&quot;, &quot;Lentils&quot;,
+                        &quot;Potatoes&quot;, &quot;Wheat flours&quot;, &quot;Meslin flours&quot;, &quot;Rye flours&quot;, &quot;Pot barley&quot;,
+                        &quot;Butter&quot;, &quot;Eggs&quot;, &quot;Hay&quot;, &quot;Straw&quot;, &quot;Beechwood&quot;, &quot;Oakwood&quot;, &quot;Beef meat&quot;, &quot;Cow meat&quot;,
+                        &quot;Veal meat&quot;, &quot;Sheep meat&quot;, &quot;Fresh pig meat&quot;, &quot;Smoked pig meat&quot;)
+
+  units_06_1876 &lt;- c(rep(&quot;hectolitre&quot;, 9), rep(&quot;kilogram&quot;, 5), &quot;douzaine&quot;, rep(&quot;500 kilogram&quot;, 2),
+                     &quot;stere&quot;, &quot;stere&quot;, rep(&quot;kilogram&quot;, 6))
+
+  raw_data &lt;- text[start:end]
+
+  prices &lt;- raw_data %&gt;%
+    str_replace_all(&quot;©&quot;, &quot;0&quot;) %&gt;%
+    str_extract(&quot;\\d{1,2}\\s\\d{2}&quot;) %&gt;%
+    str_replace(&quot;\\s&quot;, &quot;\\.&quot;) %&gt;%
+    as.numeric
+
+  if(is.na(prices[1])){
+    prices &lt;- tail(prices, -1)
+  } else {
+    prices &lt;- prices
+  }
+
+  if(market_date &lt; as.Date(&quot;01-06-1876&quot;, format = &quot;%d-%m-%Y&quot;)){
+    prices &lt;- prices[1:length(items)]
+    tibble(&quot;good_fr&quot; = items, &quot;good_en&quot; = items_en, &quot;unit&quot; = unit, &quot;market_date&quot; = market_date,
+           &quot;price&quot; = prices, &quot;source_url&quot; = source_url)
+  } else {
+    prices &lt;- prices[1:length(items_06_1876_en)]
+    tibble(&quot;good_fr&quot; = items_06_1876, &quot;good_en&quot; = items_06_1876_en, &quot;unit&quot; = units_06_1876,
+           &quot;market_date&quot; = market_date, &quot;price&quot; = prices, &quot;source_url&quot; = source_url)
+  }
+}</code></pre>
+<p>As I wrote previously, I had to deal with the missing year in the date inside this function. To do
+that, I extracted the year from the name of the file, and pasted it then into the date. The file
+name contains the data because the function in the function that downloads the files I also performed
+OCR on the first page, to get the date of the newspaper issue. The sole purpose of this was to
+get the year. Again, the function is more complex than what I hoped, but it did work well overall.
+There are still mistakes in the data, for example sometimes the prices are in the wrong order;
+meaning that they’re “shifted”, for example instead of the prices for eggs, I have the prices of the
+good that comes next. So obviously be careful if you decide to analyze the data, and double-check
+if something seems weird. I have made the data available on Luxembourg Open Data Portal,
+<a href="https://data.public.lu/fr/datasets/digitised-luxembourg-historical-newspapers-journaux-historiques-luxembourgeois-numerises/#resource-community-27293c42-22e5-4811-aee8-89d6f7fa9533">here</a>.</p>
+</div>
+<div id="analyzing-the-data" class="section level2">
+<h2>Analyzing the data</h2>
+<p>And now, to the fun part. I want to know what was the price of smoked pig meat, and how it varied
+through time:</p>
+<pre class="r"><code>library(tidyverse)
+library(ggplot2)
+library(brotools)</code></pre>
+<pre class="r"><code>market_price &lt;- read_csv(&quot;https://download.data.public.lu/resources/digitised-luxembourg-historical-newspapers-journaux-historiques-luxembourgeois-numerises/20190407-183605/market-price.csv&quot;)</code></pre>
+<pre><code>## Parsed with column specification:
+## cols(
+##   good_fr = col_character(),
+##   good_en = col_character(),
+##   unit = col_character(),
+##   market_date = col_date(format = &quot;&quot;),
+##   price = col_double(),
+##   source_url = col_character()
+## )</code></pre>
+<pre class="r"><code>market_price %&gt;%
+    filter(good_en == &quot;Smoked pig meat&quot;) %&gt;%
+    ggplot(aes(x = market_date, y = price)) +
+    geom_line(aes(group = 1), colour = &quot;#82518c&quot;) + 
+    theme_blog() + 
+    labs(title = &quot;Prices of smoked pig meat at the Luxembourg-City market in the 19th century&quot;)</code></pre>
+<pre><code>## Warning: Removed 2 rows containing missing values (geom_path).</code></pre>
+<p><img src="/blog/2019-04-07-historical_newspaper_scraping_tesseract_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<p>As you can see, there is a huge spike somewhere in 1874. Maybe there was a very severe smoked pig
+meat shortage that caused the prices to increase dramatically, but the more likely explanation is
+that there was some sort of mistake, either in the OCR step, or when I extracted the prices, and somehow
+that particular price of smoked pig meat is actually the price of another, more expensive good.</p>
+<p>So let’s only consider prices that are below, say, 20 franks, which is already very high:</p>
+<pre class="r"><code>market_price %&gt;%
+    filter(good_en == &quot;Smoked pig meat&quot;) %&gt;%
+    filter(price &lt; 20) %&gt;% 
+    ggplot(aes(x = market_date, y = price)) +
+    geom_line(aes(group = 1), colour = &quot;#82518c&quot;) + 
+    theme_blog() + 
+    labs(title = &quot;Prices of smoked pig meat at the Luxembourg-City market in the 1870s&quot;)</code></pre>
+<p><img src="/blog/2019-04-07-historical_newspaper_scraping_tesseract_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+<p>Now, some prices are very high. Let’s check if it’s a mistake:</p>
+<pre class="r"><code>market_price %&gt;% 
+    filter(good_en == &quot;Smoked pig meat&quot;) %&gt;% 
+    filter(between(price, 5, 20)) %&gt;% 
+    pull(source_url)</code></pre>
+<pre><code>## [1] &quot;https://iiif.eluxemburgensia.lu/iiif/2/ark:%2F70795%2Fbs2fs6%2Fpages%2F1/full/full/0/default.jpg&quot;
+## [2] &quot;https://iiif.eluxemburgensia.lu/iiif/2/ark:%2F70795%2Fd61vzp%2Fpages%2F1/full/full/0/default.jpg&quot;
+## [3] &quot;https://iiif.eluxemburgensia.lu/iiif/2/ark:%2F70795%2Fjdwb6m%2Fpages%2F1/full/full/0/default.jpg&quot;
+## [4] &quot;https://iiif.eluxemburgensia.lu/iiif/2/ark:%2F70795%2Fng14m3%2Fpages%2F1/full/full/0/default.jpg&quot;
+## [5] &quot;https://iiif.eluxemburgensia.lu/iiif/2/ark:%2F70795%2Fw9jdrb%2Fpages%2F1/full/full/0/default.jpg&quot;</code></pre>
+<p>If you go to the first url, you will land on the first page of the newspaper. To check the table,
+you need to check the third page, by changing this part of the url “pages%2F1” to this “pages%2F3”.</p>
+<p>You will then find the following:</p>
+<p><img src="/img/price_smoked_pig.png" /><!-- --></p>
+<p>As you can see, the price was 2.5, but the OCR returned 7.5. This is a problem that is unavoidable
+with OCR; there is no way of knowing a priori if characters were not well recognized. It is actually
+quite interesting how the price for smoked pig meat stayed constant through all these years.
+A density plot shows that most prices were around 2.5:</p>
+<pre class="r"><code>market_price %&gt;% 
+    filter(good_en == &quot;Smoked pig meat&quot;) %&gt;% 
+    filter(price &lt; 20) %&gt;% 
+    ggplot() + 
+    geom_density(aes(price), colour = &quot;#82518c&quot;) + 
+    theme_blog()</code></pre>
+<p><img src="/blog/2019-04-07-historical_newspaper_scraping_tesseract_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+<p>What about another good, say, barley?</p>
+<pre class="r"><code>market_price %&gt;%
+    filter(good_en == &quot;Barley&quot;) %&gt;%
+    ggplot(aes(x = market_date, y = price)) +
+    geom_line(aes(group = 1), colour = &quot;#82518c&quot;) + 
+    theme_blog() + 
+    labs(title = &quot;Prices of barley at the Luxembourg-City market in the 1870s&quot;)</code></pre>
+<p><img src="/blog/2019-04-07-historical_newspaper_scraping_tesseract_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
+<p>Here again, we see some very high spikes, most likely due to errors. Let’s try to limit the prices
+to likely values:</p>
+<pre class="r"><code>market_price %&gt;%
+    filter(good_en == &quot;Barley&quot;) %&gt;%
+    filter(between(price, 10, 40)) %&gt;%
+    ggplot(aes(x = market_date, y = price)) +
+    geom_line(aes(group = 1), colour = &quot;#82518c&quot;) + 
+    theme_blog() + 
+    labs(title = &quot;Prices of barley at the Luxembourg-City market in the 1870s&quot;)</code></pre>
+<p><img src="/blog/2019-04-07-historical_newspaper_scraping_tesseract_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
+<pre class="r"><code>market_price %&gt;% 
+    filter(good_en == &quot;Barley&quot;) %&gt;% 
+    ggplot() + 
+    geom_density(aes(price), colour = &quot;#82518c&quot;) + 
+    theme_blog()</code></pre>
+<pre><code>## Warning: Removed 39 rows containing non-finite values (stat_density).</code></pre>
+<p><img src="/blog/2019-04-07-historical_newspaper_scraping_tesseract_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
+<p>Let’s finish this with one of my favourite legume, lentils:</p>
+<pre class="r"><code>market_price %&gt;%
+    filter(good_en == &quot;Lentils&quot;) %&gt;%
+    ggplot(aes(x = market_date, y = price)) +
+    geom_line(aes(group = 1), colour = &quot;#82518c&quot;) + 
+    theme_blog() + 
+    labs(title = &quot;Prices of lentils at the Luxembourg-City market in the 1870s&quot;)</code></pre>
+<p><img src="/blog/2019-04-07-historical_newspaper_scraping_tesseract_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
+<pre class="r"><code>market_price %&gt;% 
+    filter(good_en == &quot;Lentils&quot;) %&gt;% 
+    ggplot() + 
+    geom_density(aes(price), colour = &quot;#82518c&quot;) + 
+    theme_blog()</code></pre>
+<pre><code>## Warning: Removed 79 rows containing non-finite values (stat_density).</code></pre>
+<p><img src="/blog/2019-04-07-historical_newspaper_scraping_tesseract_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
+<p>All these 0’s might be surprising, but in most cases, they are actually true zeros! For example,
+you can check this
+<a href="https://iiif.eluxemburgensia.lu/iiif/2/ark:%2F70795%2Fwsvhwh%2Fpages%2F3/pct:74,0,100,100/full/0/default.jpg">issue</a>.
+This very likely means that no lentils were available that day at the market.
+Let’s get rid of the 0s and other extreme values:</p>
+<pre class="r"><code>market_price %&gt;%
+    filter(good_en == &quot;Lentils&quot;) %&gt;%
+    filter(between(price, 1, 40)) %&gt;% 
+    ggplot(aes(x = market_date, y = price)) +
+    geom_line(aes(group = 1), colour = &quot;#82518c&quot;) + 
+    theme_blog() + 
+    labs(title = &quot;Prices of lentils at the Luxembourg-City market in the 1870s&quot;)</code></pre>
+<p><img src="/blog/2019-04-07-historical_newspaper_scraping_tesseract_files/figure-html/unnamed-chunk-19-1.png" width="672" /></p>
+<p>I would like to see if the spikes above 30 are errors or not:</p>
+<pre class="r"><code>market_price %&gt;% 
+    filter(good_en == &quot;Lentils&quot;) %&gt;% 
+    filter(between(price, 30, 40)) %&gt;% 
+    pull(source_url)</code></pre>
+<pre><code>## [1] &quot;https://iiif.eluxemburgensia.lu/iiif/2/ark:%2F70795%2F04mb5t%2Fpages%2F1/full/full/0/default.jpg&quot;
+## [2] &quot;https://iiif.eluxemburgensia.lu/iiif/2/ark:%2F70795%2Fb8zp31%2Fpages%2F1/full/full/0/default.jpg&quot;
+## [3] &quot;https://iiif.eluxemburgensia.lu/iiif/2/ark:%2F70795%2Fkzrj53%2Fpages%2F1/full/full/0/default.jpg&quot;
+## [4] &quot;https://iiif.eluxemburgensia.lu/iiif/2/ark:%2F70795%2Fs8sw2v%2Fpages%2F1/full/full/0/default.jpg&quot;
+## [5] &quot;https://iiif.eluxemburgensia.lu/iiif/2/ark:%2F70795%2Fsjptsk%2Fpages%2F1/full/full/0/default.jpg&quot;
+## [6] &quot;https://iiif.eluxemburgensia.lu/iiif/2/ark:%2F70795%2Fwk65b6%2Fpages%2F1/full/full/0/default.jpg&quot;</code></pre>
+<p>The price was recognized as being 35, and turns out it was correct as you can see
+<a href="https://iiif.eluxemburgensia.lu/iiif/2/ark:%2F70795%2F04mb5t%2Fpages%2F3/full/full/0/default.jpg">here</a>.
+This is quite interesting, because the average price was way lower than that:</p>
+<pre class="r"><code>market_price %&gt;%
+    filter(good_en == &quot;Lentils&quot;) %&gt;%
+    filter(between(price, 1, 40)) %&gt;% 
+    summarise(mean_price = mean(price), 
+              sd_price = sd(price))</code></pre>
+<pre><code>## # A tibble: 1 x 2
+##   mean_price sd_price
+##        &lt;dbl&gt;    &lt;dbl&gt;
+## 1       20.8     5.82</code></pre>
+<p>I’m going to finish here; it was an interesting project, and I can’t wait for more newspapers to be
+digitized and OCR to work even better. There is a lot more historical data trapped in these newspapers
+that could provide a lot insights on Luxembourg’s society in the 19th century.</p>
+<p>Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>.</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
+</div>
+
+			</div>
+		</article>
+	</main>
+<aside>
+	<div>
+		<div>
+			<h3>LATEST POSTS</h3>
+		</div>
+		<div>
+			<ul>
+				
+				<li><a href="/post/2020-12-30-year_review/">A year in review</a></li>
+				
+				<li><a href="/post/2020-12-12-ethics_statistics/">(Half) Lies, (half) truths and (half) statistics</a></li>
+				
+				<li><a href="/post/2020-12-05-poorman_translate/">Poorman&#39;s automated translation with R and Google Sheets using {googlesheets4}</a></li>
+				
+				<li><a href="/post/2020-11-21-guis_mistake/">Graphical User Interfaces were a mistake but you can still make things right</a></li>
+				
+				<li><a href="/post/2020-11-05-retire_data_science/">It&#39;s time to retire the &#34;data scientist&#34; label</a></li>
+				
+			</ul>
+		</div>
+	</div>
+</aside>
+
+
+	<footer>
+  <div class="row">
+    <div class="col-lg-12">
+      <p>2021, content by Bruno Rodrigues, unless otherwise stated, every content of this blog is licensed under the <a href="http://www.wtfpl.net/txt/copying/" rel="nofollow">WTFPL</a>.</p>
+      <p>The theme this blog uses is a slight variation of the <a href="https://github.com/colorchestra/smol" rel="nofollow">Smol</a> theme.</p>
+      <p><a class="nav-link" href="/index.html">Back to main page.</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

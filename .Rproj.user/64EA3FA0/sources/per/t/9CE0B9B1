@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1550780192181.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1865989358",
+    "id" : "9CE0B9B1",
+    "lastKnownWriteTime" : 1549307075,
+    "last_content_update" : 1549307075,
+    "path" : "/media/cbrunos/12d70b0f-2611-4a87-b015-5e37603c9ba0/cbrunos/Documents/b-rodrigues.github.com/content/blog/2019-02-04-newspapers_shiny_app_tutorial.Rmd",
+    "project_path" : "content/blog/2019-02-04-newspapers_shiny_app_tutorial.Rmd",
+    "properties" : {
+        "cursorPosition" : "39,65",
+        "scrollLine" : "12"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

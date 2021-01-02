@@ -1,0 +1,4 @@
+"0","train_data <- read_csv(""../../static/assets/train.csv"") %>% "
+"0","    mutate(Survived = as.factor(Survived))"
+"2","Error: '../../static/assets/train.csv' does not exist in current working directory ('/home/cbrunos/Dropbox/Documents/blog_posts_beta').
+"

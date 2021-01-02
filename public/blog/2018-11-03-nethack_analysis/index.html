@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"  lang="en-us">
+    <title>Analyzing NetHack data, part 1: What kills the players - Econometrics and Free Software</title>
+    <meta name="generator" content="Hugo 0.25.1" />
+
+    
+    <meta name="description" content="A blog about econometrics, free software, and R">
+    
+    <link rel="canonical" href="../../blog/2018-11-03-nethack_analysis/">
+    
+    <meta name="author" content="Bruno Rodrigues">
+    
+    <meta name="generator" content="Hugo 0.25.1" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta property="og:url" content="/blog/2018-11-03-nethack_analysis/">
+    <meta property="og:title" content="Econometrics and Free Software">
+    <meta property="og:image" content="/map[height:50 alt:Logo url:logo.png width:50]">
+    <meta name="apple-mobile-web-app-title" content="Econometrics and Free Software">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <link rel="shortcut icon" type="image/x-icon" href="../../images/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="../../images/favicon.ico">
+
+    
+    <link rel="stylesheet" href="../../css/bootstrap.min.css" media="screen">
+    <link rel="stylesheet" href="../../css/custom.css">
+    <link rel="stylesheet" href="../../css/pygments.css">
+    
+    <link rel="stylesheet" href="../../css/jquery.fancybox.css?v=2.1.5" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/helpers/jquery.fancybox-buttons.css?v=1.0.5" type="text/css" media="screen" />
+  </head>
+  <body>
+
+
+<div class="row">
+<div class="navbar navbar-default navbar-fixed-top">
+<div class="container">
+  <div class="navbar-header">
+    <a href="../../" class="navbar-brand">Econometrics and Free Software</a>
+    <button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar-main">
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+    </button>
+  </div>
+  <div class="navbar-collapse collapse" id="navbar-main">
+
+    <ul class="nav navbar-nav navbar-right">
+      <li><a href="https://www.buymeacoffee.com/brodriguesco">Donate</a></li>
+      <li><a href="https://www.youtube.com/c/BrunoRodrigues1988">Youtube</a></li>
+      <li><a href="https://github.com/b-rodrigues/">Github</a></li>
+      <li><a href="https://twitter.com/brodriguesco/">Twitter</a></li>
+    </ul>
+  </div>
+</div>
+
+</div>
+
+<div class="container">
+
+  <div>
+    <div class="row">
+      <div class="col-lg-3 col-md-3 col-sm-4">
+        
+
+<div class="list-group table-of-contents">
+
+  
+    <a class="list-group-item" href=#><b>About Me</b></a>
+    
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../../about/about/">Who am I?</a>
+      
+      <a class="list-group-item" href="../../about/projects/">Projects</a>
+      
+      <a class="list-group-item" href="../../about/research/">Research</a>
+      
+      <a class="list-group-item" href="../../about/software/">Software</a>
+      
+    </div>
+    
+  
+    <a class="list-group-item" href=#><b>Blog</b></a>
+    
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../../blog/2018-11-25-tidy_cv/">A tutorial on tidy cross-validation with R</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-03-nethack_analysis/">Analyzing NetHack data, part 1: What kills the players</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-10-nethack_analysis_part2/">Analyzing NetHack data, part 2: What players kill the most</a>
+      
+      <a class="list-group-item" href="../../blog/2019-02-04-newspapers_shiny_app_tutorial/">Building a shiny app to explore historical newspapers: a step-by-step guide</a>
+      
+      <a class="list-group-item" href="../../blog/2019-03-03-historical_vowpal/">Classification of historical newspapers content: a tutorial combining R, bash and Vowpal Wabbit, part 1</a>
+      
+      <a class="list-group-item" href="../../blog/2019-03-05-historical_vowpal_part2/">Classification of historical newspapers content: a tutorial combining R, bash and Vowpal Wabbit, part 2</a>
+      
+      <a class="list-group-item" href="../../blog/2019-06-20-tidy_eval_saga/">Curly-Curly, the successor of Bang-Bang</a>
+      
+      <a class="list-group-item" href="../../blog/2018-07-08-rob_stderr/">Dealing with heteroskedasticity; regression with robust standard errors using R</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-14-luxairport/">Easy time-series prediction with R: a tutorial with air traffic data from Lux Airport</a>
+      
+      <a class="list-group-item" href="../../blog/2018-10-05-ggplot2_purrr_officer/">Exporting editable plots from R to Powerpoint: making ggplot2 purrr with officer</a>
+      
+      <a class="list-group-item" href="../../blog/2019-04-28-diffindiff_part1/">Fast food, causality and R packages, part 1</a>
+      
+      <a class="list-group-item" href="../../blog/2019-05-04-diffindiff_part2/">Fast food, causality and R packages, part 2</a>
+      
+      <a class="list-group-item" href="../../blog/2019-05-18-xml2/">For posterity: install {xml2} on GNU/Linux distros</a>
+      
+      <a class="list-group-item" href="../../blog/2018-06-24-fun_ts/">Forecasting my weight with R</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-01-nethack/">From webscraping data to releasing it as an R package to share with the world: a full tutorial with data from NetHack</a>
+      
+      <a class="list-group-item" href="../../blog/2019-03-31-tesseract/">Get text from pdfs or images using OCR: a tutorial with {tesseract} and {magick}</a>
+      
+      <a class="list-group-item" href="../../blog/2018-06-10-scraping_pdfs/">Getting data from pdfs using the pdftools package</a>
+      
+      <a class="list-group-item" href="../../blog/2018-10-21-lux_elections/">Getting the data from the Luxembourguish elections out of Excel</a>
+      
+      <a class="list-group-item" href="../../blog/2018-09-11-human_to_machine/">Going from a human readable Excel file to a machine-readable csv with {tidyxl}</a>
+      
+      <a class="list-group-item" href="../../blog/2019-04-07-historical_newspaper_scraping_tesseract/">Historical newspaper scraping with {tesseract} and R</a>
+      
+      <a class="list-group-item" href="../../blog/2018-09-15-time_use/">How Luxembourguish residents spend their time: a small {flexdashboard} demo using the Time use survey data</a>
+      
+      <a class="list-group-item" href="../../blog/2018-04-14-playing_with_furrr/">Imputing missing values in parallel using {furrr}</a>
+      
+      <a class="list-group-item" href="../../blog/2019-06-12-intermittent/">Intermittent demand, Croston and Die Hard</a>
+      
+      <a class="list-group-item" href="../../blog/2019-01-04-newspapers/">Looking into 19th century ads from a Luxembourguish newspaper with R</a>
+      
+      <a class="list-group-item" href="../../blog/2019-01-13-newspapers_mets_alto/">Making sense of the METS and ALTO XML standards</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-15-lubridate_africa/">Manipulate dates easily with {lubridate}</a>
+      
+      <a class="list-group-item" href="../../blog/2019-02-10-stringr_package/">Manipulating strings with the {stringr} package</a>
+      
+      <a class="list-group-item" href="../../blog/2018-10-27-lux_elections_analysis/">Maps with pie charts on top of each administrative division: an example with Luxembourg&#39;s elections data</a>
+      
+      <a class="list-group-item" href="../../blog/2018-07-01-tidy_ive/">Missing data imputation and instrumental variables regression: the tidy approach</a>
+      
+      <a class="list-group-item" href="../../blog/2019-08-17-modern_r/">Modern R with the tidyverse is available on Leanpub</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-24-modern_objects/">Objects types and some useful R functions for beginners</a>
+      
+      <a class="list-group-item" href="../../blog/2019-03-20-pivot/">Pivoting data frames just got easier thanks to `pivot_wide()` and `pivot_long()`</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-30-reticulate/">R or Python? Why not both? Using Anaconda Python within R with {reticulate}</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-15-tidy_gridsearch/">Searching for the optimal hyper-parameters of an ARIMA model in parallel: the tidy gridsearch approach</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-27-fun_gganimate/">Some fun with {gganimate}</a>
+      
+      <a class="list-group-item" href="../../blog/2019-10-05-parallel_maxlik/">Split-apply-combine for Maximum Likelihood Estimation of a linear model</a>
+      
+      <a class="list-group-item" href="../../blog/2019-07-19-statmatch/">Statistical matching, or when one single data source is not enough</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-21-lux_castle/">The best way to visit Luxembourguish castles is doing data science &#43; combinatorial optimization</a>
+      
+      <a class="list-group-item" href="../../blog/2019-05-19-spacemacs/">The never-ending editor war (?)</a>
+      
+      <a class="list-group-item" href="../../blog/2018-09-08-steam_linux/">The year of the GNU&#43;Linux desktop is upon us: using user ratings of Steam Play compatibility to play around with regex and the tidyverse</a>
+      
+      <a class="list-group-item" href="../../blog/2019-01-31-newspapers_shiny_app/">Using Data Science to read 10 years of Luxembourguish newspapers from the 19th century</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-16-rgenoud_arima/">Using a genetic algorithm for the hyperparameter optimization of a SARIMA model</a>
+      
+      <a class="list-group-item" href="../../blog/2019-06-04-cosine_sim/">Using cosine similarity to find matching documents: a tutorial using Seneca&#39;s letters to his friend Lucilius</a>
+      
+      <a class="list-group-item" href="../../blog/2019-08-14-lpm/">Using linear models with binary dependent variables, a simulation study</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-21-tidyverse_pi/">Using the tidyverse for more than data manipulation: estimating pi with Monte Carlo methods</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-02-hyper-parameters/">What hyper-parameters are, and what to do with them; an illustration with ridge regression</a>
+      
+      <a class="list-group-item" href="../../blog/2019-09-03-disk_frame/">{disk.frame} is epic</a>
+      
+      <a class="list-group-item" href="../../blog/2018-04-15-announcing_pmice/">{pmice}, an experimental package for missing data imputation in parallel using {mice} and {furrr}</a>
+      
+      <a class="list-group-item" href="../../blog/2017-12-27-build_formulae/">Building formulae</a>
+      
+      <a class="list-group-item" href="../../blog/2017-11-14-peace_r/">Functional peace of mind</a>
+      
+      <a class="list-group-item" href="../../blog/2018-04-10-brotools_describe/">Get basic summary statistics for all the variables in a data frame</a>
+      
+      <a class="list-group-item" href="../../blog/2018-03-03-sparklyr_h2o_rsparkling/">Getting {sparklyr}, {h2o}, {rsparkling} to work together and some fun with bash</a>
+      
+      <a class="list-group-item" href="../../blog/2018-02-16-importing_30gb_of_data/">Importing 30GB of data into R with sparklyr</a>
+      
+      <a class="list-group-item" href="../../blog/2017-03-27-introducing_brotools/">Introducing brotools</a>
+      
+      <a class="list-group-item" href="../../blog/2018-01-03-lists_all_the_way/">It&#39;s lists all the way down</a>
+      
+      <a class="list-group-item" href="../../blog/2018-01-05-lists_all_the_way2/">It&#39;s lists all the way down, part 2: We need to go deeper</a>
+      
+      <a class="list-group-item" href="../../blog/2018-03-12-keep_trying/">Keep trying that api call with purrr::possibly()</a>
+      
+      <a class="list-group-item" href="../../blog/2017-06-19-dplyr-0-70-tutorial/">Lesser known dplyr 0.7* tricks</a>
+      
+      <a class="list-group-item" href="../../blog/2017-02-17-lesser_known_tricks/">Lesser known dplyr tricks</a>
+      
+      <a class="list-group-item" href="../../blog/2017-03-24-lesser_known_purrr/">Lesser known purrr tricks</a>
+      
+      <a class="list-group-item" href="../../blog/2017-03-29-make-ggplot2-purrr/">Make ggplot2 purrr</a>
+      
+      <a class="list-group-item" href="../../blog/2018-01-19-mapping_functions_with_any_cols/">Mapping a list of functions to a list of datasets with a list of columns as arguments</a>
+      
+      <a class="list-group-item" href="../../blog/2018-02-11-census-random_forest/">Predicting job search by training a random forest on an unbalanced dataset</a>
+      
+      <a class="list-group-item" href="../../blog/2017-12-17-teaching_tidyverse/">Teaching the tidyverse to beginners</a>
+      
+      <a class="list-group-item" href="../../blog/2017-08-27-why_tidyeval/">Why I find tidyeval useful</a>
+      
+      <a class="list-group-item" href="../../blog/2017-07-27-spread_rename_at/">tidyr::spread() and dplyr::rename_at() in action</a>
+      
+      <a class="list-group-item" href="../../blog/2017-10-26-margins_r/">Easy peasy STATA-like marginal effects with R</a>
+      
+      <a class="list-group-item" href="../../blog/2016-12-24-functional-programming-and-unit-testing-for-data-munging-with-r-available-on-leanpub/">Functional programming and unit testing for data munging with R available on Leanpub</a>
+      
+      <a class="list-group-item" href="../../blog/2017-02-17-how_to_use_jailbreakr/">How to use jailbreakr</a>
+      
+      <a class="list-group-item" href="../../blog/2017-01-07-my-free-book-has-a-cover/">My free book has a cover!</a>
+      
+      <a class="list-group-item" href="../../blog/2016-12-21-work-on-lists-of-datasets-instead-of-individual-datasets-by-using-functional-programming/">Work on lists of datasets instead of individual datasets by using functional programming</a>
+      
+      <a class="list-group-item" href="../../blog/2013-01-29-method-of-simulated-moments-with-r/">Method of Simulated Moments with R</a>
+      
+      <a class="list-group-item" href="../../blog/2012-12-11-new-website/">New website!</a>
+      
+      <a class="list-group-item" href="../../blog/2013-11-07-gmm-with-rmd/">Nonlinear Gmm with R - Example with a logistic regression</a>
+      
+      <a class="list-group-item" href="../../blog/2013-01-16-simulated-maximum-likelihood-with-r/">Simulated Maximum Likelihood with R</a>
+      
+      <a class="list-group-item" href="../../blog/2015-11-11-bootstrapping-did-with-r/">Bootstrapping standard errors for difference-in-differences estimation with R</a>
+      
+      <a class="list-group-item" href="../../blog/2016-06-21-careful-with-trycatch/">Careful with tryCatch</a>
+      
+      <a class="list-group-item" href="../../blog/2016-07-18-data-frame-columns-as-arguments-to-dplyr-functions/">Data frame columns as arguments to dplyr functions</a>
+      
+      <a class="list-group-item" href="../../blog/2015-02-22-export-r-output-to-file/">Export R output to a file</a>
+      
+      <a class="list-group-item" href="../../blog/2016-11-04-ive-started-writing-a-book-functional-programming-and-unit-testing-for-data-munging-with-r/">I&#39;ve started writing a &#39;book&#39;: Functional programming and unit testing for data munging with R</a>
+      
+      <a class="list-group-item" href="../../blog/2015-01-12-introduction-to-programming-econometrics-with-r/">Introduction to programming econometrics with R</a>
+      
+      <a class="list-group-item" href="../../blog/2016-07-30-merge-a-list-of-datasets-together/">Merge a list of datasets together</a>
+      
+      <a class="list-group-item" href="../../blog/2014-04-23-r-s4-rootfinding/">Object Oriented Programming with R: An example with a Cournot duopoly</a>
+      
+      <a class="list-group-item" href="../../blog/2014-11-11-benchmarks-r-blas-atlas-rro/">R, R with Atlas, R with OpenBLAS and Revolution R Open: which is fastest?</a>
+      
+      <a class="list-group-item" href="../../blog/2016-07-26-read-a-lot-of-datasets-at-once-with-r/">Read a lot of datasets at once with R</a>
+      
+      <a class="list-group-item" href="../../blog/2016-03-31-unit-testing-with-r/">Unit testing with R</a>
+      
+      <a class="list-group-item" href="../../blog/2015-05-03-update-introduction-r-programming/">Update to Introduction to programming econometrics with R</a>
+      
+      <a class="list-group-item" href="../../blog/2013-12-31-r-cas/">Using R as a Computer Algebra System with Ryacas</a>
+      
+    </div>
+    
+  
+
+</div>
+
+      </div>
+      <div class="col-lg-9 col-md-9 col-sm-8">
+        <div>
+           <h1 id="main">Analyzing NetHack data, part 1: What kills the players</h1>
+           <span class="article-date">November 3, 2018</span>
+        </div>
+        <div style="text-align:center;">
+<p><a href="https://www.youtube.com/watch?v=dpM2o4dRLto">
+<img src="../../img/deepfried_loss.png" title = "Click here to listen to epic music while reading"></a></p>
+</div>
+<div id="abstract" class="section level2">
+<h2>Abstract</h2>
+<p>In this post, I will analyse the data I scraped and put into an R package, which I called <code>{nethack}</code>.
+NetHack is a roguelike game; for more context, read my previous blog
+<a href="https://www.brodrigues.co/blog/2018-11-01-nethack/">post</a>.
+You can install the <code>{nethack}</code> package and play around with the data yourself by installing it from github:</p>
+<pre class="r"><code>devtools::install_github(&quot;b-rodrigues/nethack&quot;)</code></pre>
+<p>And to use it:</p>
+<pre class="r"><code>library(nethack)
+data(&quot;nethack&quot;)</code></pre>
+<p>The data contains information on games played from 2001 to 2018; 322485 rows and 14 columns. I
+will analyze the data in a future blog post. This post focuses on getting and then sharing the
+data. By the way, all the content from the public server I scrape is under the CC BY 4.0 license.</p>
+<p>I built the package by using the very useful <code>{devtools}</code> package.</p>
+</div>
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>What I want from this first analysis are several, simple things: how many players manage to ascend
+(meaning, winning), what monster kills most players, and finally extract data from the <code>dumplog</code>
+column. The <code>dumplog</code> column is a bit special; each element of the dumplog column is a log file
+that contains a lot of information from the last turns of a player. I will leave this for a future
+blog post, though.</p>
+<p>Let’s load some packages first:</p>
+<pre class="r"><code>library(nethack)
+library(tidyverse)
+library(lubridate)
+library(magrittr)
+library(brotools)</code></pre>
+<p><code>{brotools}</code> is my own package that contains some functions that I use daily. If you want to
+install it, run the following line:</p>
+<pre class="r"><code>devtools::install_github(&quot;b-rodrigues/brotools&quot;)</code></pre>
+<p>The documentation is not up-to-date, I think I’ll do that and release it on CRAN. Some day.</p>
+<p>Now, let’s load the “nethack” data, included in the <code>{nethack}</code> package:</p>
+<pre><code>##   rank score     name time turns lev_max hp_max role race gender alignment
+## 1    1   360      jkm &lt;NA&gt;    NA     2/2  -2/25  Sam  Hum    Mal       Law
+## 2    2   172 yosemite &lt;NA&gt;    NA     1/1  -1/10  Tou  Hum    Fem       Neu
+## 3    3  2092    dtype &lt;NA&gt;    NA     6/7  -2/47  Val  Hum    Fem       Neu
+## 4    4    32   joorko &lt;NA&gt;    NA     1/1   0/15  Sam  Hum    Mal       Law
+## 5    5   118    jorko &lt;NA&gt;    NA     1/1   0/11  Rog  Orc    Fem       Cha
+## 6    6  1757   aaronl &lt;NA&gt;    NA     5/5   0/60  Bar  Hum    Mal       Neu
+##                                                      death       date
+## 1                                   killed by a brown mold 2001-10-24
+## 2                                       killed by a jackal 2001-10-24
+## 3                                     killed by a fire ant 2001-10-24
+## 4                                       killed by a jackal 2001-10-24
+## 5                                       killed by a jackal 2001-10-24
+## 6 killed by a hallucinogen-distorted ghoul, while helpless 2001-10-24
+##   dumplog
+## 1      NA
+## 2      NA
+## 3      NA
+## 4      NA
+## 5      NA
+## 6      NA</code></pre>
+<pre class="r"><code>data(&quot;nethack&quot;)
+
+head(nethack)</code></pre>
+<p>Let’s create some variables that might be helpful (or perhaps not, we’ll see):</p>
+<pre class="r"><code>nethack %&lt;&gt;% 
+  mutate(date = ymd(date),
+         year = year(date),
+         month = month(date),
+         day = day(date))</code></pre>
+<p>This makes it easy to look at the data from, say, June 2017:</p>
+<pre class="r"><code>nethack %&gt;%
+  filter(year == 2017, month == 6) %&gt;%
+  brotools::describe()</code></pre>
+<pre><code>## # A tibble: 17 x 17
+##    variable type   nobs    mean      sd mode    min     max   q05   q25
+##    &lt;chr&gt;    &lt;chr&gt; &lt;int&gt;   &lt;dbl&gt;   &lt;dbl&gt; &lt;chr&gt; &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+##  1 day      Nume…  1451    17.4  9.00e0 1         1      30     2   10 
+##  2 month    Nume…  1451     6    0.     6         6       6     6    6 
+##  3 rank     Nume…  1451    47.1  2.95e1 1         1     100     4   20 
+##  4 score    Nume…  1451 38156.   3.39e5 488       0 5966425    94  402.
+##  5 turns    Nume…  1451  4179.   1.23e4 812       1  291829   204  860.
+##  6 year     Nume…  1451  2017    0.     2017   2017    2017  2017 2017 
+##  7 alignme… Char…  1451    NA   NA      Law      NA      NA    NA   NA 
+##  8 death    Char…  1451    NA   NA      kill…    NA      NA    NA   NA 
+##  9 gender   Char…  1451    NA   NA      Mal      NA      NA    NA   NA 
+## 10 hp_max   Char…  1451    NA   NA      -1/16    NA      NA    NA   NA 
+## 11 lev_max  Char…  1451    NA   NA      4/4      NA      NA    NA   NA 
+## 12 name     Char…  1451    NA   NA      ohno…    NA      NA    NA   NA 
+## 13 race     Char…  1451    NA   NA      Hum      NA      NA    NA   NA 
+## 14 role     Char…  1451    NA   NA      Kni      NA      NA    NA   NA 
+## 15 time     Char…  1451    NA   NA      01:1…    NA      NA    NA   NA 
+## 16 dumplog  List   1451    NA   NA      &lt;NA&gt;     NA      NA    NA   NA 
+## 17 date     Date   1451    NA   NA      &lt;NA&gt;     NA      NA    NA   NA 
+## # … with 7 more variables: median &lt;dbl&gt;, q75 &lt;dbl&gt;, q95 &lt;dbl&gt;,
+## #   n_missing &lt;int&gt;, n_unique &lt;int&gt;, starting_date &lt;date&gt;,
+## #   ending_date &lt;date&gt;</code></pre>
+<p>Let’s also take a look at a dumplog:</p>
+<details>
+<p><summary>Click to expand; the dumplog is quite long</summary></p>
+<pre class="r"><code>nethack %&gt;%
+    filter(year == 2018, month == 10) %&gt;%
+    slice(1) %&gt;%
+    pull(dumplog)</code></pre>
+<pre><code>## [[1]]
+##   [1] &quot;Unix NetHack Version 3.6.1 - last build Fri Apr 27 19:25:48 2018. (d4ebae12f1a709d1833cf466dd0c553fb97518d2)&quot;
+##   [2] &quot;&quot;                                                                                                            
+##   [3] &quot;Game began 2018-09-30 22:27:18, ended 2018-10-01 00:01:12.&quot;                                                  
+##   [4] &quot;&quot;                                                                                                            
+##   [5] &quot;brothertrebius, neutral female gnomish Ranger&quot;                                                               
+##   [6] &quot;&quot;                                                                                                            
+##   [7] &quot;                  -----&quot;                                                                                     
+##   [8] &quot;   --------       |....#     -----      --------&quot;                                                            
+##   [9] &quot;   |/..%.=|      #...^|######|...|    ##.......|&quot;                                                            
+##  [10] &quot;   |/[%..%|      #|...|     #|...|    # |......|&quot;                                                            
+##  [11] &quot;   |......|      #-----     #-...-######....&lt;..|&quot;                                                            
+##  [12] &quot;   -----|--      ###         -|-.-  #   |......|&quot;                                                            
+##  [13] &quot;        ##         ##           #   #   ----f---&quot;                                                            
+##  [14] &quot;         ####       #           #  ##       f@Y&quot;                                                             
+##  [15] &quot;            #       #           #  #&quot;                                                                        
+##  [16] &quot;       -----.-------#           #  #&quot;                                                                        
+##  [17] &quot;       |........%..|#           #  #&quot;                                                                        
+##  [18] &quot;       |............#           #  #&quot;                                                                        
+##  [19] &quot;       |...........|          0##  #&quot;                                                                        
+##  [20] &quot;       |...........|         -.--- #&quot;                                                                        
+##  [21] &quot;       -------------         |^..|##&quot;                                                                        
+##  [22] &quot;                             |...|#&quot;                                                                         
+##  [23] &quot;                             |0&gt;..#&quot;                                                                         
+##  [24] &quot;                             -----&quot;                                                                          
+##  [25] &quot;&quot;                                                                                                            
+##  [26] &quot;Brothertre the Trailblazer   St:15 Dx:12 Co:16 In:13 Wi:15 Ch:6  Neutral&quot;                                    
+##  [27] &quot;Dlvl:6  $:59 HP:0(54) Pw:40(40) AC:0  Exp:8 T:7398  Satiated Burdened&quot;                                       
+##  [28] &quot;&quot;                                                                                                            
+##  [29] &quot;Latest messages:&quot;                                                                                            
+##  [30] &quot; In what direction? l&quot;                                                                                       
+##  [31] &quot; You shoot 2 arrows.&quot;                                                                                        
+##  [32] &quot; The 1st arrow hits the ape.&quot;                                                                                
+##  [33] &quot; The 2nd arrow hits the ape!&quot;                                                                                
+##  [34] &quot; The ape hits!&quot;                                                                                              
+##  [35] &quot; The ape hits!&quot;                                                                                              
+##  [36] &quot; The ape bites!&quot;                                                                                             
+##  [37] &quot; You ready: q - 9 uncursed arrows.&quot;                                                                          
+##  [38] &quot; In what direction? l&quot;                                                                                       
+##  [39] &quot; The arrow hits the ape.&quot;                                                                                    
+##  [40] &quot; The ape hits!&quot;                                                                                              
+##  [41] &quot; The ape hits!&quot;                                                                                              
+##  [42] &quot; The ape bites!&quot;                                                                                             
+##  [43] &quot; The ape hits!&quot;                                                                                              
+##  [44] &quot; The ape hits!&quot;                                                                                              
+##  [45] &quot; The ape misses!&quot;                                                                                            
+##  [46] &quot; In what direction? l&quot;                                                                                       
+##  [47] &quot; You shoot 2 arrows.&quot;                                                                                        
+##  [48] &quot; The 1st arrow hits the ape!&quot;                                                                                
+##  [49] &quot; The 2nd arrow hits the ape.&quot;                                                                                
+##  [50] &quot; The ape misses!&quot;                                                                                            
+##  [51] &quot; The ape hits!&quot;                                                                                              
+##  [52] &quot; The ape misses!&quot;                                                                                            
+##  [53] &quot; In what direction? l&quot;                                                                                       
+##  [54] &quot; You shoot 2 arrows.&quot;                                                                                        
+##  [55] &quot; The 1st arrow misses the ape.&quot;                                                                              
+##  [56] &quot; The 2nd arrow hits the ape.&quot;                                                                                
+##  [57] &quot; The ape misses!&quot;                                                                                            
+##  [58] &quot; The ape hits!&quot;                                                                                              
+##  [59] &quot; The ape bites!&quot;                                                                                             
+##  [60] &quot; In what direction? l&quot;                                                                                       
+##  [61] &quot; The arrow hits the ape!&quot;                                                                                    
+##  [62] &quot; The ape hits!&quot;                                                                                              
+##  [63] &quot; The ape misses!&quot;                                                                                            
+##  [64] &quot; The ape bites!&quot;                                                                                             
+##  [65] &quot; You hear someone cursing shoplifters.&quot;                                                                      
+##  [66] &quot; The ape misses!&quot;                                                                                            
+##  [67] &quot; The ape hits!&quot;                                                                                              
+##  [68] &quot; The ape bites!&quot;                                                                                             
+##  [69] &quot; What do you want to write with? [- amnqsvBJM-OWZ or ?*] -&quot;                                                  
+##  [70] &quot; You write in the dust with your fingertip.&quot;                                                                 
+##  [71] &quot; What do you want to write in the dust here? Elbereth&quot;                                                       
+##  [72] &quot; The ape hits!&quot;                                                                                              
+##  [73] &quot; The ape hits!&quot;                                                                                              
+##  [74] &quot; You die...&quot;                                                                                                 
+##  [75] &quot; Do you want your possessions identified? [ynq] (y) y&quot;                                                       
+##  [76] &quot; Do you want to see your attributes? [ynq] (y) n&quot;                                                            
+##  [77] &quot; Do you want an account of creatures vanquished? [ynaq] (y) n&quot;                                               
+##  [78] &quot; Do you want to see your conduct? [ynq] (y) n&quot;                                                               
+##  [79] &quot; Do you want to see the dungeon overview? [ynq] (y) q&quot;                                                       
+##  [80] &quot;&quot;                                                                                                            
+##  [81] &quot;Inventory:&quot;                                                                                                  
+##  [82] &quot; Coins&quot;                                                                                                      
+##  [83] &quot;  $ - 59 gold pieces&quot;                                                                                        
+##  [84] &quot; Weapons&quot;                                                                                                    
+##  [85] &quot;  m - 17 blessed +1 arrows&quot;                                                                                  
+##  [86] &quot;  n - a blessed +0 arrow&quot;                                                                                    
+##  [87] &quot;  q - 3 +0 arrows (in quiver)&quot;                                                                               
+##  [88] &quot;  s - a +0 bow (weapon in hand)&quot;                                                                             
+##  [89] &quot;  B - 11 +1 darts&quot;                                                                                           
+##  [90] &quot;  N - 11 +0 darts&quot;                                                                                           
+##  [91] &quot;  a - a +1 dagger (alternate weapon; not wielded)&quot;                                                           
+##  [92] &quot; Armor&quot;                                                                                                      
+##  [93] &quot;  T - an uncursed +0 dwarvish iron helm (being worn)&quot;                                                        
+##  [94] &quot;  z - an uncursed +0 pair of leather gloves (being worn)&quot;                                                    
+##  [95] &quot;  U - a cursed -4 pair of iron shoes (being worn)&quot;                                                           
+##  [96] &quot;  e - an uncursed +2 cloak of displacement (being worn)&quot;                                                     
+##  [97] &quot;  h - a blessed +0 dwarvish mithril-coat (being worn)&quot;                                                       
+##  [98] &quot; Comestibles&quot;                                                                                                
+##  [99] &quot;  f - 3 uncursed cram rations&quot;                                                                               
+## [100] &quot;  j - 2 uncursed food rations&quot;                                                                               
+## [101] &quot;  L - an uncursed food ration&quot;                                                                               
+## [102] &quot;  P - an uncursed lembas wafer&quot;                                                                              
+## [103] &quot;  I - an uncursed lizard corpse&quot;                                                                             
+## [104] &quot;  o - an uncursed tin of spinach&quot;                                                                            
+## [105] &quot; Scrolls&quot;                                                                                                    
+## [106] &quot;  G - 2 uncursed scrolls of blank paper&quot;                                                                     
+## [107] &quot;  t - an uncursed scroll of confuse monster&quot;                                                                 
+## [108] &quot;  V - an uncursed scroll of identify&quot;                                                                        
+## [109] &quot; Potions&quot;                                                                                                    
+## [110] &quot;  x - an uncursed potion of gain ability&quot;                                                                    
+## [111] &quot;  H - a blessed potion of sleeping&quot;                                                                          
+## [112] &quot;  g - 3 uncursed potions of water&quot;                                                                           
+## [113] &quot; Rings&quot;                                                                                                      
+## [114] &quot;  O - an uncursed ring of slow digestion (on left hand)&quot;                                                     
+## [115] &quot;  v - an uncursed ring of stealth (on right hand)&quot;                                                           
+## [116] &quot; Tools&quot;                                                                                                      
+## [117] &quot;  p - an uncursed magic lamp&quot;                                                                                
+## [118] &quot;  k - an uncursed magic whistle&quot;                                                                             
+## [119] &quot;  Q - an uncursed mirror&quot;                                                                                    
+## [120] &quot;  C - an uncursed saddle&quot;                                                                                    
+## [121] &quot;  D - an uncursed stethoscope&quot;                                                                               
+## [122] &quot;  y - a +0 unicorn horn&quot;                                                                                     
+## [123] &quot;  i - 7 uncursed wax candles&quot;                                                                                
+## [124] &quot; Gems/Stones&quot;                                                                                                
+## [125] &quot;  W - an uncursed flint stone&quot;                                                                               
+## [126] &quot;  M - an uncursed worthless piece of red glass&quot;                                                              
+## [127] &quot;  Z - an uncursed worthless piece of violet glass&quot;                                                           
+## [128] &quot;  J - an uncursed worthless piece of white glass&quot;                                                            
+## [129] &quot;&quot;                                                                                                            
+## [130] &quot;Brothertrebius the Ranger&#39;s attributes:&quot;                                                                     
+## [131] &quot;&quot;                                                                                                            
+## [132] &quot;Background:&quot;                                                                                                 
+## [133] &quot; You were a Trailblazer, a level 8 female gnomish Ranger.&quot;                                                   
+## [134] &quot; You were neutral, on a mission for Venus&quot;                                                                   
+## [135] &quot; who was opposed by Mercury (lawful) and Mars (chaotic).&quot;                                                    
+## [136] &quot;&quot;                                                                                                            
+## [137] &quot;Final Characteristics:&quot;                                                                                      
+## [138] &quot; You had 0 hit points (max:54).&quot;                                                                             
+## [139] &quot; You had 40 magic power (max:40).&quot;                                                                           
+## [140] &quot; Your armor class was 0.&quot;                                                                                    
+## [141] &quot; You had 1552 experience points.&quot;                                                                            
+## [142] &quot; You entered the dungeon 7398 turns ago.&quot;                                                                    
+## [143] &quot; Your strength was 15 (limit:18/50).&quot;                                                                        
+## [144] &quot; Your dexterity was 12 (limit:18).&quot;                                                                          
+## [145] &quot; Your constitution was 16 (limit:18).&quot;                                                                       
+## [146] &quot; Your intelligence was 13 (limit:19).&quot;                                                                       
+## [147] &quot; Your wisdom was 15 (limit:18).&quot;                                                                             
+## [148] &quot; Your charisma was 6 (limit:18).&quot;                                                                            
+## [149] &quot;&quot;                                                                                                            
+## [150] &quot;Final Status:&quot;                                                                                               
+## [151] &quot; You were satiated.&quot;                                                                                         
+## [152] &quot; You were burdened; movement was slightly slowed.&quot;                                                           
+## [153] &quot; You were wielding a bow.&quot;                                                                                   
+## [154] &quot;&quot;                                                                                                            
+## [155] &quot;Final Attributes:&quot;                                                                                           
+## [156] &quot; You were piously aligned.&quot;                                                                                  
+## [157] &quot; You were telepathic.&quot;                                                                                       
+## [158] &quot; You had automatic searching.&quot;                                                                               
+## [159] &quot; You had infravision.&quot;                                                                                       
+## [160] &quot; You were displaced.&quot;                                                                                        
+## [161] &quot; You were stealthy.&quot;                                                                                         
+## [162] &quot; You had slower digestion.&quot;                                                                                  
+## [163] &quot; You were guarded.&quot;                                                                                          
+## [164] &quot; You are dead.&quot;                                                                                              
+## [165] &quot;&quot;                                                                                                            
+## [166] &quot;Vanquished creatures:&quot;                                                                                       
+## [167] &quot;  a warhorse&quot;                                                                                                
+## [168] &quot;  a tengu&quot;                                                                                                   
+## [169] &quot;  a quivering blob&quot;                                                                                          
+## [170] &quot; an iron piercer&quot;                                                                                            
+## [171] &quot;  2 black lights&quot;                                                                                            
+## [172] &quot;  a gold golem&quot;                                                                                              
+## [173] &quot;  a werewolf&quot;                                                                                                
+## [174] &quot;  3 lizards&quot;                                                                                                 
+## [175] &quot;  2 dingoes&quot;                                                                                                 
+## [176] &quot;  a housecat&quot;                                                                                                
+## [177] &quot;  a white unicorn&quot;                                                                                           
+## [178] &quot;  2 dust vortices&quot;                                                                                           
+## [179] &quot;  a plains centaur&quot;                                                                                          
+## [180] &quot; an ape&quot;                                                                                                     
+## [181] &quot;  a Woodland-elf&quot;                                                                                            
+## [182] &quot;  2 soldier ants&quot;                                                                                            
+## [183] &quot;  a bugbear&quot;                                                                                                 
+## [184] &quot; an imp&quot;                                                                                                     
+## [185] &quot;  a wood nymph&quot;                                                                                              
+## [186] &quot;  a water nymph&quot;                                                                                             
+## [187] &quot;  a rock piercer&quot;                                                                                            
+## [188] &quot;  a pony&quot;                                                                                                    
+## [189] &quot;  3 fog clouds&quot;                                                                                              
+## [190] &quot;  a yellow light&quot;                                                                                            
+## [191] &quot;  a violet fungus&quot;                                                                                           
+## [192] &quot;  2 gnome lords&quot;                                                                                             
+## [193] &quot;  2 gnomish wizards&quot;                                                                                         
+## [194] &quot;  2 gray oozes&quot;                                                                                              
+## [195] &quot;  2 elf zombies&quot;                                                                                             
+## [196] &quot;  a straw golem&quot;                                                                                             
+## [197] &quot;  a paper golem&quot;                                                                                             
+## [198] &quot;  2 giant ants&quot;                                                                                              
+## [199] &quot;  2 little dogs&quot;                                                                                             
+## [200] &quot;  3 floating eyes&quot;                                                                                           
+## [201] &quot;  8 dwarves&quot;                                                                                                 
+## [202] &quot;  a homunculus&quot;                                                                                              
+## [203] &quot;  3 kobold lords&quot;                                                                                            
+## [204] &quot;  3 kobold shamans&quot;                                                                                          
+## [205] &quot; 13 hill orcs&quot;                                                                                               
+## [206] &quot;  4 rothes&quot;                                                                                                  
+## [207] &quot;  2 centipedes&quot;                                                                                              
+## [208] &quot;  3 giant bats&quot;                                                                                              
+## [209] &quot;  6 dwarf zombies&quot;                                                                                           
+## [210] &quot;  a werejackal&quot;                                                                                              
+## [211] &quot;  3 iguanas&quot;                                                                                                 
+## [212] &quot; 23 killer bees&quot;                                                                                             
+## [213] &quot; an acid blob&quot;                                                                                               
+## [214] &quot;  a coyote&quot;                                                                                                  
+## [215] &quot;  3 gas spores&quot;                                                                                              
+## [216] &quot;  5 hobbits&quot;                                                                                                 
+## [217] &quot;  7 manes&quot;                                                                                                   
+## [218] &quot;  2 large kobolds&quot;                                                                                           
+## [219] &quot;  a hobgoblin&quot;                                                                                               
+## [220] &quot;  2 giant rats&quot;                                                                                              
+## [221] &quot;  2 cave spiders&quot;                                                                                            
+## [222] &quot;  a yellow mold&quot;                                                                                             
+## [223] &quot;  6 gnomes&quot;                                                                                                  
+## [224] &quot;  8 garter snakes&quot;                                                                                           
+## [225] &quot;  2 gnome zombies&quot;                                                                                           
+## [226] &quot;  8 geckos&quot;                                                                                                  
+## [227] &quot; 11 jackals&quot;                                                                                                 
+## [228] &quot;  5 foxes&quot;                                                                                                   
+## [229] &quot;  2 kobolds&quot;                                                                                                 
+## [230] &quot;  2 goblins&quot;                                                                                                 
+## [231] &quot;  a sewer rat&quot;                                                                                               
+## [232] &quot;  6 grid bugs&quot;                                                                                               
+## [233] &quot;  3 lichens&quot;                                                                                                 
+## [234] &quot;  2 kobold zombies&quot;                                                                                          
+## [235] &quot;  5 newts&quot;                                                                                                   
+## [236] &quot;206 creatures vanquished.&quot;                                                                                   
+## [237] &quot;&quot;                                                                                                            
+## [238] &quot;No species were genocided or became extinct.&quot;                                                                
+## [239] &quot;&quot;                                                                                                            
+## [240] &quot;Voluntary challenges:&quot;                                                                                       
+## [241] &quot; You never genocided any monsters.&quot;                                                                          
+## [242] &quot; You never polymorphed an object.&quot;                                                                           
+## [243] &quot; You never changed form.&quot;                                                                                    
+## [244] &quot; You used no wishes.&quot;                                                                                        
+## [245] &quot;&quot;                                                                                                            
+## [246] &quot;The Dungeons of Doom: levels 1 to 6&quot;                                                                         
+## [247] &quot;   Level 1:&quot;                                                                                                 
+## [248] &quot;      A fountain.&quot;                                                                                           
+## [249] &quot;   Level 2:&quot;                                                                                                 
+## [250] &quot;      A sink.&quot;                                                                                               
+## [251] &quot;   Level 3:&quot;                                                                                                 
+## [252] &quot;      A general store, a fountain.&quot;                                                                          
+## [253] &quot;   Level 4:&quot;                                                                                                 
+## [254] &quot;      A general store, a fountain.&quot;                                                                          
+## [255] &quot;      Stairs down to The Gnomish Mines.&quot;                                                                     
+## [256] &quot;   Level 5:&quot;                                                                                                 
+## [257] &quot;      A fountain.&quot;                                                                                           
+## [258] &quot;   Level 6: &lt;- You were here.&quot;                                                                               
+## [259] &quot;      A general store.&quot;                                                                                      
+## [260] &quot;      Final resting place for&quot;                                                                               
+## [261] &quot;         you, killed by an ape.&quot;                                                                             
+## [262] &quot;The Gnomish Mines: levels 5 to 8&quot;                                                                            
+## [263] &quot;   Level 5:&quot;                                                                                                 
+## [264] &quot;   Level 6:&quot;                                                                                                 
+## [265] &quot;   Level 7:&quot;                                                                                                 
+## [266] &quot;      Many shops, a temple, some fountains.&quot;                                                                 
+## [267] &quot;   Level 8:&quot;                                                                                                 
+## [268] &quot;&quot;                                                                                                            
+## [269] &quot;Game over:&quot;                                                                                                  
+## [270] &quot;                       ----------&quot;                                                                           
+## [271] &quot;                      /          \\&quot;                                                                         
+## [272] &quot;                     /    REST    \\&quot;                                                                        
+## [273] &quot;                    /      IN      \\&quot;                                                                       
+## [274] &quot;                   /     PEACE      \\&quot;                                                                      
+## [275] &quot;                  /                  \\&quot;                                                                     
+## [276] &quot;                  |  brothertrebius  |&quot;                                                                      
+## [277] &quot;                  |      59 Au       |&quot;                                                                      
+## [278] &quot;                  | killed by an ape |&quot;                                                                      
+## [279] &quot;                  |                  |&quot;                                                                      
+## [280] &quot;                  |                  |&quot;                                                                      
+## [281] &quot;                  |                  |&quot;                                                                      
+## [282] &quot;                  |       2018       |&quot;                                                                      
+## [283] &quot;                 *|     *  *  *      | *&quot;                                                                    
+## [284] &quot;        _________)/\\\\_//(\\/(/\\)/\\//\\/|_)_______&quot;                                                       
+## [285] &quot;&quot;                                                                                                            
+## [286] &quot;Goodbye brothertrebius the Ranger...&quot;                                                                        
+## [287] &quot;&quot;                                                                                                            
+## [288] &quot;You died in The Dungeons of Doom on dungeon level 6 with 6652 points,&quot;                                       
+## [289] &quot;and 59 pieces of gold, after 7398 moves.&quot;                                                                    
+## [290] &quot;You were level 8 with a maximum of 54 hit points when you died.&quot;                                             
+## [291] &quot;&quot;</code></pre>
+</details>
+<p>Now, I am curious to see how many games are played per day:</p>
+<pre class="r"><code>runs_per_day &lt;- nethack %&gt;%
+  group_by(date) %&gt;%
+  count() %&gt;%
+  ungroup() 
+
+
+ggplot(runs_per_day, aes(y = n, x = date)) + 
+  geom_point(colour = &quot;#0f4150&quot;) + 
+  geom_smooth(colour = &quot;#82518c&quot;) + 
+  theme_blog()</code></pre>
+<pre><code>## `geom_smooth()` using method = &#39;gam&#39; and formula &#39;y ~ s(x, bs = &quot;cs&quot;)&#39;</code></pre>
+<p><img src="../../blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
+<p>The number of games seems to be stable since 2015, around 50. But what is also interesting is not
+only the number of games played, but also how many of these games resulted in a win.</p>
+<p>For this, let’s also add a new column that tells us whether the played <em>ascended</em> (won the game)
+or not:</p>
+<pre class="r"><code>nethack %&lt;&gt;%
+  mutate(Ascended = ifelse(death == &quot;ascended&quot;, &quot;Ascended&quot;, &quot;Died an horrible death&quot;))</code></pre>
+<p>I’m curious to see how many players managed to ascend… NetHack being as hard as diamonds, probably
+not a lot:</p>
+<pre class="r"><code>ascensions_per_day &lt;- nethack %&gt;%
+  group_by(date, Ascended) %&gt;%
+  count() %&gt;%
+  rename(Total = n)
+
+ggplot(ascensions_per_day) + 
+  geom_area(aes(y = Total, x = as.Date(date), fill = Ascended)) +
+  theme_blog() +
+  labs(y = &quot;Number of runs&quot;, x = &quot;Date&quot;) +
+  scale_fill_blog() +
+  theme(legend.title = element_blank())</code></pre>
+<p><img src="../../blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
+<p>Yeah, just as expected. Because there is so much data, it’s difficult to see clearly, though. Depending on
+the size of the screen you’re reading this, it might seem that in some days there are a lot of ascensions.
+This is only an impression due to the resolution of the picture. Let’s see the share of ascensions per
+year (and how many times the quests fail miserably), and this will become more apparent:</p>
+<pre class="r"><code>ascensions_per_day %&gt;%
+  mutate(Year = year(as.Date(date))) %&gt;%
+  group_by(Year, Ascended) %&gt;%
+  summarise(Total = sum(Total, na.rm = TRUE)) %&gt;%
+  group_by(Year) %&gt;%
+  mutate(denom = sum(Total, na.rm = TRUE)) %&gt;%
+  ungroup() %&gt;%
+  mutate(Share = Total/denom) %&gt;%
+  ggplot() + 
+  geom_col(aes(y = Share, x = Year, fill = Ascended)) + 
+  theme_blog() + 
+  scale_fill_blog() + 
+  theme(legend.title = element_blank())</code></pre>
+<p><img src="../../blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
+<p>I will now convert the “time” column to seconds. I am not yet sure that this column is really useful,
+because NetHack is a turn based game. This means that when the player does not move, neither do the
+monsters. So the seconds spent playing might not be a good proxy for actual time spent playing.
+But it makes for a good exercise:</p>
+<pre class="r"><code>convert_to_seconds &lt;- function(time_string){
+    time_numeric &lt;- time_string %&gt;%
+        str_split(&quot;:&quot;, simplify = TRUE) %&gt;%
+        as.numeric
+
+    time_in_seconds &lt;- sum(time_numeric * c(3600, 60, 1))
+
+    time_in_seconds 
+}</code></pre>
+<p>The strings I want to convert are of the form “01:34:43”, so I split at the “:” and then convert
+the result to numeric. I end up with an atomic vector (<code>c(1, 34, 43)</code>). Then I multiple each element
+by the right number of seconds, and sum that to get the total. Let’s apply it to my data:</p>
+<pre class="r"><code>nethack %&lt;&gt;%
+  mutate(time_in_seconds = map_dbl(time, convert_to_seconds))</code></pre>
+<p>What is the distribution of “time_in_seconds”?</p>
+<pre class="r"><code>nethack %&gt;%
+  describe(time_in_seconds)</code></pre>
+<pre><code>## # A tibble: 1 x 15
+##   variable type    nobs   mean     sd mode    min    max   q05   q25 median
+##   &lt;chr&gt;    &lt;chr&gt;  &lt;int&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;
+## 1 time_in… Nume… 322485 23529. 2.73e5 &lt;NA&gt;     61 2.72e7   141   622   1689
+## # … with 4 more variables: q75 &lt;dbl&gt;, q95 &lt;dbl&gt;, n_missing &lt;int&gt;,
+## #   n_unique &lt;lgl&gt;</code></pre>
+<p>We see that the minimum of <code>time_in_seconds</code> is 61 whereas the maximum is of the order of 27200000…
+This must be a mistake, because that is almost one year!</p>
+<pre class="r"><code>nethack %&gt;%
+  filter(time_in_seconds == max(time_in_seconds, na.rm = TRUE))</code></pre>
+<pre><code>##   rank      score   name       time   turns lev_max  hp_max role race
+## 1   28 3173960108 fisted 7553:41:49 6860357    4/47 362/362  Wiz  Elf
+##   gender alignment                      death       date dumplog year
+## 1    Mal       Neu drowned in a pool of water 2017-02-02      NA 2017
+##   month day               Ascended time_in_seconds
+## 1     2   2 Died an horrible death        27193309</code></pre>
+<p>Well… maybe “fisted” wanted to break the record of the longest NetHack game ever. Congratulations!</p>
+<p>Let’s take a look at the density but cut it at 90th percentile:</p>
+<pre class="r"><code>nethack %&gt;%
+  filter(!is.na(time_in_seconds),
+         time_in_seconds &lt; quantile(time_in_seconds, 0.9, na.rm = TRUE)) %&gt;%
+  ggplot() + 
+  geom_density(aes(x = time_in_seconds), colour = &quot;#82518c&quot;) + 
+  theme_blog()</code></pre>
+<p><img src="../../blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-20-1.png" width="672" /></p>
+<p>As expected, the distribution is right skewed. However, as explained above NetHack is a turn based
+game, meaning that if the player does not move, the monsters won’t move either. Perhaps it makes more
+sense to look at the <code>turns</code> column:</p>
+<pre class="r"><code>nethack %&gt;%
+  describe(turns)</code></pre>
+<pre><code>## # A tibble: 1 x 15
+##   variable type    nobs  mean     sd mode    min    max   q05   q25 median
+##   &lt;chr&gt;    &lt;chr&gt;  &lt;int&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;
+## 1 turns    Nume… 322485 4495. 19853. &lt;NA&gt;      1 6.86e6   202   871   1818
+## # … with 4 more variables: q75 &lt;dbl&gt;, q95 &lt;dbl&gt;, n_missing &lt;int&gt;,
+## #   n_unique &lt;lgl&gt;</code></pre>
+<p>The maximum is quite large too. Just like before, let’s focus by cutting the variable at the 90th percentile:</p>
+<pre class="r"><code>nethack %&gt;%
+  filter(!is.na(turns),
+         turns &lt; quantile(turns, 0.9, na.rm = TRUE)) %&gt;% 
+  ggplot() + 
+  geom_density(aes(x = turns), colour = &quot;#82518c&quot;) + 
+  theme_blog()</code></pre>
+<p><img src="../../blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-22-1.png" width="672" /></p>
+<p>I think that using <code>turns</code> makes more sense. In the a future blog post, I will estimate a survival
+model and see how long players survive, and will use <code>turns</code> instead of <code>time_in_seconds</code>.</p>
+</div>
+<div id="analysis" class="section level2">
+<h2>Analysis</h2>
+<div id="what-kills-the-players" class="section level3">
+<h3>What kills the players</h3>
+<p>To know what kills players so much, some cleaning of the <code>death</code> column is in order. Death can
+occur from poisoning, starvation, accidents, drowning… of course monsters can kill the player too.
+Here are some values of the <code>death</code> variable:</p>
+<pre><code>burned by a tower of flame
+choked on a lichen corpse
+died of starvation
+fell into a pit of iron spikes
+killed by a gnome
+killed by a gnome called Blabla
+killed by a gnome called Blabla while sleeping
+slipped while mounting a saddled pony
+slipped while mounting a saddled pony called Jolly Jumper
+zapped her/himself with a spell</code></pre>
+<p>To know what is the most frequent cause of death, I have to do some cleaning, because if not,
+“killed by a gnome” and “killed by a gnome called Blabla” would be two different causes of death.
+In the end, what interests me is to know how many times the player got killed by a gnome.</p>
+<p>The following lines do a cleanup of the <code>death</code> variable:</p>
+<pre class="r"><code>nethack %&lt;&gt;% 
+  mutate(death2 = case_when(str_detect(death, &quot;poisoned&quot;) ~ &quot;poisoned&quot;,
+                            str_detect(death, &quot;slipped&quot;) ~ &quot;accident&quot;,
+                            str_detect(death, &quot;petrified&quot;) ~ &quot;petrified&quot;,
+                            str_detect(death, &quot;choked&quot;) ~ &quot;accident&quot;,
+                            str_detect(death, &quot;caught.*self&quot;) ~ &quot;accident&quot;,
+                            str_detect(death, &quot;starvation&quot;) ~ &quot;starvation&quot;,
+                            str_detect(death, &quot;drowned&quot;) ~ &quot;drowned&quot;,
+                            str_detect(death, &quot;fell&quot;) ~ &quot;fell&quot;,
+                            str_detect(death, &quot;zapped&quot;) ~ &quot;zapped&quot;,
+                            str_detect(death, &quot;killed&quot;) ~ &quot;killed&quot;,
+                            TRUE ~ death)) %&gt;%
+  mutate(death3 = str_extract(death, &quot;(?&lt;=by|while).*&quot;)) %&gt;%
+  mutate(death3 = case_when(str_detect(death3, &quot;,|\\bcalled\\b&quot;) ~ str_extract(death3, &quot;(.*?),|(.*?)\\bcalled\\b&quot;), 
+                            TRUE ~ death3)) %&gt;%
+  mutate(death3 = str_remove(death3, &quot;,|called|\\ban?&quot;),
+         death3 = str_trim(death3))</code></pre>
+<p><code>death2</code> is a new variable, in which I broadly categorize causes of death. Using regular expressions
+I detect causes of death and aggregate some categories, for instance “slipped” and “chocked” into
+“accident”. Then, I want to extract everything that comes after the strings “by” or while, and put
+the result into a new variable called <code>death3</code>. Then I detect the string “,” or “called”; if one
+of these strings is present, I extract everything that comes before “,” or that comes before
+“called”. Finally, I remove “,”, “called” or “a” or “an” from the string and trim the whitespaces.</p>
+<p>Let’s take a look at these new variables:</p>
+<pre class="r"><code>set.seed(123)
+nethack %&gt;%
+    select(name, death, death2, death3) %&gt;%
+    sample_n(10)</code></pre>
+<pre><code>##              name                     death   death2        death3
+## 92740   DianaFury     killed by a death ray   killed     death ray
+## 254216    Oddabit         killed by a tiger   killed         tiger
+## 131889    shachaf      killed by a fire ant   killed      fire ant
+## 284758        a43  poisoned by a killer bee poisoned    killer bee
+## 303283      goast         killed by a gecko   killed         gecko
+## 14692     liberty    killed by a gnome king   killed    gnome king
+## 170303     arch18                  ascended ascended          &lt;NA&gt;
+## 287786 foolishwtf           killed by a bat   killed           bat
+## 177826    Renleve     killed by a giant bat   killed     giant bat
+## 147248      TheOV killed by a black unicorn   killed black unicorn</code></pre>
+<p>Now, it is quite easy to know what monsters are the meanest buttholes; let’s focus on the top 15.
+Most likely, these are going to be early game monsters. Let’ see:</p>
+<pre class="r"><code>nethack %&gt;%
+    filter(!is.na(death3)) %&gt;%
+    count(death3) %&gt;%
+    top_n(15) %&gt;%
+    mutate(death3 = fct_reorder(death3, n, .desc = FALSE)) %&gt;%
+    ggplot() + 
+    geom_col(aes(y = n, x = death3)) + 
+    coord_flip() + 
+    theme_blog() + 
+    scale_fill_blog() + 
+    ylab(&quot;Number of deaths caused&quot;) +
+    xlab(&quot;Monster&quot;)</code></pre>
+<pre><code>## Selecting by n</code></pre>
+<p><img src="../../blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-25-1.png" width="672" /></p>
+<p>Seems like soldier ants are the baddest, followed by jackals and dwarfs. As expected, these are
+mostly early game monsters. Thus, it would be interesting to look at this distribution, but at
+different stages in the game. Let’s create a categorical variable that discretizes <code>turns</code>,
+and then create one plot per category:</p>
+<details>
+<p><summary>Click to expand</summary></p>
+<pre class="r"><code>nethack %&gt;%
+    filter(!is.na(death3)) %&gt;%
+    filter(!is.na(turns)) %&gt;%
+    mutate(turn_flag = case_when(between(turns, 1, 5000) ~ &quot;Less than 5000&quot;,
+                                 between(turns, 5001, 10000) ~ &quot;Between 5001 and 10000&quot;,
+                                 between(turns, 10001, 20000) ~ &quot;Between 10001 and 20000&quot;,
+                                 between(turns, 20001, 40000) ~ &quot;Between 20001 and 40000&quot;,
+                                 between(turns, 40001, 60000) ~ &quot;Between 40001 and 60000&quot;,
+                                 turns &gt; 60000 ~ &quot;More than 60000&quot;)) %&gt;%
+    mutate(turn_flag = factor(turn_flag, levels = c(&quot;Less than 5000&quot;, 
+                                                    &quot;Between 5001 and 10000&quot;,
+                                                    &quot;Between 10001 and 20000&quot;,
+                                                    &quot;Between 20001 and 40000&quot;,
+                                                    &quot;Between 40001 and 60000&quot;,
+                                                    &quot;More than 60000&quot;), ordered = TRUE)) %&gt;%
+    group_by(turn_flag) %&gt;%
+    count(death3) %&gt;%
+    top_n(15) %&gt;%
+    nest() %&gt;%
+    mutate(data = map(data, ~mutate(., death3 = fct_reorder(death3, n, .desc = TRUE))))  %&gt;%
+    mutate(plots = map2(.x = turn_flag,
+                         .y = data,
+                         ~ggplot(data = .y) + 
+                             geom_col(aes(y = n, x = death3)) + 
+                             coord_flip() + 
+                             theme_blog() + 
+                             scale_fill_blog() + 
+                             ylab(&quot;Number of deaths caused&quot;) +
+                             xlab(&quot;Monster&quot;) + 
+                             ggtitle(.x))) %&gt;%
+    pull(plots)</code></pre>
+<pre><code>## Selecting by n</code></pre>
+<pre><code>## [[1]]</code></pre>
+<p><img src="../../blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-26-1.png" width="672" /></p>
+<pre><code>## 
+## [[2]]</code></pre>
+<p><img src="../../blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-26-2.png" width="672" /></p>
+<pre><code>## 
+## [[3]]</code></pre>
+<p><img src="../../blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-26-3.png" width="672" /></p>
+<pre><code>## 
+## [[4]]</code></pre>
+<p><img src="../../blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-26-4.png" width="672" /></p>
+<pre><code>## 
+## [[5]]</code></pre>
+<p><img src="../../blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-26-5.png" width="672" /></p>
+<pre><code>## 
+## [[6]]</code></pre>
+<img src="../../blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-26-6.png" width="672" />
+</details>
+<p>Finally, for this section, I want to know if there are levels, or floors, where players die more
+often than others. For this, we can take a look at the <code>lev_max</code> column. Observations in this
+column are of the form “8/10”. This means that the player died on level 8, but the lowest level
+that was explored was the 10th. Let’s do this for the year 2017 first. Before anything, I have
+to explain the layout of the levels of the game. You can see a diagram
+<a href="https://nethackwiki.com/wiki/Mazes_of_Menace#Map">here</a>. The player starts on floor 1,
+and goes down to level 53. Then, the player can ascend, by going on levels -1 to -5. But there
+are more levels than these ones. -6 and -9 are the sky, and the player can teleport there (but will
+fall to his death). If the player teleports to level -10, he’ll enter heaven (and die too). Because
+these levels are special, I do not consider them here. I do not consider level 0 either, which is
+“Nowhere”. Let’s get the number of players who died on each floor, but also compute the cumulative
+death count:</p>
+<pre class="r"><code>died_on_level &lt;- nethack %&gt;%
+    filter(Ascended == &quot;Died an horrible death&quot;) %&gt;%
+    mutate(died_on = str_extract(lev_max, &quot;-?\\d{1,}&quot;)) %&gt;%
+    mutate(died_on = as.numeric(died_on)) %&gt;%
+    group_by(year) %&gt;%
+    count(died_on) %&gt;% 
+    filter(died_on &gt;= -5, died_on != 0) %&gt;%
+    mutate(died_on = case_when(died_on == -1 ~ 54,
+                               died_on == -2 ~ 55,
+                               died_on == -3 ~ 56,
+                               died_on == -4 ~ 57,
+                               died_on == -5 ~ 58,
+                               TRUE ~ died_on)) %&gt;%
+    arrange(desc(died_on)) %&gt;%
+    mutate(cumul_deaths = cumsum(n))</code></pre>
+<p>Let’s take a look:</p>
+<pre class="r"><code>head(died_on_level)</code></pre>
+<pre><code>## # A tibble: 6 x 4
+## # Groups:   year [6]
+##    year died_on     n cumul_deaths
+##   &lt;dbl&gt;   &lt;dbl&gt; &lt;int&gt;        &lt;int&gt;
+## 1  2002      58     5            5
+## 2  2003      58    11           11
+## 3  2004      58    19           19
+## 4  2005      58    28           28
+## 5  2006      58    25           25
+## 6  2007      58    22           22</code></pre>
+<p>Now, let’s compute the number of players who ascended and add this to the cumulative count:</p>
+<pre class="r"><code>ascended_yearly &lt;- nethack %&gt;%
+    filter(Ascended == &quot;Ascended&quot;) %&gt;%
+    group_by(year) %&gt;%
+    count(Ascended)</code></pre>
+<p>Let’s take a look:</p>
+<pre class="r"><code>head(ascended_yearly)</code></pre>
+<pre><code>## # A tibble: 6 x 3
+## # Groups:   year [6]
+##    year Ascended     n
+##   &lt;dbl&gt; &lt;chr&gt;    &lt;int&gt;
+## 1  2001 Ascended     4
+## 2  2002 Ascended    38
+## 3  2003 Ascended   132
+## 4  2004 Ascended   343
+## 5  2005 Ascended   329
+## 6  2006 Ascended   459</code></pre>
+<p>I will modify the dataset a little bit and merge it with the previous one:</p>
+<pre class="r"><code>ascended_yearly %&lt;&gt;%
+  rename(ascended_players = `n`) %&gt;%
+  select(-Ascended)</code></pre>
+<p>Let’s add this to the data frame from before by merging both, and then we can compute the
+surviving players:</p>
+<pre class="r"><code>died_on_level %&lt;&gt;%
+  full_join(ascended_yearly, by = &quot;year&quot;) %&gt;%
+  mutate(surviving_players = cumul_deaths + ascended_players)</code></pre>
+<p>Now we can compute the share of players who died on each level:</p>
+<pre class="r"><code>died_on_level %&gt;%
+    mutate(death_rate = n/surviving_players) %&gt;% 
+    ggplot(aes(y = death_rate, x = as.factor(died_on))) + 
+    geom_line(aes(group = year, alpha = year), colour = &quot;#82518c&quot;) +
+    theme_blog() + 
+    ylab(&quot;Death rate&quot;) +
+    xlab(&quot;Level&quot;) + 
+    theme(axis.text.x = element_text(angle = 90),
+          legend.position = &quot;none&quot;) + 
+    scale_y_continuous(labels = scales::percent)</code></pre>
+<p><img src="../../blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-33-1.png" width="672" /></p>
+<p>Looks like level 7 is consistently the most dangerous! The death rate there is more than 35%!</p>
+<p>That’s it for this blog post, in the next one, I will focus on what players kill!</p>
+<p>Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates or
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a>.</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
+</div>
+</div>
+
+      </div>
+    </div>
+  <div class="row">
+    <div class="col-lg-9 col-md-9 col-sm-8 col-lg-offset-3 col-md-offset-3">
+    <footer>
+  <div class="row">
+    <div class="col-lg-12">
+      <p>Copyright 2020. <a> Bruno Rodrigues</a> </p>
+      <p>Made with the HUGO theme <a href="https://github.com/adejoux/hugo-darkdoc-theme" rel="nofollow">darkdoc</a>.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+
+    </div>
+  </div>
+
+</div>
+</html>
+<script>
+
+  var api_url = '';
+
+</script>
+<script src="//code.jquery.com/jquery-2.2.3.min.js"></script>
+<script src="../../js/application.js"></script>
+<script type="text/javascript" src="../../js/jquery.fancybox.pack.js?v=2.1.5"></script>
+<script type="text/javascript" src="../../js/helpers/jquery.fancybox-thumbs.js?v=1.0.7"></script>
+<script type="text/javascript" src="../../js/helpers/jquery.fancybox-buttons.js?v=1.0.5"></script>
+<script type="text/javascript" src="../../js/helpers/jquery.fancybox-media.js?v=1.0.6"></script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $(".fancybox").fancybox();
+  });
+</script>
+

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<style type=text/css>body{font-family:monospace;}</style>
+	<title>How Luxembourguish residents spend their time: a small {flexdashboard} demo using the Time use survey data</title>
+	
+	
+	<link rel="stylesheet" href="/css/style.css">
+	
+	
+</head>
+<body>
+	<header>
+<p><a class="nav-link" href="/index.html">Econometrics and Free Software</a> by <a class="nav-link" href="/about/about">Bruno Rodrigues</a>.</p>
+<p>Follow me on <a href="https://twitter.com/brodriguesco" rel="nofollow">twitter</a>.</p>
+<p>Watch my <a href="https://www.youtube.com/user/cbrunos" rel="nofollow">youtube</a> channel.</p>
+</header>
+
+	
+	<main>
+		<article>
+			<h1>How Luxembourguish residents spend their time: a small {flexdashboard} demo using the Time use survey data</h1>
+			<b><time>2018/09/14</time></b>
+		       
+		           <a href="/tags/r">R</a>
+        	       
+
+			<div>
+				<div style="text-align:center;">
+<p><a href="https://brodriguesco.shinyapps.io/time_use_luxembourg/">
+<img src="/img/time_use_dashboard.png"/></a></p>
+</div>
+<p>In a <a href="http://www.brodrigues.co/blog/2018-09-11-human_to_machine/">previous blog post</a> I have showed
+how you could use the <code>{tidyxl}</code> package to go from a human readable Excel Workbook to a tidy
+data set (or flat file, as they are also called). Some people then contributed their solutions,
+which is always something I really enjoy when it happens. This way, I also get to learn things!</p>
+<p><a href="https://twitter.com/expersso"><code>@expersso</code></a> proposed a solution without <code>{tidyxl}</code>:</p>
+<blockquote class="twitter-tweet" data-lang="en">
+<p lang="en" dir="ltr">
+Interesting data wrangling exercise in <a href="https://twitter.com/hashtag/rstats?src=hash&amp;ref_src=twsrc%5Etfw">#rstats</a>. <br>My solution (without using {tidyxl}): <a href="https://t.co/VjuOoM82yX">https://t.co/VjuOoM82yX</a> <a href="https://t.co/VsXFyowigu">https://t.co/VsXFyowigu</a>
+</p>
+— Eric (<span class="citation">@expersso</span>) <a href="https://twitter.com/expersso/status/1039894727808757761?ref_src=twsrc%5Etfw">September 12, 2018</a>
+</blockquote>
+<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+<p><a href="https://www.benstenhaug.com/">Ben Stenhaug</a> also proposed a solution on his <a href="https://github.com/stenhaug/shared/blob/master/tidyxl_bruno_blog.md">github</a>
+which is simpler than my code in a lot of ways!</p>
+<p>Update: <a href="https://twitter.com/nacnudus"><code>@nacnudus</code></a> also contributed his own version using <code>{unpivotr}</code>:</p>
+<blockquote class="twitter-tweet" data-lang="en">
+<p lang="en" dir="ltr">
+Here's a version using unpivotr <a href="https://t.co/l2hy6zCuKj">https://t.co/l2hy6zCuKj</a>
+</p>
+— Duncan Garmonsway (<span class="citation">@nacnudus</span>) <a href="https://twitter.com/nacnudus/status/1040905626317217792?ref_src=twsrc%5Etfw">September 15, 2018</a>
+</blockquote>
+<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+<p>Now, it would be too bad not to further analyze this data. I’ve been wanting to play around with
+the <code>{flexdashboard}</code> package for some time now, but never really got the opportunity to do so.
+The opportunity has now arrived. Using the cleaned data from the last post, I will further tweak
+it a little bit, and then produce a very simple dashboard using <code>{flexdashboard}</code>.</p>
+<p>If you want to skip the rest of the blog post and go directly to the dashboard, just click <a href="https://brodriguesco.shinyapps.io/time_use_luxembourg/">here</a>.</p>
+<p>To make the data useful, I need to convert the strings that represent the amount of time spent
+doing a task (for example “1:23”) to minutes. For this I use the <code>{chron}</code> package:</p>
+<pre class="r"><code>clean_data &lt;- clean_data %&gt;%
+    mutate(time_in_minutes = paste0(time, &quot;:00&quot;)) %&gt;% # I need to add &quot;:00&quot; for the seconds else it won&#39;t work
+    mutate(time_in_minutes = 
+               chron::hours(chron::times(time_in_minutes)) * 60 + 
+               chron::minutes(chron::times(time_in_minutes)))
+
+rio::export(clean_data, &quot;clean_data.csv&quot;)</code></pre>
+<p>Now we’re ready to go! Below is the code to build the dashboard; if you want to try, you should
+copy and paste the code inside a Rmd document:</p>
+<pre><code>---
+title: &quot;Time Use Survey of Luxembourguish residents&quot;
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+runtime: shiny
+---
+
+`` `{r setup, include=FALSE}
+library(flexdashboard)
+library(shiny)
+library(tidyverse)
+library(plotly)
+library(ggthemes)
+
+main_categories &lt;- c(&quot;Personal care&quot;,
+                     &quot;Employment&quot;,
+                     &quot;Study&quot;,
+                     &quot;Household and family care&quot;,
+                     &quot;Voluntary work and meetings&quot;,
+                     &quot;Social life and entertainment&quot;,
+                     &quot;Sports and outdoor activities&quot;,
+                     &quot;Hobbies and games&quot;,
+                     &quot;Media&quot;,
+                     &quot;Travel&quot;)
+
+df &lt;- read.csv(&quot;clean_data.csv&quot;) %&gt;%
+    rename(Population = population) %&gt;%
+    rename(Activities = activities)
+`` `
+
+Inputs {.sidebar}
+-----------------------------------------------------------------------
+
+`` `{r}
+
+selectInput(inputId = &quot;activitiesName&quot;, 
+            label = &quot;Choose an activity&quot;, 
+            choices = unique(df$Activities))
+
+selectInput(inputId = &quot;dayName&quot;, 
+            label = &quot;Choose a day&quot;, 
+            choices = unique(df$day), 
+            selected = &quot;Year 2014_Monday til Friday&quot;)
+
+selectInput(inputId = &quot;populationName&quot;, 
+            label = &quot;Choose a population&quot;, 
+            choices = unique(df$Population), 
+            multiple = TRUE, selected = c(&quot;Male&quot;, &quot;Female&quot;))
+
+`` `
+
+The Time Use Survey (TUS) aims to measure accurately how people allocate their time across different day-to-day activities. To this end, people are asked to keep records of all their activities in a time diary. For each activity, additional information is collected about whether or not the person was alone doing it or together with other persons, where did the activity take place, etc. The main studies on time use have been conducted to calculate indicators making possible comparative analysis of quality of life within the same population or between countries. International studies care more about specific activities such as work (unpaid or not), free time, leisure, personal care (including sleep), etc.
+Source: http://statistiques.public.lu/en/surveys/espace-households/time-use/index.html
+
+Layout based on https://jjallaire.shinyapps.io/shiny-biclust/
+
+Row
+-----------------------------------------------------------------------
+
+### Minutes spent per day on certain activities
+    
+`` `{r}
+dfInput &lt;- reactive({
+        df %&gt;% filter(Activities == input$activitiesName,
+                      Population %in% input$populationName,
+                      day %in% input$dayName)
+    })
+
+    dfInput2 &lt;- reactive({
+        df %&gt;% filter(Activities %in% main_categories,
+                      Population %in% input$populationName,
+                      day %in% input$dayName)
+    })
+    
+  renderPlotly({
+
+        df1 &lt;- dfInput()
+
+        p1 &lt;- ggplot(df1, 
+                     aes(x = Activities, y = time_in_minutes, fill = Population)) +
+            geom_col(position = &quot;dodge&quot;) + 
+            theme_minimal() + 
+            xlab(&quot;Activities&quot;) + 
+            ylab(&quot;Time in minutes&quot;) +
+            scale_fill_gdocs()
+
+        ggplotly(p1)})
+`` `
+
+Row 
+-----------------------------------------------------------------------
+
+### Proportion of the day spent on main activities
+    
+`` `{r}
+renderPlotly({
+    
+       df2 &lt;- dfInput2()
+       
+       p2 &lt;- ggplot(df2, 
+                   aes(x = Population, y = time_in_minutes, fill = Activities)) +
+           geom_bar(stat=&quot;identity&quot;, position=&quot;fill&quot;) + 
+            xlab(&quot;Proportion&quot;) + 
+            ylab(&quot;Proportion&quot;) +
+           theme_minimal() +
+           scale_fill_gdocs()
+       
+       ggplotly(p2)
+   })
+`` `</code></pre>
+<p>You will see that I have defined the following atomic vector:</p>
+<pre class="r"><code>main_categories &lt;- c(&quot;Personal care&quot;,
+                     &quot;Employment&quot;,
+                     &quot;Study&quot;,
+                     &quot;Household and family care&quot;,
+                     &quot;Voluntary work and meetings&quot;,
+                     &quot;Social life and entertainment&quot;,
+                     &quot;Sports and outdoor activities&quot;,
+                     &quot;Hobbies and games&quot;,
+                     &quot;Media&quot;,
+                     &quot;Travel&quot;)</code></pre>
+<p>If you go back to the raw Excel file, you will see that these main categories are then split into
+secondary activities. The first bar plot of the dashboard does not distinguish between the main and
+secondary activities, whereas the second barplot only considers the main activities. I could
+have added another column to the data that helped distinguish whether an activity was a main or secondary one,
+but I was lazy. The source code of the dashboard is very simple as it uses R Markdown. To have
+interactivity, I’ve used Shiny to dynamically filter the data, and built the plots with <code>{ggplot2}</code>.
+Finally, I’ve passed the plots to the <code>ggplotly()</code> function from the <code>{plotly}</code> package for some
+quick and easy javascript goodness!</p>
+<p>If you found this blog post useful, you might want to follow me on <a href="https://www.twitter.com/brodriguesco">twitter</a>
+for blog post updates.</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
+
+			</div>
+		</article>
+	</main>
+<aside>
+	<div>
+		<div>
+			<h3>LATEST POSTS</h3>
+		</div>
+		<div>
+			<ul>
+				
+				<li><a href="/post/2020-12-30-year_review/">A year in review</a></li>
+				
+				<li><a href="/post/2020-12-12-ethics_statistics/">(Half) Lies, (half) truths and (half) statistics</a></li>
+				
+				<li><a href="/post/2020-12-05-poorman_translate/">Poorman&#39;s automated translation with R and Google Sheets using {googlesheets4}</a></li>
+				
+				<li><a href="/post/2020-11-21-guis_mistake/">Graphical User Interfaces were a mistake but you can still make things right</a></li>
+				
+				<li><a href="/post/2020-11-05-retire_data_science/">It&#39;s time to retire the &#34;data scientist&#34; label</a></li>
+				
+			</ul>
+		</div>
+	</div>
+</aside>
+
+
+	<footer>
+  <div class="row">
+    <div class="col-lg-12">
+      <p>2021, content by Bruno Rodrigues, unless otherwise stated, every content of this blog is licensed under the <a href="http://www.wtfpl.net/txt/copying/" rel="nofollow">WTFPL</a>.</p>
+      <p>The theme this blog uses is a slight variation of the <a href="https://github.com/colorchestra/smol" rel="nofollow">Smol</a> theme.</p>
+      <p><a class="nav-link" href="/index.html">Back to main page.</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

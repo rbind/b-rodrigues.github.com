@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1550779429816.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "741359287",
+    "id" : "1F1D3DFE",
+    "lastKnownWriteTime" : 1549754630,
+    "last_content_update" : 1549754630,
+    "path" : "/media/cbrunos/12d70b0f-2611-4a87-b015-5e37603c9ba0/cbrunos/Documents/b-rodrigues.github.com/content/blog/2019-02-10-stringr_package.Rmd",
+    "project_path" : "content/blog/2019-02-10-stringr_package.Rmd",
+    "properties" : {
+        "cursorPosition" : "35,62",
+        "scrollLine" : "13"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

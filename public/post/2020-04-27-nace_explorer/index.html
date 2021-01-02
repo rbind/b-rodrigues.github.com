@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<style type=text/css>body{font-family:monospace;}</style>
+	<title>Exploring NACE codes</title>
+	
+	
+	<link rel="stylesheet" href="/css/style.css">
+	
+	
+</head>
+<body>
+	<header>
+<p><a class="nav-link" href="/index.html">Econometrics and Free Software</a> by <a class="nav-link" href="/about/about">Bruno Rodrigues</a>.</p>
+<p>Follow me on <a href="https://twitter.com/brodriguesco" rel="nofollow">twitter</a>.</p>
+<p>Watch my <a href="https://www.youtube.com/user/cbrunos" rel="nofollow">youtube</a> channel.</p>
+</header>
+
+	
+	<main>
+		<article>
+			<h1>Exploring NACE codes</h1>
+			<b><time>2020/04/27</time></b>
+		       
+		           <a href="/tags/r">R</a>
+        	       
+
+			<div>
+				<div style="text-align:center;">
+<p><a href="https://www.youtube.com/watch?v=6n9ESFJTnHs">
+<img src="/img/industry.png" title = ""></a></p>
+</div>
+<p>A quick one today. If you work with economic data, you’ll be confronted to NACE code sooner or later.
+NACE stands for <em>Nomenclature statistique des Activités économiques dans la Communauté Européenne</em>.
+It’s a standard classification of economic activities. It has 4 levels, and you can learn more
+about it <a href="https://ec.europa.eu/eurostat/en/web/products-manuals-and-guidelines/-/KS-RA-07-015">here</a>.</p>
+<p>Each level adds more details; consider this example:</p>
+<pre><code>C - Manufacturing
+C10 - Manufacture of food products
+C10.1 - Processing and preserving of meat and production of meat products
+C10.1.1 - Processing and preserving of meat
+C10.1.2 - Processing and preserving of poultry meat
+C10.1.3 - Production of meat and poultry meat products</code></pre>
+<p>So a company producing meat and poultry meat products would have NACE code level 4 <code>C10.1.3</code> with it.
+Today for work I had to create a nice visualisation of the hierarchy of the NACE classification.
+It took me a bit of time to find a nice solution, so that’s why I’m posting it here. Who knows, it
+might be useful for other people. First let’s get the data. Because finding it is not necessarily
+very easy if you’re not used to navigating Eurostat’s website, I’ve put the CSV into a gist:</p>
+<pre class="r"><code>library(tidyverse)
+library(data.tree)
+library(igraph)
+library(GGally)</code></pre>
+<pre class="r"><code>nace_code &lt;- read_csv(&quot;https://gist.githubusercontent.com/b-rodrigues/4218d6daa8275acce80ebef6377953fe/raw/99bb5bc547670f38569c2990d2acada65bb744b3/nace_rev2.csv&quot;)</code></pre>
+<pre><code>## Parsed with column specification:
+## cols(
+##   Order = col_double(),
+##   Level = col_double(),
+##   Code = col_character(),
+##   Parent = col_character(),
+##   Description = col_character(),
+##   `This item includes` = col_character(),
+##   `This item also includes` = col_character(),
+##   Rulings = col_character(),
+##   `This item excludes` = col_character(),
+##   `Reference to ISIC Rev. 4` = col_character()
+## )</code></pre>
+<pre class="r"><code>head(nace_code)</code></pre>
+<pre><code>## # A tibble: 6 x 10
+##    Order Level Code  Parent Description `This item incl… `This item also…
+##    &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt;  &lt;chr&gt;       &lt;chr&gt;            &lt;chr&gt;           
+## 1 398481     1 A     &lt;NA&gt;   AGRICULTUR… &quot;This section i… &lt;NA&gt;            
+## 2 398482     2 01    A      Crop and a… &quot;This division … This division a…
+## 3 398483     3 01.1  01     Growing of… &quot;This group inc… &lt;NA&gt;            
+## 4 398484     4 01.11 01.1   Growing of… &quot;This class inc… &lt;NA&gt;            
+## 5 398485     4 01.12 01.1   Growing of… &quot;This class inc… &lt;NA&gt;            
+## 6 398486     4 01.13 01.1   Growing of… &quot;This class inc… &lt;NA&gt;            
+## # … with 3 more variables: Rulings &lt;chr&gt;, `This item excludes` &lt;chr&gt;,
+## #   `Reference to ISIC Rev. 4` &lt;chr&gt;</code></pre>
+<p>So there’s a bunch of columns we don’t need, so we’re going to ignore them. What I’ll be doing is
+transforming this data frame into a data tree, using the <code>{data.tree}</code> package. For this, I need
+columns that provide the hierarchy. I’m doing this with the next chunk of code. I won’t explain
+each step, but the idea is quite simple. I’m using the <code>Level</code> column to create new columns called
+<code>Level1</code>, <code>Level2</code>, etc. I’m then doing some cleaning:</p>
+<pre class="r"><code>nace_code &lt;- nace_code %&gt;%
+  select(Level, Code)
+
+nace_code &lt;- nace_code %&gt;%
+  mutate(Level1 = ifelse(Level == 1, Code, NA)) %&gt;%
+  fill(Level1, .direction = &quot;down&quot;) %&gt;%  
+  mutate(Level2 = ifelse(Level == 2, Code, NA)) %&gt;%
+  fill(Level2, .direction = &quot;down&quot;) %&gt;%  
+  mutate(Level3 = ifelse(Level == 3, Code, NA)) %&gt;%
+  fill(Level3, .direction = &quot;down&quot;) %&gt;%  
+  mutate(Level4 = ifelse(Level == 4, Code, NA)) %&gt;%  
+  filter(!is.na(Level4))</code></pre>
+<p>Let’s take a look at how the data looks now:</p>
+<pre class="r"><code>head(nace_code)</code></pre>
+<pre><code>## # A tibble: 6 x 6
+##   Level Code  Level1 Level2 Level3 Level4
+##   &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt;  &lt;chr&gt;  &lt;chr&gt;  &lt;chr&gt; 
+## 1     4 01.11 A      01     01.1   01.11 
+## 2     4 01.12 A      01     01.1   01.12 
+## 3     4 01.13 A      01     01.1   01.13 
+## 4     4 01.14 A      01     01.1   01.14 
+## 5     4 01.15 A      01     01.1   01.15 
+## 6     4 01.16 A      01     01.1   01.16</code></pre>
+<p>I can now create the hierarchy using by creating a column called <code>pathString</code> and passing that
+data frame to <code>data.tree::as.Node()</code>. Because some sections, like C (manufacturing) are very large,
+I do this separately for each section by using the <code>group_by()</code>-<code>nest()</code> trick. This way, I can
+create a <code>data.tree</code> object for each section. Finally, to create the plots, I use <code>igraph::as.igraph()</code>
+and pass this to <code>GGally::ggnet2()</code>, which takes care of creating the plots. This took me quite
+some time to figure out, but the result is a nice looking PDF that the colleagues can now use:</p>
+<pre class="r"><code>nace_code2 &lt;- nace_code %&gt;%
+  group_by(Level1, Level2) %&gt;%
+  nest() %&gt;%
+  mutate(nace = map(data, ~mutate(., pathString = paste(&quot;NACE2&quot;,
+                                       Level1,
+                                       Level2,
+                                       Level3,
+                                       Level4,
+                                       sep = &quot;/&quot;)))) %&gt;%
+  mutate(plots = map(nace, ~as.igraph(as.Node(.)))) %&gt;%
+  mutate(plots = map(plots, ggnet2, label = TRUE))
+
+
+pdf(&quot;nace_maps.pdf&quot;)
+pull(nace_code2, plots)
+dev.off()</code></pre>
+<p>Here’s how the pdf looks like:</p>
+<p><img src="/img/nace_c_10.png" /><!-- --></p>
+<p>If you want to read more about <code>{data.tree}</code>, you can do so <a href="https://cran.r-project.org/web/packages/data.tree/vignettes/data.tree.html">here</a>
+and you can also read more about the <code>ggnet2()</code> <a href="https://briatte.github.io/ggnet/">here</a>.</p>
+<p>Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my ebook on <a href="https://leanpub.com/modern_tidyverse">Leanpub</a>.</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
+
+			</div>
+		</article>
+	</main>
+<aside>
+	<div>
+		<div>
+			<h3>LATEST POSTS</h3>
+		</div>
+		<div>
+			<ul>
+				
+				<li><a href="/post/2020-12-30-year_review/">A year in review</a></li>
+				
+				<li><a href="/post/2020-12-12-ethics_statistics/">(Half) Lies, (half) truths and (half) statistics</a></li>
+				
+				<li><a href="/post/2020-12-05-poorman_translate/">Poorman&#39;s automated translation with R and Google Sheets using {googlesheets4}</a></li>
+				
+				<li><a href="/post/2020-11-21-guis_mistake/">Graphical User Interfaces were a mistake but you can still make things right</a></li>
+				
+				<li><a href="/post/2020-11-05-retire_data_science/">It&#39;s time to retire the &#34;data scientist&#34; label</a></li>
+				
+			</ul>
+		</div>
+	</div>
+</aside>
+
+
+	<footer>
+  <div class="row">
+    <div class="col-lg-12">
+      <p>2021, content by Bruno Rodrigues, unless otherwise stated, every content of this blog is licensed under the <a href="http://www.wtfpl.net/txt/copying/" rel="nofollow">WTFPL</a>.</p>
+      <p>The theme this blog uses is a slight variation of the <a href="https://github.com/colorchestra/smol" rel="nofollow">Smol</a> theme.</p>
+      <p><a class="nav-link" href="/index.html">Back to main page.</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

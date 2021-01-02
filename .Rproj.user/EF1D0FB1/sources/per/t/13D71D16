@@ -1,0 +1,26 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1565988650148.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1567634798",
+    "id" : "13D71D16",
+    "lastKnownWriteTime" : 1565992047,
+    "last_content_update" : 1565992047448,
+    "path" : "~/Documents/b-rodrigues.github.com/content/blog/2019-08-17-modern_R.Rmd",
+    "project_path" : "content/blog/2019-08-17-modern_R.Rmd",
+    "properties" : {
+        "cursorPosition" : "72,76",
+        "marks" : "<:72,57\n>:72,57",
+        "scrollLine" : "0"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

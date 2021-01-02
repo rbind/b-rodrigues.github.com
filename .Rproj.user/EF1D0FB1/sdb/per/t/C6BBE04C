@@ -1,0 +1,29 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1580074470717.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "C6BBE04C",
+    "lastKnownWriteTime" : 6643433093350110305,
+    "last_content_update" : 1580074470717,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "cacheKey" : "DF17C0C3",
+        "caption" : "all_buses",
+        "contentUrl" : "grid_resource/gridviewer.html?env=&obj=all_buses&cache_key=DF17C0C3",
+        "displayedObservations" : 15964,
+        "environment" : "",
+        "object" : "all_buses",
+        "preview" : 0,
+        "totalObservations" : 15964,
+        "variables" : 5
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_dataframe"
+}

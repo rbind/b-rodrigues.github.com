@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<style type=text/css>body{font-family:monospace;}</style>
+	<title>Using R as a Computer Algebra System with Ryacas</title>
+	
+	
+	<link rel="stylesheet" href="/css/style.css">
+	
+	
+</head>
+<body>
+	<header>
+<p><a class="nav-link" href="/index.html">Econometrics and Free Software</a> by <a class="nav-link" href="/about/about">Bruno Rodrigues</a>.</p>
+<p>Follow me on <a href="https://twitter.com/brodriguesco" rel="nofollow">twitter</a>.</p>
+<p>Watch my <a href="https://www.youtube.com/user/cbrunos" rel="nofollow">youtube</a> channel.</p>
+</header>
+
+	
+	<main>
+		<article>
+			<h1>Using R as a Computer Algebra System with Ryacas</h1>
+			<b><time>2013/12/31</time></b>
+		       
+		           <a href="/tags/r">R</a>
+        	       
+
+			<div>
+				<!-- MathJax scripts -->
+
+<script type="text/javascript" async
+  src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+
+<p></head></p>
+
+<p><body>
+<p>R is used to perform statistical analysis and doesn&#39;t focus on symbolic maths. But it is sometimes useful to let the computer derive a function for you (and have the analytic expression of said derivative), but maybe you don&#39;t want to leave your comfy R shell. It is possible to turn R into a full-fledged computer algebra system. CASs are tools that perform symbolic operations, such as getting the expression of the derivative of a user-defined (and thus completely arbitrary) function. Popular CASs include the proprietary Mathematica and Maple. There exists a lot of CASs under a Free Software license, Maxima (based on the very old Macsyma), Yacas, Xcas&hellip; In this post I will focus on Yacas and the <code>Ryacas</code> libarary. There is also the possibility to use the <code>rSympy</code> library that uses the <code>Sympy</code> Python library, which has a lot more features than Yacas. However, depending on your operating system installation can be tricky as it also requires <code>rJava</code> as a dependency. </p></p>
+
+<p>Even though <code>Ryacas</code> is quite nice to have, there are some issues though. For example, let&#39;s say you want the first derivative of a certain function f. If you use <code>Ryacas</code> to get it, the returned object won&#39;t be a function. There is a way to &ldquo;extract&rdquo; the text from the returned object and make a function out of it. But there are still other issues; I&#39;ll discuss them later.</p>
+
+<h2>Installation</h2>
+
+<p>Installation should be rather painless. On Linux you need to install Yacas first, which should be available in the major distros&#39; repositories. Then you can install <code>Ryacas</code> from within the R shell. On Windows, you need to run these three commands (don&#39;t bother installing Yacas first):</p>
+
+<pre><code>install.packages(&#39;Ryacas&#39;)
+library(Ryacas)
+yacasInstall()
+</code></pre>
+
+<p>You can find more information on the <a href="https://code.google.com/p/ryacas/#INSTALLATION">project&#39;s page</a>.</p>
+
+<h2>Example session</h2>
+
+<p>First, you must load <code>Ryacas</code> and define symbols that you will use in your functions.</p>
+
+<pre><code class="r">require(&quot;Ryacas&quot;)
+</code></pre>
+
+<pre><code>## Loading required package: Ryacas Loading required package: XML
+</code></pre>
+
+<pre><code class="r">x &lt;- Sym(&quot;x&quot;)
+</code></pre>
+
+<p>You can then define your fonctions:</p>
+
+<pre><code class="r">my_func &lt;- function(x) {
+    return(x/(x^2 + 3))
+}
+</code></pre>
+
+<p>And you can get the derivative for instance:</p>
+
+<pre><code class="r">my_deriv &lt;- yacas(deriv(my_func(x), x))
+</code></pre>
+
+<pre><code>## [1] &quot;Starting Yacas!&quot;
+</code></pre>
+
+<p>If you check the class of <code>my_deriv</code>, you&#39;ll see that it is of class <code>yacas</code>, which is not very useful. Let&#39;s «convert» it to a function:</p>
+
+<pre><code class="r">my_deriv2 &lt;- function(x) {
+    eval(parse(text = my_deriv$YacasForm))
+}
+</code></pre>
+
+<p>We can then evaluate it. A lot of different operations are possible. But there are some problems.</p>
+
+<h2>Issues with Ryacas</h2>
+
+<p>You can&#39;t use elements of a vector as parameters of your function, i.e.:</p>
+
+<pre><code class="r">theta &lt;- Sym(&quot;theta&quot;)
+func &lt;- function(x) {
+    return(theta[1] * x + theta[2])
+}
+# Let&#39;s integrate this
+Func &lt;- yacas(Integrate(func(x), x))
+</code></pre>
+
+<p>returns <code>(x^2*theta)/2+NA*x;</code> which is not quite what we want&hellip;there is a workaround however. Define your functions like this:</p>
+
+<pre><code class="r">a &lt;- Sym(&quot;a&quot;)
+b &lt;- Sym(&quot;b&quot;)
+func2 &lt;- function(x) {
+    return(a * x + b)
+}
+# Let&#39;s integrate this
+Func2 &lt;- yacas(Integrate(func2(x), x))
+</code></pre>
+
+<p>we get the expected result: <code>(x^2*a)/2+b*x;</code>. Now replace <code>a</code> and <code>b</code> by the thetas:</p>
+
+<pre><code class="r">Func2 &lt;- gsub(&quot;a&quot;, &quot;theta[1]&quot;, Func2$YacasForm)
+Func2 &lt;- gsub(&quot;b&quot;, &quot;theta[2]&quot;, Func2)
+</code></pre>
+
+<p>Now we have what we want: </p>
+
+<pre><code class="r">Func2
+</code></pre>
+
+<pre><code>## [1] &quot;(x^2*theta[1])/2+theta[2]*x;&quot;
+</code></pre>
+
+<p>You can then copy-paste this result into a function.</p>
+
+<p>Another problem is if you use built-in functions that are different between R and Yacas. For example:</p>
+
+<pre><code class="r">my_log &lt;- function(x) {
+    return(sin(log(2 + x)))
+}
+</code></pre>
+
+<p>Now try to differentiate it:</p>
+
+<pre><code class="r">dmy_log &lt;- yacas(deriv(my_log(x), x))
+</code></pre>
+
+<p>you get: <code>Cos(Ln(x+2))/(x+2);</code>. The problem with this, is that R doesn&#39;t recognize <code>Cos</code> as the cosine (which is <code>cos</code> in R) and the same goes for <code>Ln</code>. These are valid Yacas functions, but that is not the case in R. So you&#39;ll have to use <code>gsub</code> to replace these functions and then copy paste the end result into a function.</p>
+
+<h2>Conclusion</h2>
+
+<p>While it has some flaws, <code>Ryacas</code> can be quite useful if you need to derive or integrate complicated expressions that you then want to use in R. Using some of the tricks I showed here, you should be able to overcome some of its shortcomings. If installation of <code>rJava</code> and thus <code>rSympy</code> becomes easier, I&#39;ll probably also do a short blog-post about it, as it has more features than <code>Ryacas</code>.</p>
+
+<p></body></p>
+
+			</div>
+		</article>
+	</main>
+<aside>
+	<div>
+		<div>
+			<h3>LATEST POSTS</h3>
+		</div>
+		<div>
+			<ul>
+				
+				<li><a href="/post/2020-12-30-year_review/">A year in review</a></li>
+				
+				<li><a href="/post/2020-12-12-ethics_statistics/">(Half) Lies, (half) truths and (half) statistics</a></li>
+				
+				<li><a href="/post/2020-12-05-poorman_translate/">Poorman&#39;s automated translation with R and Google Sheets using {googlesheets4}</a></li>
+				
+				<li><a href="/post/2020-11-21-guis_mistake/">Graphical User Interfaces were a mistake but you can still make things right</a></li>
+				
+				<li><a href="/post/2020-11-05-retire_data_science/">It&#39;s time to retire the &#34;data scientist&#34; label</a></li>
+				
+			</ul>
+		</div>
+	</div>
+</aside>
+
+
+	<footer>
+  <div class="row">
+    <div class="col-lg-12">
+      <p>2021, content by Bruno Rodrigues, unless otherwise stated, every content of this blog is licensed under the <a href="http://www.wtfpl.net/txt/copying/" rel="nofollow">WTFPL</a>.</p>
+      <p>The theme this blog uses is a slight variation of the <a href="https://github.com/colorchestra/smol" rel="nofollow">Smol</a> theme.</p>
+      <p><a class="nav-link" href="/index.html">Back to main page.</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

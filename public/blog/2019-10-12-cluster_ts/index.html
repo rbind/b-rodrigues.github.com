@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"  lang="en-us">
+    <title>Cluster multiple time series using K-means - Econometrics and Free Software</title>
+    <meta name="generator" content="Hugo 0.25.1" />
+
+    
+    <meta name="description" content="A blog about econometrics, free software, and R">
+    
+    <link rel="canonical" href="../../blog/2019-10-12-cluster_ts/">
+    
+    <meta name="author" content="Bruno Rodrigues">
+    
+    <meta name="generator" content="Hugo 0.25.1" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta property="og:url" content="/blog/2019-10-12-cluster_ts/">
+    <meta property="og:title" content="Econometrics and Free Software">
+    <meta property="og:image" content="/map[url:logo.png width:50 height:50 alt:Logo]">
+    <meta name="apple-mobile-web-app-title" content="Econometrics and Free Software">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <link rel="shortcut icon" type="image/x-icon" href="../../images/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="../../images/favicon.ico">
+
+    
+    <link rel="stylesheet" href="../../css/bootstrap.min.css" media="screen">
+    <link rel="stylesheet" href="../../css/custom.css">
+    <link rel="stylesheet" href="../../css/pygments.css">
+    
+    <link rel="stylesheet" href="../../css/jquery.fancybox.css?v=2.1.5" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/helpers/jquery.fancybox-buttons.css?v=1.0.5" type="text/css" media="screen" />
+  </head>
+  <body>
+
+
+<div class="row">
+<div class="navbar navbar-default navbar-fixed-top">
+<div class="container">
+  <div class="navbar-header">
+    <a href="../../" class="navbar-brand">Econometrics and Free Software</a>
+    <button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar-main">
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+    </button>
+  </div>
+  <div class="navbar-collapse collapse" id="navbar-main">
+
+    <ul class="nav navbar-nav navbar-right">
+      <li><a href="https://www.buymeacoffee.com/brodriguesco">Donate</a></li>
+      <li><a href="https://www.youtube.com/c/BrunoRodrigues1988">Youtube</a></li>
+      <li><a href="https://github.com/b-rodrigues/">Github</a></li>
+      <li><a href="https://twitter.com/brodriguesco/">Twitter</a></li>
+    </ul>
+  </div>
+</div>
+
+</div>
+
+<div class="container">
+
+  <div>
+    <div class="row">
+      <div class="col-lg-3 col-md-3 col-sm-4">
+        
+
+<div class="list-group table-of-contents">
+
+  
+    <a class="list-group-item" href=#><b>About Me</b></a>
+    
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../../about/about/">Who am I?</a>
+      
+      <a class="list-group-item" href="../../about/projects/">Projects</a>
+      
+      <a class="list-group-item" href="../../about/research/">Research</a>
+      
+      <a class="list-group-item" href="../../about/software/">Software</a>
+      
+    </div>
+    
+  
+    <a class="list-group-item" href=#><b>Blog</b></a>
+    
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../../blog/2018-11-25-tidy_cv/">A tutorial on tidy cross-validation with R</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-03-nethack_analysis/">Analyzing NetHack data, part 1: What kills the players</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-10-nethack_analysis_part2/">Analyzing NetHack data, part 2: What players kill the most</a>
+      
+      <a class="list-group-item" href="../../blog/2019-02-04-newspapers_shiny_app_tutorial/">Building a shiny app to explore historical newspapers: a step-by-step guide</a>
+      
+      <a class="list-group-item" href="../../blog/2019-03-03-historical_vowpal/">Classification of historical newspapers content: a tutorial combining R, bash and Vowpal Wabbit, part 1</a>
+      
+      <a class="list-group-item" href="../../blog/2019-03-05-historical_vowpal_part2/">Classification of historical newspapers content: a tutorial combining R, bash and Vowpal Wabbit, part 2</a>
+      
+      <a class="list-group-item" href="../../blog/2019-06-20-tidy_eval_saga/">Curly-Curly, the successor of Bang-Bang</a>
+      
+      <a class="list-group-item" href="../../blog/2018-07-08-rob_stderr/">Dealing with heteroskedasticity; regression with robust standard errors using R</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-14-luxairport/">Easy time-series prediction with R: a tutorial with air traffic data from Lux Airport</a>
+      
+      <a class="list-group-item" href="../../blog/2018-10-05-ggplot2_purrr_officer/">Exporting editable plots from R to Powerpoint: making ggplot2 purrr with officer</a>
+      
+      <a class="list-group-item" href="../../blog/2019-04-28-diffindiff_part1/">Fast food, causality and R packages, part 1</a>
+      
+      <a class="list-group-item" href="../../blog/2019-05-04-diffindiff_part2/">Fast food, causality and R packages, part 2</a>
+      
+      <a class="list-group-item" href="../../blog/2019-05-18-xml2/">For posterity: install {xml2} on GNU/Linux distros</a>
+      
+      <a class="list-group-item" href="../../blog/2018-06-24-fun_ts/">Forecasting my weight with R</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-01-nethack/">From webscraping data to releasing it as an R package to share with the world: a full tutorial with data from NetHack</a>
+      
+      <a class="list-group-item" href="../../blog/2019-03-31-tesseract/">Get text from pdfs or images using OCR: a tutorial with {tesseract} and {magick}</a>
+      
+      <a class="list-group-item" href="../../blog/2018-06-10-scraping_pdfs/">Getting data from pdfs using the pdftools package</a>
+      
+      <a class="list-group-item" href="../../blog/2018-10-21-lux_elections/">Getting the data from the Luxembourguish elections out of Excel</a>
+      
+      <a class="list-group-item" href="../../blog/2018-09-11-human_to_machine/">Going from a human readable Excel file to a machine-readable csv with {tidyxl}</a>
+      
+      <a class="list-group-item" href="../../blog/2019-04-07-historical_newspaper_scraping_tesseract/">Historical newspaper scraping with {tesseract} and R</a>
+      
+      <a class="list-group-item" href="../../blog/2018-09-15-time_use/">How Luxembourguish residents spend their time: a small {flexdashboard} demo using the Time use survey data</a>
+      
+      <a class="list-group-item" href="../../blog/2018-04-14-playing_with_furrr/">Imputing missing values in parallel using {furrr}</a>
+      
+      <a class="list-group-item" href="../../blog/2019-06-12-intermittent/">Intermittent demand, Croston and Die Hard</a>
+      
+      <a class="list-group-item" href="../../blog/2019-01-04-newspapers/">Looking into 19th century ads from a Luxembourguish newspaper with R</a>
+      
+      <a class="list-group-item" href="../../blog/2019-01-13-newspapers_mets_alto/">Making sense of the METS and ALTO XML standards</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-15-lubridate_africa/">Manipulate dates easily with {lubridate}</a>
+      
+      <a class="list-group-item" href="../../blog/2019-02-10-stringr_package/">Manipulating strings with the {stringr} package</a>
+      
+      <a class="list-group-item" href="../../blog/2018-10-27-lux_elections_analysis/">Maps with pie charts on top of each administrative division: an example with Luxembourg&#39;s elections data</a>
+      
+      <a class="list-group-item" href="../../blog/2018-07-01-tidy_ive/">Missing data imputation and instrumental variables regression: the tidy approach</a>
+      
+      <a class="list-group-item" href="../../blog/2019-08-17-modern_r/">Modern R with the tidyverse is available on Leanpub</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-24-modern_objects/">Objects types and some useful R functions for beginners</a>
+      
+      <a class="list-group-item" href="../../blog/2019-03-20-pivot/">Pivoting data frames just got easier thanks to `pivot_wide()` and `pivot_long()`</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-30-reticulate/">R or Python? Why not both? Using Anaconda Python within R with {reticulate}</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-15-tidy_gridsearch/">Searching for the optimal hyper-parameters of an ARIMA model in parallel: the tidy gridsearch approach</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-27-fun_gganimate/">Some fun with {gganimate}</a>
+      
+      <a class="list-group-item" href="../../blog/2019-10-05-parallel_maxlik/">Split-apply-combine for Maximum Likelihood Estimation of a linear model</a>
+      
+      <a class="list-group-item" href="../../blog/2019-07-19-statmatch/">Statistical matching, or when one single data source is not enough</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-21-lux_castle/">The best way to visit Luxembourguish castles is doing data science &#43; combinatorial optimization</a>
+      
+      <a class="list-group-item" href="../../blog/2019-05-19-spacemacs/">The never-ending editor war (?)</a>
+      
+      <a class="list-group-item" href="../../blog/2018-09-08-steam_linux/">The year of the GNU&#43;Linux desktop is upon us: using user ratings of Steam Play compatibility to play around with regex and the tidyverse</a>
+      
+      <a class="list-group-item" href="../../blog/2019-01-31-newspapers_shiny_app/">Using Data Science to read 10 years of Luxembourguish newspapers from the 19th century</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-16-rgenoud_arima/">Using a genetic algorithm for the hyperparameter optimization of a SARIMA model</a>
+      
+      <a class="list-group-item" href="../../blog/2019-06-04-cosine_sim/">Using cosine similarity to find matching documents: a tutorial using Seneca&#39;s letters to his friend Lucilius</a>
+      
+      <a class="list-group-item" href="../../blog/2019-08-14-lpm/">Using linear models with binary dependent variables, a simulation study</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-21-tidyverse_pi/">Using the tidyverse for more than data manipulation: estimating pi with Monte Carlo methods</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-02-hyper-parameters/">What hyper-parameters are, and what to do with them; an illustration with ridge regression</a>
+      
+      <a class="list-group-item" href="../../blog/2019-09-03-disk_frame/">{disk.frame} is epic</a>
+      
+      <a class="list-group-item" href="../../blog/2018-04-15-announcing_pmice/">{pmice}, an experimental package for missing data imputation in parallel using {mice} and {furrr}</a>
+      
+      <a class="list-group-item" href="../../blog/2017-12-27-build_formulae/">Building formulae</a>
+      
+      <a class="list-group-item" href="../../blog/2017-11-14-peace_r/">Functional peace of mind</a>
+      
+      <a class="list-group-item" href="../../blog/2018-04-10-brotools_describe/">Get basic summary statistics for all the variables in a data frame</a>
+      
+      <a class="list-group-item" href="../../blog/2018-03-03-sparklyr_h2o_rsparkling/">Getting {sparklyr}, {h2o}, {rsparkling} to work together and some fun with bash</a>
+      
+      <a class="list-group-item" href="../../blog/2018-02-16-importing_30gb_of_data/">Importing 30GB of data into R with sparklyr</a>
+      
+      <a class="list-group-item" href="../../blog/2017-03-27-introducing_brotools/">Introducing brotools</a>
+      
+      <a class="list-group-item" href="../../blog/2018-01-03-lists_all_the_way/">It&#39;s lists all the way down</a>
+      
+      <a class="list-group-item" href="../../blog/2018-01-05-lists_all_the_way2/">It&#39;s lists all the way down, part 2: We need to go deeper</a>
+      
+      <a class="list-group-item" href="../../blog/2018-03-12-keep_trying/">Keep trying that api call with purrr::possibly()</a>
+      
+      <a class="list-group-item" href="../../blog/2017-06-19-dplyr-0-70-tutorial/">Lesser known dplyr 0.7* tricks</a>
+      
+      <a class="list-group-item" href="../../blog/2017-02-17-lesser_known_tricks/">Lesser known dplyr tricks</a>
+      
+      <a class="list-group-item" href="../../blog/2017-03-24-lesser_known_purrr/">Lesser known purrr tricks</a>
+      
+      <a class="list-group-item" href="../../blog/2017-03-29-make-ggplot2-purrr/">Make ggplot2 purrr</a>
+      
+      <a class="list-group-item" href="../../blog/2018-01-19-mapping_functions_with_any_cols/">Mapping a list of functions to a list of datasets with a list of columns as arguments</a>
+      
+      <a class="list-group-item" href="../../blog/2018-02-11-census-random_forest/">Predicting job search by training a random forest on an unbalanced dataset</a>
+      
+      <a class="list-group-item" href="../../blog/2017-12-17-teaching_tidyverse/">Teaching the tidyverse to beginners</a>
+      
+      <a class="list-group-item" href="../../blog/2017-08-27-why_tidyeval/">Why I find tidyeval useful</a>
+      
+      <a class="list-group-item" href="../../blog/2017-07-27-spread_rename_at/">tidyr::spread() and dplyr::rename_at() in action</a>
+      
+      <a class="list-group-item" href="../../blog/2017-10-26-margins_r/">Easy peasy STATA-like marginal effects with R</a>
+      
+      <a class="list-group-item" href="../../blog/2016-12-24-functional-programming-and-unit-testing-for-data-munging-with-r-available-on-leanpub/">Functional programming and unit testing for data munging with R available on Leanpub</a>
+      
+      <a class="list-group-item" href="../../blog/2017-02-17-how_to_use_jailbreakr/">How to use jailbreakr</a>
+      
+      <a class="list-group-item" href="../../blog/2017-01-07-my-free-book-has-a-cover/">My free book has a cover!</a>
+      
+      <a class="list-group-item" href="../../blog/2016-12-21-work-on-lists-of-datasets-instead-of-individual-datasets-by-using-functional-programming/">Work on lists of datasets instead of individual datasets by using functional programming</a>
+      
+      <a class="list-group-item" href="../../blog/2013-01-29-method-of-simulated-moments-with-r/">Method of Simulated Moments with R</a>
+      
+      <a class="list-group-item" href="../../blog/2012-12-11-new-website/">New website!</a>
+      
+      <a class="list-group-item" href="../../blog/2013-11-07-gmm-with-rmd/">Nonlinear Gmm with R - Example with a logistic regression</a>
+      
+      <a class="list-group-item" href="../../blog/2013-01-16-simulated-maximum-likelihood-with-r/">Simulated Maximum Likelihood with R</a>
+      
+      <a class="list-group-item" href="../../blog/2015-11-11-bootstrapping-did-with-r/">Bootstrapping standard errors for difference-in-differences estimation with R</a>
+      
+      <a class="list-group-item" href="../../blog/2016-06-21-careful-with-trycatch/">Careful with tryCatch</a>
+      
+      <a class="list-group-item" href="../../blog/2016-07-18-data-frame-columns-as-arguments-to-dplyr-functions/">Data frame columns as arguments to dplyr functions</a>
+      
+      <a class="list-group-item" href="../../blog/2015-02-22-export-r-output-to-file/">Export R output to a file</a>
+      
+      <a class="list-group-item" href="../../blog/2016-11-04-ive-started-writing-a-book-functional-programming-and-unit-testing-for-data-munging-with-r/">I&#39;ve started writing a &#39;book&#39;: Functional programming and unit testing for data munging with R</a>
+      
+      <a class="list-group-item" href="../../blog/2015-01-12-introduction-to-programming-econometrics-with-r/">Introduction to programming econometrics with R</a>
+      
+      <a class="list-group-item" href="../../blog/2016-07-30-merge-a-list-of-datasets-together/">Merge a list of datasets together</a>
+      
+      <a class="list-group-item" href="../../blog/2014-04-23-r-s4-rootfinding/">Object Oriented Programming with R: An example with a Cournot duopoly</a>
+      
+      <a class="list-group-item" href="../../blog/2014-11-11-benchmarks-r-blas-atlas-rro/">R, R with Atlas, R with OpenBLAS and Revolution R Open: which is fastest?</a>
+      
+      <a class="list-group-item" href="../../blog/2016-07-26-read-a-lot-of-datasets-at-once-with-r/">Read a lot of datasets at once with R</a>
+      
+      <a class="list-group-item" href="../../blog/2016-03-31-unit-testing-with-r/">Unit testing with R</a>
+      
+      <a class="list-group-item" href="../../blog/2015-05-03-update-introduction-r-programming/">Update to Introduction to programming econometrics with R</a>
+      
+      <a class="list-group-item" href="../../blog/2013-12-31-r-cas/">Using R as a Computer Algebra System with Ryacas</a>
+      
+    </div>
+    
+  
+
+</div>
+
+      </div>
+      <div class="col-lg-9 col-md-9 col-sm-8">
+        <div>
+           <h1 id="main">Cluster multiple time series using K-means</h1>
+           <span class="article-date">October 13, 2019</span>
+        </div>
+        <div style="text-align:center;">
+<p><a href="https://en.wikipedia.org/wiki/Elbow_method_(clustering)">
+<img src="../../img/deepfried_elbow.jpg" title = "A life saving skill"></a></p>
+</div>
+<p>I have been recently confronted to the issue of finding similarities among time-series and though
+about using k-means to cluster them. To illustrate the method, I’ll be using data from the
+Penn World Tables, readily available in R (inside the <code>{pwt9}</code> package):</p>
+<pre class="r"><code>library(tidyverse)
+library(lubridate)
+library(pwt9)
+library(brotools)</code></pre>
+<p>First, of all, let’s only select the needed columns:</p>
+<pre class="r"><code>pwt &lt;- pwt9.0 %&gt;%
+select(country, year, avh)</code></pre>
+<p><code>avh</code> contains the average worked hours for a given country and year. The data looks like this:</p>
+<pre class="r"><code>head(pwt)</code></pre>
+<pre><code>##          country year avh
+## ABW-1950   Aruba 1950  NA
+## ABW-1951   Aruba 1951  NA
+## ABW-1952   Aruba 1952  NA
+## ABW-1953   Aruba 1953  NA
+## ABW-1954   Aruba 1954  NA
+## ABW-1955   Aruba 1955  NA</code></pre>
+<p>For each country, there’s yearly data on the <code>avh</code> variable. The goal here is to cluster the different
+countries by looking at how similar they are on the <code>avh</code> variable. Let’s do some further cleaning.
+The k-means implementation in R expects a wide data frame (currently my data frame is in the long
+format) and no missing values. These could potentially be imputed, but I can’t be bothered:</p>
+<pre class="r"><code>pwt_wide &lt;- pwt %&gt;%
+  pivot_wider(names_from = year, values_from = avh)  %&gt;%
+  filter(!is.na(`1950`)) %&gt;%
+  mutate_at(vars(-country), as.numeric)</code></pre>
+<p>To convert my data frame from long to wide, I use the fresh <code>pivot_wider()</code> function, instead of the
+less intuitive <code>spread()</code> function.</p>
+<p>We’re ready to use the k-means algorithm. To know how many clusters I should aim for, I’ll be using
+the elbow method (if you’re not familiar with this method, click on the image at the very top of
+this post):</p>
+<pre class="r"><code>wss &lt;- map_dbl(1:5, ~{kmeans(select(pwt_wide, -country), ., nstart=50,iter.max = 15 )$tot.withinss})
+
+n_clust &lt;- 1:5
+
+elbow_df &lt;- as.data.frame(cbind(&quot;n_clust&quot; = n_clust, &quot;wss&quot; = wss))
+
+
+ggplot(elbow_df) +
+geom_line(aes(y = wss, x = n_clust), colour = &quot;#82518c&quot;) +
+theme_blog()</code></pre>
+<p><img src="../../blog/2019-10-12-cluster_ts_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p>Looks like 3 clusters is a good choice. Let’s now run the kmeans algorithm:</p>
+<pre class="r"><code>clusters &lt;- kmeans(select(pwt_wide, -country), centers = 3)</code></pre>
+<p><code>clusters</code> is a list with several interesting items. The item <code>centers</code> contains the “average”
+time series:</p>
+<pre class="r"><code>(centers &lt;- rownames_to_column(as.data.frame(clusters$centers), &quot;cluster&quot;))</code></pre>
+<pre><code>##   cluster     1950     1951     1952     1953     1954     1955     1956
+## 1       1 2110.440 2101.273 2088.947 2074.273 2066.617 2053.391 2034.926
+## 2       2 2086.509 2088.571 2084.433 2081.939 2078.756 2078.710 2074.175
+## 3       3 2363.600 2350.774 2338.032 2325.375 2319.011 2312.083 2308.483
+##       1957     1958     1959     1960     1961     1962     1963     1964
+## 1 2021.855 2007.221 1995.038 1985.904 1978.024 1971.618 1963.780 1962.983
+## 2 2068.807 2062.021 2063.687 2060.176 2052.070 2044.812 2038.939 2037.488
+## 3 2301.355 2294.556 2287.556 2279.773 2272.899 2262.781 2255.690 2253.431
+##       1965     1966     1967     1968     1969     1970     1971     1972
+## 1 1952.945 1946.961 1928.445 1908.354 1887.624 1872.864 1855.165 1825.759
+## 2 2027.958 2021.615 2015.523 2007.176 2001.289 1981.906 1967.323 1961.269
+## 3 2242.775 2237.216 2228.943 2217.717 2207.037 2190.452 2178.955 2167.124
+##       1973     1974     1975     1976     1977     1978     1979     1980
+## 1 1801.370 1770.484 1737.071 1738.214 1713.395 1693.575 1684.215 1676.703
+## 2 1956.755 1951.066 1933.527 1926.508 1920.668 1911.488 1904.316 1897.103
+## 3 2156.304 2137.286 2125.298 2118.138 2104.382 2089.717 2083.036 2069.678
+##       1981     1982     1983     1984     1985     1986     1987     1988
+## 1 1658.894 1644.019 1636.909 1632.371 1623.901 1615.320 1603.383 1604.331
+## 2 1883.376 1874.730 1867.266 1861.386 1856.947 1849.568 1848.748 1847.690
+## 3 2055.658 2045.501 2041.428 2030.095 2040.210 2033.289 2028.345 2029.290
+##       1989     1990     1991     1992     1993     1994     1995     1996
+## 1 1593.225 1586.975 1573.084 1576.331 1569.725 1567.599 1567.113 1558.274
+## 2 1842.079 1831.907 1823.552 1815.864 1823.824 1830.623 1831.815 1831.648
+## 3 2031.741 2029.786 1991.807 1974.954 1973.737 1975.667 1980.278 1988.728
+##       1997     1998     1999     2000     2001     2002     2003     2004
+## 1 1555.079 1555.071 1557.103 1545.349 1530.207 1514.251 1509.647 1522.389
+## 2 1835.372 1836.030 1839.857 1827.264 1813.477 1781.696 1786.047 1781.858
+## 3 1985.076 1961.219 1966.310 1959.219 1946.954 1940.110 1924.799 1917.130
+##       2005     2006     2007     2008     2009     2010     2011     2012
+## 1 1514.492 1512.872 1515.299 1514.055 1493.875 1499.563 1503.049 1493.862
+## 2 1775.167 1776.759 1773.587 1771.648 1734.559 1736.098 1742.143 1735.396
+## 3 1923.496 1912.956 1902.156 1897.550 1858.657 1861.875 1861.608 1850.802
+##       2013     2014
+## 1 1485.589 1486.991
+## 2 1729.973 1729.543
+## 3 1848.158 1851.829</code></pre>
+<p><code>clusters</code> also contains the <code>cluster</code> item, which tells me to which cluster the different countries
+belong to. I can easily add this to the original data frame:</p>
+<pre class="r"><code>pwt_wide &lt;- pwt_wide %&gt;% 
+  mutate(cluster = clusters$cluster)</code></pre>
+<p>Now, let’s prepare the data for visualisation. I have to go back to a long data frame for this:</p>
+<pre class="r"><code>pwt_long &lt;- pwt_wide %&gt;%
+  pivot_longer(cols=c(-country, -cluster), names_to = &quot;year&quot;, values_to = &quot;avh&quot;) %&gt;%
+  mutate(year = ymd(paste0(year, &quot;-01-01&quot;)))
+
+centers_long &lt;- centers %&gt;%
+  pivot_longer(cols = -cluster, names_to = &quot;year&quot;, values_to = &quot;avh&quot;) %&gt;%  
+  mutate(year = ymd(paste0(year, &quot;-01-01&quot;)))</code></pre>
+<p>And I can now plot the different time series, by cluster and highlight the “average” time series
+for each cluster as well (yellow line):</p>
+<pre class="r"><code>ggplot() +
+  geom_line(data = pwt_long, aes(y = avh, x = year, group = country), colour = &quot;#82518c&quot;) +
+  facet_wrap(~cluster, nrow = 1) + 
+  geom_line(data = centers_long, aes(y = avh, x = year, group = cluster), col = &quot;#b58900&quot;, size = 2) +
+  theme_blog() +
+  labs(title = &quot;Average hours worked in several countries&quot;, 
+       caption = &quot;The different time series have been clustered using k-means.
+                 Cluster 1: Belgium, Switzerland, Germany, Denmark, France, Luxembourg, Netherlands,
+                 Norway, Sweden.\nCluster 2: Australia, Colombia, Ireland, Iceland, Japan, Mexico,
+                 Portugal, Turkey.\nCluster 3: Argentina, Austria, Brazil, Canada, Cyprus, Spain, Finland,
+                 UK, Italy, New Zealand, Peru, USA, Venezuela&quot;) +
+  theme(plot.caption = element_text(colour = &quot;white&quot;))</code></pre>
+<p><img src="../../blog/2019-10-12-cluster_ts_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+<p>Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my ebook on <a href="https://leanpub.com/modern_tidyverse">Leanpub</a></p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
+
+      </div>
+    </div>
+  <div class="row">
+    <div class="col-lg-9 col-md-9 col-sm-8 col-lg-offset-3 col-md-offset-3">
+    <footer>
+  <div class="row">
+    <div class="col-lg-12">
+      <p>Copyright 2020. <a> Bruno Rodrigues</a> </p>
+      <p>Made with the HUGO theme <a href="https://github.com/adejoux/hugo-darkdoc-theme" rel="nofollow">darkdoc</a>.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+
+    </div>
+  </div>
+
+</div>
+</html>
+<script>
+
+  var api_url = '';
+
+</script>
+<script src="//code.jquery.com/jquery-2.2.3.min.js"></script>
+<script src="../../js/application.js"></script>
+<script type="text/javascript" src="../../js/jquery.fancybox.pack.js?v=2.1.5"></script>
+<script type="text/javascript" src="../../js/helpers/jquery.fancybox-thumbs.js?v=1.0.7"></script>
+<script type="text/javascript" src="../../js/helpers/jquery.fancybox-buttons.js?v=1.0.5"></script>
+<script type="text/javascript" src="../../js/helpers/jquery.fancybox-media.js?v=1.0.6"></script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $(".fancybox").fancybox();
+  });
+</script>
+

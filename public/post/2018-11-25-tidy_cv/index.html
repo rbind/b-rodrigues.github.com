@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<style type=text/css>body{font-family:monospace;}</style>
+	<title>A tutorial on tidy cross-validation with R</title>
+	
+	
+	<link rel="stylesheet" href="/css/style.css">
+	
+	
+</head>
+<body>
+	<header>
+<p><a class="nav-link" href="/index.html">Econometrics and Free Software</a> by <a class="nav-link" href="/about/about">Bruno Rodrigues</a>.</p>
+<p>Follow me on <a href="https://twitter.com/brodriguesco" rel="nofollow">twitter</a>.</p>
+<p>Watch my <a href="https://www.youtube.com/user/cbrunos" rel="nofollow">youtube</a> channel.</p>
+</header>
+
+	
+	<main>
+		<article>
+			<h1>A tutorial on tidy cross-validation with R</h1>
+			<b><time>2018/11/25</time></b>
+		       
+		           <a href="/tags/r">R</a>
+        	       
+
+			<div>
+				<div style="text-align:center;">
+<p><a href="https://www.youtube.com/watch?v=7T6pgZdFLP0">
+<image width = "400" src="/img/cross_validation.gif" title = "Visual representation of cross⁻validation inside your computer *click for virtual weed*"></a></p>
+</div>
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>This blog posts will use several packages from the
+<a href="https://github.com/tidymodels"><code>{tidymodels}</code></a> collection of packages, namely
+<a href="https://tidymodels.github.io/recipes/"><code>{recipes}</code></a>,
+<a href="https://tidymodels.github.io/rsample/"><code>{rsample}</code></a> and
+<a href="https://tidymodels.github.io/parsnip/"><code>{parsnip}</code></a> to train a random forest the tidy way. I will
+also use <a href="http://mlrmbo.mlr-org.com/"><code>{mlrMBO}</code></a> to tune the hyper-parameters of the random forest.</p>
+</div>
+<div id="set-up" class="section level2">
+<h2>Set up</h2>
+<p>Let’s load the needed packages:</p>
+<pre class="r"><code>library(&quot;tidyverse&quot;)
+library(&quot;tidymodels&quot;)
+library(&quot;parsnip&quot;)
+library(&quot;brotools&quot;)
+library(&quot;mlbench&quot;)</code></pre>
+<p>Load the data, included in the <code>{mlrbench}</code> package:</p>
+<pre class="r"><code>data(&quot;BostonHousing2&quot;)</code></pre>
+<p>I will train a random forest to predict the housing price, which is the <code>cmedv</code> column:</p>
+<pre class="r"><code>head(BostonHousing2)</code></pre>
+<pre><code>##         town tract      lon     lat medv cmedv    crim zn indus chas   nox
+## 1     Nahant  2011 -70.9550 42.2550 24.0  24.0 0.00632 18  2.31    0 0.538
+## 2 Swampscott  2021 -70.9500 42.2875 21.6  21.6 0.02731  0  7.07    0 0.469
+## 3 Swampscott  2022 -70.9360 42.2830 34.7  34.7 0.02729  0  7.07    0 0.469
+## 4 Marblehead  2031 -70.9280 42.2930 33.4  33.4 0.03237  0  2.18    0 0.458
+## 5 Marblehead  2032 -70.9220 42.2980 36.2  36.2 0.06905  0  2.18    0 0.458
+## 6 Marblehead  2033 -70.9165 42.3040 28.7  28.7 0.02985  0  2.18    0 0.458
+##      rm  age    dis rad tax ptratio      b lstat
+## 1 6.575 65.2 4.0900   1 296    15.3 396.90  4.98
+## 2 6.421 78.9 4.9671   2 242    17.8 396.90  9.14
+## 3 7.185 61.1 4.9671   2 242    17.8 392.83  4.03
+## 4 6.998 45.8 6.0622   3 222    18.7 394.63  2.94
+## 5 7.147 54.2 6.0622   3 222    18.7 396.90  5.33
+## 6 6.430 58.7 6.0622   3 222    18.7 394.12  5.21</code></pre>
+<p>Only keep relevant columns:</p>
+<pre class="r"><code>boston &lt;- BostonHousing2 %&gt;% 
+    select(-medv, -town, -lon, -lat) %&gt;% 
+    rename(price = cmedv)</code></pre>
+<p>I remove <code>town</code>, <code>lat</code> and <code>lon</code> because the information contained in the column <code>tract</code> is enough.</p>
+<p>To train and evaluate the model’s performance, I split the data in two.
+One data set, which I call the training set, will be further split into two down below. I won’t
+touch the second data set, the test set, until the very end.</p>
+<pre class="r"><code>train_test_split &lt;- initial_split(boston, prop = 0.9)
+
+housing_train &lt;- training(train_test_split)
+
+housing_test &lt;- testing(train_test_split)</code></pre>
+<p>I want to train a random forest to predict price of houses, but random forests have so-called
+hyperparameters, which are parameters that cannot be estimated, or learned, from the data. Instead,
+these parameters have to be chosen by the analyst. In order to choose them, you can
+use values from the literature that seemed to have worked well (like is done in Macro-econometrics)
+or you can further split the train set into two, create a grid of hyperparameter, train the model
+on one part of the data for all values of the grid, and compare the predictions of the models on the
+second part of the data. You then stick with the model that performed the best, for example, the
+model with lowest RMSE. The thing is, you can’t estimate the true value of the RMSE with only
+one value. It’s like if you wanted to estimate the height of the population by drawing one single
+observation from the population. You need a bit more observations. To approach the true value of the
+RMSE for a give set of hyperparameters, instead of doing one split, I’ll do 30. I then
+compute the average RMSE, which implies training 30 models for each combination of the values of the
+hyperparameters I am interested in.</p>
+<p>First, let’s split the training data again, using the <code>mc_cv()</code> function from <code>{rsample}</code> package.
+This function implements Monte Carlo cross-validation:</p>
+<pre class="r"><code>validation_data &lt;- mc_cv(housing_train, prop = 0.9, times = 30)</code></pre>
+<p>What does <code>validation_data</code> look like?</p>
+<pre class="r"><code>validation_data</code></pre>
+<pre><code>## # # Monte Carlo cross-validation (0.9/0.1) with 30 resamples  
+## # A tibble: 30 x 2
+##    splits           id        
+##    &lt;list&gt;           &lt;chr&gt;     
+##  1 &lt;split [411/45]&gt; Resample01
+##  2 &lt;split [411/45]&gt; Resample02
+##  3 &lt;split [411/45]&gt; Resample03
+##  4 &lt;split [411/45]&gt; Resample04
+##  5 &lt;split [411/45]&gt; Resample05
+##  6 &lt;split [411/45]&gt; Resample06
+##  7 &lt;split [411/45]&gt; Resample07
+##  8 &lt;split [411/45]&gt; Resample08
+##  9 &lt;split [411/45]&gt; Resample09
+## 10 &lt;split [411/45]&gt; Resample10
+## # … with 20 more rows</code></pre>
+<p>Let’s look further down:</p>
+<pre class="r"><code>validation_data$splits[[1]]</code></pre>
+<pre><code>## &lt;411/45/456&gt;</code></pre>
+<p>The first value is the number of rows of the first set, the second value of the second, and the third
+was the original amount of values in the training data, before splitting again.</p>
+<p>How should we call these two new data sets? The author of <code>{rsample}</code>, Max Kuhn, talks about
+the <em>analysis</em> and the <em>assessment</em> sets:</p>
+<blockquote class="twitter-tweet"><p lang="en" dir="ltr">rsample convention for now but I intend on using it everywhere. Reusing training and testing is insane.</p>&mdash; Max Kuhn (@topepos) <a href="https://twitter.com/topepos/status/1066131042615140353?ref_src=twsrc%5Etfw">November 24, 2018</a></blockquote>
+<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+<p>Now, in order to continue I need pre-process the data. I will do this in three steps.
+The first and the second step are used to center and scale the numeric variables and the third step
+converts character and factor variables to dummy variables. This is needed because I will train a
+random forest, which cannot handle factor variables directly. Let’s define a recipe to do that,
+and start by pre-processing the testing set. I write a wrapper function around the recipe,
+because I will need to apply this recipe to various data sets:</p>
+<pre class="r"><code>simple_recipe &lt;- function(dataset){
+    recipe(price ~ ., data = dataset) %&gt;%
+        step_center(all_numeric()) %&gt;%
+        step_scale(all_numeric()) %&gt;%
+        step_dummy(all_nominal())
+}</code></pre>
+<p>Once the recipe is defined, I can use the <code>prep()</code> function, which estimates the parameters from
+the data which are needed to process the data. For example, for centering, <code>prep()</code> estimates
+the mean which will then be subtracted from the variables. With <code>bake()</code> the estimates are then
+applied on the data:</p>
+<pre class="r"><code>testing_rec &lt;- prep(simple_recipe(housing_test), testing = housing_test)
+
+test_data &lt;- bake(testing_rec, newdata = housing_test)</code></pre>
+<pre><code>## Warning: Please use `new_data` instead of `newdata` with `bake`. 
+## In recipes versions &gt;= 0.1.4, this will cause an error.</code></pre>
+<p>It is important to split the data before using <code>prep()</code> and <code>bake()</code>, because if not, you will
+use observations from the test set in the <code>prep()</code> step, and thus introduce knowledge from the test
+set into the training data. This is called data leakage, and must be avoided. This is why it is
+necessary to first split the training data into an analysis and an assessment set, and then also
+pre-process these sets separately. However, the <code>validation_data</code> object cannot now be used with
+<code>recipe()</code>, because it is not a dataframe. No worries, I simply need to write a function that extracts
+the analysis and assessment sets from the <code>validation_data</code> object, applies the pre-processing, trains
+the model, and returns the RMSE. This will be a big function, at the center of the analysis.</p>
+<p>But before that, let’s run a simple linear regression, as a benchmark. For the linear regression, I will
+not use any CV, so let’s pre-process the training set:</p>
+<pre class="r"><code>trainlm_rec &lt;- prep(simple_recipe(housing_train), testing = housing_train)
+
+trainlm_data &lt;- bake(trainlm_rec, newdata = housing_train)</code></pre>
+<pre><code>## Warning: Please use `new_data` instead of `newdata` with `bake`. 
+## In recipes versions &gt;= 0.1.4, this will cause an error.</code></pre>
+<pre class="r"><code>linreg_model &lt;- lm(price ~ ., data = trainlm_data)
+
+broom::augment(linreg_model, newdata = test_data) %&gt;% 
+    rmse(price, .fitted)</code></pre>
+<pre><code>## # A tibble: 1 x 3
+##   .metric .estimator .estimate
+##   &lt;chr&gt;   &lt;chr&gt;          &lt;dbl&gt;
+## 1 rmse    standard       0.438</code></pre>
+<p><code>broom::augment()</code> adds the predictions to the <code>test_data</code> in a new column, <code>.fitted</code>. I won’t
+use this trick with the random forest, because there is no <code>augment()</code> method for random forests
+from the <code>{ranger}</code> which I’ll use. I’ll add the predictions to the data myself.</p>
+<p>Ok, now let’s go back to the random forest and write the big function:</p>
+<pre class="r"><code>my_rf &lt;- function(mtry, trees, split, id){
+    
+    analysis_set &lt;- analysis(split)
+    
+    analysis_prep &lt;- prep(simple_recipe(analysis_set), training = analysis_set)
+    
+    analysis_processed &lt;- bake(analysis_prep, newdata = analysis_set)
+    
+    model &lt;- rand_forest(mtry = mtry, trees = trees) %&gt;%
+        set_engine(&quot;ranger&quot;, importance = &#39;impurity&#39;) %&gt;%
+        fit(price ~ ., data = analysis_processed)
+
+    assessment_set &lt;- assessment(split)
+    
+    assessment_prep &lt;- prep(simple_recipe(assessment_set), testing = assessment_set)
+    
+    assessment_processed &lt;- bake(assessment_prep, newdata = assessment_set)
+
+    tibble::tibble(&quot;id&quot; = id,
+        &quot;truth&quot; = assessment_processed$price,
+        &quot;prediction&quot; = unlist(predict(model, new_data = assessment_processed)))
+}</code></pre>
+<p>The <code>rand_forest()</code> function is available from the <code>{parsnip}</code> package. This package provides an
+unified interface to a lot of other machine learning packages. This means that instead of having to
+learn the syntax of <code>range()</code> and <code>randomForest()</code> and, and… you can simply use the <code>rand_forest()</code>
+function and change the <code>engine</code> argument to the one you want (<code>ranger</code>, <code>randomForest</code>, etc).</p>
+<p>Let’s try this function:</p>
+<pre class="r"><code>results_example &lt;- map2_df(.x = validation_data$splits,
+                           .y = validation_data$id,
+                           ~my_rf(mtry = 3, trees = 200, split = .x, id = .y))</code></pre>
+<pre class="r"><code>head(results_example)</code></pre>
+<pre><code>## # A tibble: 6 x 3
+##   id           truth prediction
+##   &lt;chr&gt;        &lt;dbl&gt;      &lt;dbl&gt;
+## 1 Resample01  0.0235    -0.104 
+## 2 Resample01 -0.135     -0.0906
+## 3 Resample01 -0.378     -0.158 
+## 4 Resample01 -0.232      0.0623
+## 5 Resample01 -0.0859     0.0173
+## 6 Resample01  0.169      0.303</code></pre>
+<p>I can now compute the RMSE when <code>mtry</code> = 3 and <code>trees</code> = 200:</p>
+<pre class="r"><code>results_example %&gt;%
+    group_by(id) %&gt;%
+    rmse(truth, prediction) %&gt;%
+    summarise(mean_rmse = mean(.estimate)) %&gt;%
+    pull</code></pre>
+<pre><code>## [1] 0.4319164</code></pre>
+<p>The random forest has already lower RMSE than the linear regression. The goal now is to lower this
+RMSE by tuning the <code>mtry</code> and <code>trees</code> hyperparameters. For this, I will use Bayesian Optimization
+methods implemented in the <code>{mlrMBO}</code> package.</p>
+</div>
+<div id="bayesian-hyperparameter-optimization" class="section level2">
+<h2>Bayesian hyperparameter optimization</h2>
+<p>I will re-use the code from above, and define a function that does everything from pre-processing
+to returning the metric I want to minimize by tuning the hyperparameters, the RMSE:</p>
+<pre class="r"><code>tuning &lt;- function(param, validation_data){
+
+    mtry &lt;- param[1]
+    trees &lt;- param[2]
+
+    results &lt;- purrr::map2_df(.x = validation_data$splits,
+                       .y = validation_data$id,
+                       ~my_rf(mtry = mtry, trees = trees, split = .x, id = .y))
+
+    results %&gt;%
+        group_by(id) %&gt;%
+        rmse(truth, prediction) %&gt;%
+        summarise(mean_rmse = mean(.estimate)) %&gt;%
+        pull
+}</code></pre>
+<p>This is exactly the code from before, but it now returns the RMSE. Let’s try the function
+with the values from before:</p>
+<pre class="r"><code>tuning(c(3, 200), validation_data)</code></pre>
+<pre><code>## [1] 0.4330951</code></pre>
+<p>Let’s also plot the value of RMSE for <code>mtry = 3</code> and <code>trees</code> from 200 to 300. This takes some
+time, because I need to evaluate this costly function 100 times. If evaluating the function was
+cheap, I could have made a 3D plot by varying values of <code>mtry</code> too, but then again if evaluating
+the function was cheap, I would run an exhaustive grid search to find the hyperparameters instead of
+using Bayesian optimization.</p>
+<pre class="r"><code>plot_points &lt;- crossing(&quot;mtry&quot; = 3, &quot;trees&quot; = seq(200, 300))
+
+plot_data &lt;- plot_points %&gt;% 
+    mutate(value = map_dbl(seq(200, 300), ~tuning(c(3, .), validation_data)))</code></pre>
+<pre class="r"><code>plot_data %&gt;% 
+    ggplot(aes(y = value, x = trees)) + 
+    geom_line(colour = &quot;#82518c&quot;) + 
+    theme_blog() +
+    ggtitle(&quot;RMSE for mtry = 3&quot;)</code></pre>
+<p><img src="/blog/2018-11-25-tidy_cv_files/figure-html/unnamed-chunk-21-1.png" width="672" /></p>
+<p>For <code>mtry = 3</code> the minimum seems to lie around 255. The function to minimize is not smooth at all.</p>
+<p>I now follow the code that can be found in the <a href="https://arxiv.org/abs/1703.03373">arxiv</a> paper to
+run the optimization. I think I got the gist of the paper, but I did not understand everything yet.
+For now, I am still experimenting with the library at the moment, but from what I understand, a
+simpler model, called the surrogate model, is used to look for promising points and to evaluate the
+value of the function at these points. This seems somewhat similar (in spirit) to the
+<em>Indirect Inference</em> method as described in <a href="https://www.jstor.org/stable/2285076">Gourieroux, Monfort, Renault</a>.</p>
+<p>Let’s first load the package and create the function to optimize:</p>
+<pre class="r"><code>library(&quot;mlrMBO&quot;)</code></pre>
+<pre class="r"><code>fn &lt;- makeSingleObjectiveFunction(name = &quot;tuning&quot;,
+                                 fn = tuning,
+                                 par.set = makeParamSet(makeIntegerParam(&quot;x1&quot;, lower = 3, upper = 8),
+                                                        makeIntegerParam(&quot;x2&quot;, lower = 50, upper = 500)))</code></pre>
+<p>This function is based on the function I defined before. The parameters to optimize are also
+defined as are their bounds. I will look for <code>mtry</code> between the values of 3 and 8, and <code>trees</code>
+between 50 and 500.</p>
+<p>Now comes the part I didn’t quite get.</p>
+<pre class="r"><code># Create initial random Latin Hypercube Design of 10 points
+library(lhs)# for randomLHS
+des &lt;- generateDesign(n = 5L * 2L, getParamSet(fn), fun = randomLHS)</code></pre>
+<p>I think this means that these 10 points are the points used to start the whole process. I did not
+understand why they have to be sampled from a hypercube, but ok. Then I choose the surrogate model,
+a random forest too, and predict the standard error. Here also, I did not quite get why the
+standard error can be an option.</p>
+<pre class="r"><code># Specify kriging model with standard error estimation
+surrogate &lt;- makeLearner(&quot;regr.ranger&quot;, predict.type = &quot;se&quot;, keep.inbag = TRUE)</code></pre>
+<p>Here I define some options:</p>
+<pre class="r"><code># Set general controls
+ctrl &lt;- makeMBOControl()
+ctrl &lt;- setMBOControlTermination(ctrl, iters = 10L)
+ctrl &lt;- setMBOControlInfill(ctrl, crit = makeMBOInfillCritEI())</code></pre>
+<p>And this is the optimization part:</p>
+<pre class="r"><code># Start optimization
+result &lt;- mbo(fn, des, surrogate, ctrl, more.args = list(&quot;validation_data&quot; = validation_data))</code></pre>
+<pre class="r"><code>result</code></pre>
+<pre><code>## Recommended parameters:
+## x1=6; x2=381
+## Objective: y = 0.393
+## 
+## Optimization path
+## 10 + 10 entries in total, displaying last 10 (or less):
+##    x1  x2         y dob eol error.message exec.time            ei
+## 11  6 370 0.3943479   1  NA          &lt;NA&gt;     8.913 -3.134568e-05
+## 12  6 362 0.3950402   2  NA          &lt;NA&gt;     8.844 -2.987934e-05
+## 13  6 373 0.3939587   3  NA          &lt;NA&gt;     8.939 -2.259674e-05
+## 14  6 394 0.3962875   4  NA          &lt;NA&gt;     9.342 -7.427682e-06
+## 15  6 368 0.3944954   5  NA          &lt;NA&gt;     8.760 -4.121337e-06
+## 16  6 378 0.3938796   6  NA          &lt;NA&gt;     8.949 -4.503591e-07
+## 17  6 381 0.3934176   7  NA          &lt;NA&gt;     9.109 -1.141853e-06
+## 18  6 380 0.3948077   8  NA          &lt;NA&gt;     9.026 -4.718394e-08
+## 19  6 381 0.3932636   9  NA          &lt;NA&gt;     9.022 -9.801395e-08
+## 20  6 383 0.3953004  10  NA          &lt;NA&gt;     9.184 -1.579619e-09
+##    error.model train.time prop.type propose.time           se      mean
+## 11        &lt;NA&gt;      0.014 infill_ei        0.449 0.0010924600 0.3955131
+## 12        &lt;NA&gt;      0.012 infill_ei        0.458 0.0007415920 0.3948705
+## 13        &lt;NA&gt;      0.012 infill_ei        0.460 0.0006116756 0.3947185
+## 14        &lt;NA&gt;      0.012 infill_ei        0.729 0.0003104694 0.3943572
+## 15        &lt;NA&gt;      0.023 infill_ei        0.444 0.0003446061 0.3945085
+## 16        &lt;NA&gt;      0.013 infill_ei        0.458 0.0002381887 0.3944642
+## 17        &lt;NA&gt;      0.013 infill_ei        0.492 0.0002106454 0.3943200
+## 18        &lt;NA&gt;      0.013 infill_ei        0.516 0.0002093524 0.3940764
+## 19        &lt;NA&gt;      0.014 infill_ei        0.756 0.0002481260 0.3941597
+## 20        &lt;NA&gt;      0.013 infill_ei        0.483 0.0001687982 0.3939285</code></pre>
+<p>So the recommended parameters are 6 for <code>mtry</code> and 381 for <code>trees</code>. The value of the RMSE is lower
+than before, and equals 0.393.
+Let’s now train the random forest on the training data with this values. First, I pre-process the
+training data:</p>
+<pre class="r"><code>training_rec &lt;- prep(simple_recipe(housing_train), testing = housing_train)
+
+train_data &lt;- bake(training_rec, newdata = housing_train)</code></pre>
+<pre><code>## Warning: Please use `new_data` instead of `newdata` with `bake`. 
+## In recipes versions &gt;= 0.1.4, this will cause an error.</code></pre>
+<p>Let’s now train our final model and predict the prices:</p>
+<pre class="r"><code>final_model &lt;- rand_forest(mtry = 6, trees = 381) %&gt;%
+        set_engine(&quot;ranger&quot;, importance = &#39;impurity&#39;) %&gt;%
+        fit(price ~ ., data = train_data)
+
+price_predict &lt;- predict(final_model, new_data = select(test_data, -price))</code></pre>
+<p>Let’s transform the data back and compare the predicted prices to the true ones visually:</p>
+<pre class="r"><code>cbind(price_predict * sd(housing_train$price) + mean(housing_train$price), 
+      housing_test$price)</code></pre>
+<pre><code>##        .pred housing_test$price
+## 1  34.811111               34.7
+## 2  20.591304               22.9
+## 3  19.463920               18.9
+## 4  20.321990               21.7
+## 5  19.063132               17.5
+## 6  15.969125               14.5
+## 7  18.203023               15.6
+## 8  17.139943               13.9
+## 9  21.393329               24.2
+## 10 27.508482               25.0
+## 11 24.030162               24.1
+## 12 21.222857               21.2
+## 13 23.052677               22.2
+## 14 20.303233               19.3
+## 15 21.134554               21.7
+## 16 22.913097               18.5
+## 17 20.029506               18.8
+## 18 18.045923               16.2
+## 19 17.321006               13.3
+## 20 18.201785               13.4
+## 21 29.928316               32.5
+## 22 24.339983               26.4
+## 23 45.518316               42.3
+## 24 29.551251               26.7
+## 25 26.513473               30.1
+## 26 42.984738               46.7
+## 27 43.513001               48.3
+## 28 25.436146               23.3
+## 29 21.766247               24.3
+## 30 36.328740               36.0
+## 31 32.830061               31.0
+## 32 38.736098               35.2
+## 33 31.573311               32.0
+## 34 19.847848               19.4
+## 35 23.401032               23.1
+## 36 22.000914               19.4
+## 37 20.155696               18.7
+## 38 21.342003               22.6
+## 39 20.846330               19.9
+## 40 13.752108               13.8
+## 41 12.499064               13.1
+## 42 15.019987               16.3
+## 43  8.489851                7.2
+## 44  7.803981               10.4
+## 45 18.629488               20.8
+## 46 14.645669               14.3
+## 47 15.094423               15.2
+## 48 20.470057               17.7
+## 49 15.147170               13.3
+## 50 15.880035               13.6</code></pre>
+<p>Let’s now compute the RMSE:</p>
+<pre class="r"><code>tibble::tibble(&quot;truth&quot; = test_data$price,
+        &quot;prediction&quot; = unlist(price_predict)) %&gt;% 
+    rmse(truth, prediction)</code></pre>
+<pre><code>## # A tibble: 1 x 3
+##   .metric .estimator .estimate
+##   &lt;chr&gt;   &lt;chr&gt;          &lt;dbl&gt;
+## 1 rmse    standard       0.327</code></pre>
+<p>Very nice.</p>
+<p>Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a>.</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
+</div>
+
+			</div>
+		</article>
+	</main>
+<aside>
+	<div>
+		<div>
+			<h3>LATEST POSTS</h3>
+		</div>
+		<div>
+			<ul>
+				
+				<li><a href="/post/2020-12-30-year_review/">A year in review</a></li>
+				
+				<li><a href="/post/2020-12-12-ethics_statistics/">(Half) Lies, (half) truths and (half) statistics</a></li>
+				
+				<li><a href="/post/2020-12-05-poorman_translate/">Poorman&#39;s automated translation with R and Google Sheets using {googlesheets4}</a></li>
+				
+				<li><a href="/post/2020-11-21-guis_mistake/">Graphical User Interfaces were a mistake but you can still make things right</a></li>
+				
+				<li><a href="/post/2020-11-05-retire_data_science/">It&#39;s time to retire the &#34;data scientist&#34; label</a></li>
+				
+			</ul>
+		</div>
+	</div>
+</aside>
+
+
+	<footer>
+  <div class="row">
+    <div class="col-lg-12">
+      <p>2021, content by Bruno Rodrigues, unless otherwise stated, every content of this blog is licensed under the <a href="http://www.wtfpl.net/txt/copying/" rel="nofollow">WTFPL</a>.</p>
+      <p>The theme this blog uses is a slight variation of the <a href="https://github.com/colorchestra/smol" rel="nofollow">Smol</a> theme.</p>
+      <p><a class="nav-link" href="/index.html">Back to main page.</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

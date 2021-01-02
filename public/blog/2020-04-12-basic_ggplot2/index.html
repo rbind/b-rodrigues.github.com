@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"  lang="en-us">
+    <title>How to basic: bar plots - Econometrics and Free Software</title>
+    <meta name="generator" content="Hugo 0.25.1" />
+
+    
+    <meta name="description" content="A blog about econometrics, free software, and R">
+    
+    <link rel="canonical" href="../../blog/2020-04-12-basic_ggplot2/">
+    
+    <meta name="author" content="Bruno Rodrigues">
+    
+    <meta name="generator" content="Hugo 0.25.1" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta property="og:url" content="/blog/2020-04-12-basic_ggplot2/">
+    <meta property="og:title" content="Econometrics and Free Software">
+    <meta property="og:image" content="/map[alt:Logo url:logo.png width:50 height:50]">
+    <meta name="apple-mobile-web-app-title" content="Econometrics and Free Software">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <link rel="shortcut icon" type="image/x-icon" href="../../images/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="../../images/favicon.ico">
+
+    
+    <link rel="stylesheet" href="../../css/bootstrap.min.css" media="screen">
+    <link rel="stylesheet" href="../../css/custom.css">
+    <link rel="stylesheet" href="../../css/pygments.css">
+    
+    <link rel="stylesheet" href="../../css/jquery.fancybox.css?v=2.1.5" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/helpers/jquery.fancybox-buttons.css?v=1.0.5" type="text/css" media="screen" />
+  </head>
+  <body>
+
+
+<div class="row">
+<div class="navbar navbar-default navbar-fixed-top">
+<div class="container">
+  <div class="navbar-header">
+    <a href="../../" class="navbar-brand">Econometrics and Free Software</a>
+    <button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar-main">
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+    </button>
+  </div>
+  <div class="navbar-collapse collapse" id="navbar-main">
+
+    <ul class="nav navbar-nav navbar-right">
+      <li><a href="https://www.buymeacoffee.com/brodriguesco">Donate</a></li>
+      <li><a href="https://www.youtube.com/c/BrunoRodrigues1988">Youtube</a></li>
+      <li><a href="https://github.com/b-rodrigues/">Github</a></li>
+      <li><a href="https://twitter.com/brodriguesco/">Twitter</a></li>
+    </ul>
+  </div>
+</div>
+
+</div>
+
+<div class="container">
+
+  <div>
+    <div class="row">
+      <div class="col-lg-3 col-md-3 col-sm-4">
+        
+
+<div class="list-group table-of-contents">
+
+  
+    <a class="list-group-item" href=#><b>About Me</b></a>
+    
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../../about/about/">Who am I?</a>
+      
+      <a class="list-group-item" href="../../about/projects/">Projects</a>
+      
+      <a class="list-group-item" href="../../about/research/">Research</a>
+      
+      <a class="list-group-item" href="../../about/software/">Software</a>
+      
+    </div>
+    
+  
+    <a class="list-group-item" href=#><b>Blog</b></a>
+    
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../../blog/2018-11-25-tidy_cv/">A tutorial on tidy cross-validation with R</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-03-nethack_analysis/">Analyzing NetHack data, part 1: What kills the players</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-10-nethack_analysis_part2/">Analyzing NetHack data, part 2: What players kill the most</a>
+      
+      <a class="list-group-item" href="../../blog/2019-02-04-newspapers_shiny_app_tutorial/">Building a shiny app to explore historical newspapers: a step-by-step guide</a>
+      
+      <a class="list-group-item" href="../../blog/2019-03-03-historical_vowpal/">Classification of historical newspapers content: a tutorial combining R, bash and Vowpal Wabbit, part 1</a>
+      
+      <a class="list-group-item" href="../../blog/2019-03-05-historical_vowpal_part2/">Classification of historical newspapers content: a tutorial combining R, bash and Vowpal Wabbit, part 2</a>
+      
+      <a class="list-group-item" href="../../blog/2019-06-20-tidy_eval_saga/">Curly-Curly, the successor of Bang-Bang</a>
+      
+      <a class="list-group-item" href="../../blog/2018-07-08-rob_stderr/">Dealing with heteroskedasticity; regression with robust standard errors using R</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-14-luxairport/">Easy time-series prediction with R: a tutorial with air traffic data from Lux Airport</a>
+      
+      <a class="list-group-item" href="../../blog/2018-10-05-ggplot2_purrr_officer/">Exporting editable plots from R to Powerpoint: making ggplot2 purrr with officer</a>
+      
+      <a class="list-group-item" href="../../blog/2019-04-28-diffindiff_part1/">Fast food, causality and R packages, part 1</a>
+      
+      <a class="list-group-item" href="../../blog/2019-05-04-diffindiff_part2/">Fast food, causality and R packages, part 2</a>
+      
+      <a class="list-group-item" href="../../blog/2019-05-18-xml2/">For posterity: install {xml2} on GNU/Linux distros</a>
+      
+      <a class="list-group-item" href="../../blog/2018-06-24-fun_ts/">Forecasting my weight with R</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-01-nethack/">From webscraping data to releasing it as an R package to share with the world: a full tutorial with data from NetHack</a>
+      
+      <a class="list-group-item" href="../../blog/2019-03-31-tesseract/">Get text from pdfs or images using OCR: a tutorial with {tesseract} and {magick}</a>
+      
+      <a class="list-group-item" href="../../blog/2018-06-10-scraping_pdfs/">Getting data from pdfs using the pdftools package</a>
+      
+      <a class="list-group-item" href="../../blog/2018-10-21-lux_elections/">Getting the data from the Luxembourguish elections out of Excel</a>
+      
+      <a class="list-group-item" href="../../blog/2018-09-11-human_to_machine/">Going from a human readable Excel file to a machine-readable csv with {tidyxl}</a>
+      
+      <a class="list-group-item" href="../../blog/2019-04-07-historical_newspaper_scraping_tesseract/">Historical newspaper scraping with {tesseract} and R</a>
+      
+      <a class="list-group-item" href="../../blog/2018-09-15-time_use/">How Luxembourguish residents spend their time: a small {flexdashboard} demo using the Time use survey data</a>
+      
+      <a class="list-group-item" href="../../blog/2018-04-14-playing_with_furrr/">Imputing missing values in parallel using {furrr}</a>
+      
+      <a class="list-group-item" href="../../blog/2019-06-12-intermittent/">Intermittent demand, Croston and Die Hard</a>
+      
+      <a class="list-group-item" href="../../blog/2019-01-04-newspapers/">Looking into 19th century ads from a Luxembourguish newspaper with R</a>
+      
+      <a class="list-group-item" href="../../blog/2019-01-13-newspapers_mets_alto/">Making sense of the METS and ALTO XML standards</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-15-lubridate_africa/">Manipulate dates easily with {lubridate}</a>
+      
+      <a class="list-group-item" href="../../blog/2019-02-10-stringr_package/">Manipulating strings with the {stringr} package</a>
+      
+      <a class="list-group-item" href="../../blog/2018-10-27-lux_elections_analysis/">Maps with pie charts on top of each administrative division: an example with Luxembourg&#39;s elections data</a>
+      
+      <a class="list-group-item" href="../../blog/2018-07-01-tidy_ive/">Missing data imputation and instrumental variables regression: the tidy approach</a>
+      
+      <a class="list-group-item" href="../../blog/2019-08-17-modern_r/">Modern R with the tidyverse is available on Leanpub</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-24-modern_objects/">Objects types and some useful R functions for beginners</a>
+      
+      <a class="list-group-item" href="../../blog/2019-03-20-pivot/">Pivoting data frames just got easier thanks to `pivot_wide()` and `pivot_long()`</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-30-reticulate/">R or Python? Why not both? Using Anaconda Python within R with {reticulate}</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-15-tidy_gridsearch/">Searching for the optimal hyper-parameters of an ARIMA model in parallel: the tidy gridsearch approach</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-27-fun_gganimate/">Some fun with {gganimate}</a>
+      
+      <a class="list-group-item" href="../../blog/2019-10-05-parallel_maxlik/">Split-apply-combine for Maximum Likelihood Estimation of a linear model</a>
+      
+      <a class="list-group-item" href="../../blog/2019-07-19-statmatch/">Statistical matching, or when one single data source is not enough</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-21-lux_castle/">The best way to visit Luxembourguish castles is doing data science &#43; combinatorial optimization</a>
+      
+      <a class="list-group-item" href="../../blog/2019-05-19-spacemacs/">The never-ending editor war (?)</a>
+      
+      <a class="list-group-item" href="../../blog/2018-09-08-steam_linux/">The year of the GNU&#43;Linux desktop is upon us: using user ratings of Steam Play compatibility to play around with regex and the tidyverse</a>
+      
+      <a class="list-group-item" href="../../blog/2019-01-31-newspapers_shiny_app/">Using Data Science to read 10 years of Luxembourguish newspapers from the 19th century</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-16-rgenoud_arima/">Using a genetic algorithm for the hyperparameter optimization of a SARIMA model</a>
+      
+      <a class="list-group-item" href="../../blog/2019-06-04-cosine_sim/">Using cosine similarity to find matching documents: a tutorial using Seneca&#39;s letters to his friend Lucilius</a>
+      
+      <a class="list-group-item" href="../../blog/2019-08-14-lpm/">Using linear models with binary dependent variables, a simulation study</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-21-tidyverse_pi/">Using the tidyverse for more than data manipulation: estimating pi with Monte Carlo methods</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-02-hyper-parameters/">What hyper-parameters are, and what to do with them; an illustration with ridge regression</a>
+      
+      <a class="list-group-item" href="../../blog/2019-09-03-disk_frame/">{disk.frame} is epic</a>
+      
+      <a class="list-group-item" href="../../blog/2018-04-15-announcing_pmice/">{pmice}, an experimental package for missing data imputation in parallel using {mice} and {furrr}</a>
+      
+      <a class="list-group-item" href="../../blog/2017-12-27-build_formulae/">Building formulae</a>
+      
+      <a class="list-group-item" href="../../blog/2017-11-14-peace_r/">Functional peace of mind</a>
+      
+      <a class="list-group-item" href="../../blog/2018-04-10-brotools_describe/">Get basic summary statistics for all the variables in a data frame</a>
+      
+      <a class="list-group-item" href="../../blog/2018-03-03-sparklyr_h2o_rsparkling/">Getting {sparklyr}, {h2o}, {rsparkling} to work together and some fun with bash</a>
+      
+      <a class="list-group-item" href="../../blog/2018-02-16-importing_30gb_of_data/">Importing 30GB of data into R with sparklyr</a>
+      
+      <a class="list-group-item" href="../../blog/2017-03-27-introducing_brotools/">Introducing brotools</a>
+      
+      <a class="list-group-item" href="../../blog/2018-01-03-lists_all_the_way/">It&#39;s lists all the way down</a>
+      
+      <a class="list-group-item" href="../../blog/2018-01-05-lists_all_the_way2/">It&#39;s lists all the way down, part 2: We need to go deeper</a>
+      
+      <a class="list-group-item" href="../../blog/2018-03-12-keep_trying/">Keep trying that api call with purrr::possibly()</a>
+      
+      <a class="list-group-item" href="../../blog/2017-06-19-dplyr-0-70-tutorial/">Lesser known dplyr 0.7* tricks</a>
+      
+      <a class="list-group-item" href="../../blog/2017-02-17-lesser_known_tricks/">Lesser known dplyr tricks</a>
+      
+      <a class="list-group-item" href="../../blog/2017-03-24-lesser_known_purrr/">Lesser known purrr tricks</a>
+      
+      <a class="list-group-item" href="../../blog/2017-03-29-make-ggplot2-purrr/">Make ggplot2 purrr</a>
+      
+      <a class="list-group-item" href="../../blog/2018-01-19-mapping_functions_with_any_cols/">Mapping a list of functions to a list of datasets with a list of columns as arguments</a>
+      
+      <a class="list-group-item" href="../../blog/2018-02-11-census-random_forest/">Predicting job search by training a random forest on an unbalanced dataset</a>
+      
+      <a class="list-group-item" href="../../blog/2017-12-17-teaching_tidyverse/">Teaching the tidyverse to beginners</a>
+      
+      <a class="list-group-item" href="../../blog/2017-08-27-why_tidyeval/">Why I find tidyeval useful</a>
+      
+      <a class="list-group-item" href="../../blog/2017-07-27-spread_rename_at/">tidyr::spread() and dplyr::rename_at() in action</a>
+      
+      <a class="list-group-item" href="../../blog/2017-10-26-margins_r/">Easy peasy STATA-like marginal effects with R</a>
+      
+      <a class="list-group-item" href="../../blog/2016-12-24-functional-programming-and-unit-testing-for-data-munging-with-r-available-on-leanpub/">Functional programming and unit testing for data munging with R available on Leanpub</a>
+      
+      <a class="list-group-item" href="../../blog/2017-02-17-how_to_use_jailbreakr/">How to use jailbreakr</a>
+      
+      <a class="list-group-item" href="../../blog/2017-01-07-my-free-book-has-a-cover/">My free book has a cover!</a>
+      
+      <a class="list-group-item" href="../../blog/2016-12-21-work-on-lists-of-datasets-instead-of-individual-datasets-by-using-functional-programming/">Work on lists of datasets instead of individual datasets by using functional programming</a>
+      
+      <a class="list-group-item" href="../../blog/2013-01-29-method-of-simulated-moments-with-r/">Method of Simulated Moments with R</a>
+      
+      <a class="list-group-item" href="../../blog/2012-12-11-new-website/">New website!</a>
+      
+      <a class="list-group-item" href="../../blog/2013-11-07-gmm-with-rmd/">Nonlinear Gmm with R - Example with a logistic regression</a>
+      
+      <a class="list-group-item" href="../../blog/2013-01-16-simulated-maximum-likelihood-with-r/">Simulated Maximum Likelihood with R</a>
+      
+      <a class="list-group-item" href="../../blog/2015-11-11-bootstrapping-did-with-r/">Bootstrapping standard errors for difference-in-differences estimation with R</a>
+      
+      <a class="list-group-item" href="../../blog/2016-06-21-careful-with-trycatch/">Careful with tryCatch</a>
+      
+      <a class="list-group-item" href="../../blog/2016-07-18-data-frame-columns-as-arguments-to-dplyr-functions/">Data frame columns as arguments to dplyr functions</a>
+      
+      <a class="list-group-item" href="../../blog/2015-02-22-export-r-output-to-file/">Export R output to a file</a>
+      
+      <a class="list-group-item" href="../../blog/2016-11-04-ive-started-writing-a-book-functional-programming-and-unit-testing-for-data-munging-with-r/">I&#39;ve started writing a &#39;book&#39;: Functional programming and unit testing for data munging with R</a>
+      
+      <a class="list-group-item" href="../../blog/2015-01-12-introduction-to-programming-econometrics-with-r/">Introduction to programming econometrics with R</a>
+      
+      <a class="list-group-item" href="../../blog/2016-07-30-merge-a-list-of-datasets-together/">Merge a list of datasets together</a>
+      
+      <a class="list-group-item" href="../../blog/2014-04-23-r-s4-rootfinding/">Object Oriented Programming with R: An example with a Cournot duopoly</a>
+      
+      <a class="list-group-item" href="../../blog/2014-11-11-benchmarks-r-blas-atlas-rro/">R, R with Atlas, R with OpenBLAS and Revolution R Open: which is fastest?</a>
+      
+      <a class="list-group-item" href="../../blog/2016-07-26-read-a-lot-of-datasets-at-once-with-r/">Read a lot of datasets at once with R</a>
+      
+      <a class="list-group-item" href="../../blog/2016-03-31-unit-testing-with-r/">Unit testing with R</a>
+      
+      <a class="list-group-item" href="../../blog/2015-05-03-update-introduction-r-programming/">Update to Introduction to programming econometrics with R</a>
+      
+      <a class="list-group-item" href="../../blog/2013-12-31-r-cas/">Using R as a Computer Algebra System with Ryacas</a>
+      
+    </div>
+    
+  
+
+</div>
+
+      </div>
+      <div class="col-lg-9 col-md-9 col-sm-8">
+        <div>
+           <h1 id="main">How to basic: bar plots</h1>
+           <span class="article-date">April 12, 2020</span>
+        </div>
+        <div style="text-align:center;">
+<p><a href="https://www.youtube.com/watch?v=OisvDHvmKuM">
+<img src="../../img/chef.jpg" title = "Specialty from the chef!"></a></p>
+</div>
+<p>This blog post shows how to make bar plots and area charts. It’s mostly a list of recipes, indented
+for myself. These are plots I have often to do in reports and would like to have the code handy
+somewhere. Maybe this will be helpful to some of you as well. Actually, this post is exactly how
+I started my blog post. I wanted to have a repository of recipes, and with time the blog grew to
+what it is now (tutorials and me exploring methods and datasets with R).</p>
+<div id="bar-charts" class="section level2">
+<h2>Bar charts</h2>
+<p>Bar charts are quite simple plots, but there are enough variations of them that they deserve
+one single blog post. However, don’t expect many explanations.</p>
+<p>Let’s first start by loading some data, and the usually required packages:</p>
+<pre class="r"><code>library(tidyverse)
+library(lubridate)
+library(janitor)
+library(colorspace)</code></pre>
+<pre class="r"><code>data(gss_cat)</code></pre>
+<p>Very often, what one wants to show are counts:</p>
+<pre class="r"><code>gss_cat %&gt;%
+  count(marital, race)</code></pre>
+<pre><code>## # A tibble: 18 x 3
+##    marital       race      n
+##  * &lt;fct&gt;         &lt;fct&gt; &lt;int&gt;
+##  1 No answer     Other     2
+##  2 No answer     Black     2
+##  3 No answer     White    13
+##  4 Never married Other   633
+##  5 Never married Black  1305
+##  6 Never married White  3478
+##  7 Separated     Other   110
+##  8 Separated     Black   196
+##  9 Separated     White   437
+## 10 Divorced      Other   212
+## 11 Divorced      Black   495
+## 12 Divorced      White  2676
+## 13 Widowed       Other    70
+## 14 Widowed       Black   262
+## 15 Widowed       White  1475
+## 16 Married       Other   932
+## 17 Married       Black   869
+## 18 Married       White  8316</code></pre>
+<p>Let’s lump marital statuses that appear less than 10% of the time into an “Other” category:</p>
+<pre class="r"><code>(
+  counts_marital_race &lt;- gss_cat %&gt;%
+    mutate(marital = fct_lump(marital, prop = 0.1)) %&gt;%
+    count(marital, race)
+)</code></pre>
+<pre><code>## # A tibble: 12 x 3
+##    marital       race      n
+##  * &lt;fct&gt;         &lt;fct&gt; &lt;int&gt;
+##  1 Never married Other   633
+##  2 Never married Black  1305
+##  3 Never married White  3478
+##  4 Divorced      Other   212
+##  5 Divorced      Black   495
+##  6 Divorced      White  2676
+##  7 Married       Other   932
+##  8 Married       Black   869
+##  9 Married       White  8316
+## 10 Other         Other   182
+## 11 Other         Black   460
+## 12 Other         White  1925</code></pre>
+<p>The simplest bar plot:</p>
+<pre class="r"><code>ggplot(counts_marital_race) +
+  geom_col(aes(x = marital, y = n, fill = race)) +
+  scale_fill_discrete_qualitative(palette = &quot;Dark 3&quot;) +
+  brotools::theme_blog()</code></pre>
+<p><img src="../../blog/2020-04-12-basic_ggplot2_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p>Now with <code>position = &quot;dodge&quot;</code>:</p>
+<pre class="r"><code>ggplot(counts_marital_race) +
+  geom_col(aes(x = marital, y = n, fill = race), position = &quot;dodge&quot;) +
+  scale_fill_discrete_qualitative(palette = &quot;Dark 3&quot;) +
+  brotools::theme_blog()</code></pre>
+<p><img src="../../blog/2020-04-12-basic_ggplot2_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<p>Moving the legend around with <code>theme(legend.position = ...)</code>:</p>
+<pre class="r"><code>ggplot(counts_marital_race) +
+  geom_col(aes(x = marital, y = n, fill = race), position = &quot;dodge&quot;) +
+  scale_fill_discrete_qualitative(palette = &quot;Dark 3&quot;) +
+  brotools::theme_blog() +
+  theme(legend.position = &quot;left&quot;)</code></pre>
+<p><img src="../../blog/2020-04-12-basic_ggplot2_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<p>Counting by year as well:</p>
+<pre class="r"><code>(
+  counts_marital_race_year &lt;- gss_cat %&gt;%
+    mutate(marital = fct_lump(marital, prop = 0.1)) %&gt;%
+    count(year, marital, race) %&gt;%
+    ungroup()
+)</code></pre>
+<pre><code>## # A tibble: 96 x 4
+##     year marital       race      n
+##  * &lt;int&gt; &lt;fct&gt;         &lt;fct&gt; &lt;int&gt;
+##  1  2000 Never married Other    60
+##  2  2000 Never married Black   157
+##  3  2000 Never married White   495
+##  4  2000 Divorced      Other    20
+##  5  2000 Divorced      Black    60
+##  6  2000 Divorced      White   361
+##  7  2000 Married       Other    78
+##  8  2000 Married       Black   121
+##  9  2000 Married       White  1079
+## 10  2000 Other         Other    17
+## # … with 86 more rows</code></pre>
+<p>When you want to show how a variable evolves through time, area chart are handy:</p>
+<pre class="r"><code>counts_marital_race_year %&gt;%
+  group_by(year, marital) %&gt;%
+  summarise(n = sum(n)) %&gt;%
+  ggplot() +
+  geom_area(aes(x = year, y = n, fill = marital)) +
+  scale_fill_discrete_qualitative(palette = &quot;Dark 3&quot;) +
+  brotools::theme_blog() </code></pre>
+<p><img src="../../blog/2020-04-12-basic_ggplot2_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+<p>Now with facets:</p>
+<pre class="r"><code>counts_marital_race_year %&gt;%
+  ggplot() +
+  geom_area(aes(x = year, y = n, fill = marital)) +
+  facet_wrap(facets = vars(race), ncol = 1) +
+  scale_fill_discrete_qualitative(palette = &quot;Dark 3&quot;) +
+  brotools::theme_blog() </code></pre>
+<p><img src="../../blog/2020-04-12-basic_ggplot2_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+<p>But what if I want each plot to have its own y axis?</p>
+<pre class="r"><code>counts_marital_race_year %&gt;%
+  ggplot() +
+  geom_area(aes(x = year, y = n, fill = marital)) +
+  facet_wrap(facets = vars(race), ncol = 1, scales = &quot;free_y&quot;) +
+  scale_fill_discrete_qualitative(palette = &quot;Dark 3&quot;) +
+  brotools::theme_blog() </code></pre>
+<p><img src="../../blog/2020-04-12-basic_ggplot2_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
+<p>Now doing an area chart but with relative frequencies:</p>
+<pre class="r"><code>counts_marital_race_year %&gt;% 
+  group_by(year, marital) %&gt;% 
+  summarise(n = sum(n)) %&gt;%  
+  mutate(freq = n/sum(n)) %&gt;% 
+  ggplot() +
+  geom_area(aes(x = year, y = freq, fill = marital)) +
+  scale_fill_discrete_qualitative(palette = &quot;Dark 3&quot;) +
+  brotools::theme_blog() </code></pre>
+<p><img src="../../blog/2020-04-12-basic_ggplot2_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+<p>With <code>facet_wrap()</code>:</p>
+<pre class="r"><code>counts_marital_race_year %&gt;% 
+  group_by(race, year, marital) %&gt;% 
+  summarise(n = sum(n)) %&gt;%  
+  mutate(freq = n/sum(n)) %&gt;% 
+  ggplot() +
+  geom_area(aes(x = year, y = freq, fill = marital)) +
+  facet_wrap(facets = vars(race), ncol = 1, scales = &quot;free_y&quot;) +
+  scale_fill_discrete_qualitative(palette = &quot;Dark 3&quot;) +
+  brotools::theme_blog() </code></pre>
+<p><img src="../../blog/2020-04-12-basic_ggplot2_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
+<p>Want to replace 2000 with “2000-01-01”? First need to create vector of prettier dates and positions:</p>
+<pre class="r"><code>pretty_dates &lt;- counts_marital_race_year %&gt;%
+  mutate(pretty_dates = paste0(year, &quot;-01-01&quot;)) %&gt;%
+  pull(pretty_dates) %&gt;%
+  unique()
+
+position_dates &lt;- counts_marital_race_year %&gt;%
+  pull(year) %&gt;%
+  unique() %&gt;%
+  sort() </code></pre>
+<p><code>scale_x_continuous()</code> can now use this. Using <code>guide = guide_axis(n.dodge = 2)</code> to avoid
+overlapping labels:</p>
+<pre class="r"><code>counts_marital_race_year %&gt;% 
+  group_by(race, year, marital) %&gt;% 
+  summarise(n = sum(n)) %&gt;%  
+  mutate(freq = n/sum(n)) %&gt;%
+  ggplot() +
+  geom_area(aes(x = year, y = freq, fill = marital)) +
+  facet_wrap(facets = vars(race), ncol = 1, scales = &quot;free_y&quot;) +
+  scale_x_continuous(&quot;Year of survey&quot;, labels = pretty_dates,
+                     breaks = position_dates, guide = guide_axis(n.dodge = 2)) +
+  scale_fill_discrete_qualitative(palette = &quot;Dark 3&quot;) +
+  brotools::theme_blog() </code></pre>
+<p><img src="../../blog/2020-04-12-basic_ggplot2_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
+<p>Adding labels is not trivial. Here it is not working:</p>
+<pre class="r"><code>counts_marital_race_year %&gt;% 
+  group_by(race, year, marital) %&gt;% 
+  summarise(n = sum(n)) %&gt;%  
+  mutate(freq = n/sum(n)) %&gt;% 
+  ggplot() +
+  geom_area(aes(x = year, y = freq, fill = marital)) +
+  facet_wrap(facets = vars(race), ncol = 1, scales = &quot;free_y&quot;) +
+  scale_x_continuous(&quot;Year of survey&quot;, labels = pretty_dates,
+                     breaks = position_dates, guide = guide_axis(n.dodge = 2)) +
+  geom_label(aes(x = year, y = freq, label = round(100 * freq))) +
+  scale_fill_discrete_qualitative(palette = &quot;Dark 3&quot;) +
+  brotools::theme_blog() </code></pre>
+<p><img src="../../blog/2020-04-12-basic_ggplot2_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
+<p>Another failed attempt. I leave it here for posterity.
+My first idea was first to sort the grouped data set by descending frequency, and then
+to reorder the factor variable <code>marital</code> by descending position, which is the cumulative percentage.
+This would work fine, if the same factor levels would have had the same order for each of the
+race categories. However, this is not the case. For blacks, the most frequent category is “Never Married”.
+As you can see below, this trick worked well for 2 categories out of 3:</p>
+<pre class="r"><code>counts_marital_race_year %&gt;% 
+  group_by(race, year, marital) %&gt;% 
+  summarise(n = sum(n)) %&gt;%  
+  mutate(freq = n/sum(n)) %&gt;%
+  group_by(year, race) %&gt;%  
+  arrange(desc(freq)) %&gt;% 
+  mutate(position = cumsum(freq)) %&gt;% 
+  mutate(marital = fct_reorder(marital, desc(position))) %&gt;% 
+  ggplot() +
+  geom_area(aes(x = year, y = freq, fill = marital)) +
+  facet_wrap(facets = vars(race), ncol = 1, scales = &quot;free&quot;) +
+  scale_x_continuous(&quot;Year of survey&quot;, labels = pretty_dates,
+                     breaks = position_dates, guide = guide_axis(n.dodge = 2)) +
+  geom_label(aes(x = year, y = position, label = round(100 * freq))) +
+  scale_fill_discrete_qualitative(palette = &quot;Dark 3&quot;) +
+  brotools::theme_blog() </code></pre>
+<p><img src="../../blog/2020-04-12-basic_ggplot2_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
+<p>So to remedy this, is not reorder too early; first, we need to reorder the factor variable by
+frequency. Then, we arrange the data by the now reordered <code>marital</code> variable, and then we can
+compute the position using the cumulative frequency.</p>
+<pre class="r"><code>counts_marital_race_year %&gt;% 
+  group_by(race, year, marital) %&gt;% 
+  summarise(n = sum(n)) %&gt;%  
+  mutate(freq = n/sum(n)) %&gt;%
+  group_by(year, race) %&gt;%  
+  mutate(marital = fct_reorder(marital, freq)) %&gt;% 
+  arrange(desc(marital)) %&gt;% 
+  mutate(position = cumsum(freq)) %&gt;% 
+  ggplot() +
+  geom_area(aes(x = year, y = freq, fill = marital)) +
+  facet_wrap(facets = vars(race), ncol = 1, scales = &quot;free&quot;) +
+  scale_x_continuous(&quot;Year of survey&quot;, labels = pretty_dates,
+                     breaks = position_dates, guide = guide_axis(n.dodge = 2)) +
+  geom_label(aes(x = year, y = position, label = round(100 * freq))) +
+  scale_fill_discrete_qualitative(palette = &quot;Dark 3&quot;) +
+  brotools::theme_blog() </code></pre>
+<p><img src="../../blog/2020-04-12-basic_ggplot2_files/figure-html/unnamed-chunk-19-1.png" width="672" /></p>
+<p>We can place the labels a bit better (in the middle of their respective areas), like so:</p>
+<pre class="r"><code>counts_marital_race_year %&gt;% 
+  group_by(race, year, marital) %&gt;% 
+  summarise(n = sum(n)) %&gt;%  
+  mutate(freq = n/sum(n)) %&gt;%
+  group_by(year, race) %&gt;%  
+  mutate(marital = fct_reorder(marital, freq)) %&gt;% 
+  arrange(desc(marital)) %&gt;% 
+  mutate(position = cumsum(freq)) %&gt;% mutate(prev_pos = lag(position, default = 0)) %&gt;%
+  mutate(position = (position + prev_pos)/2) %&gt;%  
+  ggplot() +
+  geom_area(aes(x = year, y = freq, fill = marital)) +
+  facet_wrap(facets = vars(race), ncol = 1, scales = &quot;free&quot;) +
+  scale_x_continuous(&quot;Year of survey&quot;, labels = pretty_dates,
+                     breaks = position_dates, guide = guide_axis(n.dodge = 2)) +
+  geom_label(aes(x = year, y = position, label = round(100 * freq))) +
+  scale_fill_discrete_qualitative(palette = &quot;Dark 3&quot;) +
+  brotools::theme_blog() </code></pre>
+<p><img src="../../blog/2020-04-12-basic_ggplot2_files/figure-html/unnamed-chunk-20-1.png" width="672" /></p>
+<p>Now let’s focus on the variable <code>tvhours</code>. We want to show the total watched hours, but also
+the total across all the categories of <code>race</code> and <code>marital</code> in a faceted bar plot:</p>
+<pre class="r"><code>(
+  total_tv &lt;- gss_cat %&gt;%
+    group_by(year, race, marital) %&gt;%
+    summarise(total_tv = sum(tvhours, na.rm = TRUE))
+)</code></pre>
+<pre><code>## # A tibble: 127 x 4
+## # Groups:   year, race [24]
+##     year race  marital       total_tv
+##    &lt;int&gt; &lt;fct&gt; &lt;fct&gt;            &lt;int&gt;
+##  1  2000 Other No answer            2
+##  2  2000 Other Never married      103
+##  3  2000 Other Separated           16
+##  4  2000 Other Divorced            17
+##  5  2000 Other Widowed             24
+##  6  2000 Other Married            122
+##  7  2000 Black Never married      452
+##  8  2000 Black Separated          135
+##  9  2000 Black Divorced           156
+## 10  2000 Black Widowed            183
+## # … with 117 more rows</code></pre>
+<p>This tibble has the total watched hours by year, race and marital status variables. How to add the total
+by year and race categories? For this, by are first going to use the <code>group_split()</code>:</p>
+<pre class="r"><code>total_tv_split &lt;- total_tv %&gt;%
+  select(race, year, marital, total_tv) %&gt;%
+  mutate(year = as.character(year)) %&gt;%  
+  group_split(year, race)</code></pre>
+<pre><code>## Warning: ... is ignored in group_split(&lt;grouped_df&gt;), please use
+## group_by(..., .add = TRUE) %&gt;% group_split()</code></pre>
+<p>I have to re-order the columns with <code>select()</code>, because when using <code>janitor::adorn_totals()</code>, which
+I will be using below to add totals, the first column must be a character column (it serves as
+an identifier column).</p>
+<p>This creates a list with 3 races times 6 years, so 24 elements. Each element of the list is a tibble
+with each unique combination of year and race:</p>
+<pre class="r"><code>length(total_tv_split)</code></pre>
+<pre><code>## [1] 24</code></pre>
+<pre class="r"><code>total_tv_split[1:2]</code></pre>
+<pre><code>## &lt;list_of&lt;
+##   tbl_df&lt;
+##     race    : factor&lt;f4a07&gt;
+##     year    : character
+##     marital : factor&lt;82ceb&gt;
+##     total_tv: integer
+##   &gt;
+## &gt;[2]&gt;
+## [[1]]
+## # A tibble: 6 x 4
+##   race  year  marital       total_tv
+##   &lt;fct&gt; &lt;chr&gt; &lt;fct&gt;            &lt;int&gt;
+## 1 Other 2000  No answer            2
+## 2 Other 2000  Never married      103
+## 3 Other 2000  Separated           16
+## 4 Other 2000  Divorced            17
+## 5 Other 2000  Widowed             24
+## 6 Other 2000  Married            122
+## 
+## [[2]]
+## # A tibble: 5 x 4
+##   race  year  marital       total_tv
+##   &lt;fct&gt; &lt;chr&gt; &lt;fct&gt;            &lt;int&gt;
+## 1 Black 2000  Never married      452
+## 2 Black 2000  Separated          135
+## 3 Black 2000  Divorced           156
+## 4 Black 2000  Widowed            183
+## 5 Black 2000  Married            320</code></pre>
+<p>Why do this? To use <code>janitor::adorn_totals()</code>, which adds row-wise totals to a data frame, or to
+each data frame if a list of data frames gets passed to it. I need to still transform the data a little
+bit. After using <code>adorn_totals()</code>, I bind my list of data frames together, and then fill down the year
+column (when using <code>adorn_totals()</code>, character columns like <code>year</code> are filled with <code>&quot;-&quot;</code>, but I chose
+to fill it with <code>NA_character_</code>). I then replace the NA value from the marital column with the
+string <code>&quot;Total&quot;</code> and then reorder the <code>marital</code> column by value of <code>total_tv</code>:</p>
+<pre class="r"><code>total_tv_split &lt;- total_tv_split %&gt;%
+  adorn_totals(fill = NA_character_) %&gt;%
+  map(as.data.frame) %&gt;%  
+  bind_rows() %&gt;%
+  fill(year, .direction = &quot;down&quot;) %&gt;%
+  mutate(marital = ifelse(is.na(marital), &quot;Total&quot;, marital)) %&gt;%
+  mutate(marital = fct_reorder(marital, total_tv))</code></pre>
+<p>I can finally create my plot. Because I have added “Total” as a level in the <code>marital</code> column, it
+now appears seamlessly in the plot:</p>
+<pre class="r"><code>ggplot(total_tv_split) +
+  geom_col(aes(x = marital, y = total_tv, fill = race)) +
+  facet_wrap(facets = vars(year), nrow = 2) +
+  scale_fill_discrete_qualitative(palette = &quot;Dark 3&quot;) +
+  scale_x_discrete(guide = guide_axis(n.dodge = 3)) +
+  brotools::theme_blog() </code></pre>
+<p><img src="../../blog/2020-04-12-basic_ggplot2_files/figure-html/unnamed-chunk-25-1.png" width="960" /></p>
+<p>To finish this list of recipes, let’s do a pyramid plot now (inspiration from <a href="https://stackoverflow.com/questions/14680075/simpler-population-pyramid-in-ggplot2">here</a>:</p>
+<pre class="r"><code>data_pyramid &lt;- gss_cat %&gt;%
+  filter(year == &quot;2000&quot;, marital %in% c(&quot;Married&quot;, &quot;Never married&quot;)) %&gt;%
+  group_by(race, marital, rincome) %&gt;%  
+  summarise(total_tv = sum(tvhours, na.rm = TRUE))
+
+ggplot(data_pyramid, aes(x = rincome, y = total_tv, fill = marital)) +
+  geom_col(data = filter(data_pyramid, marital == &quot;Married&quot;)) +
+  geom_col(data = filter(data_pyramid, marital == &quot;Never married&quot;), aes(y = total_tv * (-1))) +
+  facet_wrap(facets = vars(race), nrow = 1, scales = &quot;free_x&quot;) +
+  coord_flip() +
+  scale_fill_discrete_qualitative(palette = &quot;Dark 3&quot;) +
+  brotools::theme_blog() </code></pre>
+<p><img src="../../blog/2020-04-12-basic_ggplot2_files/figure-html/unnamed-chunk-26-1.png" width="672" /></p>
+<p>Happy Easter!</p>
+<p>Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my ebook on <a href="https://leanpub.com/modern_tidyverse">Leanpub</a>.</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
+</div>
+
+      </div>
+    </div>
+  <div class="row">
+    <div class="col-lg-9 col-md-9 col-sm-8 col-lg-offset-3 col-md-offset-3">
+    <footer>
+  <div class="row">
+    <div class="col-lg-12">
+      <p>Copyright 2020. <a> Bruno Rodrigues</a> </p>
+      <p>Made with the HUGO theme <a href="https://github.com/adejoux/hugo-darkdoc-theme" rel="nofollow">darkdoc</a>.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+
+    </div>
+  </div>
+
+</div>
+</html>
+<script>
+
+  var api_url = '';
+
+</script>
+<script src="//code.jquery.com/jquery-2.2.3.min.js"></script>
+<script src="../../js/application.js"></script>
+<script type="text/javascript" src="../../js/jquery.fancybox.pack.js?v=2.1.5"></script>
+<script type="text/javascript" src="../../js/helpers/jquery.fancybox-thumbs.js?v=1.0.7"></script>
+<script type="text/javascript" src="../../js/helpers/jquery.fancybox-buttons.js?v=1.0.5"></script>
+<script type="text/javascript" src="../../js/helpers/jquery.fancybox-media.js?v=1.0.6"></script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $(".fancybox").fancybox();
+  });
+</script>
+

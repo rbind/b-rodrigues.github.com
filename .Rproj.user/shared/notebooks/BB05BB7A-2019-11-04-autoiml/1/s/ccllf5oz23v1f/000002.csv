@@ -1,0 +1,182 @@
+"0","library(tidyverse)"
+"2","Registered S3 method overwritten by 'rvest':
+  method            from
+  read_xml.response xml2
+"
+"2","── Attaching packages ───────────────────────────────────────────────────────── tidyverse 1.2.1 ──
+"
+"2","✔ ggplot2 3.2.1          ✔ purrr   0.3.2     
+✔ tibble  2.1.3          ✔ dplyr   0.8.3.9000
+✔ tidyr   1.0.0          ✔ stringr 1.4.0     
+✔ readr   1.3.1          ✔ forcats 0.4.0     
+"
+"2","── Conflicts ──────────────────────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+"
+"2","Warning message:
+"
+"2","R graphics engine version 12 is not supported by this version of RStudio. The Plots tab will be disabled until a newer version of RStudio is installed. 
+"
+"0","library(mice)"
+"2","Loading required package: lattice
+"
+"2","
+Attaching package: ‘mice’
+
+"
+"2","The following object is masked from ‘package:tidyr’:
+
+    complete
+
+"
+"2","The following objects are masked from ‘package:base’:
+
+    cbind, rbind
+
+"
+"0","library(h2o)"
+"2","
+----------------------------------------------------------------------
+
+Your next step is to start H2O:
+    > h2o.init()
+
+For H2O package documentation, ask for help:
+    > ??h2o
+
+After starting H2O, you can use the Web UI at http://localhost:54321
+For more information visit http://docs.h2o.ai
+
+----------------------------------------------------------------------
+
+"
+"2","
+Attaching package: ‘h2o’
+
+"
+"2","The following objects are masked from ‘package:stats’:
+
+    cor, sd, var
+
+"
+"2","The following objects are masked from ‘package:base’:
+
+    &&, %*%, %in%, ||, apply, as.factor, as.numeric, colnames, colnames<-, ifelse,
+    is.character, is.factor, is.numeric, log, log10, log1p, log2, round, signif, trunc
+
+"
+"0","library(iml)"
+"0","h2o.init()"
+"1"," Connection successful!
+
+"
+"1","R is connected to the H2O cluster: 
+"
+"1","    H2O cluster uptime:        "
+"1"," "
+"1","5 hours"
+"1"," "
+"1","42 minutes"
+"1"," "
+"1","
+"
+"1","    H2O cluster timezone:      "
+"1"," "
+"1","Europe/Luxembourg"
+"1"," "
+"1","
+"
+"1","    H2O data parsing timezone: "
+"1"," "
+"1","UTC"
+"1"," "
+"1","
+"
+"1","    H2O cluster version:       "
+"1"," "
+"1","3.26.0.2"
+"1"," "
+"1","
+"
+"1","    H2O cluster version age:   "
+"1"," "
+"1","3 months and 8 days"
+"1"," "
+"1"," "
+"1","
+"
+"1","    H2O cluster name:          "
+"1"," "
+"1","H2O_started_from_R_cbrunos_epx397"
+"1"," "
+"1","
+"
+"1","    H2O cluster total nodes:   "
+"1"," "
+"1","1"
+"1"," "
+"1","
+"
+"1","    H2O cluster total memory:  "
+"1"," "
+"1","0.00 GB"
+"1"," "
+"1","
+"
+"1","    H2O cluster total cores:   "
+"1"," "
+"1","12"
+"1"," "
+"1","
+"
+"1","    H2O cluster allowed cores: "
+"1"," "
+"1","12"
+"1"," "
+"1","
+"
+"1","    H2O cluster healthy:       "
+"1"," "
+"1","TRUE"
+"1"," "
+"1","
+"
+"1","    H2O Connection ip:         "
+"1"," "
+"1","localhost"
+"1"," "
+"1","
+"
+"1","    H2O Connection port:       "
+"1"," "
+"1","54321"
+"1"," "
+"1","
+"
+"1","    H2O Connection proxy:      "
+"1"," "
+"1","NA"
+"1"," "
+"1","
+"
+"1","    H2O Internal Security:     "
+"1"," "
+"1","FALSE"
+"1"," "
+"1","
+"
+"1","    H2O API Extensions:        "
+"1"," "
+"1","Amazon S3, XGBoost, Algos, AutoML, Core V3, Core V4"
+"1"," "
+"1","
+"
+"1","    R Version:                 "
+"1"," "
+"1","R version 3.6.1 (2019-07-05)"
+"1"," "
+"1","
+"
+"1","
+"

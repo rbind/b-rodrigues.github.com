@@ -1,0 +1,22 @@
+{{ define "main" }}
+	<main>
+		{{ $paginator := .Paginate (where .Site.RegularPages "Type" "in" .Site.Params.mainSections) }}
+ <div class="page-header">
+          {{ range where .Site.Pages "Type" "index" }}
+            {{ .Content }}
+          {{ end }}
+          {{ range .Data.Pages.GroupByDate "2006" }}
+            <h3>{{ .Key }}</h3>
+             <ul>
+                 {{ range .Pages }}
+                 <li>
+                 <a href="{{ .Permalink }}">{{ .Title }}</a>
+                 </li>
+                 {{ end }}
+             </ul>
+            {{ end }}
+      </div>
+	</main>
+{{ end }}
+
+

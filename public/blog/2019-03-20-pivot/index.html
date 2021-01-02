@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"  lang="en-us">
+    <title>Pivoting data frames just got easier thanks to `pivot_wide()` and `pivot_long()` - Econometrics and Free Software</title>
+    <meta name="generator" content="Hugo 0.25.1" />
+
+    
+    <meta name="description" content="A blog about econometrics, free software, and R">
+    
+    <link rel="canonical" href="../../blog/2019-03-20-pivot/">
+    
+    <meta name="author" content="Bruno Rodrigues">
+    
+    <meta name="generator" content="Hugo 0.25.1" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta property="og:url" content="/blog/2019-03-20-pivot/">
+    <meta property="og:title" content="Econometrics and Free Software">
+    <meta property="og:image" content="/map[width:50 height:50 alt:Logo url:logo.png]">
+    <meta name="apple-mobile-web-app-title" content="Econometrics and Free Software">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <link rel="shortcut icon" type="image/x-icon" href="../../images/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="../../images/favicon.ico">
+
+    
+    <link rel="stylesheet" href="../../css/bootstrap.min.css" media="screen">
+    <link rel="stylesheet" href="../../css/custom.css">
+    <link rel="stylesheet" href="../../css/pygments.css">
+    
+    <link rel="stylesheet" href="../../css/jquery.fancybox.css?v=2.1.5" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/helpers/jquery.fancybox-buttons.css?v=1.0.5" type="text/css" media="screen" />
+  </head>
+  <body>
+
+
+<div class="row">
+<div class="navbar navbar-default navbar-fixed-top">
+<div class="container">
+  <div class="navbar-header">
+    <a href="../../" class="navbar-brand">Econometrics and Free Software</a>
+    <button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar-main">
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+    </button>
+  </div>
+  <div class="navbar-collapse collapse" id="navbar-main">
+
+    <ul class="nav navbar-nav navbar-right">
+      <li><a href="https://www.buymeacoffee.com/brodriguesco">Donate</a></li>
+      <li><a href="https://www.youtube.com/c/BrunoRodrigues1988">Youtube</a></li>
+      <li><a href="https://github.com/b-rodrigues/">Github</a></li>
+      <li><a href="https://twitter.com/brodriguesco/">Twitter</a></li>
+    </ul>
+  </div>
+</div>
+
+</div>
+
+<div class="container">
+
+  <div>
+    <div class="row">
+      <div class="col-lg-3 col-md-3 col-sm-4">
+        
+
+<div class="list-group table-of-contents">
+
+  
+    <a class="list-group-item" href=#><b>About Me</b></a>
+    
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../../about/about/">Who am I?</a>
+      
+      <a class="list-group-item" href="../../about/projects/">Projects</a>
+      
+      <a class="list-group-item" href="../../about/research/">Research</a>
+      
+      <a class="list-group-item" href="../../about/software/">Software</a>
+      
+    </div>
+    
+  
+    <a class="list-group-item" href=#><b>Blog</b></a>
+    
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../../blog/2018-11-25-tidy_cv/">A tutorial on tidy cross-validation with R</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-03-nethack_analysis/">Analyzing NetHack data, part 1: What kills the players</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-10-nethack_analysis_part2/">Analyzing NetHack data, part 2: What players kill the most</a>
+      
+      <a class="list-group-item" href="../../blog/2019-02-04-newspapers_shiny_app_tutorial/">Building a shiny app to explore historical newspapers: a step-by-step guide</a>
+      
+      <a class="list-group-item" href="../../blog/2019-03-03-historical_vowpal/">Classification of historical newspapers content: a tutorial combining R, bash and Vowpal Wabbit, part 1</a>
+      
+      <a class="list-group-item" href="../../blog/2019-03-05-historical_vowpal_part2/">Classification of historical newspapers content: a tutorial combining R, bash and Vowpal Wabbit, part 2</a>
+      
+      <a class="list-group-item" href="../../blog/2019-06-20-tidy_eval_saga/">Curly-Curly, the successor of Bang-Bang</a>
+      
+      <a class="list-group-item" href="../../blog/2018-07-08-rob_stderr/">Dealing with heteroskedasticity; regression with robust standard errors using R</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-14-luxairport/">Easy time-series prediction with R: a tutorial with air traffic data from Lux Airport</a>
+      
+      <a class="list-group-item" href="../../blog/2018-10-05-ggplot2_purrr_officer/">Exporting editable plots from R to Powerpoint: making ggplot2 purrr with officer</a>
+      
+      <a class="list-group-item" href="../../blog/2019-04-28-diffindiff_part1/">Fast food, causality and R packages, part 1</a>
+      
+      <a class="list-group-item" href="../../blog/2019-05-04-diffindiff_part2/">Fast food, causality and R packages, part 2</a>
+      
+      <a class="list-group-item" href="../../blog/2019-05-18-xml2/">For posterity: install {xml2} on GNU/Linux distros</a>
+      
+      <a class="list-group-item" href="../../blog/2018-06-24-fun_ts/">Forecasting my weight with R</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-01-nethack/">From webscraping data to releasing it as an R package to share with the world: a full tutorial with data from NetHack</a>
+      
+      <a class="list-group-item" href="../../blog/2019-03-31-tesseract/">Get text from pdfs or images using OCR: a tutorial with {tesseract} and {magick}</a>
+      
+      <a class="list-group-item" href="../../blog/2018-06-10-scraping_pdfs/">Getting data from pdfs using the pdftools package</a>
+      
+      <a class="list-group-item" href="../../blog/2018-10-21-lux_elections/">Getting the data from the Luxembourguish elections out of Excel</a>
+      
+      <a class="list-group-item" href="../../blog/2018-09-11-human_to_machine/">Going from a human readable Excel file to a machine-readable csv with {tidyxl}</a>
+      
+      <a class="list-group-item" href="../../blog/2019-04-07-historical_newspaper_scraping_tesseract/">Historical newspaper scraping with {tesseract} and R</a>
+      
+      <a class="list-group-item" href="../../blog/2018-09-15-time_use/">How Luxembourguish residents spend their time: a small {flexdashboard} demo using the Time use survey data</a>
+      
+      <a class="list-group-item" href="../../blog/2018-04-14-playing_with_furrr/">Imputing missing values in parallel using {furrr}</a>
+      
+      <a class="list-group-item" href="../../blog/2019-06-12-intermittent/">Intermittent demand, Croston and Die Hard</a>
+      
+      <a class="list-group-item" href="../../blog/2019-01-04-newspapers/">Looking into 19th century ads from a Luxembourguish newspaper with R</a>
+      
+      <a class="list-group-item" href="../../blog/2019-01-13-newspapers_mets_alto/">Making sense of the METS and ALTO XML standards</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-15-lubridate_africa/">Manipulate dates easily with {lubridate}</a>
+      
+      <a class="list-group-item" href="../../blog/2019-02-10-stringr_package/">Manipulating strings with the {stringr} package</a>
+      
+      <a class="list-group-item" href="../../blog/2018-10-27-lux_elections_analysis/">Maps with pie charts on top of each administrative division: an example with Luxembourg&#39;s elections data</a>
+      
+      <a class="list-group-item" href="../../blog/2018-07-01-tidy_ive/">Missing data imputation and instrumental variables regression: the tidy approach</a>
+      
+      <a class="list-group-item" href="../../blog/2019-08-17-modern_r/">Modern R with the tidyverse is available on Leanpub</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-24-modern_objects/">Objects types and some useful R functions for beginners</a>
+      
+      <a class="list-group-item" href="../../blog/2019-03-20-pivot/">Pivoting data frames just got easier thanks to `pivot_wide()` and `pivot_long()`</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-30-reticulate/">R or Python? Why not both? Using Anaconda Python within R with {reticulate}</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-15-tidy_gridsearch/">Searching for the optimal hyper-parameters of an ARIMA model in parallel: the tidy gridsearch approach</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-27-fun_gganimate/">Some fun with {gganimate}</a>
+      
+      <a class="list-group-item" href="../../blog/2019-10-05-parallel_maxlik/">Split-apply-combine for Maximum Likelihood Estimation of a linear model</a>
+      
+      <a class="list-group-item" href="../../blog/2019-07-19-statmatch/">Statistical matching, or when one single data source is not enough</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-21-lux_castle/">The best way to visit Luxembourguish castles is doing data science &#43; combinatorial optimization</a>
+      
+      <a class="list-group-item" href="../../blog/2019-05-19-spacemacs/">The never-ending editor war (?)</a>
+      
+      <a class="list-group-item" href="../../blog/2018-09-08-steam_linux/">The year of the GNU&#43;Linux desktop is upon us: using user ratings of Steam Play compatibility to play around with regex and the tidyverse</a>
+      
+      <a class="list-group-item" href="../../blog/2019-01-31-newspapers_shiny_app/">Using Data Science to read 10 years of Luxembourguish newspapers from the 19th century</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-16-rgenoud_arima/">Using a genetic algorithm for the hyperparameter optimization of a SARIMA model</a>
+      
+      <a class="list-group-item" href="../../blog/2019-06-04-cosine_sim/">Using cosine similarity to find matching documents: a tutorial using Seneca&#39;s letters to his friend Lucilius</a>
+      
+      <a class="list-group-item" href="../../blog/2019-08-14-lpm/">Using linear models with binary dependent variables, a simulation study</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-21-tidyverse_pi/">Using the tidyverse for more than data manipulation: estimating pi with Monte Carlo methods</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-02-hyper-parameters/">What hyper-parameters are, and what to do with them; an illustration with ridge regression</a>
+      
+      <a class="list-group-item" href="../../blog/2019-09-03-disk_frame/">{disk.frame} is epic</a>
+      
+      <a class="list-group-item" href="../../blog/2018-04-15-announcing_pmice/">{pmice}, an experimental package for missing data imputation in parallel using {mice} and {furrr}</a>
+      
+      <a class="list-group-item" href="../../blog/2017-12-27-build_formulae/">Building formulae</a>
+      
+      <a class="list-group-item" href="../../blog/2017-11-14-peace_r/">Functional peace of mind</a>
+      
+      <a class="list-group-item" href="../../blog/2018-04-10-brotools_describe/">Get basic summary statistics for all the variables in a data frame</a>
+      
+      <a class="list-group-item" href="../../blog/2018-03-03-sparklyr_h2o_rsparkling/">Getting {sparklyr}, {h2o}, {rsparkling} to work together and some fun with bash</a>
+      
+      <a class="list-group-item" href="../../blog/2018-02-16-importing_30gb_of_data/">Importing 30GB of data into R with sparklyr</a>
+      
+      <a class="list-group-item" href="../../blog/2017-03-27-introducing_brotools/">Introducing brotools</a>
+      
+      <a class="list-group-item" href="../../blog/2018-01-03-lists_all_the_way/">It&#39;s lists all the way down</a>
+      
+      <a class="list-group-item" href="../../blog/2018-01-05-lists_all_the_way2/">It&#39;s lists all the way down, part 2: We need to go deeper</a>
+      
+      <a class="list-group-item" href="../../blog/2018-03-12-keep_trying/">Keep trying that api call with purrr::possibly()</a>
+      
+      <a class="list-group-item" href="../../blog/2017-06-19-dplyr-0-70-tutorial/">Lesser known dplyr 0.7* tricks</a>
+      
+      <a class="list-group-item" href="../../blog/2017-02-17-lesser_known_tricks/">Lesser known dplyr tricks</a>
+      
+      <a class="list-group-item" href="../../blog/2017-03-24-lesser_known_purrr/">Lesser known purrr tricks</a>
+      
+      <a class="list-group-item" href="../../blog/2017-03-29-make-ggplot2-purrr/">Make ggplot2 purrr</a>
+      
+      <a class="list-group-item" href="../../blog/2018-01-19-mapping_functions_with_any_cols/">Mapping a list of functions to a list of datasets with a list of columns as arguments</a>
+      
+      <a class="list-group-item" href="../../blog/2018-02-11-census-random_forest/">Predicting job search by training a random forest on an unbalanced dataset</a>
+      
+      <a class="list-group-item" href="../../blog/2017-12-17-teaching_tidyverse/">Teaching the tidyverse to beginners</a>
+      
+      <a class="list-group-item" href="../../blog/2017-08-27-why_tidyeval/">Why I find tidyeval useful</a>
+      
+      <a class="list-group-item" href="../../blog/2017-07-27-spread_rename_at/">tidyr::spread() and dplyr::rename_at() in action</a>
+      
+      <a class="list-group-item" href="../../blog/2017-10-26-margins_r/">Easy peasy STATA-like marginal effects with R</a>
+      
+      <a class="list-group-item" href="../../blog/2016-12-24-functional-programming-and-unit-testing-for-data-munging-with-r-available-on-leanpub/">Functional programming and unit testing for data munging with R available on Leanpub</a>
+      
+      <a class="list-group-item" href="../../blog/2017-02-17-how_to_use_jailbreakr/">How to use jailbreakr</a>
+      
+      <a class="list-group-item" href="../../blog/2017-01-07-my-free-book-has-a-cover/">My free book has a cover!</a>
+      
+      <a class="list-group-item" href="../../blog/2016-12-21-work-on-lists-of-datasets-instead-of-individual-datasets-by-using-functional-programming/">Work on lists of datasets instead of individual datasets by using functional programming</a>
+      
+      <a class="list-group-item" href="../../blog/2013-01-29-method-of-simulated-moments-with-r/">Method of Simulated Moments with R</a>
+      
+      <a class="list-group-item" href="../../blog/2012-12-11-new-website/">New website!</a>
+      
+      <a class="list-group-item" href="../../blog/2013-11-07-gmm-with-rmd/">Nonlinear Gmm with R - Example with a logistic regression</a>
+      
+      <a class="list-group-item" href="../../blog/2013-01-16-simulated-maximum-likelihood-with-r/">Simulated Maximum Likelihood with R</a>
+      
+      <a class="list-group-item" href="../../blog/2015-11-11-bootstrapping-did-with-r/">Bootstrapping standard errors for difference-in-differences estimation with R</a>
+      
+      <a class="list-group-item" href="../../blog/2016-06-21-careful-with-trycatch/">Careful with tryCatch</a>
+      
+      <a class="list-group-item" href="../../blog/2016-07-18-data-frame-columns-as-arguments-to-dplyr-functions/">Data frame columns as arguments to dplyr functions</a>
+      
+      <a class="list-group-item" href="../../blog/2015-02-22-export-r-output-to-file/">Export R output to a file</a>
+      
+      <a class="list-group-item" href="../../blog/2016-11-04-ive-started-writing-a-book-functional-programming-and-unit-testing-for-data-munging-with-r/">I&#39;ve started writing a &#39;book&#39;: Functional programming and unit testing for data munging with R</a>
+      
+      <a class="list-group-item" href="../../blog/2015-01-12-introduction-to-programming-econometrics-with-r/">Introduction to programming econometrics with R</a>
+      
+      <a class="list-group-item" href="../../blog/2016-07-30-merge-a-list-of-datasets-together/">Merge a list of datasets together</a>
+      
+      <a class="list-group-item" href="../../blog/2014-04-23-r-s4-rootfinding/">Object Oriented Programming with R: An example with a Cournot duopoly</a>
+      
+      <a class="list-group-item" href="../../blog/2014-11-11-benchmarks-r-blas-atlas-rro/">R, R with Atlas, R with OpenBLAS and Revolution R Open: which is fastest?</a>
+      
+      <a class="list-group-item" href="../../blog/2016-07-26-read-a-lot-of-datasets-at-once-with-r/">Read a lot of datasets at once with R</a>
+      
+      <a class="list-group-item" href="../../blog/2016-03-31-unit-testing-with-r/">Unit testing with R</a>
+      
+      <a class="list-group-item" href="../../blog/2015-05-03-update-introduction-r-programming/">Update to Introduction to programming econometrics with R</a>
+      
+      <a class="list-group-item" href="../../blog/2013-12-31-r-cas/">Using R as a Computer Algebra System with Ryacas</a>
+      
+    </div>
+    
+  
+
+</div>
+
+      </div>
+      <div class="col-lg-9 col-md-9 col-sm-8">
+        <div>
+           <h1 id="main">Pivoting data frames just got easier thanks to `pivot_wide()` and `pivot_long()`</h1>
+           <span class="article-date">March 20, 2019</span>
+        </div>
+        <div style="text-align:center;">
+<p><a href="https://youtu.be/R2u0sN9stbA?t=69">
+<img src="../../img/pivot.jpg" title = "You know where this leads"></a></p>
+</div>
+<p>There’s a lot going on in the development version of <code>{tidyr}</code>. New functions for pivoting data
+frames, <code>pivot_wide()</code> and <code>pivot_long()</code> are coming, and will replace the current functions,
+<code>spread()</code> and <code>gather()</code>. <code>spread()</code> and <code>gather()</code> will remain in the package though:</p>
+<blockquote class="twitter-tweet"><p lang="en" dir="ltr">You may have heard a rumour that gather/spread are going away. This is simply not true (they’ll stay around forever) but I am working on better replacements which you can learn about at <a href="https://t.co/sU2GzWeBaf">https://t.co/sU2GzWeBaf</a>. Now is a great time for feedback! <a href="https://twitter.com/hashtag/rstats?src=hash&amp;ref_src=twsrc%5Etfw">#rstats</a></p>&mdash; Hadley Wickham (@hadleywickham) <a href="https://twitter.com/hadleywickham/status/1108107722128613377?ref_src=twsrc%5Etfw">March 19, 2019</a></blockquote>
+<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+<p>If you want to try out these new functions, you need to install the development version of <code>{tidyr}</code>:</p>
+<pre class="r"><code>devtools::install_github(&quot;tidyverse/tidyr&quot;)</code></pre>
+<p>and you can read the vignette <a href="https://tidyr.tidyverse.org/dev/articles/pivot.html#many-variables-in-column-names">here</a>.
+Because these functions are still being developed, some more changes might be introduced, but I guess
+that the main functionality will not change much.</p>
+<p>Let’s play around with these functions and the <code>mtcars</code> data set. First let’s load the packages and
+the data:</p>
+<pre class="r"><code>library(tidyverse)
+data(mtcars)</code></pre>
+<p>First, let’s create a wide dataset, by <em>spreading</em> the levels of the “am” column to two new columns:</p>
+<pre class="r"><code>mtcars_wide1 &lt;- mtcars %&gt;% 
+    pivot_wide(names_from = &quot;am&quot;, values_from = &quot;mpg&quot;) 
+
+mtcars_wide1 %&gt;% 
+    select(`0`, `1`, everything())</code></pre>
+<pre><code>## # A tibble: 32 x 11
+##      `0`   `1`   cyl  disp    hp  drat    wt  qsec    vs  gear  carb
+##    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+##  1  NA    21       6  160    110  3.9   2.62  16.5     0     4     4
+##  2  NA    21       6  160    110  3.9   2.88  17.0     0     4     4
+##  3  NA    22.8     4  108     93  3.85  2.32  18.6     1     4     1
+##  4  21.4  NA       6  258    110  3.08  3.22  19.4     1     3     1
+##  5  18.7  NA       8  360    175  3.15  3.44  17.0     0     3     2
+##  6  18.1  NA       6  225    105  2.76  3.46  20.2     1     3     1
+##  7  14.3  NA       8  360    245  3.21  3.57  15.8     0     3     4
+##  8  24.4  NA       4  147.    62  3.69  3.19  20       1     4     2
+##  9  22.8  NA       4  141.    95  3.92  3.15  22.9     1     4     2
+## 10  19.2  NA       6  168.   123  3.92  3.44  18.3     1     4     4
+## # … with 22 more rows</code></pre>
+<p><code>pivot_wide()</code>’s arguments are quite explicit: <code>names_from =</code> is where you specify the column that
+will be spread across the data frame, meaning, the levels of this column will become new columns.
+<code>values_from =</code> is where you specify the column that will fill in the values of the new columns.</p>
+<p>“0” and “1” are the new columns (“am” had two levels, <code>0</code> and <code>1</code>), which contain the miles per
+gallon for manual and automatic cars respectively. Let’s also take a look at the data frame itself:</p>
+<pre class="r"><code>mtcars_wide1 %&gt;% 
+    select(`0`, `1`, everything())</code></pre>
+<pre><code>## # A tibble: 32 x 11
+##      `0`   `1`   cyl  disp    hp  drat    wt  qsec    vs  gear  carb
+##    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+##  1  NA    21       6  160    110  3.9   2.62  16.5     0     4     4
+##  2  NA    21       6  160    110  3.9   2.88  17.0     0     4     4
+##  3  NA    22.8     4  108     93  3.85  2.32  18.6     1     4     1
+##  4  21.4  NA       6  258    110  3.08  3.22  19.4     1     3     1
+##  5  18.7  NA       8  360    175  3.15  3.44  17.0     0     3     2
+##  6  18.1  NA       6  225    105  2.76  3.46  20.2     1     3     1
+##  7  14.3  NA       8  360    245  3.21  3.57  15.8     0     3     4
+##  8  24.4  NA       4  147.    62  3.69  3.19  20       1     4     2
+##  9  22.8  NA       4  141.    95  3.92  3.15  22.9     1     4     2
+## 10  19.2  NA       6  168.   123  3.92  3.44  18.3     1     4     4
+## # … with 22 more rows</code></pre>
+<p>Now suppose that we want to spread the values of “am” times “cyl”, and filling the data with the
+values of “mpg”:</p>
+<pre class="r"><code>mtcars_wide2 &lt;- mtcars %&gt;% 
+    pivot_wide(names_from = c(&quot;am&quot;, &quot;cyl&quot;), values_from = &quot;mpg&quot;) 
+
+mtcars_wide2 %&gt;% 
+    select(matches(&quot;^0|1&quot;), everything())</code></pre>
+<pre><code>## # A tibble: 32 x 14
+##    `1_6` `1_4` `0_6` `0_8` `0_4` `1_8`  disp    hp  drat    wt  qsec    vs
+##    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+##  1    21  NA    NA    NA    NA      NA  160    110  3.9   2.62  16.5     0
+##  2    21  NA    NA    NA    NA      NA  160    110  3.9   2.88  17.0     0
+##  3    NA  22.8  NA    NA    NA      NA  108     93  3.85  2.32  18.6     1
+##  4    NA  NA    21.4  NA    NA      NA  258    110  3.08  3.22  19.4     1
+##  5    NA  NA    NA    18.7  NA      NA  360    175  3.15  3.44  17.0     0
+##  6    NA  NA    18.1  NA    NA      NA  225    105  2.76  3.46  20.2     1
+##  7    NA  NA    NA    14.3  NA      NA  360    245  3.21  3.57  15.8     0
+##  8    NA  NA    NA    NA    24.4    NA  147.    62  3.69  3.19  20       1
+##  9    NA  NA    NA    NA    22.8    NA  141.    95  3.92  3.15  22.9     1
+## 10    NA  NA    19.2  NA    NA      NA  168.   123  3.92  3.44  18.3     1
+## # … with 22 more rows, and 2 more variables: gear &lt;dbl&gt;, carb &lt;dbl&gt;</code></pre>
+<p>As you can see, this is easily achieved by simply providing more columns to <code>names_from =</code>.</p>
+<p>Finally, it is also possible to use an optional data set which contains the specifications of the
+new columns:</p>
+<pre class="r"><code>mtcars_spec &lt;- mtcars %&gt;% 
+    expand(am, cyl, .value = &quot;mpg&quot;) %&gt;%
+    unite(&quot;.name&quot;, am, cyl, remove = FALSE)
+
+mtcars_spec</code></pre>
+<pre><code>## # A tibble: 6 x 4
+##   .name    am   cyl .value
+##   &lt;chr&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt; 
+## 1 0_4       0     4 mpg   
+## 2 0_6       0     6 mpg   
+## 3 0_8       0     8 mpg   
+## 4 1_4       1     4 mpg   
+## 5 1_6       1     6 mpg   
+## 6 1_8       1     8 mpg</code></pre>
+<p>This optional data set defines how the columns “0_4”, “0_6” etc are constructed, and also the
+value that shall be used to fill in the values. “am” and “cyl” will be used to create the “.name”
+and the “mpg” column will be used for the “.value”:</p>
+<pre class="r"><code>mtcars %&gt;% 
+    pivot_wide(spec = mtcars_spec) %&gt;% 
+    select(matches(&quot;^0|1&quot;), everything())</code></pre>
+<pre><code>## # A tibble: 32 x 14
+##    `0_4` `0_6` `0_8` `1_4` `1_6` `1_8`  disp    hp  drat    wt  qsec    vs
+##    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+##  1  NA    NA    NA    NA      21    NA  160    110  3.9   2.62  16.5     0
+##  2  NA    NA    NA    NA      21    NA  160    110  3.9   2.88  17.0     0
+##  3  NA    NA    NA    22.8    NA    NA  108     93  3.85  2.32  18.6     1
+##  4  NA    21.4  NA    NA      NA    NA  258    110  3.08  3.22  19.4     1
+##  5  NA    NA    18.7  NA      NA    NA  360    175  3.15  3.44  17.0     0
+##  6  NA    18.1  NA    NA      NA    NA  225    105  2.76  3.46  20.2     1
+##  7  NA    NA    14.3  NA      NA    NA  360    245  3.21  3.57  15.8     0
+##  8  24.4  NA    NA    NA      NA    NA  147.    62  3.69  3.19  20       1
+##  9  22.8  NA    NA    NA      NA    NA  141.    95  3.92  3.15  22.9     1
+## 10  NA    19.2  NA    NA      NA    NA  168.   123  3.92  3.44  18.3     1
+## # … with 22 more rows, and 2 more variables: gear &lt;dbl&gt;, carb &lt;dbl&gt;</code></pre>
+<p>Using a spec is especially useful if you need to make new levels that are not in the data.
+For instance, suppose that there are actually 10-cylinder cars too, but they do not appear in our
+sample. We would like to make the fact that they’re missing explicit:</p>
+<pre class="r"><code>mtcars_spec2 &lt;- mtcars %&gt;% 
+    expand(am, &quot;cyl&quot; = c(cyl, 10), .value = &quot;mpg&quot;) %&gt;%
+    unite(&quot;.name&quot;, am, cyl, remove = FALSE)
+
+mtcars_spec2</code></pre>
+<pre><code>## # A tibble: 8 x 4
+##   .name    am   cyl .value
+##   &lt;chr&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt; 
+## 1 0_4       0     4 mpg   
+## 2 0_6       0     6 mpg   
+## 3 0_8       0     8 mpg   
+## 4 0_10      0    10 mpg   
+## 5 1_4       1     4 mpg   
+## 6 1_6       1     6 mpg   
+## 7 1_8       1     8 mpg   
+## 8 1_10      1    10 mpg</code></pre>
+<pre class="r"><code>mtcars %&gt;% 
+    pivot_wide(spec = mtcars_spec2) %&gt;% 
+    select(matches(&quot;^0|1&quot;), everything())</code></pre>
+<pre><code>## # A tibble: 32 x 16
+##    `0_4` `0_6` `0_8` `0_10` `1_4` `1_6` `1_8` `1_10`  disp    hp  drat
+##    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+##  1  NA    NA    NA       NA  NA      21    NA     NA  160    110  3.9 
+##  2  NA    NA    NA       NA  NA      21    NA     NA  160    110  3.9 
+##  3  NA    NA    NA       NA  22.8    NA    NA     NA  108     93  3.85
+##  4  NA    21.4  NA       NA  NA      NA    NA     NA  258    110  3.08
+##  5  NA    NA    18.7     NA  NA      NA    NA     NA  360    175  3.15
+##  6  NA    18.1  NA       NA  NA      NA    NA     NA  225    105  2.76
+##  7  NA    NA    14.3     NA  NA      NA    NA     NA  360    245  3.21
+##  8  24.4  NA    NA       NA  NA      NA    NA     NA  147.    62  3.69
+##  9  22.8  NA    NA       NA  NA      NA    NA     NA  141.    95  3.92
+## 10  NA    19.2  NA       NA  NA      NA    NA     NA  168.   123  3.92
+## # … with 22 more rows, and 5 more variables: wt &lt;dbl&gt;, qsec &lt;dbl&gt;,
+## #   vs &lt;dbl&gt;, gear &lt;dbl&gt;, carb &lt;dbl&gt;</code></pre>
+<p>As you can see, we now have two more columns have been added, and they are full of NA’s.</p>
+<p>Now, let’s try to go from wide to long data sets, using <code>pivot_long()</code>:</p>
+<pre class="r"><code>mtcars_wide1 %&gt;% 
+  pivot_long(cols = c(`1`, `0`), names_to = &quot;am&quot;, values_to = &quot;mpg&quot;) %&gt;% 
+  select(am, mpg, everything())</code></pre>
+<pre><code>## # A tibble: 64 x 11
+##    am      mpg   cyl  disp    hp  drat    wt  qsec    vs  gear  carb
+##    &lt;chr&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+##  1 1      21       6   160   110  3.9   2.62  16.5     0     4     4
+##  2 0      NA       6   160   110  3.9   2.62  16.5     0     4     4
+##  3 1      21       6   160   110  3.9   2.88  17.0     0     4     4
+##  4 0      NA       6   160   110  3.9   2.88  17.0     0     4     4
+##  5 1      22.8     4   108    93  3.85  2.32  18.6     1     4     1
+##  6 0      NA       4   108    93  3.85  2.32  18.6     1     4     1
+##  7 1      NA       6   258   110  3.08  3.22  19.4     1     3     1
+##  8 0      21.4     6   258   110  3.08  3.22  19.4     1     3     1
+##  9 1      NA       8   360   175  3.15  3.44  17.0     0     3     2
+## 10 0      18.7     8   360   175  3.15  3.44  17.0     0     3     2
+## # … with 54 more rows</code></pre>
+<p>The arguments of <code>pivot_long()</code> are quite explicit too, and similar to the ones in <code>pivot_wide()</code>.
+<code>cols =</code> is where the user specifies the columns that need to be pivoted. <code>names_to =</code> is where
+the user can specify the name of the new columns, whose levels will be exactly the ones specified
+to <code>cols =</code>. <code>values_to =</code> is where the user specifies the column name of the new column that
+will contain the values.</p>
+<p>It is also possible to specify the columns that should not be transformed, by using <code>-</code>:</p>
+<pre class="r"><code>mtcars_wide1 %&gt;% 
+  pivot_long(cols = -matches(&quot;^[[:alpha:]]&quot;), names_to = &quot;am&quot;, values_to = &quot;mpg&quot;) %&gt;% 
+  select(am, mpg, everything())</code></pre>
+<pre><code>## # A tibble: 64 x 11
+##    am      mpg   cyl  disp    hp  drat    wt  qsec    vs  gear  carb
+##    &lt;chr&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+##  1 1      21       6   160   110  3.9   2.62  16.5     0     4     4
+##  2 0      NA       6   160   110  3.9   2.62  16.5     0     4     4
+##  3 1      21       6   160   110  3.9   2.88  17.0     0     4     4
+##  4 0      NA       6   160   110  3.9   2.88  17.0     0     4     4
+##  5 1      22.8     4   108    93  3.85  2.32  18.6     1     4     1
+##  6 0      NA       4   108    93  3.85  2.32  18.6     1     4     1
+##  7 1      NA       6   258   110  3.08  3.22  19.4     1     3     1
+##  8 0      21.4     6   258   110  3.08  3.22  19.4     1     3     1
+##  9 1      NA       8   360   175  3.15  3.44  17.0     0     3     2
+## 10 0      18.7     8   360   175  3.15  3.44  17.0     0     3     2
+## # … with 54 more rows</code></pre>
+<p>Here the columns that should not be modified are all those that start with a letter, hence the “<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a>”
+regular expression. It is also possible to remove all the <code>NA</code>’s from the data frame, with <code>na.rm =</code>.</p>
+<pre class="r"><code>mtcars_wide1 %&gt;% 
+  pivot_long(cols = c(`1`, `0`), names_to = &quot;am&quot;, values_to = &quot;mpg&quot;, na.rm = TRUE) %&gt;% 
+  select(am, mpg, everything())</code></pre>
+<pre><code>## # A tibble: 32 x 11
+##    am      mpg   cyl  disp    hp  drat    wt  qsec    vs  gear  carb
+##    &lt;chr&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+##  1 1      21       6  160    110  3.9   2.62  16.5     0     4     4
+##  2 1      21       6  160    110  3.9   2.88  17.0     0     4     4
+##  3 1      22.8     4  108     93  3.85  2.32  18.6     1     4     1
+##  4 0      21.4     6  258    110  3.08  3.22  19.4     1     3     1
+##  5 0      18.7     8  360    175  3.15  3.44  17.0     0     3     2
+##  6 0      18.1     6  225    105  2.76  3.46  20.2     1     3     1
+##  7 0      14.3     8  360    245  3.21  3.57  15.8     0     3     4
+##  8 0      24.4     4  147.    62  3.69  3.19  20       1     4     2
+##  9 0      22.8     4  141.    95  3.92  3.15  22.9     1     4     2
+## 10 0      19.2     6  168.   123  3.92  3.44  18.3     1     4     4
+## # … with 22 more rows</code></pre>
+<p>We can also pivot data frames where the names of the columns are made of two or more variables,
+for example in our <code>mtcars_wide2</code> data frame:</p>
+<pre class="r"><code>mtcars_wide2 %&gt;% 
+    select(matches(&quot;^0|1&quot;), everything())</code></pre>
+<pre><code>## # A tibble: 32 x 14
+##    `1_6` `1_4` `0_6` `0_8` `0_4` `1_8`  disp    hp  drat    wt  qsec    vs
+##    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+##  1    21  NA    NA    NA    NA      NA  160    110  3.9   2.62  16.5     0
+##  2    21  NA    NA    NA    NA      NA  160    110  3.9   2.88  17.0     0
+##  3    NA  22.8  NA    NA    NA      NA  108     93  3.85  2.32  18.6     1
+##  4    NA  NA    21.4  NA    NA      NA  258    110  3.08  3.22  19.4     1
+##  5    NA  NA    NA    18.7  NA      NA  360    175  3.15  3.44  17.0     0
+##  6    NA  NA    18.1  NA    NA      NA  225    105  2.76  3.46  20.2     1
+##  7    NA  NA    NA    14.3  NA      NA  360    245  3.21  3.57  15.8     0
+##  8    NA  NA    NA    NA    24.4    NA  147.    62  3.69  3.19  20       1
+##  9    NA  NA    NA    NA    22.8    NA  141.    95  3.92  3.15  22.9     1
+## 10    NA  NA    19.2  NA    NA      NA  168.   123  3.92  3.44  18.3     1
+## # … with 22 more rows, and 2 more variables: gear &lt;dbl&gt;, carb &lt;dbl&gt;</code></pre>
+<p>All the columns that start with either “0” or “1” must be pivoted:</p>
+<pre class="r"><code>mtcars_wide2 %&gt;% 
+  pivot_long(cols = matches(&quot;0|1&quot;), names_to = &quot;am_cyl&quot;, values_to = &quot;mpg&quot;, na.rm = TRUE) %&gt;% 
+  select(am_cyl, everything())</code></pre>
+<pre><code>## # A tibble: 32 x 10
+##    am_cyl  disp    hp  drat    wt  qsec    vs  gear  carb   mpg
+##    &lt;chr&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+##  1 1_6     160    110  3.9   2.62  16.5     0     4     4  21  
+##  2 1_6     160    110  3.9   2.88  17.0     0     4     4  21  
+##  3 1_4     108     93  3.85  2.32  18.6     1     4     1  22.8
+##  4 0_6     258    110  3.08  3.22  19.4     1     3     1  21.4
+##  5 0_8     360    175  3.15  3.44  17.0     0     3     2  18.7
+##  6 0_6     225    105  2.76  3.46  20.2     1     3     1  18.1
+##  7 0_8     360    245  3.21  3.57  15.8     0     3     4  14.3
+##  8 0_4     147.    62  3.69  3.19  20       1     4     2  24.4
+##  9 0_4     141.    95  3.92  3.15  22.9     1     4     2  22.8
+## 10 0_6     168.   123  3.92  3.44  18.3     1     4     4  19.2
+## # … with 22 more rows</code></pre>
+<p>Now, there is one new column, “am_cyl” which must still be transformed by separating “am_cyl” into two new columns:</p>
+<pre class="r"><code>mtcars_wide2 %&gt;% 
+  pivot_long(cols = matches(&quot;0|1&quot;), names_to = &quot;am_cyl&quot;, values_to = &quot;mpg&quot;, na.rm = TRUE) %&gt;% 
+  separate(am_cyl, into = c(&quot;am&quot;, &quot;cyl&quot;), sep = &quot;_&quot;) %&gt;% 
+  select(am, cyl, everything())</code></pre>
+<pre><code>## # A tibble: 32 x 11
+##    am    cyl    disp    hp  drat    wt  qsec    vs  gear  carb   mpg
+##    &lt;chr&gt; &lt;chr&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+##  1 1     6      160    110  3.9   2.62  16.5     0     4     4  21  
+##  2 1     6      160    110  3.9   2.88  17.0     0     4     4  21  
+##  3 1     4      108     93  3.85  2.32  18.6     1     4     1  22.8
+##  4 0     6      258    110  3.08  3.22  19.4     1     3     1  21.4
+##  5 0     8      360    175  3.15  3.44  17.0     0     3     2  18.7
+##  6 0     6      225    105  2.76  3.46  20.2     1     3     1  18.1
+##  7 0     8      360    245  3.21  3.57  15.8     0     3     4  14.3
+##  8 0     4      147.    62  3.69  3.19  20       1     4     2  24.4
+##  9 0     4      141.    95  3.92  3.15  22.9     1     4     2  22.8
+## 10 0     6      168.   123  3.92  3.44  18.3     1     4     4  19.2
+## # … with 22 more rows</code></pre>
+<p>It is also possible to achieve this using a data frame with the specification of what you need:</p>
+<pre class="r"><code>mtcars_spec_long &lt;- mtcars_wide2 %&gt;% 
+  pivot_long_spec(matches(&quot;0|1&quot;), values_to = &quot;mpg&quot;) %&gt;% 
+  separate(name, c(&quot;am&quot;, &quot;cyl&quot;), sep = &quot;_&quot;)
+
+mtcars_spec_long</code></pre>
+<pre><code>## # A tibble: 6 x 4
+##   .name .value am    cyl  
+##   &lt;chr&gt; &lt;chr&gt;  &lt;chr&gt; &lt;chr&gt;
+## 1 1_6   mpg    1     6    
+## 2 1_4   mpg    1     4    
+## 3 0_6   mpg    0     6    
+## 4 0_8   mpg    0     8    
+## 5 0_4   mpg    0     4    
+## 6 1_8   mpg    1     8</code></pre>
+<p>Providing this spec to <code>pivot_long()</code> solves the issue:</p>
+<pre class="r"><code>mtcars_wide2 %&gt;% 
+  pivot_long(spec = mtcars_spec_long, na.rm = TRUE) %&gt;% 
+  select(am, cyl, everything())</code></pre>
+<pre><code>## # A tibble: 32 x 11
+##    am    cyl    disp    hp  drat    wt  qsec    vs  gear  carb   mpg
+##    &lt;chr&gt; &lt;chr&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+##  1 1     6      160    110  3.9   2.62  16.5     0     4     4  21  
+##  2 1     6      160    110  3.9   2.88  17.0     0     4     4  21  
+##  3 1     4      108     93  3.85  2.32  18.6     1     4     1  22.8
+##  4 0     6      258    110  3.08  3.22  19.4     1     3     1  21.4
+##  5 0     8      360    175  3.15  3.44  17.0     0     3     2  18.7
+##  6 0     6      225    105  2.76  3.46  20.2     1     3     1  18.1
+##  7 0     8      360    245  3.21  3.57  15.8     0     3     4  14.3
+##  8 0     4      147.    62  3.69  3.19  20       1     4     2  24.4
+##  9 0     4      141.    95  3.92  3.15  22.9     1     4     2  22.8
+## 10 0     6      168.   123  3.92  3.44  18.3     1     4     4  19.2
+## # … with 22 more rows</code></pre>
+<p>Stay tuned to Hadley Wickham’s <a href="https://twitter.com/hadleywickham">twitter</a> as there will definitely
+be announcements soon!</p>
+<p>Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>.</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>[:alpha:]<a href="#fnref1" class="footnote-back">↩</a></p></li>
+</ol>
+</div>
+
+      </div>
+    </div>
+  <div class="row">
+    <div class="col-lg-9 col-md-9 col-sm-8 col-lg-offset-3 col-md-offset-3">
+    <footer>
+  <div class="row">
+    <div class="col-lg-12">
+      <p>Copyright 2020. <a> Bruno Rodrigues</a> </p>
+      <p>Made with the HUGO theme <a href="https://github.com/adejoux/hugo-darkdoc-theme" rel="nofollow">darkdoc</a>.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+
+    </div>
+  </div>
+
+</div>
+</html>
+<script>
+
+  var api_url = '';
+
+</script>
+<script src="//code.jquery.com/jquery-2.2.3.min.js"></script>
+<script src="../../js/application.js"></script>
+<script type="text/javascript" src="../../js/jquery.fancybox.pack.js?v=2.1.5"></script>
+<script type="text/javascript" src="../../js/helpers/jquery.fancybox-thumbs.js?v=1.0.7"></script>
+<script type="text/javascript" src="../../js/helpers/jquery.fancybox-buttons.js?v=1.0.5"></script>
+<script type="text/javascript" src="../../js/helpers/jquery.fancybox-media.js?v=1.0.6"></script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $(".fancybox").fancybox();
+  });
+</script>
+

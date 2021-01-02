@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<style type=text/css>body{font-family:monospace;}</style>
+	<title>Building apps with {shinipsum} and {golem}</title>
+	
+	
+	<link rel="stylesheet" href="/css/style.css">
+	
+	
+</head>
+<body>
+	<header>
+<p><a class="nav-link" href="/index.html">Econometrics and Free Software</a> by <a class="nav-link" href="/about/about">Bruno Rodrigues</a>.</p>
+<p>Follow me on <a href="https://twitter.com/brodriguesco" rel="nofollow">twitter</a>.</p>
+<p>Watch my <a href="https://www.youtube.com/user/cbrunos" rel="nofollow">youtube</a> channel.</p>
+</header>
+
+	
+	<main>
+		<article>
+			<h1>Building apps with {shinipsum} and {golem}</h1>
+			<b><time>2020/09/27</time></b>
+		       
+		           <a href="/tags/r">R</a>
+        	       
+
+			<div>
+				<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<div style="text-align:center;">
+<p><a href="https://www.youtube.com/watch?v=B35E8QleVhg">
+<img src="/img/golem.png" title = "Only 90's kids will get it"></a></p>
+</div>
+<p><a href="https://www.brodrigues.co/blog/2020-09-20-shiny_raspberry/">In my previous blog post</a> I showed you
+how I set up my own Shiny server using a Raspberry Pi 4B. If you visited the following
+<a href="https://www.brodrigues.co/blog/2020-09-20-shiny_raspberry/">link</a> you’ll be connecting to my
+Raspberry Pi and can play around with a Shiny app that I called <code>golemDemo</code>.
+It’s been quite a few months that I wanted to discuss this app:</p>
+<blockquote class="twitter-tweet"><p lang="en" dir="ltr">A little prototype app I&#39;m working on to learn more about <a href="https://twitter.com/thinkR_fr?ref_src=twsrc%5Etfw">@thinkR_fr</a> &#39;s {golem} and interaction between modules, YouTube video coming later this week <a href="https://t.co/DRfM2KqqQf">pic.twitter.com/DRfM2KqqQf</a></p>&mdash; Bruno Rodrigues (@brodriguesco) <a href="https://twitter.com/brodriguesco/status/1277671383573704706?ref_src=twsrc%5Etfw">June 29, 2020</a></blockquote>
+<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+<p>So the tweet mentions that a video was coming in the following week and you’ll notice that the tweet
+was made on… June 29th, and still no video. As I said in my previous blog post, I’ve been busy.
+Anyways, here’s already a blog post, and I might still do a video where I’ll go into greater detail.
+I think that videos are quite nice to walk an audience through an app, but it works best with an
+accompanying blog post where I can comment some more complicated snippets of code.</p>
+<div id="why-golem" class="section level1">
+<h1>Why <code>{golem}</code>?</h1>
+<p>Why should you consider the <code>{golem}</code> package to develop your Shiny apps? For me, there are two
+main reasons. First of all, I’m already familiar with package development in R, having made some
+little packages that I have on my Github account, and one out on CRAN (with the complete texts of
+Luxembourguish author <a href="https://cran.r-project.org/web/packages/michelRodange/index.html">Michel Rodange</a>)
+so using <code>{golem}</code> came at no additional costs. This is because a Shiny app built with <code>{golem}</code> is
+actually an R package! This has many advantages; all the steps of documenting, testing and sharing
+the app are greatly simplified.
+Another reason to use <code>{golem}</code> is that it forces on you a certain way of working. Now this
+might seem like a pretty bad thing, but I find that it is quite helpful. When you start working
+on a Shiny app, you might get very quickly overwhelmed with both thinking about your server logic
+and your UI. You might spend much time tinkering with getting the server functions working, while
+still not having no UI to speak of, or you might work on one part of the server and then go to the UI,
+then back on the server… You’ll spend hours working on the app without a clear approach, and
+probably waste much time because of this back and forth.
+The first recommended step when building a shiny app (with or without <code>{golem}</code>) is a “UI first” approach.
+For this, we’re going to use <code>{shinipsum}</code></p>
+</div>
+<div id="lorem-ipsum-dolor-server-amet-its-latin-for-dont-bother-with-the-server-logic-until-its-time" class="section level1">
+<h1>Lorem ipsum dolor server amet (it’s Latin for “don’t bother with the server logic until it’s time”)</h1>
+<p>The developers of <code>{golem}</code>, French company <a href="https://thinkr.fr/">ThinkR</a>
+suggest an “UI” first approach. The idea is to focus on the UI, and to do so using their other package called
+<code>{shinipsum}</code> to randomly generate elements on the server side which you can then later replace
+with your actual server logic. For instance, imagine that somewhere on your app, you want to show
+a bar plot using the <code>{ggplot2}</code> package. Using <code>{shinipsum}</code>, you can generate a random bar plot
+with the following line:</p>
+<pre class="r"><code>shinipsum::random_ggplot(&quot;bar&quot;)</code></pre>
+<p><img src="/blog/2020-09-27-golemDemo_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
+<p>and that’s it! Now simply ignore this bit on the server, and continue focusing on the UI. You need
+to show a random table? No problem:</p>
+<pre class="r"><code>shinipsum::random_table(ncol = 7, nrow = 10)</code></pre>
+<pre><code>##    conc rate   state conc.1 rate.1 state.1 conc.2
+## 1  0.02   76 treated   0.02     76 treated   0.02
+## 2  0.02   47 treated   0.02     47 treated   0.02
+## 3  0.06   97 treated   0.06     97 treated   0.06
+## 4  0.06  107 treated   0.06    107 treated   0.06
+## 5  0.11  123 treated   0.11    123 treated   0.11
+## 6  0.11  139 treated   0.11    139 treated   0.11
+## 7  0.22  159 treated   0.22    159 treated   0.22
+## 8  0.22  152 treated   0.22    152 treated   0.22
+## 9  0.56  191 treated   0.56    191 treated   0.56
+## 10 0.56  201 treated   0.56    201 treated   0.56</code></pre>
+<p>Your app might now look something like this (actually, it won’t because the little demo below
+is not a <code>{golem}</code> app, but it illustrates <code>{shinipsum}</code> well):</p>
+<pre class="r"><code>library(shiny)
+library(reactable)
+library(shinipsum)
+library(ggiraph)
+
+ui &lt;- pageWithSidebar(
+  
+  headerPanel(&quot;This is a shinipsum demo&quot;),
+  
+  sidebarPanel(
+    sliderInput(&quot;rows&quot;,
+                &quot;Number of rows:&quot;,
+                min = 1,
+                max = 50,
+                value = 5)
+  ),
+  
+  mainPanel(
+    reactableOutput(&quot;table&quot;),
+    girafeOutput(&quot;graph&quot;)
+  )
+)
+
+
+server &lt;- function(input, output) {
+
+  output$table &lt;- renderReactable({
+    reactable(random_table(ncol = 10, nrow = input$rows))
+  })
+
+  output$graph &lt;- renderGirafe({
+    girafe(ggobj = random_ggplot(&quot;bar&quot;))
+  })
+}
+
+shinyApp(ui = ui, server = server)</code></pre>
+<p>If you have the required packages, running this on a fresh R session should start a little app.</p>
+<p>You see that the server is only a call to <code>shinipsum::random_table</code>, and <code>shinipsum::random_ggplot</code>.
+Because I want a <code>reactable</code> and an interactive plot using the <code>{ggiraph}</code> package, I have already
+written the minimum amount of code on the server side to get things working. Now I can focus on my
+UI and then, when I’m done, I can start replacing the random objects from <code>{shinipsum}</code> with
+the actual code.</p>
+<p>Now proceeding in this way is not a requirement of <code>{golem}</code>, but it helps to structure your thoughts
+and your app, and you can use this approach for any type of app. The example above, after all, is
+not a <code>{golem}</code> app.</p>
+</div>
+<div id="get-modular-with-golem" class="section level1">
+<h1>Get modular with <code>{golem}</code></h1>
+<p>This is now where we get to some more interesting, and <code>{golem}</code> specific things. If you’ve been
+using R and Shiny for the past years, you’ve probably have heard a lot about functional programming.
+Functional programming is a programming paradigm that encourages, and in some languages
+forces, the use of functions. The idea is that everything you do should be a call to a function,
+and functions should be chained together to achieve whatever it is you want to do; cleaning data,
+visualizing data, modeling data… R has many functional tools out of the box, which can be complemented
+using the <code>{purrr}</code> package.
+What does all of this have to do with Shiny and <code>{golem}</code>? Well, <code>{golem}</code> forces you to write
+modules to build your apps, and modules are very similar to functions (they’re actually functions).
+They’re bits of code that can be decoupled from your app, used in any other app, they can be linked together,
+they can be easily documented and tested… If you are familiar with R’s functional programming
+approach, modules should not be totally new to you. But if you’ve been using Shiny without module,
+they’ll require some getting used to.</p>
+<p>To illustrate how a simple app can be written using modules, I have built <code>golemDemo</code>, which, as implied
+by its name, is a demonstration of a <code>{golem}</code> app which I hope is simple enough for anyone to
+start using. The app is quite simple and does only three things:</p>
+<ul>
+<li>it allows you to choose between two datasets;</li>
+<li>it shows a table of the selected dataset;</li>
+<li>it shows a map of Luxembourg with the data points;</li>
+</ul>
+<p>Each of these things is a module, which means that if I were to create another app with a map of
+Luxembourg, I could simply reuse it. But remember, the app is actually an R package. Here is
+the root of the app on my computer:</p>
+<pre class="r"><code>system2(&quot;ls&quot;, args = &quot;-lFR ~/Documents/golemDemo&quot;, stdout = TRUE)</code></pre>
+<pre><code>##  [1] &quot;/home/cbrunos/Documents/golemDemo:&quot;                                    
+##  [2] &quot;total 56&quot;                                                              
+##  [3] &quot;-rw-r--r-- 1 cbrunos users  302 Sep 19 11:28 app.R&quot;                    
+##  [4] &quot;drwxr-xr-x 2 cbrunos users 4096 Jun 29 17:49 data-raw/&quot;                
+##  [5] &quot;-rw-r--r-- 1 cbrunos users  729 Sep 19 21:27 DESCRIPTION&quot;              
+##  [6] &quot;drwxr-xr-x 2 cbrunos users 4096 Sep 11 23:39 dev/&quot;                     
+##  [7] &quot;-rw-r--r-- 1 cbrunos users 2723 Sep 12 15:04 Dockerfile&quot;               
+##  [8] &quot;drwxr-xr-x 3 cbrunos users 4096 Jun 28 11:33 inst/&quot;                    
+##  [9] &quot;-rw-r--r-- 1 cbrunos users  483 Apr  8 21:38 LICENSE.md&quot;               
+## [10] &quot;drwxr-xr-x 2 cbrunos users 4096 Sep 19 21:27 man/&quot;                     
+## [11] &quot;-rw-r--r-- 1 cbrunos users 1420 Sep 19 21:27 NAMESPACE&quot;                
+## [12] &quot;drwxr-xr-x 2 cbrunos users 4096 Sep 19 21:27 R/&quot;                       
+## [13] &quot;-rw-r--r-- 1 cbrunos users 1056 Jun 28 11:38 README.Rmd&quot;               
+## [14] &quot;drwxr-xr-x 3 cbrunos users 4096 Sep 11 17:12 rsconnect/&quot;               
+## [15] &quot;drwxr-xr-x 3 cbrunos users 4096 Jun 28 11:48 tests/&quot;                   
+## [16] &quot;drwxr-xr-x 2 cbrunos users 4096 Jun 28 11:48 vignettes/&quot;               
+## [17] &quot;&quot;                                                                      
+## [18] &quot;/home/cbrunos/Documents/golemDemo/data-raw:&quot;                           
+## [19] &quot;total 1168&quot;                                                            
+## [20] &quot;-rw-r--r-- 1 cbrunos users 1176106 Jun 11 09:52 communes_df.csv&quot;       
+## [21] &quot;-rw-r--r-- 1 cbrunos users      99 Jun 28 11:48 my_dataset.R&quot;          
+## [22] &quot;-rw-r--r-- 1 cbrunos users    1998 Jun 28 17:00 radars.csv&quot;            
+## [23] &quot;-rw-r--r-- 1 cbrunos users    6390 Jun 28 12:31 rettungspunkte.csv&quot;    
+## [24] &quot;&quot;                                                                      
+## [25] &quot;/home/cbrunos/Documents/golemDemo/dev:&quot;                                
+## [26] &quot;total 16&quot;                                                              
+## [27] &quot;-rw-r--r-- 1 cbrunos users 1935 Jun 28 11:33 01_start.R&quot;               
+## [28] &quot;-rw-r--r-- 1 cbrunos users 2011 Sep 11 23:39 02_dev.R&quot;                 
+## [29] &quot;-rw-r--r-- 1 cbrunos users 1012 Jun 28 11:33 03_deploy.R&quot;              
+## [30] &quot;-rw-r--r-- 1 cbrunos users  318 Jun 28 11:33 run_dev.R&quot;                
+## [31] &quot;&quot;                                                                      
+## [32] &quot;/home/cbrunos/Documents/golemDemo/inst:&quot;                               
+## [33] &quot;total 8&quot;                                                               
+## [34] &quot;drwxr-xr-x 3 cbrunos users 4096 Jun 28 11:33 app/&quot;                     
+## [35] &quot;-rw-r--r-- 1 cbrunos users  140 Jun 28 11:38 golem-config.yml&quot;         
+## [36] &quot;&quot;                                                                      
+## [37] &quot;/home/cbrunos/Documents/golemDemo/inst/app:&quot;                           
+## [38] &quot;total 4&quot;                                                               
+## [39] &quot;drwxr-xr-x 2 cbrunos users 4096 Jun 28 11:48 www/&quot;                     
+## [40] &quot;&quot;                                                                      
+## [41] &quot;/home/cbrunos/Documents/golemDemo/inst/app/www:&quot;                       
+## [42] &quot;total 12&quot;                                                              
+## [43] &quot;-rw-r--r-- 1 cbrunos users    0 Jun 28 11:48 custom.css&quot;               
+## [44] &quot;-rw-r--r-- 1 cbrunos users 3774 Jun 28 11:33 favicon.ico&quot;              
+## [45] &quot;-rw-r--r-- 1 cbrunos users  100 Jun 28 11:48 handlers.js&quot;              
+## [46] &quot;-rw-r--r-- 1 cbrunos users   40 Jun 28 11:48 script.js&quot;                
+## [47] &quot;&quot;                                                                      
+## [48] &quot;/home/cbrunos/Documents/golemDemo/man:&quot;                                
+## [49] &quot;total 8&quot;                                                               
+## [50] &quot;-rw-r--r-- 1 cbrunos users 261 Sep 19 21:27 pipe.Rd&quot;                   
+## [51] &quot;-rw-r--r-- 1 cbrunos users 291 Jun 28 11:33 run_app.Rd&quot;                
+## [52] &quot;&quot;                                                                      
+## [53] &quot;/home/cbrunos/Documents/golemDemo/R:&quot;                                  
+## [54] &quot;total 48&quot;                                                              
+## [55] &quot;-rw-r--r-- 1 cbrunos users  783 Jun 28 11:33 app_config.R&quot;             
+## [56] &quot;-rw-r--r-- 1 cbrunos users  654 Jun 29 18:34 app_server.R&quot;             
+## [57] &quot;-rw-r--r-- 1 cbrunos users 1790 Sep 12 15:00 app_ui.R&quot;                 
+## [58] &quot;-rw-r--r-- 1 cbrunos users    0 Jun 28 11:48 fct_helpers.R&quot;            
+## [59] &quot;-rw-rw-r-- 1 cbrunos users  997 Jun 28 11:38 golem_utils_server.R&quot;     
+## [60] &quot;-rw-rw-r-- 1 cbrunos users 5849 Jun 28 11:38 golem_utils_ui.R&quot;         
+## [61] &quot;-rw-r--r-- 1 cbrunos users  549 Jun 28 11:48 mod_filter_data.R&quot;        
+## [62] &quot;-rw-r--r-- 1 cbrunos users 3118 Sep 19 11:16 mod_load_data.R&quot;          
+## [63] &quot;-rw-r--r-- 1 cbrunos users 2088 Jun 29 18:30 mod_map_data.R&quot;           
+## [64] &quot;-rw-r--r-- 1 cbrunos users  910 Jun 29 18:17 mod_table_data.R&quot;         
+## [65] &quot;-rw-r--r-- 1 cbrunos users  337 Jun 28 11:33 run_app.R&quot;                
+## [66] &quot;-rw-r--r-- 1 cbrunos users    0 Jun 28 11:48 utils_helpers.R&quot;          
+## [67] &quot;-rw-r--r-- 1 cbrunos users  207 Sep 19 21:27 utils-pipe.R&quot;             
+## [68] &quot;&quot;                                                                      
+## [69] &quot;/home/cbrunos/Documents/golemDemo/rsconnect:&quot;                          
+## [70] &quot;total 4&quot;                                                               
+## [71] &quot;drwxr-xr-x 3 cbrunos users 4096 Sep 11 17:12 shinyapps.io/&quot;            
+## [72] &quot;&quot;                                                                      
+## [73] &quot;/home/cbrunos/Documents/golemDemo/rsconnect/shinyapps.io:&quot;             
+## [74] &quot;total 4&quot;                                                               
+## [75] &quot;drwxr-xr-x 2 cbrunos users 4096 Sep 11 17:12 brodriguesco/&quot;            
+## [76] &quot;&quot;                                                                      
+## [77] &quot;/home/cbrunos/Documents/golemDemo/rsconnect/shinyapps.io/brodriguesco:&quot;
+## [78] &quot;total 4&quot;                                                               
+## [79] &quot;-rw-r--r-- 1 cbrunos users 219 Sep 19 21:30 golemdemo.dcf&quot;             
+## [80] &quot;&quot;                                                                      
+## [81] &quot;/home/cbrunos/Documents/golemDemo/tests:&quot;                              
+## [82] &quot;total 8&quot;                                                               
+## [83] &quot;drwxr-xr-x 2 cbrunos users 4096 Jun 28 11:48 testthat/&quot;                
+## [84] &quot;-rw-r--r-- 1 cbrunos users   62 Jun 28 11:48 testthat.R&quot;               
+## [85] &quot;&quot;                                                                      
+## [86] &quot;/home/cbrunos/Documents/golemDemo/tests/testthat:&quot;                     
+## [87] &quot;total 4&quot;                                                               
+## [88] &quot;-rw-r--r-- 1 cbrunos users 64 Jun 28 11:48 test-app.R&quot;                 
+## [89] &quot;&quot;                                                                      
+## [90] &quot;/home/cbrunos/Documents/golemDemo/vignettes:&quot;                          
+## [91] &quot;total 4&quot;                                                               
+## [92] &quot;-rw-r--r-- 1 cbrunos users 298 Jun 28 11:48 golemDemo.Rmd&quot;</code></pre>
+<p>The first 16 lines show the root of the folder, and then we see what’s inside each subfolder,
+starting with <code>data-raw/</code>, then <code>dev/</code> etc (this is done via a call to the <code>ls -lFR</code> Linux command,
+invoked here with R’s <code>system2()</code> function).</p>
+<p>If you’ve already developed a package in the past, you’ll recognize the structure. What’s important
+here is the <code>dev/</code> folder, which is <code>{golem}</code> specific. This folder contains for files,
+<code>01_start.R</code>, <code>02_dev.R</code>, <code>03_deploy.R</code> and <code>run_dev.R</code>. These files are the ones that will help
+you develop your shiny app and you should follow the instructions contained in each of them. Let’s
+take a look at <code>01_start.R</code>:</p>
+<pre class="r"><code>system2(&quot;cat&quot;, args = &quot;~/Documents/golemDemo/dev/01_start.R&quot;, stdout = TRUE)</code></pre>
+<pre><code>##  [1] &quot;# Building a Prod-Ready, Robust Shiny Application.&quot;                                     
+##  [2] &quot;# &quot;                                                                                     
+##  [3] &quot;# README: each step of the dev files is optional, and you don&#39;t have to &quot;               
+##  [4] &quot;# fill every dev scripts before getting started. &quot;                                      
+##  [5] &quot;# 01_start.R should be filled at start. &quot;                                               
+##  [6] &quot;# 02_dev.R should be used to keep track of your development during the project.&quot;        
+##  [7] &quot;# 03_deploy.R should be used once you need to deploy your app.&quot;                         
+##  [8] &quot;# &quot;                                                                                     
+##  [9] &quot;# &quot;                                                                                     
+## [10] &quot;########################################&quot;                                               
+## [11] &quot;#### CURRENT FILE: ON START SCRIPT #####&quot;                                               
+## [12] &quot;########################################&quot;                                               
+## [13] &quot;&quot;                                                                                       
+## [14] &quot;## Fill the DESCRIPTION ----&quot;                                                           
+## [15] &quot;## Add meta data about your application&quot;                                                
+## [16] &quot;golem::fill_desc(&quot;                                                                      
+## [17] &quot;  pkg_name = \&quot;golemDemo\&quot;, # The Name of the package containing the App &quot;              
+## [18] &quot;  pkg_title = \&quot;PKG_TITLE\&quot;, # The Title of the package containing the App &quot;            
+## [19] &quot;  pkg_description = \&quot;PKG_DESC.\&quot;, # The Description of the package containing the App &quot;
+## [20] &quot;  author_first_name = \&quot;AUTHOR_FIRST\&quot;, # Your First Name&quot;                              
+## [21] &quot;  author_last_name = \&quot;AUTHOR_LAST\&quot;, # Your Last Name&quot;                                 
+## [22] &quot;  author_email = \&quot;AUTHOR@MAIL.COM\&quot;, # Your Email&quot;                                     
+## [23] &quot;  repo_url = NULL # The URL of the GitHub Repo (optional) &quot;                             
+## [24] &quot;)     &quot;                                                                                 
+## [25] &quot;&quot;                                                                                       
+## [26] &quot;## Set {golem} options ----&quot;                                                            
+## [27] &quot;golem::set_golem_options()&quot;                                                             
+## [28] &quot;&quot;                                                                                       
+## [29] &quot;## Create Common Files ----&quot;                                                            
+## [30] &quot;## See ?usethis for more information&quot;                                                   
+## [31] &quot;usethis::use_mit_license( name = \&quot;Golem User\&quot; )  # You can set another license here&quot;  
+## [32] &quot;usethis::use_readme_rmd( open = FALSE )&quot;                                                
+## [33] &quot;usethis::use_code_of_conduct()&quot;                                                         
+## [34] &quot;usethis::use_lifecycle_badge( \&quot;Experimental\&quot; )&quot;                                       
+## [35] &quot;usethis::use_news_md( open = FALSE )&quot;                                                   
+## [36] &quot;&quot;                                                                                       
+## [37] &quot;## Use git ----&quot;                                                                        
+## [38] &quot;usethis::use_git()&quot;                                                                     
+## [39] &quot;&quot;                                                                                       
+## [40] &quot;## Init Testing Infrastructure ----&quot;                                                    
+## [41] &quot;## Create a template for tests&quot;                                                         
+## [42] &quot;golem::use_recommended_tests()&quot;                                                         
+## [43] &quot;&quot;                                                                                       
+## [44] &quot;## Use Recommended Packages ----&quot;                                                       
+## [45] &quot;golem::use_recommended_deps()&quot;                                                          
+## [46] &quot;&quot;                                                                                       
+## [47] &quot;## Favicon ----&quot;                                                                        
+## [48] &quot;# If you want to change the favicon (default is golem&#39;s one)&quot;                           
+## [49] &quot;golem::remove_favicon()&quot;                                                                
+## [50] &quot;golem::use_favicon() # path = \&quot;path/to/ico\&quot;. Can be an online file. &quot;                 
+## [51] &quot;&quot;                                                                                       
+## [52] &quot;## Add helper functions ----&quot;                                                           
+## [53] &quot;golem::use_utils_ui()&quot;                                                                  
+## [54] &quot;golem::use_utils_server()&quot;                                                              
+## [55] &quot;&quot;                                                                                       
+## [56] &quot;# You&#39;re now set! ----&quot;                                                                 
+## [57] &quot;&quot;                                                                                       
+## [58] &quot;# go to dev/02_dev.R&quot;                                                                   
+## [59] &quot;rstudioapi::navigateToFile( \&quot;dev/02_dev.R\&quot; )&quot;                                         
+## [60] &quot;&quot;</code></pre>
+<p>This script is a series of calls to <code>{usethis}</code> functions; you can remove whatever you don’t need
+and adapt the others that you need. As you can see, I did not change much here. Execute it line by
+line when you’re done editing it. Once you’re done, you can go to <code>02_dev.R</code> and this is probably
+the script that you’ll change the most:</p>
+<pre class="r"><code>system2(&quot;cat&quot;, args = &quot;~/Documents/golemDemo/dev/02_dev.R&quot;, stdout = TRUE)</code></pre>
+<pre><code>##  [1] &quot;# Building a Prod-Ready, Robust Shiny Application.&quot;                             
+##  [2] &quot;# &quot;                                                                             
+##  [3] &quot;# README: each step of the dev files is optional, and you don&#39;t have to &quot;       
+##  [4] &quot;# fill every dev scripts before getting started. &quot;                              
+##  [5] &quot;# 01_start.R should be filled at start. &quot;                                       
+##  [6] &quot;# 02_dev.R should be used to keep track of your development during the project.&quot;
+##  [7] &quot;# 03_deploy.R should be used once you need to deploy your app.&quot;                 
+##  [8] &quot;# &quot;                                                                             
+##  [9] &quot;# &quot;                                                                             
+## [10] &quot;###################################&quot;                                            
+## [11] &quot;#### CURRENT FILE: DEV SCRIPT #####&quot;                                            
+## [12] &quot;###################################&quot;                                            
+## [13] &quot;&quot;                                                                               
+## [14] &quot;# Engineering&quot;                                                                  
+## [15] &quot;&quot;                                                                               
+## [16] &quot;## Dependencies ----&quot;                                                           
+## [17] &quot;## Add one line by package you want to add as dependency&quot;                       
+## [18] &quot;usethis::use_package( \&quot;shiny\&quot; )&quot;                                              
+## [19] &quot;usethis::use_package( \&quot;shinydashboard\&quot; )&quot;                                     
+## [20] &quot;usethis::use_package(\&quot;data.table\&quot;) &quot;                                          
+## [21] &quot;usethis::use_package(\&quot;DT\&quot;)&quot;                                                   
+## [22] &quot;usethis::use_package(\&quot;dplyr\&quot;)&quot;                                                
+## [23] &quot;usethis::use_package(\&quot;rlang\&quot;)&quot;                                                
+## [24] &quot;usethis::use_package(\&quot;ggiraph\&quot;)&quot;                                              
+## [25] &quot;usethis::use_package(\&quot;ggplot2\&quot;)&quot;                                              
+## [26] &quot;usethis::use_package(\&quot;htmlwidgets\&quot;)&quot;                                          
+## [27] &quot;usethis::use_package(\&quot;dplyr\&quot;)&quot;                                                
+## [28] &quot;usethis::use_package(\&quot;colorspace\&quot;)&quot;                                           
+## [29] &quot;usethis::use_package(\&quot;shinycssloaders\&quot;)&quot;                                      
+## [30] &quot;usethis::use_package(\&quot;lubridate\&quot;)&quot;                                            
+## [31] &quot;&quot;                                                                               
+## [32] &quot;## Add modules ----&quot;                                                            
+## [33] &quot;## Create a module infrastructure in R/&quot;                                        
+## [34] &quot;golem::add_module( name = \&quot;name_of_module1\&quot; ) # Name of the module&quot;           
+## [35] &quot;golem::add_module( name = \&quot;name_of_module2\&quot; ) # Name of the module&quot;           
+## [36] &quot;&quot;                                                                               
+## [37] &quot;## Add helper functions ----&quot;                                                   
+## [38] &quot;## Creates ftc_* and utils_*&quot;                                                   
+## [39] &quot;golem::add_fct( \&quot;helpers\&quot; ) &quot;                                                 
+## [40] &quot;golem::add_utils( \&quot;helpers\&quot; )&quot;                                                
+## [41] &quot;&quot;                                                                               
+## [42] &quot;## External resources&quot;                                                          
+## [43] &quot;## Creates .js and .css files at inst/app/www&quot;                                  
+## [44] &quot;golem::add_js_file( \&quot;script\&quot; )&quot;                                               
+## [45] &quot;golem::add_js_handler( \&quot;handlers\&quot; )&quot;                                          
+## [46] &quot;golem::add_css_file( \&quot;custom\&quot; )&quot;                                              
+## [47] &quot;&quot;                                                                               
+## [48] &quot;## Add internal datasets ----&quot;                                                  
+## [49] &quot;## If you have data in your package&quot;                                            
+## [50] &quot;usethis::use_data_raw( name = \&quot;my_dataset\&quot;, open = FALSE ) &quot;                  
+## [51] &quot;&quot;                                                                               
+## [52] &quot;## Tests ----&quot;                                                                  
+## [53] &quot;## Add one line by test you want to create&quot;                                     
+## [54] &quot;usethis::use_test( \&quot;app\&quot; )&quot;                                                   
+## [55] &quot;&quot;                                                                               
+## [56] &quot;# Documentation&quot;                                                                
+## [57] &quot;&quot;                                                                               
+## [58] &quot;## Vignette ----&quot;                                                               
+## [59] &quot;usethis::use_vignette(\&quot;golemDemo\&quot;)&quot;                                           
+## [60] &quot;devtools::build_vignettes()&quot;                                                    
+## [61] &quot;&quot;                                                                               
+## [62] &quot;## Code coverage ----&quot;                                                          
+## [63] &quot;## (You&#39;ll need GitHub there)&quot;                                                  
+## [64] &quot;usethis::use_github()&quot;                                                          
+## [65] &quot;usethis::use_travis()&quot;                                                          
+## [66] &quot;usethis::use_appveyor()&quot;                                                        
+## [67] &quot;&quot;                                                                               
+## [68] &quot;# You&#39;re now set! ----&quot;                                                         
+## [69] &quot;# go to dev/03_deploy.R&quot;                                                        
+## [70] &quot;rstudioapi::navigateToFile(\&quot;dev/03_deploy.R\&quot;)&quot;                                
+## [71] &quot;&quot;</code></pre>
+<p>This is where you will list the dependencies of your package (lines 18 to 30) as well as the
+modules (lines 34 to 35). I have mostly used this file for the dependencies, as I already
+had the modules from another app, so I didn’t bother listing them here. But if I would have started
+from scratch, I would changed the line:</p>
+<pre><code>golem::add_module( name = \&quot;name_of_module1\&quot; ) # Name of the module</code></pre>
+<p>to something like:</p>
+<pre><code>golem::add_module( name = \&quot;import_data\&quot; ) # Name of the module</code></pre>
+<p>and executing it would have generated the needed files to start creating the module at the right
+spot. Let’s go see how such a module looks like (I’m skipping the third script for now, as it is
+only useful once you want to deploy).</p>
+<p>You can find the modules in the <code>R/</code> folder. Let’s take a look at the module that allows the user
+to load the data:</p>
+<pre class="r"><code>system2(&quot;cat&quot;, args = &quot;~/Documents/golemDemo/R/mod_load_data.R&quot;, stdout = TRUE)</code></pre>
+<pre><code>##   [1] &quot;#&#39; load_data UI Function&quot;                                                                                                    
+##   [2] &quot;#&#39;&quot;                                                                                                                          
+##   [3] &quot;#&#39; @description A shiny Module.&quot;                                                                                             
+##   [4] &quot;#&#39;&quot;                                                                                                                          
+##   [5] &quot;#&#39; @param id,input,output,session Internal parameters for {shiny}.&quot;                                                          
+##   [6] &quot;#&#39;&quot;                                                                                                                          
+##   [7] &quot;#&#39; @noRd &quot;                                                                                                                   
+##   [8] &quot;#&#39;&quot;                                                                                                                          
+##   [9] &quot;#&#39; @importFrom shiny NS tagList &quot;                                                                                            
+##  [10] &quot;#&#39; @importFrom data.table fread&quot;                                                                                             
+##  [11] &quot;#&#39; @importFrom DT renderDataTable dataTableOutput&quot;                                                                           
+##  [12] &quot;#&#39; @importFrom dplyr filter&quot;                                                                                                 
+##  [13] &quot;#&#39; @importFrom rlang quo `!!` as_name&quot;                                                                                       
+##  [14] &quot;mod_load_data_ui &lt;- function(id){&quot;                                                                                           
+##  [15] &quot;  ns &lt;- NS(id)&quot;                                                                                                              
+##  [16] &quot;  tagList(&quot;                                                                                                                  
+##  [17] &quot;    box(title = \&quot;Select dataset\&quot;,&quot;                                                                                         
+##  [18] &quot;        radioButtons(ns(\&quot;select_dataset\&quot;),&quot;                                                                                
+##  [19] &quot;                    label = \&quot;Select dataset\&quot;,&quot;                                                                             
+##  [20] &quot;                    choices = c(\&quot;Rescue points\&quot;, \&quot;Radars\&quot;),&quot;                                                             
+##  [21] &quot;                    selected = c(\&quot;Rescue points\&quot;)),&quot;                                                                       
+##  [22] &quot;        conditionalPanel(&quot;                                                                                                   
+##  [23] &quot;          condition = paste0(&#39;input[\\&#39;&#39;, ns(&#39;select_dataset&#39;), \&quot;\\&#39;] == \\&#39;Rescue points\\&#39;\&quot;),&quot;                           
+##  [24] &quot;          selectInput(ns(\&quot;selector_place\&quot;), \&quot;Place\&quot;,&quot;                                                                    
+##  [25] &quot;                      choices = c(\&quot;test\&quot;),&quot;                                                                                
+##  [26] &quot;                      #choices = c(unique(output$dataset$place)),&quot;                                                           
+##  [27] &quot;                      selected = c(\&quot;Luxembourg, Ville (G)\&quot;),&quot;                                                              
+##  [28] &quot;                      multiple = TRUE)),&quot;                                                                                    
+##  [29] &quot;        conditionalPanel(&quot;                                                                                                   
+##  [30] &quot;          condition = paste0(&#39;input[\\&#39;&#39;, ns(&#39;select_dataset&#39;), \&quot;\\&#39;] == \\&#39;Radars\\&#39;\&quot;),&quot;                                  
+##  [31] &quot;          selectInput(ns(\&quot;selector_radar\&quot;), \&quot;Radar\&quot;,&quot;                                                                    
+##  [32] &quot;                      choices = c(\&quot;test\&quot;),&quot;                                                                                
+##  [33] &quot;                      #choices = c(\&quot;huhu\&quot;),&quot;                                                                               
+##  [34] &quot;                      selected = c(\&quot;National road\&quot;),&quot;                                                                      
+##  [35] &quot;                      multiple = TRUE)),&quot;                                                                                    
+##  [36] &quot;        width = NULL),&quot;                                                                                                      
+##  [37] &quot;  )&quot;                                                                                                                         
+##  [38] &quot;}&quot;                                                                                                                           
+##  [39] &quot;&quot;                                                                                                                            
+##  [40] &quot;#&#39; load_data Server Function&quot;                                                                                                
+##  [41] &quot;#&#39;&quot;                                                                                                                          
+##  [42] &quot;#&#39; @noRd &quot;                                                                                                                   
+##  [43] &quot;mod_load_data_server &lt;- function(input, output, session){&quot;                                                                   
+##  [44] &quot;  ns &lt;- session$ns&quot;                                                                                                          
+##  [45] &quot; &quot;                                                                                                                           
+##  [46] &quot;  &quot;                                                                                                                          
+##  [47] &quot;  read_dataset &lt;- reactive({&quot;                                                                                                
+##  [48] &quot;    if(input$select_dataset == \&quot;Rescue points\&quot;) {&quot;                                                                         
+##  [49] &quot;&quot;                                                                                                                            
+##  [50] &quot;      dataset &lt;- fread(\&quot;data-raw/rettungspunkte.csv\&quot;)&quot;                                                                     
+##  [51] &quot;      variable &lt;- quo(place)&quot;                                                                                                
+##  [52] &quot;      filter_values &lt;- unique(dataset[, place])&quot;                                                                             
+##  [53] &quot;    } else {&quot;                                                                                                                
+##  [54] &quot;      dataset &lt;- fread(\&quot;data-raw/radars.csv\&quot;)&quot;                                                                             
+##  [55] &quot;      variable &lt;- quo(type_road)&quot;                                                                                            
+##  [56] &quot;      filter_values &lt;- unique(dataset[, type_road])&quot;                                                                         
+##  [57] &quot;    }&quot;                                                                                                                       
+##  [58] &quot;    cat(\&quot;reading data\\n\&quot;)&quot;                                                                                                
+##  [59] &quot;    list(dataset = dataset,&quot;                                                                                                 
+##  [60] &quot;         variable = variable,&quot;                                                                                               
+##  [61] &quot;         filter_values = filter_values)&quot;                                                                                     
+##  [62] &quot;  })&quot;                                                                                                                        
+##  [63] &quot;&quot;                                                                                                                            
+##  [64] &quot;&quot;                                                                                                                            
+##  [65] &quot;  observe({&quot;                                                                                                                 
+##  [66] &quot;    updateSelectInput(session, \&quot;selector_place\&quot;, label = \&quot;Select place:\&quot;, choices = read_dataset()$filter_values,&quot;       
+##  [67] &quot;                      selected = \&quot;Luxembourg, Ville (G)\&quot;)&quot;                                                                 
+##  [68] &quot;  })&quot;                                                                                                                        
+##  [69] &quot;&quot;                                                                                                                            
+##  [70] &quot;  observe({&quot;                                                                                                                 
+##  [71] &quot;    updateSelectInput(session, \&quot;selector_radar\&quot;, label = \&quot;Select type of road:\&quot;, choices = read_dataset()$filter_values,&quot;
+##  [72] &quot;                      selected = \&quot;National road\&quot;)&quot;                                                                         
+##  [73] &quot;  })&quot;                                                                                                                        
+##  [74] &quot;&quot;                                                                                                                            
+##  [75] &quot;  result &lt;- reactive({&quot;                                                                                                      
+##  [76] &quot;    return_dataset &lt;- read_dataset()$dataset&quot;                                                                                
+##  [77] &quot;&quot;                                                                                                                            
+##  [78] &quot;    if(\&quot;place\&quot; %in% colnames(return_dataset)){&quot;                                                                            
+##  [79] &quot;      return_dataset &lt;- return_dataset %&gt;%&quot;                                                                                  
+##  [80] &quot;        filter((!!read_dataset()$variable) %in% input$selector_place)&quot;                                                       
+##  [81] &quot;&quot;                                                                                                                            
+##  [82] &quot;      result &lt;- list(&quot;                                                                                                       
+##  [83] &quot;        return_dataset = return_dataset,&quot;                                                                                    
+##  [84] &quot;        variable = quo(place)&quot;                                                                                               
+##  [85] &quot;      )&quot;                                                                                                                     
+##  [86] &quot;    } else {&quot;                                                                                                                
+##  [87] &quot;      return_dataset &lt;- return_dataset %&gt;%&quot;                                                                                  
+##  [88] &quot;        filter((!!read_dataset()$variable) %in% input$selector_radar)&quot;                                                       
+##  [89] &quot;&quot;                                                                                                                            
+##  [90] &quot;      result &lt;- list(&quot;                                                                                                       
+##  [91] &quot;        return_dataset = return_dataset,&quot;                                                                                    
+##  [92] &quot;        variable = quo(type_road)&quot;                                                                                           
+##  [93] &quot;      )&quot;                                                                                                                     
+##  [94] &quot;    }&quot;                                                                                                                       
+##  [95] &quot;  })&quot;                                                                                                                        
+##  [96] &quot;&quot;                                                                                                                            
+##  [97] &quot;  result&quot;                                                                                                                    
+##  [98] &quot;}&quot;                                                                                                                           
+##  [99] &quot;    &quot;                                                                                                                        
+## [100] &quot;## To be copied in the UI&quot;                                                                                                   
+## [101] &quot;# mod_load_data_ui(\&quot;load_data_ui_1\&quot;)&quot;                                                                                      
+## [102] &quot;    &quot;                                                                                                                        
+## [103] &quot;## To be copied in the server&quot;                                                                                               
+## [104] &quot;# callModule(mod_load_data_server, \&quot;load_data_ui_1\&quot;)&quot;                                                                      
+## [105] &quot; &quot;</code></pre>
+<p>This scripts looks like a mini Shiny app; there’s a UI defined at the top of the script, and
+then a server defined at the bottom (I’m not describing what the module does here, I’ll do that
+in the video). What’s important here, is that this is a module and as such it can be reused in any
+app, by simply copying the right lines of code at the right spot. See lines 100 to 104 for this,
+which tells you exactly where to copy the lines to use this module. All the modules will
+look the same, and have this little explanation at the bottom to tell you where you need to copy
+the lines to use the modules. While building each module, you can use <code>{shinipsum}</code> instead of
+having to bother about the server logic, just to get things going, as explained above.</p>
+<p>Now, finally, let’s take a look at the actual UI of the app:</p>
+<pre class="r"><code>system2(&quot;cat&quot;, args = &quot;~/Documents/golemDemo/R/app_ui.R&quot;, stdout = TRUE)</code></pre>
+<pre><code>##  [1] &quot;#&#39; The application User-Interface&quot;                                                          
+##  [2] &quot;#&#39; &quot;                                                                                        
+##  [3] &quot;#&#39; @param request Internal parameter for `{shiny}`. &quot;                                       
+##  [4] &quot;#&#39;     DO NOT REMOVE.&quot;                                                                      
+##  [5] &quot;#&#39; @import shiny&quot;                                                                           
+##  [6] &quot;#&#39; @import shinydashboard&quot;                                                                  
+##  [7] &quot;#&#39; @noRd&quot;                                                                                   
+##  [8] &quot;app_ui &lt;- function(request) {&quot;                                                              
+##  [9] &quot;  tagList(&quot;                                                                                 
+## [10] &quot;                                        # Leave this function for adding external resources&quot;
+## [11] &quot;    golem_add_external_resources(),&quot;                                                        
+## [12] &quot;                                        # List the first level UI elements here&quot;            
+## [13] &quot;    dashboardPage(&quot;                                                                         
+## [14] &quot;      dashboardHeader(title = \&quot;Prototype: dashboard ecoles\&quot;),&quot;                            
+## [15] &quot;      dashboardSidebar(&quot;                                                                    
+## [16] &quot;        sidebarMenu(&quot;                                                                       
+## [17] &quot;          menuItem(\&quot;Carte\&quot;, tabName = \&quot;Carte\&quot;, icon = icon(\&quot;map\&quot;)),&quot;                  
+## [18] &quot;          menuItem(\&quot;Tab 2\&quot;, tabName = \&quot;tab_2\&quot;, icon = icon(\&quot;chart-line\&quot;))&quot;            
+## [19] &quot;        )&quot;                                                                                  
+## [20] &quot;      ),&quot;                                                                                   
+## [21] &quot;      dashboardBody(&quot;                                                                       
+## [22] &quot;        tabItems(&quot;                                                                          
+## [23] &quot;          tabItem(tabName = \&quot;Carte\&quot;,&quot;                                                     
+## [24] &quot;                  fluidRow(&quot;                                                                
+## [25] &quot;                    column(&quot;                                                                
+## [26] &quot;                      width = 4,&quot;                                                           
+## [27] &quot;                      mod_load_data_ui(\&quot;load_data_ui_1\&quot;),&quot;                                
+## [28] &quot;                      mod_table_data_ui(\&quot;table_data_ui_1\&quot;)&quot;                               
+## [29] &quot;                    ),&quot;                                                                     
+## [30] &quot;                    column(&quot;                                                                
+## [31] &quot;                      width = 6, offset = 2,&quot;                                               
+## [32] &quot;                      mod_map_data_ui(\&quot;map_data_ui_1\&quot;)&quot;                                   
+## [33] &quot;                    )&quot;                                                                      
+## [34] &quot;                  ))&quot;                                                                       
+## [35] &quot;        )&quot;                                                                                  
+## [36] &quot;      )&quot;                                                                                    
+## [37] &quot;    )&quot;                                                                                      
+## [38] &quot;  )&quot;                                                                                        
+## [39] &quot;}&quot;                                                                                          
+## [40] &quot;&quot;                                                                                           
+## [41] &quot;#&#39; Add external Resources to the Application&quot;                                               
+## [42] &quot;#&#39; &quot;                                                                                        
+## [43] &quot;#&#39; This function is internally used to add external &quot;                                       
+## [44] &quot;#&#39; resources inside the Shiny application. &quot;                                                
+## [45] &quot;#&#39; &quot;                                                                                        
+## [46] &quot;#&#39; @import shiny&quot;                                                                           
+## [47] &quot;#&#39; @importFrom golem add_resource_path activate_js favicon bundle_resources&quot;                
+## [48] &quot;#&#39; @noRd&quot;                                                                                   
+## [49] &quot;golem_add_external_resources &lt;- function(){&quot;                                                
+## [50] &quot;  &quot;                                                                                         
+## [51] &quot;  add_resource_path(&quot;                                                                       
+## [52] &quot;    &#39;www&#39;, app_sys(&#39;app/www&#39;)&quot;                                                              
+## [53] &quot;  )&quot;                                                                                        
+## [54] &quot; &quot;                                                                                          
+## [55] &quot;  tags$head(&quot;                                                                               
+## [56] &quot;    favicon(),&quot;                                                                             
+## [57] &quot;    bundle_resources(&quot;                                                                      
+## [58] &quot;      path = app_sys(&#39;app/www&#39;),&quot;                                                           
+## [59] &quot;      app_title = &#39;golemDemo&#39;&quot;                                                              
+## [60] &quot;    )&quot;                                                                                      
+## [61] &quot;    # Add here other external resources&quot;                                                    
+## [62] &quot;    # for example, you can add shinyalert::useShinyalert() &quot;                                
+## [63] &quot;  )&quot;                                                                                        
+## [64] &quot;}&quot;                                                                                          
+## [65] &quot;&quot;</code></pre>
+<p>this is the “global” UI of the app. This looks like any other Shiny UI, but instead of having
+many many lines of code, there’s basically only calls to the UIs of each modules (see lines 27 and 28).
+And that’s it! It keeps your code quite small and much easier to reason about. You’ll find
+something even simpler for the server:</p>
+<pre class="r"><code>system2(&quot;cat&quot;, args = &quot;~/Documents/golemDemo/R/app_server.R&quot;, stdout = TRUE)</code></pre>
+<pre><code>##  [1] &quot;#&#39; The application server-side&quot;                                              
+##  [2] &quot;#&#39; &quot;                                                                         
+##  [3] &quot;#&#39; @param input,output,session Internal parameters for {shiny}. &quot;            
+##  [4] &quot;#&#39;     DO NOT REMOVE.&quot;                                                       
+##  [5] &quot;#&#39; @import shiny&quot;                                                            
+##  [6] &quot;#&#39; @noRd&quot;                                                                    
+##  [7] &quot;app_server &lt;- function( input, output, session ) {&quot;                          
+##  [8] &quot;  # List the first level callModules here&quot;                                   
+##  [9] &quot;&quot;                                                                            
+## [10] &quot;  result &lt;- callModule(mod_load_data_server, \&quot;load_data_ui_1\&quot;)&quot;            
+## [11] &quot;&quot;                                                                            
+## [12] &quot;  callModule(mod_table_data_server, \&quot;table_data_ui_1\&quot;, result)&quot;            
+## [13] &quot;  &quot;                                                                          
+## [14] &quot;&quot;                                                                            
+## [15] &quot;  selected_lines &lt;- reactive({&quot;                                              
+## [16] &quot;    if(is.null(input$`table_data_ui_1-dataset_rows_selected`)){&quot;             
+## [17] &quot;      return(TRUE)&quot;                                                          
+## [18] &quot;    } else {&quot;                                                                
+## [19] &quot;      as.numeric(input$`table_data_ui_1-dataset_rows_selected`)&quot;             
+## [20] &quot;    }&quot;                                                                       
+## [21] &quot;  })&quot;                                                                        
+## [22] &quot;&quot;                                                                            
+## [23] &quot;  callModule(mod_map_data_server, \&quot;map_data_ui_1\&quot;, result, selected_lines)&quot;
+## [24] &quot;&quot;                                                                            
+## [25] &quot;}&quot;</code></pre>
+<p>Line 10 calls the server side of the “load data” module, and saves the result (a data frame) into
+a variable called <code>result</code>. This result is then passed as an argument to the server side of
+table data module, which simply shows a table of the data. From lines 15 to 21, I define a
+variable called <code>selected-lines</code> in which the lines that the user selects in the data table are
+saved. This gave me some headaches, because I needed to find the right syntax. I was able to find
+it thanks to a Stackoverflow post that I have now lost since then… but the idea is that
+the indices of the selected rows are saved into a variable called <code>dataset_rows_selected</code> and this variable name
+must be appended to the name of the UI of the table where the table is. If no row is selected, then
+this object should be <code>TRUE</code>; why? Because if you filter a data frame with a condition that simply
+evaluates always to <code>TRUE</code>, you get all the rows back, and thus, all of the data frame. If you start
+selecting rows, say, rows number 2, 8 and 12, then <code>dataset_rows_selected</code> will be equal to <code>c(2, 8, 12)</code>, and the filter will return these rows.</p>
+<p>Finally, I call the module that returns a map of Luxembourg, and pass both the data frame, saved in
+the <code>result</code> variable, and the <code>selected_lines</code> objects as arguments. And that’s how you make modules
+communicate and share data with each other, just like you would chain functions together.
+I won’t go through each module, but there’s several other interesting tricks that I’ll discuss
+during the video; for instance, I’m quite happy with the module that loads the data; the user can
+choose between two different dataset, and the select input will update with the right columns. This
+also wasn’t so easy to do, but it’ll be easier to explain during a video, so stay tuned!</p>
+<p>Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my ebook on <a href="https://leanpub.com/modern_tidyverse">Leanpub</a>.</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
+</div>
+
+			</div>
+		</article>
+	</main>
+<aside>
+	<div>
+		<div>
+			<h3>LATEST POSTS</h3>
+		</div>
+		<div>
+			<ul>
+				
+				<li><a href="/post/2020-12-30-year_review/">A year in review</a></li>
+				
+				<li><a href="/post/2020-12-12-ethics_statistics/">(Half) Lies, (half) truths and (half) statistics</a></li>
+				
+				<li><a href="/post/2020-12-05-poorman_translate/">Poorman&#39;s automated translation with R and Google Sheets using {googlesheets4}</a></li>
+				
+				<li><a href="/post/2020-11-21-guis_mistake/">Graphical User Interfaces were a mistake but you can still make things right</a></li>
+				
+				<li><a href="/post/2020-11-05-retire_data_science/">It&#39;s time to retire the &#34;data scientist&#34; label</a></li>
+				
+			</ul>
+		</div>
+	</div>
+</aside>
+
+
+	<footer>
+  <div class="row">
+    <div class="col-lg-12">
+      <p>2021, content by Bruno Rodrigues, unless otherwise stated, every content of this blog is licensed under the <a href="http://www.wtfpl.net/txt/copying/" rel="nofollow">WTFPL</a>.</p>
+      <p>The theme this blog uses is a slight variation of the <a href="https://github.com/colorchestra/smol" rel="nofollow">Smol</a> theme.</p>
+      <p><a class="nav-link" href="/index.html">Back to main page.</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

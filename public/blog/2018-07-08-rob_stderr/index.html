@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"  lang="en-us">
+    <title>Dealing with heteroskedasticity; regression with robust standard errors using R - Econometrics and Free Software</title>
+    <meta name="generator" content="Hugo 0.25.1" />
+
+    
+    <meta name="description" content="A blog about econometrics, free software, and R">
+    
+    <link rel="canonical" href="../../blog/2018-07-08-rob_stderr/">
+    
+    <meta name="author" content="Bruno Rodrigues">
+    
+    <meta name="generator" content="Hugo 0.25.1" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta property="og:url" content="/blog/2018-07-08-rob_stderr/">
+    <meta property="og:title" content="Econometrics and Free Software">
+    <meta property="og:image" content="/map[url:logo.png width:50 height:50 alt:Logo]">
+    <meta name="apple-mobile-web-app-title" content="Econometrics and Free Software">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <link rel="shortcut icon" type="image/x-icon" href="../../images/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="../../images/favicon.ico">
+
+    
+    <link rel="stylesheet" href="../../css/bootstrap.min.css" media="screen">
+    <link rel="stylesheet" href="../../css/custom.css">
+    <link rel="stylesheet" href="../../css/pygments.css">
+    
+    <link rel="stylesheet" href="../../css/jquery.fancybox.css?v=2.1.5" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/helpers/jquery.fancybox-buttons.css?v=1.0.5" type="text/css" media="screen" />
+  </head>
+  <body>
+
+
+<div class="row">
+<div class="navbar navbar-default navbar-fixed-top">
+<div class="container">
+  <div class="navbar-header">
+    <a href="../../" class="navbar-brand">Econometrics and Free Software</a>
+    <button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar-main">
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+    </button>
+  </div>
+  <div class="navbar-collapse collapse" id="navbar-main">
+
+    <ul class="nav navbar-nav navbar-right">
+      <li><a href="https://www.buymeacoffee.com/brodriguesco">Donate</a></li>
+      <li><a href="https://www.youtube.com/c/BrunoRodrigues1988">Youtube</a></li>
+      <li><a href="https://github.com/b-rodrigues/">Github</a></li>
+      <li><a href="https://twitter.com/brodriguesco/">Twitter</a></li>
+    </ul>
+  </div>
+</div>
+
+</div>
+
+<div class="container">
+
+  <div>
+    <div class="row">
+      <div class="col-lg-3 col-md-3 col-sm-4">
+        
+
+<div class="list-group table-of-contents">
+
+  
+    <a class="list-group-item" href=#><b>About Me</b></a>
+    
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../../about/about/">Who am I?</a>
+      
+      <a class="list-group-item" href="../../about/projects/">Projects</a>
+      
+      <a class="list-group-item" href="../../about/research/">Research</a>
+      
+      <a class="list-group-item" href="../../about/software/">Software</a>
+      
+    </div>
+    
+  
+    <a class="list-group-item" href=#><b>Blog</b></a>
+    
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../../blog/2018-11-25-tidy_cv/">A tutorial on tidy cross-validation with R</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-03-nethack_analysis/">Analyzing NetHack data, part 1: What kills the players</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-10-nethack_analysis_part2/">Analyzing NetHack data, part 2: What players kill the most</a>
+      
+      <a class="list-group-item" href="../../blog/2019-02-04-newspapers_shiny_app_tutorial/">Building a shiny app to explore historical newspapers: a step-by-step guide</a>
+      
+      <a class="list-group-item" href="../../blog/2019-03-03-historical_vowpal/">Classification of historical newspapers content: a tutorial combining R, bash and Vowpal Wabbit, part 1</a>
+      
+      <a class="list-group-item" href="../../blog/2019-03-05-historical_vowpal_part2/">Classification of historical newspapers content: a tutorial combining R, bash and Vowpal Wabbit, part 2</a>
+      
+      <a class="list-group-item" href="../../blog/2019-06-20-tidy_eval_saga/">Curly-Curly, the successor of Bang-Bang</a>
+      
+      <a class="list-group-item" href="../../blog/2018-07-08-rob_stderr/">Dealing with heteroskedasticity; regression with robust standard errors using R</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-14-luxairport/">Easy time-series prediction with R: a tutorial with air traffic data from Lux Airport</a>
+      
+      <a class="list-group-item" href="../../blog/2018-10-05-ggplot2_purrr_officer/">Exporting editable plots from R to Powerpoint: making ggplot2 purrr with officer</a>
+      
+      <a class="list-group-item" href="../../blog/2019-04-28-diffindiff_part1/">Fast food, causality and R packages, part 1</a>
+      
+      <a class="list-group-item" href="../../blog/2019-05-04-diffindiff_part2/">Fast food, causality and R packages, part 2</a>
+      
+      <a class="list-group-item" href="../../blog/2019-05-18-xml2/">For posterity: install {xml2} on GNU/Linux distros</a>
+      
+      <a class="list-group-item" href="../../blog/2018-06-24-fun_ts/">Forecasting my weight with R</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-01-nethack/">From webscraping data to releasing it as an R package to share with the world: a full tutorial with data from NetHack</a>
+      
+      <a class="list-group-item" href="../../blog/2019-03-31-tesseract/">Get text from pdfs or images using OCR: a tutorial with {tesseract} and {magick}</a>
+      
+      <a class="list-group-item" href="../../blog/2018-06-10-scraping_pdfs/">Getting data from pdfs using the pdftools package</a>
+      
+      <a class="list-group-item" href="../../blog/2018-10-21-lux_elections/">Getting the data from the Luxembourguish elections out of Excel</a>
+      
+      <a class="list-group-item" href="../../blog/2018-09-11-human_to_machine/">Going from a human readable Excel file to a machine-readable csv with {tidyxl}</a>
+      
+      <a class="list-group-item" href="../../blog/2019-04-07-historical_newspaper_scraping_tesseract/">Historical newspaper scraping with {tesseract} and R</a>
+      
+      <a class="list-group-item" href="../../blog/2018-09-15-time_use/">How Luxembourguish residents spend their time: a small {flexdashboard} demo using the Time use survey data</a>
+      
+      <a class="list-group-item" href="../../blog/2018-04-14-playing_with_furrr/">Imputing missing values in parallel using {furrr}</a>
+      
+      <a class="list-group-item" href="../../blog/2019-06-12-intermittent/">Intermittent demand, Croston and Die Hard</a>
+      
+      <a class="list-group-item" href="../../blog/2019-01-04-newspapers/">Looking into 19th century ads from a Luxembourguish newspaper with R</a>
+      
+      <a class="list-group-item" href="../../blog/2019-01-13-newspapers_mets_alto/">Making sense of the METS and ALTO XML standards</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-15-lubridate_africa/">Manipulate dates easily with {lubridate}</a>
+      
+      <a class="list-group-item" href="../../blog/2019-02-10-stringr_package/">Manipulating strings with the {stringr} package</a>
+      
+      <a class="list-group-item" href="../../blog/2018-10-27-lux_elections_analysis/">Maps with pie charts on top of each administrative division: an example with Luxembourg&#39;s elections data</a>
+      
+      <a class="list-group-item" href="../../blog/2018-07-01-tidy_ive/">Missing data imputation and instrumental variables regression: the tidy approach</a>
+      
+      <a class="list-group-item" href="../../blog/2019-08-17-modern_r/">Modern R with the tidyverse is available on Leanpub</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-24-modern_objects/">Objects types and some useful R functions for beginners</a>
+      
+      <a class="list-group-item" href="../../blog/2019-03-20-pivot/">Pivoting data frames just got easier thanks to `pivot_wide()` and `pivot_long()`</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-30-reticulate/">R or Python? Why not both? Using Anaconda Python within R with {reticulate}</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-15-tidy_gridsearch/">Searching for the optimal hyper-parameters of an ARIMA model in parallel: the tidy gridsearch approach</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-27-fun_gganimate/">Some fun with {gganimate}</a>
+      
+      <a class="list-group-item" href="../../blog/2019-10-05-parallel_maxlik/">Split-apply-combine for Maximum Likelihood Estimation of a linear model</a>
+      
+      <a class="list-group-item" href="../../blog/2019-07-19-statmatch/">Statistical matching, or when one single data source is not enough</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-21-lux_castle/">The best way to visit Luxembourguish castles is doing data science &#43; combinatorial optimization</a>
+      
+      <a class="list-group-item" href="../../blog/2019-05-19-spacemacs/">The never-ending editor war (?)</a>
+      
+      <a class="list-group-item" href="../../blog/2018-09-08-steam_linux/">The year of the GNU&#43;Linux desktop is upon us: using user ratings of Steam Play compatibility to play around with regex and the tidyverse</a>
+      
+      <a class="list-group-item" href="../../blog/2019-01-31-newspapers_shiny_app/">Using Data Science to read 10 years of Luxembourguish newspapers from the 19th century</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-16-rgenoud_arima/">Using a genetic algorithm for the hyperparameter optimization of a SARIMA model</a>
+      
+      <a class="list-group-item" href="../../blog/2019-06-04-cosine_sim/">Using cosine similarity to find matching documents: a tutorial using Seneca&#39;s letters to his friend Lucilius</a>
+      
+      <a class="list-group-item" href="../../blog/2019-08-14-lpm/">Using linear models with binary dependent variables, a simulation study</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-21-tidyverse_pi/">Using the tidyverse for more than data manipulation: estimating pi with Monte Carlo methods</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-02-hyper-parameters/">What hyper-parameters are, and what to do with them; an illustration with ridge regression</a>
+      
+      <a class="list-group-item" href="../../blog/2019-09-03-disk_frame/">{disk.frame} is epic</a>
+      
+      <a class="list-group-item" href="../../blog/2018-04-15-announcing_pmice/">{pmice}, an experimental package for missing data imputation in parallel using {mice} and {furrr}</a>
+      
+      <a class="list-group-item" href="../../blog/2017-12-27-build_formulae/">Building formulae</a>
+      
+      <a class="list-group-item" href="../../blog/2017-11-14-peace_r/">Functional peace of mind</a>
+      
+      <a class="list-group-item" href="../../blog/2018-04-10-brotools_describe/">Get basic summary statistics for all the variables in a data frame</a>
+      
+      <a class="list-group-item" href="../../blog/2018-03-03-sparklyr_h2o_rsparkling/">Getting {sparklyr}, {h2o}, {rsparkling} to work together and some fun with bash</a>
+      
+      <a class="list-group-item" href="../../blog/2018-02-16-importing_30gb_of_data/">Importing 30GB of data into R with sparklyr</a>
+      
+      <a class="list-group-item" href="../../blog/2017-03-27-introducing_brotools/">Introducing brotools</a>
+      
+      <a class="list-group-item" href="../../blog/2018-01-03-lists_all_the_way/">It&#39;s lists all the way down</a>
+      
+      <a class="list-group-item" href="../../blog/2018-01-05-lists_all_the_way2/">It&#39;s lists all the way down, part 2: We need to go deeper</a>
+      
+      <a class="list-group-item" href="../../blog/2018-03-12-keep_trying/">Keep trying that api call with purrr::possibly()</a>
+      
+      <a class="list-group-item" href="../../blog/2017-06-19-dplyr-0-70-tutorial/">Lesser known dplyr 0.7* tricks</a>
+      
+      <a class="list-group-item" href="../../blog/2017-02-17-lesser_known_tricks/">Lesser known dplyr tricks</a>
+      
+      <a class="list-group-item" href="../../blog/2017-03-24-lesser_known_purrr/">Lesser known purrr tricks</a>
+      
+      <a class="list-group-item" href="../../blog/2017-03-29-make-ggplot2-purrr/">Make ggplot2 purrr</a>
+      
+      <a class="list-group-item" href="../../blog/2018-01-19-mapping_functions_with_any_cols/">Mapping a list of functions to a list of datasets with a list of columns as arguments</a>
+      
+      <a class="list-group-item" href="../../blog/2018-02-11-census-random_forest/">Predicting job search by training a random forest on an unbalanced dataset</a>
+      
+      <a class="list-group-item" href="../../blog/2017-12-17-teaching_tidyverse/">Teaching the tidyverse to beginners</a>
+      
+      <a class="list-group-item" href="../../blog/2017-08-27-why_tidyeval/">Why I find tidyeval useful</a>
+      
+      <a class="list-group-item" href="../../blog/2017-07-27-spread_rename_at/">tidyr::spread() and dplyr::rename_at() in action</a>
+      
+      <a class="list-group-item" href="../../blog/2017-10-26-margins_r/">Easy peasy STATA-like marginal effects with R</a>
+      
+      <a class="list-group-item" href="../../blog/2016-12-24-functional-programming-and-unit-testing-for-data-munging-with-r-available-on-leanpub/">Functional programming and unit testing for data munging with R available on Leanpub</a>
+      
+      <a class="list-group-item" href="../../blog/2017-02-17-how_to_use_jailbreakr/">How to use jailbreakr</a>
+      
+      <a class="list-group-item" href="../../blog/2017-01-07-my-free-book-has-a-cover/">My free book has a cover!</a>
+      
+      <a class="list-group-item" href="../../blog/2016-12-21-work-on-lists-of-datasets-instead-of-individual-datasets-by-using-functional-programming/">Work on lists of datasets instead of individual datasets by using functional programming</a>
+      
+      <a class="list-group-item" href="../../blog/2013-01-29-method-of-simulated-moments-with-r/">Method of Simulated Moments with R</a>
+      
+      <a class="list-group-item" href="../../blog/2012-12-11-new-website/">New website!</a>
+      
+      <a class="list-group-item" href="../../blog/2013-11-07-gmm-with-rmd/">Nonlinear Gmm with R - Example with a logistic regression</a>
+      
+      <a class="list-group-item" href="../../blog/2013-01-16-simulated-maximum-likelihood-with-r/">Simulated Maximum Likelihood with R</a>
+      
+      <a class="list-group-item" href="../../blog/2015-11-11-bootstrapping-did-with-r/">Bootstrapping standard errors for difference-in-differences estimation with R</a>
+      
+      <a class="list-group-item" href="../../blog/2016-06-21-careful-with-trycatch/">Careful with tryCatch</a>
+      
+      <a class="list-group-item" href="../../blog/2016-07-18-data-frame-columns-as-arguments-to-dplyr-functions/">Data frame columns as arguments to dplyr functions</a>
+      
+      <a class="list-group-item" href="../../blog/2015-02-22-export-r-output-to-file/">Export R output to a file</a>
+      
+      <a class="list-group-item" href="../../blog/2016-11-04-ive-started-writing-a-book-functional-programming-and-unit-testing-for-data-munging-with-r/">I&#39;ve started writing a &#39;book&#39;: Functional programming and unit testing for data munging with R</a>
+      
+      <a class="list-group-item" href="../../blog/2015-01-12-introduction-to-programming-econometrics-with-r/">Introduction to programming econometrics with R</a>
+      
+      <a class="list-group-item" href="../../blog/2016-07-30-merge-a-list-of-datasets-together/">Merge a list of datasets together</a>
+      
+      <a class="list-group-item" href="../../blog/2014-04-23-r-s4-rootfinding/">Object Oriented Programming with R: An example with a Cournot duopoly</a>
+      
+      <a class="list-group-item" href="../../blog/2014-11-11-benchmarks-r-blas-atlas-rro/">R, R with Atlas, R with OpenBLAS and Revolution R Open: which is fastest?</a>
+      
+      <a class="list-group-item" href="../../blog/2016-07-26-read-a-lot-of-datasets-at-once-with-r/">Read a lot of datasets at once with R</a>
+      
+      <a class="list-group-item" href="../../blog/2016-03-31-unit-testing-with-r/">Unit testing with R</a>
+      
+      <a class="list-group-item" href="../../blog/2015-05-03-update-introduction-r-programming/">Update to Introduction to programming econometrics with R</a>
+      
+      <a class="list-group-item" href="../../blog/2013-12-31-r-cas/">Using R as a Computer Algebra System with Ryacas</a>
+      
+    </div>
+    
+  
+
+</div>
+
+      </div>
+      <div class="col-lg-9 col-md-9 col-sm-8">
+        <div>
+           <h1 id="main">Dealing with heteroskedasticity; regression with robust standard errors using R</h1>
+           <span class="article-date">July 8, 2018</span>
+        </div>
+        <div style="text-align:center;">
+<p><a href="https://cran.r-project.org/web/packages/sandwich/index.html">
+<img src="../../img/bread-breakfast-bun-5678.jpg" width="640" height="360"/></a></p>
+</div>
+<p>First of all, is it heteros<strong>k</strong>edasticity or heteros<strong>c</strong>edasticity? According to
+<a href="https://www.jstor.org/stable/1911250">McCulloch (1985)</a>,
+heteros<strong>k</strong>edasticity is the proper spelling, because when transliterating Greek words, scientists
+use the Latin letter k in place of the Greek letter κ (kappa). κ sometimes is transliterated as
+the Latin letter c, but only when these words entered the English language through French, such
+as scepter.</p>
+<p>Now that this is out of the way, we can get to the meat of this blogpost (foreshadowing pun).
+A random variable is said to be heteroskedastic, if its variance is not constant. For example,
+the variability of expenditures may increase with income. Richer families may spend a similar
+amount on groceries as poorer people, but some rich families will sometimes buy expensive
+items such as lobster. The variability of expenditures for rich families is thus quite large.
+However, the expenditures on food of poorer families, who cannot afford lobster, will not vary much.
+Heteroskedasticity can also appear when data is clustered; for example, variability of
+expenditures on food may vary from city to city, but is quite constant within a city.</p>
+<p>To illustrate this, let’s first load all the packages needed for this blog post:</p>
+<pre class="r"><code>library(robustbase)
+library(tidyverse)
+library(sandwich)
+library(lmtest)
+library(modelr)
+library(broom)</code></pre>
+<p>First, let’s load and prepare the data:</p>
+<pre class="r"><code>data(&quot;education&quot;)
+
+education &lt;- education %&gt;% 
+    rename(residents = X1,
+           per_capita_income = X2,
+           young_residents = X3,
+           per_capita_exp = Y,
+           state = State) %&gt;% 
+    mutate(region = case_when(
+        Region == 1 ~ &quot;northeast&quot;,
+        Region == 2 ~ &quot;northcenter&quot;,
+        Region == 3 ~ &quot;south&quot;,
+        Region == 4 ~ &quot;west&quot;
+    )) %&gt;% 
+    select(-Region)</code></pre>
+<p>I will be using the <code>education</code> data set from the <code>{robustbase}</code> package. I renamed some columns
+and changed the values of the <code>Region</code> column. Now, let’s do a scatterplot of per capita expenditures
+on per capita income:</p>
+<pre class="r"><code>ggplot(education, aes(per_capita_income, per_capita_exp)) + 
+    geom_point() +
+    theme_dark()</code></pre>
+<p><img src="../../blog/2018-07-08-rob_stderr_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<p>It would seem that, as income increases, variability of expenditures increases too. Let’s look
+at the same plot by <code>region</code>:</p>
+<pre class="r"><code>ggplot(education, aes(per_capita_income, per_capita_exp)) + 
+    geom_point() + 
+    facet_wrap(~region) + 
+    theme_dark()</code></pre>
+<p><img src="../../blog/2018-07-08-rob_stderr_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<p>I don’t think this shows much; it would seem that observations might be clustered, but there are
+not enough observations to draw any conclusion from this plot (in any case, drawing conclusions
+from only plots is dangerous).</p>
+<p>Let’s first run a good ol’ linear regression:</p>
+<pre class="r"><code>lmfit &lt;- lm(per_capita_exp ~ region + residents + young_residents + per_capita_income, data = education)
+
+summary(lmfit)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = per_capita_exp ~ region + residents + young_residents + 
+##     per_capita_income, data = education)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -77.963 -25.499  -2.214  17.618  89.106 
+## 
+## Coefficients:
+##                     Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)       -467.40283  142.57669  -3.278 0.002073 ** 
+## regionnortheast     15.72741   18.16260   0.866 0.391338    
+## regionsouth          7.08742   17.29950   0.410 0.684068    
+## regionwest          34.32416   17.49460   1.962 0.056258 .  
+## residents           -0.03456    0.05319  -0.650 0.519325    
+## young_residents      1.30146    0.35717   3.644 0.000719 ***
+## per_capita_income    0.07204    0.01305   5.520 1.82e-06 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 39.88 on 43 degrees of freedom
+## Multiple R-squared:  0.6292, Adjusted R-squared:  0.5774 
+## F-statistic: 12.16 on 6 and 43 DF,  p-value: 6.025e-08</code></pre>
+<p>Let’s test for heteroskedasticity using the Breusch-Pagan test that you can find in the <code>{lmtest}</code>
+package:</p>
+<pre class="r"><code>bptest(lmfit)</code></pre>
+<pre><code>## 
+##  studentized Breusch-Pagan test
+## 
+## data:  lmfit
+## BP = 17.921, df = 6, p-value = 0.006432</code></pre>
+<p>This test shows that we can reject the null that the variance of the residuals is constant,
+thus heteroskedacity is present. To get the correct standard errors, we can use the <code>vcovHC()</code>
+function from the <code>{sandwich}</code> package (hence the choice for the header picture of this post):</p>
+<pre class="r"><code>lmfit %&gt;% 
+    vcovHC() %&gt;% 
+    diag() %&gt;% 
+    sqrt()</code></pre>
+<pre><code>##       (Intercept)   regionnortheast       regionsouth        regionwest 
+##      311.31088691       25.30778221       23.56106307       24.12258706 
+##         residents   young_residents per_capita_income 
+##        0.09184368        0.68829667        0.02999882</code></pre>
+<p>By default <code>vcovHC()</code> estimates a heteroskedasticity consistent (HC) variance covariance
+matrix for the parameters. There are several ways to estimate such a HC matrix, and by default
+<code>vcovHC()</code> estimates the “HC3” one. You can refer to <a href="https://www.jstatsoft.org/article/view/v011i10">Zeileis (2004)</a>
+for more details.</p>
+<p>We see that the standard errors are much larger than before! The intercept and <code>regionwest</code> variables
+are not statistically significant anymore.</p>
+<p>You can achieve the same in one single step:</p>
+<pre class="r"><code>coeftest(lmfit, vcov = vcovHC(lmfit))</code></pre>
+<pre><code>## 
+## t test of coefficients:
+## 
+##                      Estimate  Std. Error t value Pr(&gt;|t|)  
+## (Intercept)       -467.402827  311.310887 -1.5014  0.14056  
+## regionnortheast     15.727405   25.307782  0.6214  0.53759  
+## regionsouth          7.087424   23.561063  0.3008  0.76501  
+## regionwest          34.324157   24.122587  1.4229  0.16198  
+## residents           -0.034558    0.091844 -0.3763  0.70857  
+## young_residents      1.301458    0.688297  1.8908  0.06540 .
+## per_capita_income    0.072036    0.029999  2.4013  0.02073 *
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>It’s is also easy to change the estimation method for the variance-covariance matrix:</p>
+<pre class="r"><code>coeftest(lmfit, vcov = vcovHC(lmfit, type = &quot;HC0&quot;))</code></pre>
+<pre><code>## 
+## t test of coefficients:
+## 
+##                      Estimate  Std. Error t value  Pr(&gt;|t|)    
+## (Intercept)       -467.402827  172.577569 -2.7084  0.009666 ** 
+## regionnortheast     15.727405   20.488148  0.7676  0.446899    
+## regionsouth          7.087424   17.755889  0.3992  0.691752    
+## regionwest          34.324157   19.308578  1.7777  0.082532 .  
+## residents           -0.034558    0.054145 -0.6382  0.526703    
+## young_residents      1.301458    0.387743  3.3565  0.001659 ** 
+## per_capita_income    0.072036    0.016638  4.3296 8.773e-05 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>As I wrote above, by default, the <code>type</code> argument is equal to “HC3”.</p>
+<p>Another way of dealing with heteroskedasticity is to use the <code>lmrob()</code> function from the
+<code>{robustbase}</code> package. This package is quite interesting, and offers quite a lot of functions
+for robust linear, and nonlinear, regression models. Running a robust linear regression
+is just the same as with <code>lm()</code>:</p>
+<pre class="r"><code>lmrobfit &lt;- lmrob(per_capita_exp ~ region + residents + young_residents + per_capita_income, 
+                  data = education)
+
+summary(lmrobfit)</code></pre>
+<pre><code>## 
+## Call:
+## lmrob(formula = per_capita_exp ~ region + residents + young_residents + per_capita_income, 
+##     data = education)
+##  \--&gt; method = &quot;MM&quot;
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -57.074 -14.803  -0.853  24.154 174.279 
+## 
+## Coefficients:
+##                     Estimate Std. Error t value Pr(&gt;|t|)   
+## (Intercept)       -156.37169  132.73828  -1.178  0.24526   
+## regionnortheast     20.64576   26.45378   0.780  0.43940   
+## regionsouth         10.79695   29.42746   0.367  0.71549   
+## regionwest          45.22589   33.07950   1.367  0.17867   
+## residents            0.03406    0.04412   0.772  0.44435   
+## young_residents      0.57896    0.25512   2.269  0.02832 * 
+## per_capita_income    0.04328    0.01442   3.000  0.00447 **
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Robust residual standard error: 26.4 
+## Multiple R-squared:  0.6235, Adjusted R-squared:  0.571 
+## Convergence in 24 IRWLS iterations
+## 
+## Robustness weights: 
+##  observation 50 is an outlier with |weight| = 0 ( &lt; 0.002); 
+##  7 weights are ~= 1. The remaining 42 ones are summarized as
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+## 0.05827 0.85200 0.93870 0.85250 0.98700 0.99790 
+## Algorithmic parameters: 
+##        tuning.chi                bb        tuning.psi        refine.tol 
+##         1.548e+00         5.000e-01         4.685e+00         1.000e-07 
+##           rel.tol         scale.tol         solve.tol       eps.outlier 
+##         1.000e-07         1.000e-10         1.000e-07         2.000e-03 
+##             eps.x warn.limit.reject warn.limit.meanrw 
+##         1.071e-08         5.000e-01         5.000e-01 
+##      nResample         max.it       best.r.s       k.fast.s          k.max 
+##            500             50              2              1            200 
+##    maxit.scale      trace.lev            mts     compute.rd fast.s.large.n 
+##            200              0           1000              0           2000 
+##                   psi           subsampling                   cov 
+##            &quot;bisquare&quot;         &quot;nonsingular&quot;         &quot;.vcov.avar1&quot; 
+## compute.outlier.stats 
+##                  &quot;SM&quot; 
+## seed : int(0)</code></pre>
+<p>This however, gives you different estimates than when fitting a linear regression model.
+The estimates should be the same, only the standard errors should be different. This is because
+the estimation method is different, and is also robust to outliers (at least that’s my understanding,
+I haven’t read the theoretical papers behind the package yet).</p>
+<p>Finally, it is also possible to bootstrap the standard errors. For this I will use the
+<code>bootstrap()</code> function from the <code>{modelr}</code> package:</p>
+<pre class="r"><code>resamples &lt;- 100
+
+boot_education &lt;- education %&gt;% 
+ modelr::bootstrap(resamples)</code></pre>
+<p>Let’s take a look at the <code>boot_education</code> object:</p>
+<pre class="r"><code>boot_education</code></pre>
+<pre><code>## # A tibble: 100 x 2
+##    strap      .id  
+##    &lt;list&gt;     &lt;chr&gt;
+##  1 &lt;resample&gt; 001  
+##  2 &lt;resample&gt; 002  
+##  3 &lt;resample&gt; 003  
+##  4 &lt;resample&gt; 004  
+##  5 &lt;resample&gt; 005  
+##  6 &lt;resample&gt; 006  
+##  7 &lt;resample&gt; 007  
+##  8 &lt;resample&gt; 008  
+##  9 &lt;resample&gt; 009  
+## 10 &lt;resample&gt; 010  
+## # … with 90 more rows</code></pre>
+<p>The column <code>strap</code> contains resamples of the original data. I will run my linear regression
+from before on each of the resamples:</p>
+<pre class="r"><code>(
+    boot_lin_reg &lt;- boot_education %&gt;% 
+        mutate(regressions = 
+                   map(strap, 
+                       ~lm(per_capita_exp ~ region + residents + 
+                               young_residents + per_capita_income, 
+                           data = .))) 
+)</code></pre>
+<pre><code>## # A tibble: 100 x 3
+##    strap      .id   regressions
+##    &lt;list&gt;     &lt;chr&gt; &lt;list&gt;     
+##  1 &lt;resample&gt; 001   &lt;lm&gt;       
+##  2 &lt;resample&gt; 002   &lt;lm&gt;       
+##  3 &lt;resample&gt; 003   &lt;lm&gt;       
+##  4 &lt;resample&gt; 004   &lt;lm&gt;       
+##  5 &lt;resample&gt; 005   &lt;lm&gt;       
+##  6 &lt;resample&gt; 006   &lt;lm&gt;       
+##  7 &lt;resample&gt; 007   &lt;lm&gt;       
+##  8 &lt;resample&gt; 008   &lt;lm&gt;       
+##  9 &lt;resample&gt; 009   &lt;lm&gt;       
+## 10 &lt;resample&gt; 010   &lt;lm&gt;       
+## # … with 90 more rows</code></pre>
+<p>I have added a new column called <code>regressions</code> which contains the linear regressions on each
+bootstrapped sample. Now, I will create a list of tidied regression results:</p>
+<pre class="r"><code>(
+    tidied &lt;- boot_lin_reg %&gt;% 
+        mutate(tidy_lm = 
+                   map(regressions, broom::tidy))
+)</code></pre>
+<pre><code>## # A tibble: 100 x 4
+##    strap      .id   regressions tidy_lm         
+##    &lt;list&gt;     &lt;chr&gt; &lt;list&gt;      &lt;list&gt;          
+##  1 &lt;resample&gt; 001   &lt;lm&gt;        &lt;tibble [7 × 5]&gt;
+##  2 &lt;resample&gt; 002   &lt;lm&gt;        &lt;tibble [7 × 5]&gt;
+##  3 &lt;resample&gt; 003   &lt;lm&gt;        &lt;tibble [7 × 5]&gt;
+##  4 &lt;resample&gt; 004   &lt;lm&gt;        &lt;tibble [7 × 5]&gt;
+##  5 &lt;resample&gt; 005   &lt;lm&gt;        &lt;tibble [7 × 5]&gt;
+##  6 &lt;resample&gt; 006   &lt;lm&gt;        &lt;tibble [7 × 5]&gt;
+##  7 &lt;resample&gt; 007   &lt;lm&gt;        &lt;tibble [7 × 5]&gt;
+##  8 &lt;resample&gt; 008   &lt;lm&gt;        &lt;tibble [7 × 5]&gt;
+##  9 &lt;resample&gt; 009   &lt;lm&gt;        &lt;tibble [7 × 5]&gt;
+## 10 &lt;resample&gt; 010   &lt;lm&gt;        &lt;tibble [7 × 5]&gt;
+## # … with 90 more rows</code></pre>
+<p><code>broom::tidy()</code> creates a data frame of the regression results. Let’s look at one of these:</p>
+<pre class="r"><code>tidied$tidy_lm[[1]]</code></pre>
+<pre><code>## # A tibble: 7 x 5
+##   term              estimate std.error statistic  p.value
+##   &lt;chr&gt;                &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;
+## 1 (Intercept)       -571.     109.        -5.22  4.92e- 6
+## 2 regionnortheast    -48.0     17.2       -2.80  7.71e- 3
+## 3 regionsouth        -21.3     15.1       -1.41  1.66e- 1
+## 4 regionwest           1.88    13.9        0.135 8.93e- 1
+## 5 residents           -0.134    0.0608    -2.21  3.28e- 2
+## 6 young_residents      1.50     0.308      4.89  1.47e- 5
+## 7 per_capita_income    0.100    0.0125     8.06  3.85e-10</code></pre>
+<p>This format is easier to handle than the standard <code>lm()</code> output:</p>
+<pre class="r"><code>tidied$regressions[[1]]</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = per_capita_exp ~ region + residents + young_residents + 
+##     per_capita_income, data = .)
+## 
+## Coefficients:
+##       (Intercept)    regionnortheast        regionsouth  
+##         -571.0568           -48.0018           -21.3019  
+##        regionwest          residents    young_residents  
+##            1.8808            -0.1341             1.5042  
+## per_capita_income  
+##            0.1005</code></pre>
+<p>Now that I have all these regression results, I can compute any statistic I need. But first,
+let’s transform the data even further:</p>
+<pre class="r"><code>list_mods &lt;- tidied %&gt;% 
+    pull(tidy_lm)</code></pre>
+<p><code>list_mods</code> is a list of the <code>tidy_lm</code> data frames. I now add an index and
+bind the rows together (by using <code>map2_df()</code> instead of <code>map2()</code>):</p>
+<pre class="r"><code>mods_df &lt;- map2_df(list_mods, 
+                   seq(1, resamples), 
+                   ~mutate(.x, resample = .y))</code></pre>
+<p>Let’s take a look at the final object:</p>
+<pre class="r"><code>head(mods_df, 25)</code></pre>
+<pre><code>## # A tibble: 25 x 6
+##    term              estimate std.error statistic  p.value resample
+##    &lt;chr&gt;                &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;    &lt;int&gt;
+##  1 (Intercept)       -571.     109.        -5.22  4.92e- 6        1
+##  2 regionnortheast    -48.0     17.2       -2.80  7.71e- 3        1
+##  3 regionsouth        -21.3     15.1       -1.41  1.66e- 1        1
+##  4 regionwest           1.88    13.9        0.135 8.93e- 1        1
+##  5 residents           -0.134    0.0608    -2.21  3.28e- 2        1
+##  6 young_residents      1.50     0.308      4.89  1.47e- 5        1
+##  7 per_capita_income    0.100    0.0125     8.06  3.85e-10        1
+##  8 (Intercept)        -97.2    145.        -0.672 5.05e- 1        2
+##  9 regionnortheast     -1.48    10.8       -0.136 8.92e- 1        2
+## 10 regionsouth         12.5     11.4        1.09  2.82e- 1        2
+## # … with 15 more rows</code></pre>
+<p>Now this is a very useful format, because I now can group by the <code>term</code> column and compute any
+statistics I need, in the present case the standard deviation:</p>
+<pre class="r"><code>(
+    r.std.error &lt;- mods_df %&gt;% 
+        group_by(term) %&gt;% 
+        summarise(r.std.error = sd(estimate))
+)</code></pre>
+<pre><code>## # A tibble: 7 x 2
+##   term              r.std.error
+##   &lt;chr&gt;                   &lt;dbl&gt;
+## 1 (Intercept)          220.    
+## 2 per_capita_income      0.0197
+## 3 regionnortheast       24.5   
+## 4 regionsouth           21.1   
+## 5 regionwest            22.7   
+## 6 residents              0.0607
+## 7 young_residents        0.498</code></pre>
+<p>We can append this column to the linear regression model result:</p>
+<pre class="r"><code>lmfit %&gt;% 
+    broom::tidy() %&gt;% 
+    full_join(r.std.error) %&gt;% 
+    select(term, estimate, std.error, r.std.error)</code></pre>
+<pre><code>## Joining, by = &quot;term&quot;</code></pre>
+<pre><code>## # A tibble: 7 x 4
+##   term               estimate std.error r.std.error
+##   &lt;chr&gt;                 &lt;dbl&gt;     &lt;dbl&gt;       &lt;dbl&gt;
+## 1 (Intercept)       -467.      143.        220.    
+## 2 regionnortheast     15.7      18.2        24.5   
+## 3 regionsouth          7.09     17.3        21.1   
+## 4 regionwest          34.3      17.5        22.7   
+## 5 residents           -0.0346    0.0532      0.0607
+## 6 young_residents      1.30      0.357       0.498 
+## 7 per_capita_income    0.0720    0.0131      0.0197</code></pre>
+<p>As you see, using the whole bootstrapping procedure is longer than simply using either one of
+the first two methods. However, this procedure is very flexible and can thus be adapted to a very
+large range of situations. Either way, in the case of heteroskedasticity, you can see that
+results vary a lot depending on the procedure you use, so I would advise to use them all as
+robustness tests and discuss the differences.</p>
+<p>If you found this blog post useful, you might want to follow me on <a href="https://www.twitter.com/brodriguesco">twitter</a>
+for blog post updates.</p>
+
+      </div>
+    </div>
+  <div class="row">
+    <div class="col-lg-9 col-md-9 col-sm-8 col-lg-offset-3 col-md-offset-3">
+    <footer>
+  <div class="row">
+    <div class="col-lg-12">
+      <p>Copyright 2020. <a> Bruno Rodrigues</a> </p>
+      <p>Made with the HUGO theme <a href="https://github.com/adejoux/hugo-darkdoc-theme" rel="nofollow">darkdoc</a>.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+
+    </div>
+  </div>
+
+</div>
+</html>
+<script>
+
+  var api_url = '';
+
+</script>
+<script src="//code.jquery.com/jquery-2.2.3.min.js"></script>
+<script src="../../js/application.js"></script>
+<script type="text/javascript" src="../../js/jquery.fancybox.pack.js?v=2.1.5"></script>
+<script type="text/javascript" src="../../js/helpers/jquery.fancybox-thumbs.js?v=1.0.7"></script>
+<script type="text/javascript" src="../../js/helpers/jquery.fancybox-buttons.js?v=1.0.5"></script>
+<script type="text/javascript" src="../../js/helpers/jquery.fancybox-media.js?v=1.0.6"></script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $(".fancybox").fancybox();
+  });
+</script>
+

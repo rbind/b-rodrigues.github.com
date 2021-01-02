@@ -1,0 +1,1036 @@
+
+ create mode 100644 content/blog/castles_clean.csv
+ create mode 100644 content/blog/castles_osm.rds
+ create mode 100644 content/blog/communes_df.csv
+ create mode 100644 content/blog/distances_graphhopper.json
+ rewrite static/blog/2018-11-10-nethack_analysis_part2_files/figure-html/unnamed-chunk-12-1.png (98%)
+ rewrite static/blog/2018-11-10-nethack_analysis_part2_files/figure-html/unnamed-chunk-22-1.png (97%)
+ create mode 100644 static/blog/2018-11-20-lux_castle_files/figure-html/unnamed-chunk-10-1.png
+ create mode 100644 static/blog/2018-11-20-lux_castle_files/figure-html/unnamed-chunk-10-2.png
+ create mode 100644 static/blog/2018-11-20-lux_castle_files/figure-html/unnamed-chunk-12-1.png
+ create mode 100644 static/blog/2018-11-20-lux_castle_files/figure-html/unnamed-chunk-12-2.png
+ create mode 100644 static/blog/2018-11-20-lux_castle_files/figure-html/unnamed-chunk-14-1.png
+ create mode 100644 static/blog/2018-11-20-lux_castle_files/figure-html/unnamed-chunk-14-2.png
+ create mode 100644 static/blog/2018-11-20-lux_castle_files/figure-html/unnamed-chunk-18-1.png
+ create mode 100644 static/blog/2018-11-20-lux_castle_files/figure-html/unnamed-chunk-18-2.png
+ create mode 100644 static/blog/2018-11-20-lux_castle_files/figure-html/unnamed-chunk-19-1.png
+ create mode 100644 static/blog/2018-11-20-lux_castle_files/figure-html/unnamed-chunk-19-2.png
+ create mode 100644 static/blog/2018-11-20-lux_castle_files/figure-html/unnamed-chunk-21-1.png
+ create mode 100644 static/blog/2018-11-20-lux_castle_files/figure-html/unnamed-chunk-21-2.png
+ create mode 100644 static/blog/2018-11-20-lux_castle_files/figure-html/unnamed-chunk-26-1.png
+ create mode 100644 static/blog/2018-11-20-lux_castle_files/figure-html/unnamed-chunk-26-2.png
+ create mode 100644 static/blog/2018-11-20-lux_castle_files/figure-html/unnamed-chunk-27-1.png
+ create mode 100644 static/blog/2018-11-20-lux_castle_files/figure-html/unnamed-chunk-28-1.png
+ create mode 100644 static/blog/2018-11-20-lux_castle_files/figure-html/unnamed-chunk-29-1.png
+ create mode 100644 static/blog/2018-11-21-lux_castle_files/figure-html/unnamed-chunk-28-1.png
+ create mode 100644 static/blog/2018-11-21-lux_castle_files/figure-html/unnamed-chunk-29-1.png
+ create mode 100644 static/img/harold_kumar.jpg
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-11-20 21:40[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[00m[00m ➤ [K[?1h=[?2004hggit push origin master[?1l>[?2004l
+]2;git push origin master]1;gitEnumerating objects: 76, done.
+Counting objects:   1% (1/76)   Counting objects:   2% (2/76)   Counting objects:   3% (3/76)   Counting objects:   5% (4/76)   Counting objects:   6% (5/76)   Counting objects:   7% (6/76)   Counting objects:   9% (7/76)   Counting objects:  10% (8/76)   Counting objects:  11% (9/76)   Counting objects:  13% (10/76)   Counting objects:  14% (11/76)   Counting objects:  15% (12/76)   Counting objects:  17% (13/76)   Counting objects:  18% (14/76)   Counting objects:  19% (15/76)   Counting objects:  21% (16/76)   Counting objects:  22% (17/76)   Counting objects:  23% (18/76)   Counting objects:  25% (19/76)   Counting objects:  26% (20/76)   Counting objects:  27% (21/76)   Counting objects:  28% (22/76)   Counting objects:  30% (23/76)   Counting objects:  31% (24/76)   Counting objects:  32% (25/76)   Counting objects:  34% (26/76)   Counting objects:  35% (27/76)   Counting objects:  36% (28/76)   Counting objects:  38% (29/76)   Counting objects:  39% (30/76)   Counting objects:  40% (31/76)   Counting objects:  42% (32/76)   Counting objects:  43% (33/76)   Counting objects:  44% (34/76)   Counting objects:  46% (35/76)   Counting objects:  47% (36/76)   Counting objects:  48% (37/76)   Counting objects:  50% (38/76)   Counting objects:  51% (39/76)   Counting objects:  52% (40/76)   Counting objects:  53% (41/76)   Counting objects:  55% (42/76)   Counting objects:  56% (43/76)   Counting objects:  57% (44/76)   Counting objects:  59% (45/76)   Counting objects:  60% (46/76)   Counting objects:  61% (47/76)   Counting objects:  63% (48/76)   Counting objects:  64% (49/76)   Counting objects:  65% (50/76)   Counting objects:  67% (51/76)   Counting objects:  68% (52/76)   Counting objects:  69% (53/76)   Counting objects:  71% (54/76)   Counting objects:  72% (55/76)   Counting objects:  73% (56/76)   Counting objects:  75% (57/76)   Counting objects:  76% (58/76)   Counting objects:  77% (59/76)   Counting objects:  78% (60/76)   Counting objects:  80% (61/76)   Counting objects:  81% (62/76)   Counting objects:  82% (63/76)   Counting objects:  84% (64/76)   Counting objects:  85% (65/76)   Counting objects:  86% (66/76)   Counting objects:  88% (67/76)   Counting objects:  89% (68/76)   Counting objects:  90% (69/76)   Counting objects:  92% (70/76)   Counting objects:  93% (71/76)   Counting objects:  94% (72/76)   Counting objects:  96% (73/76)   Counting objects:  97% (74/76)   Counting objects:  98% (75/76)   Counting objects: 100% (76/76)   Counting objects: 100% (76/76), done.
+Delta compression using up to 12 threads
+Compressing objects:   1% (1/54)   Compressing objects:   3% (2/54)   Compressing objects:   5% (3/54)   Compressing objects:   7% (4/54)   Compressing objects:   9% (5/54)   Compressing objects:  11% (6/54)   Compressing objects:  12% (7/54)   Compressing objects:  14% (8/54)   Compressing objects:  16% (9/54)   Compressing objects:  18% (10/54)   Compressing objects:  20% (11/54)   Compressing objects:  22% (12/54)   Compressing objects:  24% (13/54)   Compressing objects:  25% (14/54)   Compressing objects:  27% (15/54)   Compressing objects:  29% (16/54)   Compressing objects:  31% (17/54)   Compressing objects:  33% (18/54)   Compressing objects:  35% (19/54)   Compressing objects:  37% (20/54)   Compressing objects:  38% (21/54)   Compressing objects:  40% (22/54)   Compressing objects:  42% (23/54)   Compressing objects:  44% (24/54)   Compressing objects:  46% (25/54)   Compressing objects:  48% (26/54)   Compressing objects:  50% (27/54)   Compressing objects:  51% (28/54)   Compressing objects:  53% (29/54)   Compressing objects:  55% (30/54)   Compressing objects:  57% (31/54)   Compressing objects:  59% (32/54)   Compressing objects:  61% (33/54)   Compressing objects:  62% (34/54)   Compressing objects:  64% (35/54)   Compressing objects:  66% (36/54)   Compressing objects:  68% (37/54)   Compressing objects:  70% (38/54)   Compressing objects:  72% (39/54)   Compressing objects:  74% (40/54)   Compressing objects:  75% (41/54)   Compressing objects:  77% (42/54)   Compressing objects:  79% (43/54)   Compressing objects:  81% (44/54)   Compressing objects:  83% (45/54)   Compressing objects:  85% (46/54)   Compressing objects:  87% (47/54)   Compressing objects:  88% (48/54)   Compressing objects:  90% (49/54)   Compressing objects:  92% (50/54)   Compressing objects:  94% (51/54)   Compressing objects:  96% (52/54)   Compressing objects:  98% (53/54)   Compressing objects: 100% (54/54)   Compressing objects: 100% (54/54), done.
+Writing objects:   1% (1/59)   Writing objects:   3% (2/59)   Writing objects:   5% (3/59)   Writing objects:   6% (4/59)   Writing objects:   8% (5/59)   Writing objects:  10% (6/59)   Writing objects:  11% (7/59)   Writing objects:  13% (8/59)   Writing objects:  15% (9/59)   Writing objects:  16% (10/59)   Writing objects:  18% (11/59)   Writing objects:  20% (12/59)   Writing objects:  22% (13/59)   Writing objects:  23% (14/59)   Writing objects:  25% (15/59)   Writing objects:  27% (16/59)   Writing objects:  28% (17/59)   Writing objects:  30% (18/59)   Writing objects:  32% (19/59)   Writing objects:  33% (20/59)   Writing objects:  35% (21/59)   Writing objects:  37% (22/59)   Writing objects:  38% (23/59)   Writing objects:  40% (24/59)   Writing objects:  42% (25/59)   Writing objects:  44% (26/59)   Writing objects:  45% (27/59)   Writing objects:  47% (28/59)   Writing objects:  49% (29/59)   Writing objects:  50% (30/59)   Writing objects:  52% (31/59)   Writing objects:  54% (32/59)   Writing objects:  55% (33/59)   Writing objects:  57% (34/59)   Writing objects:  59% (35/59)   Writing objects:  61% (36/59)   Writing objects:  62% (37/59)   Writing objects:  64% (38/59)   Writing objects:  66% (39/59)   Writing objects:  66% (39/59), 1.30 MiB | 1.07 MiB/s   Writing objects:  67% (40/59), 1.30 MiB | 1.07 MiB/s   Writing objects:  69% (41/59), 1.30 MiB | 1.07 MiB/s   Writing objects:  69% (41/59), 1.91 MiB | 955.00 KiB/s   Writing objects:  71% (42/59), 1.91 MiB | 955.00 KiB/s   Writing objects:  72% (43/59), 2.54 MiB | 882.00 KiB/s   Writing objects:  72% (43/59), 3.16 MiB | 795.00 KiB/s   Writing objects:  74% (44/59), 3.16 MiB | 795.00 KiB/s   Writing objects:  76% (45/59), 3.78 MiB | 818.00 KiB/s   Writing objects:  76% (45/59), 4.40 MiB | 800.00 KiB/s   Writing objects:  77% (46/59), 4.40 MiB | 800.00 KiB/s   Writing objects:  79% (47/59), 4.40 MiB | 800.00 KiB/s   Writing objects:  79% (47/59), 5.02 MiB | 789.00 KiB/s   Writing objects:  81% (48/59), 5.02 MiB | 789.00 KiB/s   Writing objects:  81% (48/59), 5.64 MiB | 777.00 KiB/s   Writing objects:  83% (49/59), 5.64 MiB | 777.00 KiB/s   Writing objects:  83% (49/59), 6.27 MiB | 770.00 KiB/s   Writing objects:  84% (50/59), 6.27 MiB | 770.00 KiB/s   Writing objects:  84% (50/59), 6.88 MiB | 705.00 KiB/s   Writing objects:  86% (51/59), 6.88 MiB | 705.00 KiB/s   Writing objects:  86% (51/59), 7.51 MiB | 687.00 KiB/s   Writing objects:  88% (52/59), 7.51 MiB | 687.00 KiB/s   Writing objects:  88% (52/59), 8.13 MiB | 659.00 KiB/s   Writing objects:  89% (53/59), 8.13 MiB | 659.00 KiB/s   Writing objects:  91% (54/59), 8.13 MiB | 659.00 KiB/s   Writing objects:  93% (55/59), 8.13 MiB | 659.00 KiB/s   Writing objects:  94% (56/59), 8.13 MiB | 659.00 KiB/s   Writing objects:  94% (56/59), 8.75 MiB | 660.00 KiB/s   Writing objects:  96% (57/59), 8.75 MiB | 660.00 KiB/s   Writing objects:  98% (58/59), 8.75 MiB | 660.00 KiB/s   Writing objects: 100% (59/59), 8.75 MiB | 660.00 KiB/s   Writing objects: 100% (59/59), 9.33 MiB | 750.00 KiB/s, done.
+Total 59 (delta 12), reused 0 (delta 0)
+remote: Resolving deltas:   0% (0/12)   [Kremote: Resolving deltas:   8% (1/12)   [Kremote: Resolving deltas:  16% (2/12)   [Kremote: Resolving deltas:  25% (3/12)   [Kremote: Resolving deltas:  33% (4/12)   [Kremote: Resolving deltas:  41% (5/12)   [Kremote: Resolving deltas:  50% (6/12)   [Kremote: Resolving deltas:  58% (7/12)   [Kremote: Resolving deltas:  66% (8/12)   [Kremote: Resolving deltas:  75% (9/12)   [Kremote: Resolving deltas:  83% (10/12)   [Kremote: Resolving deltas:  91% (11/12)   [Kremote: Resolving deltas: 100% (12/12)   [Kremote: Resolving deltas: 100% (12/12), completed with 11 local objects.[K
+remote: This repository moved. Please use the new location:[K
+remote:   git@github.com:rbind/b-rodrigues.github.com.git[K
+To github.com:b-rodrigues/b-rodrigues.github.com.git
+   4e78ed1..98bab58  master -> master
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-11-20 21:40[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[00m[00m ➤ [K[?1h=[?2004h[0m[27m[24m[J[37m[[33m18-11-20 21:43[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[00m[00m ➤ ggit status[?1l>[?2004l
+]2;git status]1;gitOn branch master
+Your branch is up to date with 'origin/master'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git checkout -- <file>..." to discard changes in working directory)
+
+	[31mmodified:   content/blog/2018-11-21-lux_castle.html[m
+	[31mmodified:   static/blog/2018-11-21-lux_castle_files/figure-html/unnamed-chunk-28-1.png[m
+	[31mmodified:   static/blog/2018-11-21-lux_castle_files/figure-html/unnamed-chunk-29-1.png[m
+
+no changes added to commit (use "git add" and/or "git commit -a")
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-11-20 21:43[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004hggit[?1l>[?2004l
+]2;git]1;gitusage: git [--version] [--help] [-C <path>] [-c <name>=<value>]
+           [--exec-path[=<path>]] [--html-path] [--man-path] [--info-path]
+           [-p | --paginate | -P | --no-pager] [--no-replace-objects] [--bare]
+           [--git-dir=<path>] [--work-tree=<path>] [--namespace=<name>]
+           <command> [<args>]
+
+These are common Git commands used in various situations:
+
+start a working area (see also: git help tutorial)
+   clone      Clone a repository into a new directory
+   init       Create an empty Git repository or reinitialize an existing one
+
+work on the current change (see also: git help everyday)
+   add        Add file contents to the index
+   mv         Move or rename a file, a directory, or a symlink
+   reset      Reset current HEAD to the specified state
+   rm         Remove files from the working tree and from the index
+
+examine the history and state (see also: git help revisions)
+   bisect     Use binary search to find the commit that introduced a bug
+   grep       Print lines matching a pattern
+   log        Show commit logs
+   show       Show various types of objects
+   status     Show the working tree status
+
+grow, mark and tweak your common history
+   branch     List, create, or delete branches
+   checkout   Switch branches or restore working tree files
+   commit     Record changes to the repository
+   diff       Show changes between commits, commit and working tree, etc
+   merge      Join two or more development histories together
+   rebase     Reapply commits on top of another base tip
+   tag        Create, list, delete or verify a tag object signed with GPG
+
+collaborate (see also: git help workflows)
+   fetch      Download objects and refs from another repository
+   pull       Fetch from and integrate with another repository or a local branch
+   push       Update remote refs along with associated objects
+
+'git help -a' and 'git help -g' list available subcommands and some
+concept guides. See 'git help <command>' or 'git help <concept>'
+to read about a specific subcommand or concept.
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-11-20 21:43[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004h  git add .[?1l>[?2004l
+]2;git add .]1;git]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-11-20 21:43[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004hggit commit m +am  -  /am   -am [15D'git commit -am ' [P[14C [15D[1C[1C[1C[1C[1C[1C[1C[1C[1C[1C[1C[1C[1C[1C "intro[21D'git commit -am "intro'[?1l>[?2004l
+]2;'git commit -am "intro']1;'gitgit commit -am "intro: searching ...  git commit -am "intro: command not found                                      
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-11-20 21:44[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004h«««« «  """"  'git commit -am "intro' "[P[22C [23D[?1l>[?2004l
+]2;git commit -am "intro"]1;git[master 476a02a] intro
+ 3 files changed, 3 insertions(+)
+ rewrite static/blog/2018-11-21-lux_castle_files/figure-html/unnamed-chunk-28-1.png (92%)
+ rewrite static/blog/2018-11-21-lux_castle_files/figure-html/unnamed-chunk-29-1.png (92%)
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-11-20 21:44[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[00m[00m ➤ [K[?1h=[?2004hggit push originam   master[?1l>[?2004l
+]2;git push origin master]1;gitEnumerating objects: 21, done.
+Counting objects:   4% (1/21)   Counting objects:   9% (2/21)   Counting objects:  14% (3/21)   Counting objects:  19% (4/21)   Counting objects:  23% (5/21)   Counting objects:  28% (6/21)   Counting objects:  33% (7/21)   Counting objects:  38% (8/21)   Counting objects:  42% (9/21)   Counting objects:  47% (10/21)   Counting objects:  52% (11/21)   Counting objects:  57% (12/21)   Counting objects:  61% (13/21)   Counting objects:  66% (14/21)   Counting objects:  71% (15/21)   Counting objects:  76% (16/21)   Counting objects:  80% (17/21)   Counting objects:  85% (18/21)   Counting objects:  90% (19/21)   Counting objects:  95% (20/21)   Counting objects: 100% (21/21)   Counting objects: 100% (21/21), done.
+Delta compression using up to 12 threads
+Compressing objects:  10% (1/10)   Compressing objects:  20% (2/10)   Compressing objects:  30% (3/10)   Compressing objects:  40% (4/10)   Compressing objects:  50% (5/10)   Compressing objects:  60% (6/10)   Compressing objects:  70% (7/10)   Compressing objects:  80% (8/10)   Compressing objects:  90% (9/10)   Compressing objects: 100% (10/10)   Compressing objects: 100% (10/10), done.
+Writing objects:   9% (1/11)   Writing objects:  18% (2/11)   Writing objects:  27% (3/11)   Writing objects:  36% (4/11)   Writing objects:  45% (5/11)   Writing objects:  54% (6/11)   Writing objects:  63% (7/11)   Writing objects:  72% (8/11)   Writing objects:  81% (9/11)   Writing objects:  90% (10/11)   Writing objects: 100% (11/11)   Writing objects: 100% (11/11), 1.06 MiB | 7.81 MiB/s, done.
+Total 11 (delta 4), reused 0 (delta 0)
+remote: Resolving deltas:   0% (0/4)   [Kremote: Resolving deltas:  25% (1/4)   [Kremote: Resolving deltas:  50% (2/4)   [Kremote: Resolving deltas:  75% (3/4)   [Kremote: Resolving deltas: 100% (4/4)   [Kremote: Resolving deltas: 100% (4/4), completed with 4 local objects.[K
+remote: This repository moved. Please use the new location:[K
+remote:   git@github.com:rbind/b-rodrigues.github.com.git[K
+To github.com:b-rodrigues/b-rodrigues.github.com.git
+   98bab58..476a02a  master -> master
+[0m[27m[24m[J[37m[[33m18-11-23 20:58[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ git status[?1l>[?2004l
+]2;git status]1;gitOn branch master
+Your branch is up to date with 'origin/master'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git checkout -- <file>..." to discard changes in working directory)
+
+	[31mmodified:   content/blog/2018-11-21-lux_castle.Rmd[m
+
+no changes added to commit (use "git add" and/or "git commit -a")
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-11-23 20:58[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004hggit add i .[?1l>[?2004l
+]2;git add .]1;git]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-11-23 20:58[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004hggit commit -+am   am "typo"[?1l>[?2004l
+]2;git commit -am "typo"]1;git[master b144551] typo
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-11-23 20:59[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[00m[00m ➤ [K[?1h=[?2004hggit push origina   master[?1l>[?2004l
+]2;git push origin master]1;gitEnumerating objects: 9, done.
+Counting objects:  11% (1/9)   Counting objects:  22% (2/9)   Counting objects:  33% (3/9)   Counting objects:  44% (4/9)   Counting objects:  55% (5/9)   Counting objects:  66% (6/9)   Counting objects:  77% (7/9)   Counting objects:  88% (8/9)   Counting objects: 100% (9/9)   Counting objects: 100% (9/9), done.
+Delta compression using up to 12 threads
+Compressing objects:  20% (1/5)   Compressing objects:  40% (2/5)   Compressing objects:  60% (3/5)   Compressing objects:  80% (4/5)   Compressing objects: 100% (5/5)   Compressing objects: 100% (5/5), done.
+Writing objects:  20% (1/5)   Writing objects:  40% (2/5)   Writing objects:  60% (3/5)   Writing objects:  80% (4/5)   Writing objects: 100% (5/5)   Writing objects: 100% (5/5), 463 bytes | 463.00 KiB/s, done.
+Total 5 (delta 3), reused 0 (delta 0)
+remote: Resolving deltas:   0% (0/3)   [Kremote: Resolving deltas:  33% (1/3)   [Kremote: Resolving deltas:  66% (2/3)   [Kremote: Resolving deltas: 100% (3/3)   [Kremote: Resolving deltas: 100% (3/3), completed with 3 local objects.[K
+remote: This repository moved. Please use the new location:[K
+remote:   git@github.com:rbind/b-rodrigues.github.com.git[K
+To github.com:b-rodrigues/b-rodrigues.github.com.git
+   476a02a..b144551  master -> master
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-11-25 11:48[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004h[?2004l
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-11-25 11:48[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004h[?2004l
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-11-25 11:48[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004h[?2004l
+ggit status [?1l>[?2004l
+]2;git status]1;gitOn branch master
+Your branch is up to date with 'origin/master'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git checkout -- <file>..." to discard changes in working directory)
+
+	[31mmodified:   content/blog/2018-11-21-lux_castle.html[m
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+
+	[31mblogdown/blog/2018-11-24-tidy_cv_cache/[m
+	[31mblogdown/blog/2018-11-25-tidy_cv_cache/[m
+	[31mcontent/blog/2018-11-25-tidy_cv.Rmd[m
+	[31mcontent/blog/2018-11-25-tidy_cv.html[m
+	[31mcontent/blog/random_forest_estimation.rds[m
+	[31mstatic/blog/2018-11-24-tidy_cv_files/[m
+	[31mstatic/blog/2018-11-25-tidy_cv_files/[m
+	[31mstatic/img/cross_validation.gif[m
+
+no changes added to commit (use "git add" and/or "git commit -a")
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-11-25 11:48[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004hggit add .[?1l>[?2004l
+]2;git add .]1;git]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-11-25 11:48[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004hggit cmmot    ommit -+ am "tidy cv"[?1l>[?2004l
+]2;git commit -am "tidy cv"]1;git[master 653eaf4] tidy cv
+ 45 files changed, 845 insertions(+), 1 deletion(-)
+ create mode 100644 blogdown/blog/2018-11-24-tidy_cv_cache/html/__packages
+ create mode 100644 blogdown/blog/2018-11-24-tidy_cv_cache/html/unnamed-chunk-13_dde4fe7adc940b71e5cba8f06959cce3.RData
+ create mode 100644 blogdown/blog/2018-11-24-tidy_cv_cache/html/unnamed-chunk-13_dde4fe7adc940b71e5cba8f06959cce3.rdb
+ create mode 100644 blogdown/blog/2018-11-24-tidy_cv_cache/html/unnamed-chunk-13_dde4fe7adc940b71e5cba8f06959cce3.rdx
+ create mode 100644 blogdown/blog/2018-11-24-tidy_cv_cache/html/unnamed-chunk-15_3e07b682c00e624c7f9fafe2281865b6.RData
+ create mode 100644 blogdown/blog/2018-11-24-tidy_cv_cache/html/unnamed-chunk-15_3e07b682c00e624c7f9fafe2281865b6.rdb
+ create mode 100644 blogdown/blog/2018-11-24-tidy_cv_cache/html/unnamed-chunk-15_3e07b682c00e624c7f9fafe2281865b6.rdx
+ create mode 100644 blogdown/blog/2018-11-24-tidy_cv_cache/html/unnamed-chunk-17_b2ab579e04703351cbeb645be9e2e1f9.RData
+ create mode 100644 blogdown/blog/2018-11-24-tidy_cv_cache/html/unnamed-chunk-17_b2ab579e04703351cbeb645be9e2e1f9.rdb
+ create mode 100644 blogdown/blog/2018-11-24-tidy_cv_cache/html/unnamed-chunk-17_b2ab579e04703351cbeb645be9e2e1f9.rdx
+ create mode 100644 blogdown/blog/2018-11-24-tidy_cv_cache/html/unnamed-chunk-19_bd28c2e8706828ba826e7274f652b9aa.RData
+ create mode 100644 blogdown/blog/2018-11-24-tidy_cv_cache/html/unnamed-chunk-19_bd28c2e8706828ba826e7274f652b9aa.rdb
+ create mode 100644 blogdown/blog/2018-11-24-tidy_cv_cache/html/unnamed-chunk-19_bd28c2e8706828ba826e7274f652b9aa.rdx
+ create mode 100644 blogdown/blog/2018-11-24-tidy_cv_cache/html/unnamed-chunk-20_90abe1627ddae29e905d03a11905cb58.RData
+ create mode 100644 blogdown/blog/2018-11-24-tidy_cv_cache/html/unnamed-chunk-20_90abe1627ddae29e905d03a11905cb58.rdb
+ create mode 100644 blogdown/blog/2018-11-24-tidy_cv_cache/html/unnamed-chunk-20_90abe1627ddae29e905d03a11905cb58.rdx
+ create mode 100644 blogdown/blog/2018-11-24-tidy_cv_cache/html/unnamed-chunk-30_59ed70047fc15a2e52733baa18f2aa74.RData
+ create mode 100644 blogdown/blog/2018-11-24-tidy_cv_cache/html/unnamed-chunk-30_59ed70047fc15a2e52733baa18f2aa74.rdb
+ create mode 100644 blogdown/blog/2018-11-24-tidy_cv_cache/html/unnamed-chunk-30_59ed70047fc15a2e52733baa18f2aa74.rdx
+ create mode 100644 blogdown/blog/2018-11-24-tidy_cv_cache/html/unnamed-chunk-32_20557af0d32db598eeb4713862bc7ec8.RData
+ create mode 100644 blogdown/blog/2018-11-24-tidy_cv_cache/html/unnamed-chunk-32_20557af0d32db598eeb4713862bc7ec8.rdb
+ create mode 100644 blogdown/blog/2018-11-24-tidy_cv_cache/html/unnamed-chunk-32_20557af0d32db598eeb4713862bc7ec8.rdx
+ create mode 100644 blogdown/blog/2018-11-24-tidy_cv_cache/html/unnamed-chunk-34_4e7f82f88be5c6f709dead3e0bf0e735.RData
+ create mode 100644 blogdown/blog/2018-11-24-tidy_cv_cache/html/unnamed-chunk-34_4e7f82f88be5c6f709dead3e0bf0e735.rdb
+ create mode 100644 blogdown/blog/2018-11-24-tidy_cv_cache/html/unnamed-chunk-34_4e7f82f88be5c6f709dead3e0bf0e735.rdx
+ create mode 100644 blogdown/blog/2018-11-25-tidy_cv_cache/html/__packages
+ create mode 100644 blogdown/blog/2018-11-25-tidy_cv_cache/html/unnamed-chunk-15_70ae139f5c7fc8b30047dd0dc291af7d.RData
+ create mode 100644 blogdown/blog/2018-11-25-tidy_cv_cache/html/unnamed-chunk-15_70ae139f5c7fc8b30047dd0dc291af7d.rdb
+ create mode 100644 blogdown/blog/2018-11-25-tidy_cv_cache/html/unnamed-chunk-15_70ae139f5c7fc8b30047dd0dc291af7d.rdx
+ create mode 100644 blogdown/blog/2018-11-25-tidy_cv_cache/html/unnamed-chunk-19_0414d55c651a449751a052752acfdce6.RData
+ create mode 100644 blogdown/blog/2018-11-25-tidy_cv_cache/html/unnamed-chunk-19_0414d55c651a449751a052752acfdce6.rdb
+ create mode 100644 blogdown/blog/2018-11-25-tidy_cv_cache/html/unnamed-chunk-19_0414d55c651a449751a052752acfdce6.rdx
+ create mode 100644 blogdown/blog/2018-11-25-tidy_cv_cache/html/unnamed-chunk-20_598f105bdfb7401314bbdd40f6fa089b.RData
+ create mode 100644 blogdown/blog/2018-11-25-tidy_cv_cache/html/unnamed-chunk-20_598f105bdfb7401314bbdd40f6fa089b.rdb
+ create mode 100644 blogdown/blog/2018-11-25-tidy_cv_cache/html/unnamed-chunk-20_598f105bdfb7401314bbdd40f6fa089b.rdx
+ create mode 100644 blogdown/blog/2018-11-25-tidy_cv_cache/html/unnamed-chunk-34_69cc4f79aff26ebbabab5356f2e0b5f3.RData
+ create mode 100644 blogdown/blog/2018-11-25-tidy_cv_cache/html/unnamed-chunk-34_69cc4f79aff26ebbabab5356f2e0b5f3.rdb
+ create mode 100644 blogdown/blog/2018-11-25-tidy_cv_cache/html/unnamed-chunk-34_69cc4f79aff26ebbabab5356f2e0b5f3.rdx
+ create mode 100644 content/blog/2018-11-25-tidy_cv.Rmd
+ create mode 100644 content/blog/2018-11-25-tidy_cv.html
+ create mode 100644 content/blog/random_forest_estimation.rds
+ create mode 100644 static/blog/2018-11-24-tidy_cv_files/figure-html/unnamed-chunk-21-1.png
+ create mode 100644 static/blog/2018-11-25-tidy_cv_files/figure-html/unnamed-chunk-21-1.png
+ create mode 100644 static/img/cross_validation.gif
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-11-25 11:48[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[00m[00m ➤ [K[?1h=[?2004hggit push rogin      origin master[?1l>[?2004l
+]2;git push origin master]1;gitEnumerating objects: 61, done.
+Counting objects:   1% (1/61)   Counting objects:   3% (2/61)   Counting objects:   4% (3/61)   Counting objects:   6% (4/61)   Counting objects:   8% (5/61)   Counting objects:   9% (6/61)   Counting objects:  11% (7/61)   Counting objects:  13% (8/61)   Counting objects:  14% (9/61)   Counting objects:  16% (10/61)   Counting objects:  18% (11/61)   Counting objects:  19% (12/61)   Counting objects:  21% (13/61)   Counting objects:  22% (14/61)   Counting objects:  24% (15/61)   Counting objects:  26% (16/61)   Counting objects:  27% (17/61)   Counting objects:  29% (18/61)   Counting objects:  31% (19/61)   Counting objects:  32% (20/61)   Counting objects:  34% (21/61)   Counting objects:  36% (22/61)   Counting objects:  37% (23/61)   Counting objects:  39% (24/61)   Counting objects:  40% (25/61)   Counting objects:  42% (26/61)   Counting objects:  44% (27/61)   Counting objects:  45% (28/61)   Counting objects:  47% (29/61)   Counting objects:  49% (30/61)   Counting objects:  50% (31/61)   Counting objects:  52% (32/61)   Counting objects:  54% (33/61)   Counting objects:  55% (34/61)   Counting objects:  57% (35/61)   Counting objects:  59% (36/61)   Counting objects:  60% (37/61)   Counting objects:  62% (38/61)   Counting objects:  63% (39/61)   Counting objects:  65% (40/61)   Counting objects:  67% (41/61)   Counting objects:  68% (42/61)   Counting objects:  70% (43/61)   Counting objects:  72% (44/61)   Counting objects:  73% (45/61)   Counting objects:  75% (46/61)   Counting objects:  77% (47/61)   Counting objects:  78% (48/61)   Counting objects:  80% (49/61)   Counting objects:  81% (50/61)   Counting objects:  83% (51/61)   Counting objects:  85% (52/61)   Counting objects:  86% (53/61)   Counting objects:  88% (54/61)   Counting objects:  90% (55/61)   Counting objects:  91% (56/61)   Counting objects:  93% (57/61)   Counting objects:  95% (58/61)   Counting objects:  96% (59/61)   Counting objects:  98% (60/61)   Counting objects: 100% (61/61)   Counting objects: 100% (61/61), done.
+Delta compression using up to 12 threads
+Compressing objects:   2% (1/48)   Compressing objects:   4% (2/48)   Compressing objects:   6% (3/48)   Compressing objects:   8% (4/48)   Compressing objects:  10% (5/48)   Compressing objects:  12% (6/48)   Compressing objects:  14% (7/48)   Compressing objects:  16% (8/48)   Compressing objects:  18% (9/48)   Compressing objects:  20% (10/48)   Compressing objects:  22% (11/48)   Compressing objects:  25% (12/48)   Compressing objects:  27% (13/48)   Compressing objects:  29% (14/48)   Compressing objects:  31% (15/48)   Compressing objects:  33% (16/48)   Compressing objects:  35% (17/48)   Compressing objects:  37% (18/48)   Compressing objects:  39% (19/48)   Compressing objects:  41% (20/48)   Compressing objects:  43% (21/48)   Compressing objects:  45% (22/48)   Compressing objects:  47% (23/48)   Compressing objects:  50% (24/48)   Compressing objects:  52% (25/48)   Compressing objects:  54% (26/48)   Compressing objects:  56% (27/48)   Compressing objects:  58% (28/48)   Compressing objects:  60% (29/48)   Compressing objects:  62% (30/48)   Compressing objects:  64% (31/48)   Compressing objects:  66% (32/48)   Compressing objects:  68% (33/48)   Compressing objects:  70% (34/48)   Compressing objects:  72% (35/48)   Compressing objects:  75% (36/48)   Compressing objects:  77% (37/48)   Compressing objects:  79% (38/48)   Compressing objects:  81% (39/48)   Compressing objects:  83% (40/48)   Compressing objects:  85% (41/48)   Compressing objects:  87% (42/48)   Compressing objects:  89% (43/48)   Compressing objects:  91% (44/48)   Compressing objects:  93% (45/48)   Compressing objects:  95% (46/48)   Compressing objects:  97% (47/48)   Compressing objects: 100% (48/48)   Compressing objects: 100% (48/48), done.
+Writing objects:   1% (1/52)   Writing objects:   3% (2/52)   Writing objects:   5% (3/52)   Writing objects:   7% (4/52)   Writing objects:   9% (5/52)   Writing objects:  11% (6/52)   Writing objects:  13% (7/52)   Writing objects:  15% (8/52)   Writing objects:  17% (9/52)   Writing objects:  19% (10/52)   Writing objects:  21% (11/52)   Writing objects:  23% (12/52)   Writing objects:  26% (14/52)   Writing objects:  28% (15/52)   Writing objects:  30% (16/52)   Writing objects:  32% (17/52)   Writing objects:  34% (18/52)   Writing objects:  36% (19/52)   Writing objects:  38% (20/52)   Writing objects:  40% (21/52)   Writing objects:  42% (22/52)   Writing objects:  44% (23/52)   Writing objects:  44% (23/52), 1.30 MiB | 1.18 MiB/s   Writing objects:  46% (24/52), 1.30 MiB | 1.18 MiB/s   Writing objects:  48% (25/52), 1.30 MiB | 1.18 MiB/s   Writing objects:  50% (26/52), 1.30 MiB | 1.18 MiB/s   Writing objects:  51% (27/52), 1.30 MiB | 1.18 MiB/s   Writing objects:  53% (28/52), 1.30 MiB | 1.18 MiB/s   Writing objects:  55% (29/52), 1.30 MiB | 1.18 MiB/s   Writing objects:  57% (30/52), 1.30 MiB | 1.18 MiB/s   Writing objects:  59% (31/52), 1.30 MiB | 1.18 MiB/s   Writing objects:  61% (32/52), 1.30 MiB | 1.18 MiB/s   Writing objects:  63% (33/52), 1.30 MiB | 1.18 MiB/s   Writing objects:  65% (34/52), 1.30 MiB | 1.18 MiB/s   Writing objects:  67% (35/52), 1.30 MiB | 1.18 MiB/s   Writing objects:  69% (36/52), 1.30 MiB | 1.18 MiB/s   Writing objects:  71% (37/52), 1.30 MiB | 1.18 MiB/s   Writing objects:  73% (38/52), 1.30 MiB | 1.18 MiB/s   Writing objects:  75% (39/52), 1.30 MiB | 1.18 MiB/s   Writing objects:  78% (41/52), 1.30 MiB | 1.18 MiB/s   Writing objects:  78% (41/52), 1.92 MiB | 971.00 KiB/s   Writing objects:  80% (42/52), 2.55 MiB | 887.00 KiB/s   Writing objects:  82% (43/52), 2.55 MiB | 887.00 KiB/s   Writing objects:  84% (44/52), 2.55 MiB | 887.00 KiB/s   Writing objects:  86% (45/52), 2.55 MiB | 887.00 KiB/s   Writing objects:  88% (46/52), 2.55 MiB | 887.00 KiB/s   Writing objects:  90% (47/52), 2.55 MiB | 887.00 KiB/s   Writing objects:  92% (48/52), 2.55 MiB | 887.00 KiB/s   Writing objects:  94% (49/52), 2.55 MiB | 887.00 KiB/s   Writing objects:  96% (50/52), 2.55 MiB | 887.00 KiB/s   Writing objects:  98% (51/52), 2.55 MiB | 887.00 KiB/s   Writing objects:  98% (51/52), 3.20 MiB | 849.00 KiB/s   Writing objects:  98% (51/52), 3.82 MiB | 821.00 KiB/s   Writing objects:  98% (51/52), 4.45 MiB | 803.00 KiB/s   Writing objects:  98% (51/52), 5.09 MiB | 790.00 KiB/s   Writing objects:  98% (51/52), 5.72 MiB | 775.00 KiB/s   Writing objects:  98% (51/52), 6.36 MiB | 773.00 KiB/s   Writing objects: 100% (52/52), 6.36 MiB | 773.00 KiB/s   Writing objects: 100% (52/52), 6.80 MiB | 826.00 KiB/s, done.
+Total 52 (delta 9), reused 0 (delta 0)
+remote: Resolving deltas:   0% (0/9)   [Kremote: Resolving deltas:  11% (1/9)   [Kremote: Resolving deltas:  22% (2/9)   [Kremote: Resolving deltas:  33% (3/9)   [Kremote: Resolving deltas:  44% (4/9)   [Kremote: Resolving deltas:  55% (5/9)   [Kremote: Resolving deltas:  66% (6/9)   [Kremote: Resolving deltas:  77% (7/9)   [Kremote: Resolving deltas:  88% (8/9)   [Kremote: Resolving deltas: 100% (9/9)   [Kremote: Resolving deltas: 100% (9/9), completed with 6 local objects.[K
+remote: This repository moved. Please use the new location:[K
+remote:   git@github.com:rbind/b-rodrigues.github.com.git[K
+To github.com:b-rodrigues/b-rodrigues.github.com.git
+   b144551..653eaf4  master -> master
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-11-25 11:49[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[00m[00m ➤ [K[?1h=[?2004hggit status [?1l>[?2004l
+]2;git status]1;gitOn branch master
+Your branch is up to date with 'origin/master'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git checkout -- <file>..." to discard changes in working directory)
+
+	[31mmodified:   content/blog/2018-11-25-tidy_cv.Rmd[m
+	[31mmodified:   content/blog/2018-11-25-tidy_cv.html[m
+
+no changes added to commit (use "git add" and/or "git commit -a")
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-11-25 11:53[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004hggit add .[?1l>[?2004l
+]2;git add .]1;git]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-11-25 11:53[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004hggit commit -am "typo"[?1l>[?2004l
+]2;git commit -am "typo"]1;git[master 6510486] typo
+ 2 files changed, 53 insertions(+), 53 deletions(-)
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-11-25 11:53[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[00m[00m ➤ [K[?1h=[?2004hggit shpur     push origin master[?1l>[?2004l
+]2;git push origin master]1;gitEnumerating objects: 11, done.
+Counting objects:   9% (1/11)   Counting objects:  18% (2/11)   Counting objects:  27% (3/11)   Counting objects:  36% (4/11)   Counting objects:  45% (5/11)   Counting objects:  54% (6/11)   Counting objects:  63% (7/11)   Counting objects:  72% (8/11)   Counting objects:  81% (9/11)   Counting objects:  90% (10/11)   Counting objects: 100% (11/11)   Counting objects: 100% (11/11), done.
+Delta compression using up to 12 threads
+Compressing objects:  16% (1/6)   Compressing objects:  33% (2/6)   Compressing objects:  50% (3/6)   Compressing objects:  66% (4/6)   Compressing objects:  83% (5/6)   Compressing objects: 100% (6/6)   Compressing objects: 100% (6/6), done.
+Writing objects:  16% (1/6)   Writing objects:  33% (2/6)   Writing objects:  50% (3/6)   Writing objects:  66% (4/6)   Writing objects:  83% (5/6)   Writing objects: 100% (6/6)   Writing objects: 100% (6/6), 1.07 KiB | 1.07 MiB/s, done.
+Total 6 (delta 4), reused 0 (delta 0)
+remote: Resolving deltas:   0% (0/4)   [Kremote: Resolving deltas:  25% (1/4)   [Kremote: Resolving deltas:  50% (2/4)   [Kremote: Resolving deltas:  75% (3/4)   [Kremote: Resolving deltas: 100% (4/4)   [Kremote: Resolving deltas: 100% (4/4), completed with 4 local objects.[K
+remote: This repository moved. Please use the new location:[K
+remote:   git@github.com:rbind/b-rodrigues.github.com.git[K
+To github.com:b-rodrigues/b-rodrigues.github.com.git
+   653eaf4..6510486  master -> master
+tu[0m[27m[24m[J[37m[[33m18-12-02 1:01[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ git status[?1l>[?2004l
+]2;git status]1;gitOn branch master
+Your branch is up to date with 'origin/master'.
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+
+	[31mcontent/blog/2018-12-02-hyper-parameters.Rmd[m
+	[31mcontent/blog/2018-12-02-hyper-parameters.html[m
+	[31mstatic/img/ridge.jpg[m
+
+nothing added to commit but untracked files present (use "git add" to track)
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-02 1:01[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004hggit commit-   -am "r hyper-parameters ridge r [Keegression"[?1l>[?2004l
+]2;git commit -am "hyper-parameters ridge regression"]1;gitOn branch master
+Your branch is up to date with 'origin/master'.
+
+Untracked files:
+	[31mcontent/blog/2018-12-02-hyper-parameters.Rmd[m
+	[31mcontent/blog/2018-12-02-hyper-parameters.html[m
+	[31mstatic/img/ridge.jpg[m
+
+nothing added to commit but untracked files present
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-02 1:01[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004hggi t push origin master[?1l>[?2004l
+]2;git push origin master]1;gitEverything up-to-date
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-02 1:01[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004hggit dda.    addx  x .[?1l>[?2004l
+]2;git add .]1;git]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-02 1:01[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004hggit commit -a         g  git add .push origin master[18Dcommit -am "hyper-parameters ridge regression"[K[?1l>[?2004l
+]2;git commit -am "hyper-parameters ridge regression"]1;git[master 54f97b9] hyper-parameters ridge regression
+ 3 files changed, 346 insertions(+)
+ create mode 100644 content/blog/2018-12-02-hyper-parameters.Rmd
+ create mode 100644 content/blog/2018-12-02-hyper-parameters.html
+ create mode 100644 static/img/ridge.jpg
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-02 1:01[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[00m[00m ➤ [K[?1h=[?2004hgit commit -am "hyper-parameters ridge regression"[K[A[69Cadd .[K[1B[K[A[80Cpush origin master[?1l>[?2004l[1B]2;git push origin master]1;gitEnumerating objects: 14, done.
+Counting objects:   7% (1/14)   Counting objects:  14% (2/14)   Counting objects:  21% (3/14)   Counting objects:  28% (4/14)   Counting objects:  35% (5/14)   Counting objects:  42% (6/14)   Counting objects:  50% (7/14)   Counting objects:  57% (8/14)   Counting objects:  64% (9/14)   Counting objects:  71% (10/14)   Counting objects:  78% (11/14)   Counting objects:  85% (12/14)   Counting objects:  92% (13/14)   Counting objects: 100% (14/14)   Counting objects: 100% (14/14), done.
+Delta compression using up to 12 threads
+Compressing objects:  11% (1/9)   Compressing objects:  22% (2/9)   Compressing objects:  33% (3/9)   Compressing objects:  44% (4/9)   Compressing objects:  55% (5/9)   Compressing objects:  66% (6/9)   Compressing objects:  77% (7/9)   Compressing objects:  88% (8/9)   Compressing objects: 100% (9/9)   Compressing objects: 100% (9/9), done.
+Writing objects:  11% (1/9)   Writing objects:  22% (2/9)   Writing objects:  33% (3/9)   Writing objects:  44% (4/9)   Writing objects:  66% (6/9)   Writing objects:  77% (7/9)   Writing objects:  88% (8/9)   Writing objects: 100% (9/9)   Writing objects: 100% (9/9), 55.63 KiB | 13.91 MiB/s, done.
+Total 9 (delta 5), reused 0 (delta 0)
+remote: Resolving deltas:   0% (0/5)   [Kremote: Resolving deltas:  20% (1/5)   [Kremote: Resolving deltas:  40% (2/5)   [Kremote: Resolving deltas:  60% (3/5)   [Kremote: Resolving deltas:  80% (4/5)   [Kremote: Resolving deltas: 100% (5/5)   [Kremote: Resolving deltas: 100% (5/5), completed with 4 local objects.[K
+remote: This repository moved. Please use the new location:[K
+remote:   git@github.com:rbind/b-rodrigues.github.com.git[K
+To github.com:b-rodrigues/b-rodrigues.github.com.git
+   6510486..54f97b9  master -> master
+t status[?1l>[?2004l
+]2;git status]1;gitOn branch master
+Your branch is up to date with 'origin/master'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git checkout -- <file>..." to discard changes in working directory)
+
+	[31mmodified:   content/blog/2018-12-02-hyper-parameters.Rmd[m
+	[31mmodified:   content/blog/2018-12-02-hyper-parameters.html[m
+
+no changes added to commit (use "git add" and/or "git commit -a")
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-02 15:39[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004hggit add .[?1l>[?2004l
+]2;git add .]1;git]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-02 15:39[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004hggit coIt m  mmit -an n m "type"  o"[?1l>[?2004l
+]2;git commit -am "typo"]1;git[master 6c86c82] typo
+ 2 files changed, 10 insertions(+), 10 deletions(-)
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-02 15:39[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[00m[00m ➤ [K[?1h=[?2004hggit pushori   o   origin master[?1l>[?2004l
+]2;git push origin master]1;gitEnumerating objects: 11, done.
+Counting objects:   9% (1/11)   Counting objects:  18% (2/11)   Counting objects:  27% (3/11)   Counting objects:  36% (4/11)   Counting objects:  45% (5/11)   Counting objects:  54% (6/11)   Counting objects:  63% (7/11)   Counting objects:  72% (8/11)   Counting objects:  81% (9/11)   Counting objects:  90% (10/11)   Counting objects: 100% (11/11)   Counting objects: 100% (11/11), done.
+Delta compression using up to 12 threads
+Compressing objects:  16% (1/6)   Compressing objects:  33% (2/6)   Compressing objects:  50% (3/6)   Compressing objects:  66% (4/6)   Compressing objects:  83% (5/6)   Compressing objects: 100% (6/6)   Compressing objects: 100% (6/6), done.
+Writing objects:  16% (1/6)   Writing objects:  33% (2/6)   Writing objects:  50% (3/6)   Writing objects:  66% (4/6)   Writing objects:  83% (5/6)   Writing objects: 100% (6/6)   Writing objects: 100% (6/6), 660 bytes | 660.00 KiB/s, done.
+Total 6 (delta 4), reused 0 (delta 0)
+remote: Resolving deltas:   0% (0/4)   [Kremote: Resolving deltas:  25% (1/4)   [Kremote: Resolving deltas:  50% (2/4)   [Kremote: Resolving deltas:  75% (3/4)   [Kremote: Resolving deltas: 100% (4/4)   [Kremote: Resolving deltas: 100% (4/4), completed with 4 local objects.[K
+remote: This repository moved. Please use the new location:[K
+remote:   git@github.com:rbind/b-rodrigues.github.com.git[K
+To github.com:b-rodrigues/b-rodrigues.github.com.git
+   54f97b9..6c86c82  master -> master
+t[0m[27m[24m[J[37m[[33m18-12-02 15:44[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ git status[?1l>[?2004l
+]2;git status]1;gitOn branch master
+Your branch is up to date with 'origin/master'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git checkout -- <file>..." to discard changes in working directory)
+
+	[31mmodified:   content/blog/2018-12-02-hyper-parameters.Rmd[m
+	[31mmodified:   content/blog/2018-12-02-hyper-parameters.html[m
+
+no changes added to commit (use "git add" and/or "git commit -a")
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-02 15:45[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004hggit commit -am "rounding"[?1l>[?2004l
+]2;git commit -am "rounding"]1;git[master f601540] rounding
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-02 15:45[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[00m[00m ➤ [K[?1h=[?2004hggit push origin master[?1l>[?2004l
+]2;git push origin master]1;gitEnumerating objects: 11, done.
+Counting objects:   9% (1/11)   Counting objects:  18% (2/11)   Counting objects:  27% (3/11)   Counting objects:  36% (4/11)   Counting objects:  45% (5/11)   Counting objects:  54% (6/11)   Counting objects:  63% (7/11)   Counting objects:  72% (8/11)   Counting objects:  81% (9/11)   Counting objects:  90% (10/11)   Counting objects: 100% (11/11)   Counting objects: 100% (11/11), done.
+Delta compression using up to 12 threads
+Compressing objects:  16% (1/6)   Compressing objects:  33% (2/6)   Compressing objects:  50% (3/6)   Compressing objects:  66% (4/6)   Compressing objects:  83% (5/6)   Compressing objects: 100% (6/6)   Compressing objects: 100% (6/6), done.
+Writing objects:  16% (1/6)   Writing objects:  33% (2/6)   Writing objects:  50% (3/6)   Writing objects:  66% (4/6)   Writing objects:  83% (5/6)   Writing objects: 100% (6/6)   Writing objects: 100% (6/6), 589 bytes | 589.00 KiB/s, done.
+Total 6 (delta 4), reused 0 (delta 0)
+remote: Resolving deltas:   0% (0/4)   [Kremote: Resolving deltas:  25% (1/4)   [Kremote: Resolving deltas:  50% (2/4)   [Kremote: Resolving deltas:  75% (3/4)   [Kremote: Resolving deltas: 100% (4/4)   [Kremote: Resolving deltas: 100% (4/4), completed with 4 local objects.[K
+remote: This repository moved. Please use the new location:[K
+remote:   git@github.com:rbind/b-rodrigues.github.com.git[K
+To github.com:b-rodrigues/b-rodrigues.github.com.git
+   6c86c82..f601540  master -> master
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-02 15:45[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[00m[00m ➤ [K[?1h=[?2004h]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-15 15:43[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004hggit status[?1l>[?2004l
+]2;git status]1;gitOn branch master
+Your branch is up to date with 'origin/master'.
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+
+	[31mblogdown/blog/2018-12-15-lubridate_africa_cache/[m
+	[31mcontent/blog/2018-12-15-lubridate_africa.Rmd[m
+	[31mcontent/blog/2018-12-15-lubridate_africa.html[m
+	[31mstatic/img/africa.gif[m
+
+nothing added to commit but untracked files present (use "git add" to track)
+[0m[27m[24m[J[37m[[33m18-12-15 15:43[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ ggit status[?1l>[?2004l
+]2;git status]1;gitOn branch master
+Your branch is up to date with 'origin/master'.
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+
+	[31mblogdown/blog/2018-12-15-lubridate_africa_cache/[m
+	[31mcontent/blog/2018-12-15-lubridate_africa.Rmd[m
+	[31mcontent/blog/2018-12-15-lubridate_africa.html[m
+	[31mstatic/img/africa.gif[m
+
+nothing added to commit but untracked files present (use "git add" to track)
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-15 15:43[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004hggit add x .[?1l>[?2004l
+]2;git add .]1;gitgit]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-15 15:43[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004hggit commit -am "lubridate"[?1l>[?2004l
+]2;git commit -am "lubridate"]1;git[master 84590f2] lubridate
+ 7 files changed, 402 insertions(+)
+ create mode 100644 blogdown/blog/2018-12-15-lubridate_africa_cache/html/__packages
+ create mode 100644 blogdown/blog/2018-12-15-lubridate_africa_cache/html/unnamed-chunk-3_ed12c8279c217c0e3ff0a8d3207a39ad.RData
+ create mode 100644 blogdown/blog/2018-12-15-lubridate_africa_cache/html/unnamed-chunk-3_ed12c8279c217c0e3ff0a8d3207a39ad.rdb
+ create mode 100644 blogdown/blog/2018-12-15-lubridate_africa_cache/html/unnamed-chunk-3_ed12c8279c217c0e3ff0a8d3207a39ad.rdx
+ create mode 100644 content/blog/2018-12-15-lubridate_africa.Rmd
+ create mode 100644 content/blog/2018-12-15-lubridate_africa.html
+ create mode 100644 static/img/africa.gif
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-15 15:43[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[00m[00m ➤ [K[?1h=[?2004hiigi  ggit push origin master[?1l>[?2004l
+]2;git push origin master]1;gitEnumerating objects: 24, done.
+Counting objects:   4% (1/24)   Counting objects:   8% (2/24)   Counting objects:  12% (3/24)   Counting objects:  16% (4/24)   Counting objects:  20% (5/24)   Counting objects:  25% (6/24)   Counting objects:  29% (7/24)   Counting objects:  33% (8/24)   Counting objects:  37% (9/24)   Counting objects:  41% (10/24)   Counting objects:  45% (11/24)   Counting objects:  50% (12/24)   Counting objects:  54% (13/24)   Counting objects:  58% (14/24)   Counting objects:  62% (15/24)   Counting objects:  66% (16/24)   Counting objects:  70% (17/24)   Counting objects:  75% (18/24)   Counting objects:  79% (19/24)   Counting objects:  83% (20/24)   Counting objects:  87% (21/24)   Counting objects:  91% (22/24)   Counting objects:  95% (23/24)   Counting objects: 100% (24/24)   Counting objects: 100% (24/24), done.
+Delta compression using up to 12 threads
+Compressing objects:   6% (1/16)   Compressing objects:  12% (2/16)   Compressing objects:  18% (3/16)   Compressing objects:  25% (4/16)   Compressing objects:  31% (5/16)   Compressing objects:  37% (6/16)   Compressing objects:  43% (7/16)   Compressing objects:  50% (8/16)   Compressing objects:  56% (9/16)   Compressing objects:  62% (10/16)   Compressing objects:  68% (11/16)   Compressing objects:  75% (12/16)   Compressing objects:  81% (13/16)   Compressing objects:  87% (14/16)   Compressing objects:  93% (15/16)   Compressing objects: 100% (16/16)   Compressing objects: 100% (16/16), done.
+Writing objects:   5% (1/17)   Writing objects:  11% (2/17)   Writing objects:  17% (3/17)   Writing objects:  23% (4/17)   Writing objects:  29% (5/17)   Writing objects:  35% (6/17)   Writing objects:  41% (7/17)   Writing objects:  47% (8/17)   Writing objects:  52% (9/17)   Writing objects:  58% (10/17)   Writing objects:  64% (11/17)   Writing objects:  70% (12/17)   Writing objects:  82% (14/17)   Writing objects:  88% (15/17)   Writing objects:  94% (16/17)   Writing objects:  94% (16/17), 1.30 MiB | 672.00 KiB/s   Writing objects:  94% (16/17), 1.92 MiB | 679.00 KiB/s   Writing objects:  94% (16/17), 2.55 MiB | 678.00 KiB/s   Writing objects:  94% (16/17), 3.16 MiB | 676.00 KiB/s   Writing objects:  94% (16/17), 3.79 MiB | 683.00 KiB/s   Writing objects:  94% (16/17), 4.41 MiB | 686.00 KiB/s   Writing objects:  94% (16/17), 5.03 MiB | 690.00 KiB/s   Writing objects:  94% (16/17), 5.65 MiB | 691.00 KiB/s   Writing objects:  94% (16/17), 6.27 MiB | 763.00 KiB/s   Writing objects:  94% (16/17), 6.89 MiB | 699.00 KiB/s   Writing objects:  94% (16/17), 7.52 MiB | 703.00 KiB/s   Writing objects:  94% (16/17), 8.13 MiB | 691.00 KiB/s   Writing objects:  94% (16/17), 8.76 MiB | 692.00 KiB/s   Writing objects:  94% (16/17), 10.00 MiB | 693.00 KiB/s   Writing objects:  94% (16/17), 10.63 MiB | 693.00 KiB/s   Writing objects:  94% (16/17), 11.24 MiB | 693.00 KiB/s   Writing objects:  94% (16/17), 11.87 MiB | 693.00 KiB/s   Writing objects:  94% (16/17), 12.48 MiB | 688.00 KiB/s   Writing objects:  94% (16/17), 13.11 MiB | 676.00 KiB/s   Writing objects:  94% (16/17), 13.73 MiB | 685.00 KiB/s   Writing objects:  94% (16/17), 14.35 MiB | 685.00 KiB/s   Writing objects:  94% (16/17), 14.97 MiB | 679.00 KiB/s   Writing objects:  94% (16/17), 15.59 MiB | 679.00 KiB/s   Writing objects:  94% (16/17), 16.21 MiB | 671.00 KiB/s   Writing objects:  94% (16/17), 16.84 MiB | 670.00 KiB/s   Writing objects:  94% (16/17), 17.45 MiB | 669.00 KiB/s   Writing objects:  94% (16/17), 18.70 MiB | 676.00 KiB/s   Writing objects:  94% (16/17), 19.32 MiB | 683.00 KiB/s   Writing objects:  94% (16/17), 19.94 MiB | 686.00 KiB/s   Writing objects:  94% (16/17), 20.56 MiB | 690.00 KiB/s   Writing objects: 100% (17/17), 20.56 MiB | 690.00 KiB/s   Writing objects: 100% (17/17), 20.63 MiB | 689.00 KiB/s, done.
+Total 17 (delta 6), reused 0 (delta 0)
+remote: Resolving deltas:   0% (0/6)   [Kremote: Resolving deltas:  16% (1/6)   [Kremote: Resolving deltas:  33% (2/6)   [Kremote: Resolving deltas:  50% (3/6)   [Kremote: Resolving deltas:  66% (4/6)   [Kremote: Resolving deltas:  83% (5/6)   [Kremote: Resolving deltas: 100% (6/6)   [Kremote: Resolving deltas: 100% (6/6), completed with 5 local objects.[K
+remote: This repository moved. Please use the new location:[K
+remote:   git@github.com:rbind/b-rodrigues.github.com.git[K
+To github.com:b-rodrigues/b-rodrigues.github.com.git
+   f601540..84590f2  master -> master
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-15 15:44[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[00m[00m ➤ [K[?1h=[?2004hggit status[?1l>[?2004l
+]2;git status]1;gitOn branch master
+Your branch is up to date with 'origin/master'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git checkout -- <file>..." to discard changes in working directory)
+
+	[31mmodified:   content/blog/2018-12-15-lubridate_africa.Rmd[m
+	[31mmodified:   content/blog/2018-12-15-lubridate_africa.html[m
+
+no changes added to commit (use "git add" and/or "git commit -a")
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-15 15:46[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004hggit add .[?1l>[?2004l
+]2;git add .]1;git]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-15 15:46[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004hggit commit -am "lubridate"[?1l>[?2004l
+]2;git commit -am "lubridate"]1;git[master 8f988d5] lubridate
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-15 15:46[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[00m[00m ➤ [K[?1h=[?2004hggit shpou     push origin master[?1l>[?2004l
+]2;git push origin master]1;gitEnumerating objects: 11, done.
+Counting objects:   9% (1/11)   Counting objects:  18% (2/11)   Counting objects:  27% (3/11)   Counting objects:  36% (4/11)   Counting objects:  45% (5/11)   Counting objects:  54% (6/11)   Counting objects:  63% (7/11)   Counting objects:  72% (8/11)   Counting objects:  81% (9/11)   Counting objects:  90% (10/11)   Counting objects: 100% (11/11)   Counting objects: 100% (11/11), done.
+Delta compression using up to 12 threads
+Compressing objects:  16% (1/6)   Compressing objects:  33% (2/6)   Compressing objects:  50% (3/6)   Compressing objects:  66% (4/6)   Compressing objects:  83% (5/6)   Compressing objects: 100% (6/6)   Compressing objects: 100% (6/6), done.
+Writing objects:  16% (1/6)   Writing objects:  33% (2/6)   Writing objects:  50% (3/6)   Writing objects:  66% (4/6)   Writing objects:  83% (5/6)   Writing objects: 100% (6/6)   Writing objects: 100% (6/6), 557 bytes | 557.00 KiB/s, done.
+Total 6 (delta 4), reused 0 (delta 0)
+remote: Resolving deltas:   0% (0/4)   [Kremote: Resolving deltas:  25% (1/4)   [Kremote: Resolving deltas:  50% (2/4)   [Kremote: Resolving deltas:  75% (3/4)   [Kremote: Resolving deltas: 100% (4/4)   [Kremote: Resolving deltas: 100% (4/4), completed with 4 local objects.[K
+remote: This repository moved. Please use the new location:[K
+remote:   git@github.com:rbind/b-rodrigues.github.com.git[K
+To github.com:b-rodrigues/b-rodrigues.github.com.git
+   84590f2..8f988d5  master -> master
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-15 15:46[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[00m[00m ➤ [K[?1h=[?2004h[0m[27m[24m[J[37m[[33m18-12-15 15:51[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ ccd content[1m/[0m[0m/static              static/img/[?1l>[?2004l
+]2;cd static/img/]1;cd]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com/static/img]1;..om/static/img[0m[27m[24m[J[37m[[33m18-12-15 15:51[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com/static/img[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004hl[?1l>[?2004l
+]2;ls --color=tty -lah]1;ltotal 36M
+drwxr-xr-x 2 cbrunos users 4.0K Dec 15 15:50 [0m[01;34m.[0m
+drwxr-xr-x 5 cbrunos users 4.0K Sep  2  2017 [01;34m..[0m
+-rw-r--r-- 1 cbrunos users 1.5M Sep 11 21:11 [01;35m1a9.gif[0m
+-rw-r--r-- 1 cbrunos users  22M Dec 15 15:27 [01;35mafrica.gif[0m
+-rw-r--r-- 1 cbrunos users  53K Dec 15 15:50 [01;35mafrica.jpg[0m
+-rw-r--r-- 1 cbrunos users 9.2K Nov  4 09:58 [01;35mall_games_finished.png[0m
+-rw-r--r-- 1 cbrunos users  59K Sep  2  2017 [01;35manaconda.png[0m
+-rw-r--r-- 1 cbrunos users  95K Jul  8 11:15 [01;35mbread-breakfast-bun-5678.jpg[0m
+-rwxr-xr-x 1 cbrunos users 103K Sep  2  2017 [00;32mclean.png[0m
+-rwxr-xr-x 1 cbrunos users  16K Sep  2  2017 [00;32mcontinuumpb.png[0m
+-rw-r--r-- 1 cbrunos users 452K Sep  2  2017 [01;35mcover.png[0m
+-rw-r--r-- 1 cbrunos users 3.8M Nov 24 21:40 [01;35mcross_validation.gif[0m
+-rw-r--r-- 1 cbrunos users 228K Nov 14 22:06 [01;35mdank_memes.jpg[0m
+-rw-r--r-- 1 cbrunos users 891K Jan  5  2018 [01;35mdeeper_xlsx.gif[0m
+-rw-r--r-- 1 cbrunos users 245K Nov  3 14:04 [01;35mdeepfried_loss.png[0m
+-rw-r--r-- 1 cbrunos users  27K Sep  2  2017 [01;35mdensity_did.png[0m
+-rw-r--r-- 1 cbrunos users  81K Jun 10  2018 [01;35mdiabetes_lux.png[0m
+-rw-r--r-- 1 cbrunos users  94K Jun 10  2018 [01;35mdiabetes_table.png[0m
+-rw-r--r-- 1 cbrunos users  13K Oct 28 14:54 [01;35mdumplogs.png[0m
+-rw-r--r-- 1 cbrunos users  50K Oct  5 19:16 [01;35meditable_plots.png[0m
+-rw-r--r-- 1 cbrunos users 8.5K Oct 28 10:15 [01;35melecteurs_inscrits.png[0m
+-rw-r--r-- 1 cbrunos users  74K Oct 21 18:11 [01;35melections_data.png[0m
+-rw-r--r-- 1 cbrunos users  41K Oct 21 18:22 [01;35melections_logic.png[0m
+-rw-r--r-- 1 cbrunos users  86K Oct 28 12:18 [01;35meurope_map_lux.png[0m
+-rw-r--r-- 1 cbrunos users 4.7K Nov 14 02:01 [01;35meurostat_click_here.png[0m
+-rw-r--r-- 1 cbrunos users  711 Oct 21 17:39 [01;35mgambia.png[0m
+-rw-r--r-- 1 cbrunos users  34K Sep  2  2017 [01;35mgimp.png[0m
+-rwxr-xr-x 1 cbrunos users 184K Sep  2  2017 [00;32mgretl_desk.png[0m
+-rwxr-xr-x 1 cbrunos users 4.2K Sep  2  2017 [00;32mGummi-logo.png[0m
+-rw-r--r-- 1 cbrunos users 121K Nov 18 14:12 [01;35mharold_kumar.jpg[0m
+-rw-r--r-- 1 cbrunos users  47K Sep  2  2017 [01;35mjulialang.png[0m
+-rwxr-xr-x 1 cbrunos users  39K Sep  2  2017 [00;32mkubuntulogo.png[0m
+-rwxr-xr-x 1 cbrunos users 3.6K Sep  2  2017 [00;32mlatex.png[0m
+-rwxr-xr-x 1 cbrunos users 197K Sep  2  2017 [00;32mlive_installer.png[0m
+-rwxr-xr-x 1 cbrunos users  23K Sep  2  2017 [00;32mlow_contrast_linen.png[0m
+-rw-r--r-- 1 cbrunos users  28K Nov 14 01:43 [01;35mlx_aie.jpg[0m
+-rw-r--r-- 1 cbrunos users  94K Nov 10 21:03 [01;35mmonsters.png[0m
+-rw-r--r-- 1 cbrunos users 2.5M Dec 15 15:49 [01;35mMOSHED-2018-12-15-15-49-49.webm[0m
+-rw-r--r-- 1 cbrunos users  50K Sep  2  2017 [01;35mneovim.png[0m
+-rwxr-xr-x 1 cbrunos users 214K Sep  2  2017 [00;32moctave_desk.png[0m
+-rw-r--r-- 1 cbrunos users  70K Oct  5 19:01 [01;35mofficer_meme.jpg[0m
+-rwxr-xr-x 1 cbrunos users  31K Sep  2  2017 [00;32mpandas_logo.png[0m
+-rw-r--r-- 1 cbrunos users  18K Feb 11  2018 [01;35mplot_acc_smote.png[0m
+-rw-r--r-- 1 cbrunos users  16K Feb 11  2018 [01;35mplot_acc_unbalanced.png[0m
+-rw-r--r-- 1 cbrunos users  17K Feb 11  2018 [01;35mplot_acc_up_down.png[0m
+-rw-r--r-- 1 cbrunos users  20K Jan 13  2018 [01;35mprofile.jpg[0m
+-rw-r--r-- 1 cbrunos users 823K Sep  2  2017 [01;35mprofile.png[0m
+-rw-r--r-- 1 cbrunos users  51K Dec  2 00:46 [01;35mridge.jpg[0m
+-rwxr-xr-x 1 cbrunos users 3.1K Sep  2  2017 [00;32mRlogo.jpg[0m
+-rw-r--r-- 1 cbrunos users  36K Sep  2  2017 [01;35mRlogo.png[0m
+-rw-r--r-- 1 cbrunos users  42K Oct 31 07:20 [01;35mr_package1.png[0m
+-rw-r--r-- 1 cbrunos users  28K Oct 31 07:21 [01;35mr_package2.png[0m
+-rw-r--r-- 1 cbrunos users  45K Oct 31 07:23 [01;35mr_package3.png[0m
+-rw-r--r-- 1 cbrunos users 7.3K Oct 31 07:46 [01;35mr_package_check.png[0m
+-rwxr-xr-x 1 cbrunos users 154K Sep  2  2017 [00;32mrstudio.png[0m
+-rw-r--r-- 1 cbrunos users 6.7K Feb  4  2018 [01;35mScreenshot_20180204_110349.png[0m
+-rw-r--r-- 1 cbrunos users 129K Sep  2  2017 [01;35mscribus.png[0m
+-rw-r--r-- 1 cbrunos users  27K Oct 28 15:01 [01;35mselectorgadget1.png[0m
+-rw-r--r-- 1 cbrunos users  21K Oct 28 15:01 [01;35mselectorgadget2.png[0m
+-rw-r--r-- 1 cbrunos users  54K Sep  2  2017 [01;35msims_did.png[0m
+-rw-r--r-- 1 cbrunos users  21K Sep  2  2017 [01;35mspacemacs.svg[0m
+-rw-r--r-- 1 cbrunos users 117K Sep  8 21:14 [01;35msteam_excel.png[0m
+-rwxr-xr-x 1 cbrunos users  12K Sep  2  2017 [00;32msuse.png[0m
+-rwxr-xr-x 1 cbrunos users 9.4K Sep  2  2017 [00;32msuse.svg[0m
+-rw-r--r-- 1 cbrunos users 205K Nov 16 13:25 [01;35mtap-walker.gif[0m
+-rw-r--r-- 1 cbrunos users 164K Sep 11 21:21 [01;35mtime_use2.png[0m
+-rw-r--r-- 1 cbrunos users 102K Sep 15 08:20 [01;35mtime_use_dashboard.png[0m
+-rw-r--r-- 1 cbrunos users 150K Sep 11 21:18 [01;35mtime_use.png[0m
+-rw-r--r-- 1 cbrunos users  46K Feb 10  2018 [01;35mtraining_cpu.png[0m
+-rw-r--r-- 1 cbrunos users 114K Jul  1 12:18 [01;35mtrumpet_boy.jpg[0m
+-rwxr-xr-x 1 cbrunos users 8.7K Sep  2  2017 [00;32mubuntulogo.png[0m
+-rw-r--r-- 1 cbrunos users  47K Feb 11  2018 [01;35mvarimp.png[0m
+-rw-r--r-- 1 cbrunos users  18K Sep  8 20:40 [01;35mwant_to_believe.jpg[0m
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com/static/img]1;..om/static/img[0m[27m[24m[J[37m[[33m18-12-15 15:51[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com/static/img[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004h[0m[27m[24m[J[37m[[33m18-12-15 15:51[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com/static/img[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ rrm MOSHED-2018-12-15-15-49-49.webm[1m [0m[Km[K[?1l>[?2004l
+]2;rm MOSHED-2018-12-15-15-49-49.webm]1;rm]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com/static/img]1;..om/static/img[0m[27m[24m[J[37m[[33m18-12-15 15:51[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com/static/img[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004hssm s  rrm africa.gif[1m [0m[0m [?1l>[?2004l
+]2;rm africa.gif]1;rm]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com/static/img]1;..om/static/img[0m[27m[24m[J[37m[[33m18-12-15 15:51[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com/static/img[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004hccd.  ..[?1l>[?2004l
+]2;cd ..]1;cd]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com/static]1;..ub.com/static[0m[27m[24m[J[37m[[33m18-12-15 15:51[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com/static[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004hccd ..[?1l>[?2004l
+]2;cd ..]1;cd]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-15 15:51[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004hggit status[?1l>[?2004l
+]2;git status]1;gitOn branch master
+Your branch is up to date with 'origin/master'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git checkout -- <file>..." to discard changes in working directory)
+
+	[31mmodified:   content/blog/2018-12-15-lubridate_africa.Rmd[m
+	[31mmodified:   content/blog/2018-12-15-lubridate_africa.html[m
+	[31mdeleted:    static/img/africa.gif[m
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+
+	[31mstatic/img/africa.jpg[m
+
+no changes added to commit (use "git add" and/or "git commit -a")
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-15 15:52[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004hggit add.   .[?1l>[?2004l
+]2;git add .]1;git]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-15 15:52[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004hggit push origin master[?1l>[?2004l
+]2;git push origin master]1;gitgitEverything up-to-date
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-15 15:52[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004hggit add   commit -am "pic"[?1l>[?2004l
+]2;git commit -am "pic"]1;git[master 00aff5f] pic
+ 4 files changed, 2 insertions(+), 2 deletions(-)
+ delete mode 100644 static/img/africa.gif
+ create mode 100644 static/img/africa.jpg
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-15 15:52[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[00m[00m ➤ [K[?1h=[?2004hggit psh  ush origin master[?1l>[?2004l
+]2;git push origin master]1;gitEnumerating objects: 16, done.
+Counting objects:   6% (1/16)   Counting objects:  12% (2/16)   Counting objects:  18% (3/16)   Counting objects:  25% (4/16)   Counting objects:  31% (5/16)   Counting objects:  37% (6/16)   Counting objects:  43% (7/16)   Counting objects:  50% (8/16)   Counting objects:  56% (9/16)   Counting objects:  62% (10/16)   Counting objects:  68% (11/16)   Counting objects:  75% (12/16)   Counting objects:  81% (13/16)   Counting objects:  87% (14/16)   Counting objects:  93% (15/16)   Counting objects: 100% (16/16)   Counting objects: 100% (16/16), done.
+Delta compression using up to 12 threads
+Compressing objects:  11% (1/9)   Compressing objects:  22% (2/9)   Compressing objects:  33% (3/9)   Compressing objects:  44% (4/9)   Compressing objects:  55% (5/9)   Compressing objects:  66% (6/9)   Compressing objects:  77% (7/9)   Compressing objects:  88% (8/9)   Compressing objects: 100% (9/9)   Compressing objects: 100% (9/9), done.
+Writing objects:  11% (1/9)   Writing objects:  22% (2/9)   Writing objects:  33% (3/9)   Writing objects:  44% (4/9)   Writing objects:  55% (5/9)   Writing objects:  66% (6/9)   Writing objects:  77% (7/9)   Writing objects:  88% (8/9)   Writing objects: 100% (9/9)   Writing objects: 100% (9/9), 53.64 KiB | 17.88 MiB/s, done.
+Total 9 (delta 6), reused 0 (delta 0)
+remote: Resolving deltas:   0% (0/6)   [Kremote: Resolving deltas:  16% (1/6)   [Kremote: Resolving deltas:  33% (2/6)   [Kremote: Resolving deltas:  50% (3/6)   [Kremote: Resolving deltas:  66% (4/6)   [Kremote: Resolving deltas:  83% (5/6)   [Kremote: Resolving deltas: 100% (6/6)   [Kremote: Resolving deltas: 100% (6/6), completed with 6 local objects.[K
+remote: This repository moved. Please use the new location:[K
+remote:   git@github.com:rbind/b-rodrigues.github.com.git[K
+To github.com:b-rodrigues/b-rodrigues.github.com.git
+   8f988d5..00aff5f  master -> master
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-15 15:52[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[00m[00m ➤ [K[?1h=[?2004h]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-15 17:56[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004hggit status[?1l>[?2004l
+]2;git status]1;gitOn branch master
+Your branch is up to date with 'origin/master'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git checkout -- <file>..." to discard changes in working directory)
+
+	[31mmodified:   content/blog/2018-12-15-lubridate_africa.Rmd[m
+	[31mmodified:   content/blog/2018-12-15-lubridate_africa.html[m
+
+no changes added to commit (use "git add" and/or "git commit -a")
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-15 17:56[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004h[0m[27m[24m[J[37m[[33m18-12-15 17:56[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ ggit add x[?1l>[?2004l
+]2;git add x]1;gitfatal: pathspec 'x' did not match any files
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-15 17:56[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004hgit add x x .[?1l>[?2004l
+]2;git add .]1;git]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-15 17:56[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004h  git commit -am "typo"[?1l>[?2004l
+]2;git commit -am "typo"]1;git[master 365997b] typo
+ 2 files changed, 10 insertions(+), 2 deletions(-)
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-15 17:57[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[00m[00m ➤ [K[?1h=[?2004hggit psuho     ush origin master[?1l>[?2004l
+]2;git push origin master]1;gitEnumerating objects: 11, done.
+Counting objects:   9% (1/11)   Counting objects:  18% (2/11)   Counting objects:  27% (3/11)   Counting objects:  36% (4/11)   Counting objects:  45% (5/11)   Counting objects:  54% (6/11)   Counting objects:  63% (7/11)   Counting objects:  72% (8/11)   Counting objects:  81% (9/11)   Counting objects:  90% (10/11)   Counting objects: 100% (11/11)   Counting objects: 100% (11/11), done.
+Delta compression using up to 12 threads
+Compressing objects:  16% (1/6)   Compressing objects:  33% (2/6)   Compressing objects:  50% (3/6)   Compressing objects:  66% (4/6)   Compressing objects:  83% (5/6)   Compressing objects: 100% (6/6)   Compressing objects: 100% (6/6), done.
+Writing objects:  16% (1/6)   Writing objects:  33% (2/6)   Writing objects:  50% (3/6)   Writing objects:  66% (4/6)   Writing objects:  83% (5/6)   Writing objects: 100% (6/6)   Writing objects: 100% (6/6), 611 bytes | 611.00 KiB/s, done.
+Total 6 (delta 4), reused 0 (delta 0)
+remote: Resolving deltas:   0% (0/4)   [Kremote: Resolving deltas:  25% (1/4)   [Kremote: Resolving deltas:  50% (2/4)   [Kremote: Resolving deltas:  75% (3/4)   [Kremote: Resolving deltas: 100% (4/4)   [Kremote: Resolving deltas: 100% (4/4), completed with 4 local objects.[K
+remote: This repository moved. Please use the new location:[K
+remote:   git@github.com:rbind/b-rodrigues.github.com.git[K
+To github.com:b-rodrigues/b-rodrigues.github.com.git
+   00aff5f..365997b  master -> master
+[?1l>[?2004l
+]2;git status]1;gitOn branch master
+Your branch is up to date with 'origin/master'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git checkout -- <file>..." to discard changes in working directory)
+
+	[31mmodified:   content/blog/2018-07-08-rob_stderr.html[m
+	[31mmodified:   content/blog/2018-10-27-lux_elections_analysis.html[m
+	[31mmodified:   content/blog/2018-11-01-nethack.html[m
+	[31mmodified:   content/blog/2018-11-10-nethack_analysis_part2.html[m
+	[31mmodified:   content/blog/2018-11-15-tidy_gridsearch.html[m
+	[31mmodified:   content/blog/2018-11-16-rgenoud_arima.html[m
+	[31mmodified:   content/blog/2018-11-25-tidy_cv.html[m
+	[31mmodified:   content/blog/test.pptx[m
+	[31mmodified:   static/blog/2018-07-08-rob_stderr_files/figure-html/unnamed-chunk-4-1.png[m
+	[31mmodified:   static/blog/2018-07-08-rob_stderr_files/figure-html/unnamed-chunk-5-1.png[m
+	[31mmodified:   static/blog/2018-10-05-ggplot2_purrr_officer_files/figure-html/unnamed-chunk-8-1.png[m
+	[31mmodified:   static/blog/2018-10-27-lux_elections_analysis_files/figure-html/unnamed-chunk-17-1.png[m
+	[31mmodified:   static/blog/2018-10-27-lux_elections_analysis_files/figure-html/unnamed-chunk-21-1.png[m
+	[31mmodified:   static/blog/2018-10-27-lux_elections_analysis_files/figure-html/unnamed-chunk-24-1.png[m
+	[31mmodified:   static/blog/2018-10-27-lux_elections_analysis_files/figure-html/unnamed-chunk-24-2.png[m
+	[31mmodified:   static/blog/2018-10-27-lux_elections_analysis_files/figure-html/unnamed-chunk-24-3.png[m
+	[31mmodified:   static/blog/2018-10-27-lux_elections_analysis_files/figure-html/unnamed-chunk-24-4.png[m
+	[31mmodified:   static/blog/2018-10-27-lux_elections_analysis_files/figure-html/unnamed-chunk-25-1.png[m
+	[31mmodified:   static/blog/2018-10-27-lux_elections_analysis_files/figure-html/unnamed-chunk-25-2.png[m
+	[31mmodified:   static/blog/2018-10-27-lux_elections_analysis_files/figure-html/unnamed-chunk-25-3.png[m
+	[31mmodified:   static/blog/2018-10-27-lux_elections_analysis_files/figure-html/unnamed-chunk-25-4.png[m
+	[31mmodified:   static/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-12-1.png[m
+	[31mmodified:   static/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-14-1.png[m
+	[31mmodified:   static/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-15-1.png[m
+	[31mmodified:   static/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-20-1.png[m
+	[31mmodified:   static/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-22-1.png[m
+	[31mmodified:   static/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-25-1.png[m
+	[31mmodified:   static/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-26-1.png[m
+	[31mmodified:   static/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-26-2.png[m
+	[31mmodified:   static/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-26-3.png[m
+	[31mmodified:   static/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-26-4.png[m
+	[31mmodified:   static/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-26-5.png[m
+	[31mmodified:   static/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-26-6.png[m
+	[31mmodified:   static/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-33-1.png[m
+	[31mmodified:   static/blog/2018-11-10-nethack_analysis_part2_files/figure-html/unnamed-chunk-10-1.png[m
+	[31mmodified:   static/blog/2018-11-10-nethack_analysis_part2_files/figure-html/unnamed-chunk-11-1.png[m
+	[31mmodified:   static/blog/2018-11-10-nethack_analysis_part2_files/figure-html/unnamed-chunk-12-1.png[m
+	[31mmodified:   static/blog/2018-11-10-nethack_analysis_part2_files/figure-html/unnamed-chunk-13-1.png[m
+	[31mmodified:   static/blog/2018-11-10-nethack_analysis_part2_files/figure-html/unnamed-chunk-16-1.png[m
+	[31mmodified:   static/blog/2018-11-10-nethack_analysis_part2_files/figure-html/unnamed-chunk-17-1.png[m
+	[31mmodified:   static/blog/2018-11-10-nethack_analysis_part2_files/figure-html/unnamed-chunk-17-2.png[m
+	[31mmodified:   static/blog/2018-11-10-nethack_analysis_part2_files/figure-html/unnamed-chunk-22-1.png[m
+	[31mmodified:   static/blog/2018-11-10-nethack_analysis_part2_files/figure-html/unnamed-chunk-9-1.png[m
+	[31mmodified:   static/blog/2018-11-14-luxairport_files/figure-html/unnamed-chunk-16-1.png[m
+	[31mmodified:   static/blog/2018-11-14-luxairport_files/figure-html/unnamed-chunk-17-1.png[m
+	[31mmodified:   static/blog/2018-11-14-luxairport_files/figure-html/unnamed-chunk-24-1.png[m
+	[31mmodified:   static/blog/2018-11-15-tidy_gridsearch_files/figure-html/unnamed-chunk-28-1.png[m
+	[31mmodified:   static/blog/2018-11-16-rgenoud_arima_files/figure-html/unnamed-chunk-14-1.png[m
+	[31mmodified:   static/blog/2018-11-16-rgenoud_arima_files/figure-html/unnamed-chunk-21-1.png[m
+	[31mmodified:   static/blog/2018-11-16-rgenoud_arima_files/figure-html/unnamed-chunk-28-1.png[m
+
+no changes added to commit (use "git add" and/or "git commit -a")
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-15 23:48[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004hggit status[?1l>[?2004l
+]2;git status]1;gitOn branch master
+Your branch is up to date with 'origin/master'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git checkout -- <file>..." to discard changes in working directory)
+
+	[31mmodified:   content/blog/2018-07-08-rob_stderr.html[m
+	[31mmodified:   content/blog/2018-10-27-lux_elections_analysis.html[m
+	[31mmodified:   content/blog/2018-11-01-nethack.html[m
+	[31mmodified:   content/blog/2018-11-10-nethack_analysis_part2.html[m
+	[31mmodified:   content/blog/2018-11-15-tidy_gridsearch.html[m
+	[31mmodified:   content/blog/2018-11-16-rgenoud_arima.html[m
+	[31mmodified:   content/blog/2018-11-25-tidy_cv.html[m
+	[31mmodified:   content/blog/test.pptx[m
+	[31mmodified:   static/blog/2018-07-08-rob_stderr_files/figure-html/unnamed-chunk-4-1.png[m
+	[31mmodified:   static/blog/2018-07-08-rob_stderr_files/figure-html/unnamed-chunk-5-1.png[m
+	[31mmodified:   static/blog/2018-10-05-ggplot2_purrr_officer_files/figure-html/unnamed-chunk-8-1.png[m
+	[31mmodified:   static/blog/2018-10-27-lux_elections_analysis_files/figure-html/unnamed-chunk-17-1.png[m
+	[31mmodified:   static/blog/2018-10-27-lux_elections_analysis_files/figure-html/unnamed-chunk-21-1.png[m
+	[31mmodified:   static/blog/2018-10-27-lux_elections_analysis_files/figure-html/unnamed-chunk-24-1.png[m
+	[31mmodified:   static/blog/2018-10-27-lux_elections_analysis_files/figure-html/unnamed-chunk-24-2.png[m
+	[31mmodified:   static/blog/2018-10-27-lux_elections_analysis_files/figure-html/unnamed-chunk-24-3.png[m
+	[31mmodified:   static/blog/2018-10-27-lux_elections_analysis_files/figure-html/unnamed-chunk-24-4.png[m
+	[31mmodified:   static/blog/2018-10-27-lux_elections_analysis_files/figure-html/unnamed-chunk-25-1.png[m
+	[31mmodified:   static/blog/2018-10-27-lux_elections_analysis_files/figure-html/unnamed-chunk-25-2.png[m
+	[31mmodified:   static/blog/2018-10-27-lux_elections_analysis_files/figure-html/unnamed-chunk-25-3.png[m
+	[31mmodified:   static/blog/2018-10-27-lux_elections_analysis_files/figure-html/unnamed-chunk-25-4.png[m
+	[31mmodified:   static/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-12-1.png[m
+	[31mmodified:   static/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-14-1.png[m
+	[31mmodified:   static/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-15-1.png[m
+	[31mmodified:   static/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-20-1.png[m
+	[31mmodified:   static/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-22-1.png[m
+	[31mmodified:   static/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-25-1.png[m
+	[31mmodified:   static/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-26-1.png[m
+	[31mmodified:   static/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-26-2.png[m
+	[31mmodified:   static/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-26-3.png[m
+	[31mmodified:   static/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-26-4.png[m
+	[31mmodified:   static/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-26-5.png[m
+	[31mmodified:   static/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-26-6.png[m
+	[31mmodified:   static/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-33-1.png[m
+	[31mmodified:   static/blog/2018-11-10-nethack_analysis_part2_files/figure-html/unnamed-chunk-10-1.png[m
+	[31mmodified:   static/blog/2018-11-10-nethack_analysis_part2_files/figure-html/unnamed-chunk-11-1.png[m
+	[31mmodified:   static/blog/2018-11-10-nethack_analysis_part2_files/figure-html/unnamed-chunk-12-1.png[m
+	[31mmodified:   static/blog/2018-11-10-nethack_analysis_part2_files/figure-html/unnamed-chunk-13-1.png[m
+	[31mmodified:   static/blog/2018-11-10-nethack_analysis_part2_files/figure-html/unnamed-chunk-16-1.png[m
+	[31mmodified:   static/blog/2018-11-10-nethack_analysis_part2_files/figure-html/unnamed-chunk-17-1.png[m
+	[31mmodified:   static/blog/2018-11-10-nethack_analysis_part2_files/figure-html/unnamed-chunk-17-2.png[m
+	[31mmodified:   static/blog/2018-11-10-nethack_analysis_part2_files/figure-html/unnamed-chunk-22-1.png[m
+	[31mmodified:   static/blog/2018-11-10-nethack_analysis_part2_files/figure-html/unnamed-chunk-9-1.png[m
+	[31mmodified:   static/blog/2018-11-14-luxairport_files/figure-html/unnamed-chunk-16-1.png[m
+	[31mmodified:   static/blog/2018-11-14-luxairport_files/figure-html/unnamed-chunk-17-1.png[m
+	[31mmodified:   static/blog/2018-11-14-luxairport_files/figure-html/unnamed-chunk-24-1.png[m
+	[31mmodified:   static/blog/2018-11-15-tidy_gridsearch_files/figure-html/unnamed-chunk-28-1.png[m
+	[31mmodified:   static/blog/2018-11-16-rgenoud_arima_files/figure-html/unnamed-chunk-14-1.png[m
+	[31mmodified:   static/blog/2018-11-16-rgenoud_arima_files/figure-html/unnamed-chunk-21-1.png[m
+	[31mmodified:   static/blog/2018-11-16-rgenoud_arima_files/figure-html/unnamed-chunk-28-1.png[m
+
+no changes added to commit (use "git add" and/or "git commit -a")
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-15 23:48[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004hggit d add .[?1l>[?2004l
+]2;git add .]1;git]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-15 23:49[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004hggit commit -+am   am "index"[?1l>[?2004l
+]2;git commit -am "index"]1;git[master e6fc7ad] index
+ 50 files changed, 120 insertions(+), 115 deletions(-)
+ rewrite static/blog/2018-07-08-rob_stderr_files/figure-html/unnamed-chunk-4-1.png (99%)
+ rewrite static/blog/2018-07-08-rob_stderr_files/figure-html/unnamed-chunk-5-1.png (99%)
+ rewrite static/blog/2018-10-05-ggplot2_purrr_officer_files/figure-html/unnamed-chunk-8-1.png (99%)
+ rewrite static/blog/2018-10-27-lux_elections_analysis_files/figure-html/unnamed-chunk-17-1.png (90%)
+ rewrite static/blog/2018-10-27-lux_elections_analysis_files/figure-html/unnamed-chunk-21-1.png (93%)
+ rewrite static/blog/2018-10-27-lux_elections_analysis_files/figure-html/unnamed-chunk-24-1.png (95%)
+ rewrite static/blog/2018-10-27-lux_elections_analysis_files/figure-html/unnamed-chunk-24-2.png (95%)
+ rewrite static/blog/2018-10-27-lux_elections_analysis_files/figure-html/unnamed-chunk-24-3.png (94%)
+ rewrite static/blog/2018-10-27-lux_elections_analysis_files/figure-html/unnamed-chunk-24-4.png (94%)
+ rewrite static/blog/2018-10-27-lux_elections_analysis_files/figure-html/unnamed-chunk-25-1.png (93%)
+ rewrite static/blog/2018-10-27-lux_elections_analysis_files/figure-html/unnamed-chunk-25-2.png (93%)
+ rewrite static/blog/2018-10-27-lux_elections_analysis_files/figure-html/unnamed-chunk-25-3.png (92%)
+ rewrite static/blog/2018-10-27-lux_elections_analysis_files/figure-html/unnamed-chunk-25-4.png (93%)
+ rewrite static/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-12-1.png (89%)
+ rewrite static/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-14-1.png (98%)
+ rewrite static/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-15-1.png (99%)
+ rewrite static/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-20-1.png (99%)
+ rewrite static/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-22-1.png (99%)
+ rewrite static/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-25-1.png (99%)
+ rewrite static/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-26-1.png (99%)
+ rewrite static/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-26-2.png (99%)
+ rewrite static/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-26-3.png (99%)
+ rewrite static/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-26-4.png (98%)
+ rewrite static/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-26-5.png (99%)
+ rewrite static/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-26-6.png (98%)
+ rewrite static/blog/2018-11-03-nethack_analysis_files/figure-html/unnamed-chunk-33-1.png (96%)
+ rewrite static/blog/2018-11-10-nethack_analysis_part2_files/figure-html/unnamed-chunk-10-1.png (99%)
+ rewrite static/blog/2018-11-10-nethack_analysis_part2_files/figure-html/unnamed-chunk-11-1.png (99%)
+ rewrite static/blog/2018-11-10-nethack_analysis_part2_files/figure-html/unnamed-chunk-12-1.png (98%)
+ rewrite static/blog/2018-11-10-nethack_analysis_part2_files/figure-html/unnamed-chunk-16-1.png (99%)
+ rewrite static/blog/2018-11-10-nethack_analysis_part2_files/figure-html/unnamed-chunk-17-1.png (99%)
+ rewrite static/blog/2018-11-10-nethack_analysis_part2_files/figure-html/unnamed-chunk-17-2.png (97%)
+ rewrite static/blog/2018-11-10-nethack_analysis_part2_files/figure-html/unnamed-chunk-22-1.png (98%)
+ rewrite static/blog/2018-11-10-nethack_analysis_part2_files/figure-html/unnamed-chunk-9-1.png (97%)
+ rewrite static/blog/2018-11-14-luxairport_files/figure-html/unnamed-chunk-16-1.png (97%)
+ rewrite static/blog/2018-11-14-luxairport_files/figure-html/unnamed-chunk-17-1.png (98%)
+ rewrite static/blog/2018-11-14-luxairport_files/figure-html/unnamed-chunk-24-1.png (98%)
+ rewrite static/blog/2018-11-15-tidy_gridsearch_files/figure-html/unnamed-chunk-28-1.png (98%)
+ rewrite static/blog/2018-11-16-rgenoud_arima_files/figure-html/unnamed-chunk-14-1.png (99%)
+ rewrite static/blog/2018-11-16-rgenoud_arima_files/figure-html/unnamed-chunk-21-1.png (97%)
+ rewrite static/blog/2018-11-16-rgenoud_arima_files/figure-html/unnamed-chunk-28-1.png (99%)
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-15 23:49[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[00m[00m ➤ [K[?1h=[?2004hggit psuh   ush origin master[?1l>[?2004l
+]2;git push origin master]1;gitEnumerating objects: 125, done.
+Counting objects:   0% (1/125)   Counting objects:   1% (2/125)   Counting objects:   2% (3/125)   Counting objects:   3% (4/125)   Counting objects:   4% (5/125)   Counting objects:   5% (7/125)   Counting objects:   6% (8/125)   Counting objects:   7% (9/125)   Counting objects:   8% (10/125)   Counting objects:   9% (12/125)   Counting objects:  10% (13/125)   Counting objects:  11% (14/125)   Counting objects:  12% (15/125)   Counting objects:  13% (17/125)   Counting objects:  14% (18/125)   Counting objects:  15% (19/125)   Counting objects:  16% (20/125)   Counting objects:  17% (22/125)   Counting objects:  18% (23/125)   Counting objects:  19% (24/125)   Counting objects:  20% (25/125)   Counting objects:  21% (27/125)   Counting objects:  22% (28/125)   Counting objects:  23% (29/125)   Counting objects:  24% (30/125)   Counting objects:  25% (32/125)   Counting objects:  26% (33/125)   Counting objects:  27% (34/125)   Counting objects:  28% (35/125)   Counting objects:  29% (37/125)   Counting objects:  30% (38/125)   Counting objects:  31% (39/125)   Counting objects:  32% (40/125)   Counting objects:  33% (42/125)   Counting objects:  34% (43/125)   Counting objects:  35% (44/125)   Counting objects:  36% (45/125)   Counting objects:  37% (47/125)   Counting objects:  38% (48/125)   Counting objects:  39% (49/125)   Counting objects:  40% (50/125)   Counting objects:  41% (52/125)   Counting objects:  42% (53/125)   Counting objects:  43% (54/125)   Counting objects:  44% (55/125)   Counting objects:  45% (57/125)   Counting objects:  46% (58/125)   Counting objects:  47% (59/125)   Counting objects:  48% (60/125)   Counting objects:  49% (62/125)   Counting objects:  50% (63/125)   Counting objects:  51% (64/125)   Counting objects:  52% (65/125)   Counting objects:  53% (67/125)   Counting objects:  54% (68/125)   Counting objects:  55% (69/125)   Counting objects:  56% (70/125)   Counting objects:  57% (72/125)   Counting objects:  58% (73/125)   Counting objects:  59% (74/125)   Counting objects:  60% (75/125)   Counting objects:  61% (77/125)   Counting objects:  62% (78/125)   Counting objects:  63% (79/125)   Counting objects:  64% (80/125)   Counting objects:  65% (82/125)   Counting objects:  66% (83/125)   Counting objects:  67% (84/125)   Counting objects:  68% (85/125)   Counting objects:  69% (87/125)   Counting objects:  70% (88/125)   Counting objects:  71% (89/125)   Counting objects:  72% (90/125)   Counting objects:  73% (92/125)   Counting objects:  74% (93/125)   Counting objects:  75% (94/125)   Counting objects:  76% (95/125)   Counting objects:  77% (97/125)   Counting objects:  78% (98/125)   Counting objects:  79% (99/125)   Counting objects:  80% (100/125)   Counting objects:  81% (102/125)   Counting objects:  82% (103/125)   Counting objects:  83% (104/125)   Counting objects:  84% (105/125)   Counting objects:  85% (107/125)   Counting objects:  86% (108/125)   Counting objects:  87% (109/125)   Counting objects:  88% (110/125)   Counting objects:  89% (112/125)   Counting objects:  90% (113/125)   Counting objects:  91% (114/125)   Counting objects:  92% (115/125)   Counting objects:  93% (117/125)   Counting objects:  94% (118/125)   Counting objects:  95% (119/125)   Counting objects:  96% (120/125)   Counting objects:  97% (122/125)   Counting objects:  98% (123/125)   Counting objects:  99% (124/125)   Counting objects: 100% (125/125)   Counting objects: 100% (125/125), done.
+Delta compression using up to 12 threads
+Compressing objects:   1% (1/64)   Compressing objects:   3% (2/64)   Compressing objects:   4% (3/64)   Compressing objects:   6% (4/64)   Compressing objects:   7% (5/64)   Compressing objects:   9% (6/64)   Compressing objects:  10% (7/64)   Compressing objects:  12% (8/64)   Compressing objects:  14% (9/64)   Compressing objects:  15% (10/64)   Compressing objects:  17% (11/64)   Compressing objects:  18% (12/64)   Compressing objects:  20% (13/64)   Compressing objects:  21% (14/64)   Compressing objects:  23% (15/64)   Compressing objects:  25% (16/64)   Compressing objects:  26% (17/64)   Compressing objects:  28% (18/64)   Compressing objects:  29% (19/64)   Compressing objects:  31% (20/64)   Compressing objects:  32% (21/64)   Compressing objects:  34% (22/64)   Compressing objects:  35% (23/64)   Compressing objects:  37% (24/64)   Compressing objects:  39% (25/64)   Compressing objects:  40% (26/64)   Compressing objects:  42% (27/64)   Compressing objects:  43% (28/64)   Compressing objects:  45% (29/64)   Compressing objects:  46% (30/64)   Compressing objects:  48% (31/64)   Compressing objects:  50% (32/64)   Compressing objects:  51% (33/64)   Compressing objects:  53% (34/64)   Compressing objects:  54% (35/64)   Compressing objects:  56% (36/64)   Compressing objects:  57% (37/64)   Compressing objects:  59% (38/64)   Compressing objects:  60% (39/64)   Compressing objects:  62% (40/64)   Compressing objects:  64% (41/64)   Compressing objects:  65% (42/64)   Compressing objects:  67% (43/64)   Compressing objects:  68% (44/64)   Compressing objects:  70% (45/64)   Compressing objects:  71% (46/64)   Compressing objects:  73% (47/64)   Compressing objects:  75% (48/64)   Compressing objects:  76% (49/64)   Compressing objects:  78% (50/64)   Compressing objects:  79% (51/64)   Compressing objects:  81% (52/64)   Compressing objects:  82% (53/64)   Compressing objects:  84% (54/64)   Compressing objects:  85% (55/64)   Compressing objects:  87% (56/64)   Compressing objects:  89% (57/64)   Compressing objects:  90% (58/64)   Compressing objects:  92% (59/64)   Compressing objects:  93% (60/64)   Compressing objects:  95% (61/64)   Compressing objects:  96% (62/64)   Compressing objects:  98% (63/64)   Compressing objects: 100% (64/64)   Compressing objects: 100% (64/64), done.
+Writing objects:   1% (1/72)   Writing objects:   2% (2/72)   Writing objects:   4% (3/72)   Writing objects:   5% (4/72)   Writing objects:   6% (5/72)   Writing objects:   8% (6/72)   Writing objects:   9% (7/72)   Writing objects:  11% (8/72)   Writing objects:  12% (9/72)   Writing objects:  13% (10/72)   Writing objects:  15% (11/72)   Writing objects:  16% (12/72)   Writing objects:  18% (13/72)   Writing objects:  19% (14/72)   Writing objects:  20% (15/72)   Writing objects:  22% (16/72)   Writing objects:  23% (17/72)   Writing objects:  25% (18/72)   Writing objects:  26% (19/72)   Writing objects:  27% (20/72)   Writing objects:  29% (21/72)   Writing objects:  30% (22/72)   Writing objects:  31% (23/72)   Writing objects:  33% (24/72)   Writing objects:  34% (25/72)   Writing objects:  34% (25/72), 1.30 MiB | 1.21 MiB/s   Writing objects:  36% (26/72), 1.30 MiB | 1.21 MiB/s   Writing objects:  37% (27/72), 1.30 MiB | 1.21 MiB/s   Writing objects:  38% (28/72), 1.91 MiB | 997.00 KiB/s   Writing objects:  38% (28/72), 2.53 MiB | 905.00 KiB/s   Writing objects:  40% (29/72), 2.53 MiB | 905.00 KiB/s   Writing objects:  41% (30/72), 2.53 MiB | 905.00 KiB/s   Writing objects:  41% (30/72), 3.16 MiB | 861.00 KiB/s   Writing objects:  43% (31/72), 3.16 MiB | 861.00 KiB/s   Writing objects:  43% (31/72), 3.77 MiB | 831.00 KiB/s   Writing objects:  44% (32/72), 3.77 MiB | 831.00 KiB/s   Writing objects:  45% (33/72), 3.77 MiB | 831.00 KiB/s   Writing objects:  47% (34/72), 3.77 MiB | 831.00 KiB/s   Writing objects:  48% (35/72), 3.77 MiB | 831.00 KiB/s   Writing objects:  48% (35/72), 4.40 MiB | 813.00 KiB/s   Writing objects:  50% (36/72), 4.40 MiB | 813.00 KiB/s   Writing objects:  51% (37/72), 4.40 MiB | 813.00 KiB/s   Writing objects:  52% (38/72), 4.40 MiB | 813.00 KiB/s   Writing objects:  54% (39/72), 4.40 MiB | 813.00 KiB/s   Writing objects:  55% (40/72), 4.40 MiB | 813.00 KiB/s   Writing objects:  56% (41/72), 4.40 MiB | 813.00 KiB/s   Writing objects:  58% (42/72), 4.40 MiB | 813.00 KiB/s   Writing objects:  59% (43/72), 4.40 MiB | 813.00 KiB/s   Writing objects:  61% (44/72), 4.40 MiB | 813.00 KiB/s   Writing objects:  61% (44/72), 5.02 MiB | 797.00 KiB/s   Writing objects:  62% (45/72), 5.02 MiB | 797.00 KiB/s   Writing objects:  63% (46/72), 5.02 MiB | 797.00 KiB/s   Writing objects:  65% (47/72), 5.02 MiB | 797.00 KiB/s   Writing objects:  66% (48/72), 5.02 MiB | 797.00 KiB/s   Writing objects:  68% (49/72), 5.02 MiB | 797.00 KiB/s   Writing objects:  69% (50/72), 5.02 MiB | 797.00 KiB/s   Writing objects:  70% (51/72), 5.02 MiB | 797.00 KiB/s   Writing objects:  72% (52/72), 5.02 MiB | 797.00 KiB/s   Writing objects:  73% (53/72), 5.02 MiB | 797.00 KiB/s   Writing objects:  75% (54/72), 5.02 MiB | 797.00 KiB/s   Writing objects:  76% (55/72), 5.02 MiB | 797.00 KiB/s   Writing objects:  77% (56/72), 5.02 MiB | 797.00 KiB/s   Writing objects:  79% (57/72), 5.02 MiB | 797.00 KiB/s   Writing objects:  79% (57/72), 5.64 MiB | 777.00 KiB/s   Writing objects:  80% (58/72), 5.64 MiB | 777.00 KiB/s   Writing objects:  81% (59/72), 5.64 MiB | 777.00 KiB/s   Writing objects:  83% (60/72), 5.64 MiB | 777.00 KiB/s   Writing objects:  84% (61/72), 5.64 MiB | 777.00 KiB/s   Writing objects:  86% (62/72), 5.64 MiB | 777.00 KiB/s   Writing objects:  87% (63/72), 5.64 MiB | 777.00 KiB/s   Writing objects:  88% (64/72), 5.64 MiB | 777.00 KiB/s   Writing objects:  90% (65/72), 5.64 MiB | 777.00 KiB/s   Writing objects:  91% (66/72), 5.64 MiB | 777.00 KiB/s   Writing objects:  93% (67/72), 5.64 MiB | 777.00 KiB/s   Writing objects:  94% (68/72), 5.64 MiB | 777.00 KiB/s   Writing objects:  95% (69/72), 5.64 MiB | 777.00 KiB/s   Writing objects:  97% (70/72), 5.64 MiB | 777.00 KiB/s   Writing objects:  97% (70/72), 6.26 MiB | 779.00 KiB/s   Writing objects:  98% (71/72), 6.26 MiB | 779.00 KiB/s   Writing objects: 100% (72/72), 6.26 MiB | 779.00 KiB/s   Writing objects: 100% (72/72), 6.36 MiB | 791.00 KiB/s, done.
+Total 72 (delta 13), reused 0 (delta 0)
+remote: Resolving deltas:   0% (0/13)   [Kremote: Resolving deltas:   7% (1/13)   [Kremote: Resolving deltas:  15% (2/13)   [Kremote: Resolving deltas:  23% (3/13)   [Kremote: Resolving deltas:  30% (4/13)   [Kremote: Resolving deltas:  38% (5/13)   [Kremote: Resolving deltas:  46% (6/13)   [Kremote: Resolving deltas:  53% (7/13)   [Kremote: Resolving deltas:  61% (8/13)   [Kremote: Resolving deltas:  69% (9/13)   [Kremote: Resolving deltas:  76% (10/13)   [Kremote: Resolving deltas:  84% (11/13)   [Kremote: Resolving deltas:  92% (12/13)   [Kremote: Resolving deltas: 100% (13/13)   [Kremote: Resolving deltas: 100% (13/13), completed with 13 local objects.[K
+remote: This repository moved. Please use the new location:[K
+remote:   git@github.com:rbind/b-rodrigues.github.com.git[K
+To github.com:b-rodrigues/b-rodrigues.github.com.git
+   365997b..e6fc7ad  master -> master
+ggit status[?1l>[?2004l
+]2;git status]1;gitOn branch master
+Your branch is up to date with 'origin/master'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git checkout -- <file>..." to discard changes in working directory)
+
+	[31mmodified:   content/blog/2018-07-08-rob_stderr.html[m
+	[31mmodified:   content/blog/2018-11-10-nethack_analysis_part2.html[m
+	[31mmodified:   content/blog/2018-11-25-tidy_cv.html[m
+	[31mmodified:   content/blog/2018-12-15-lubridate_africa.html[m
+	[31mmodified:   content/blog/test.pptx[m
+	[31mmodified:   static/blog/2018-11-10-nethack_analysis_part2_files/figure-html/unnamed-chunk-12-1.png[m
+	[31mmodified:   static/blog/2018-11-10-nethack_analysis_part2_files/figure-html/unnamed-chunk-22-1.png[m
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+
+	[31mcontent/blog/2018-12-21-tidyverse_pi.Rmd[m
+	[31mcontent/blog/2018-12-21-tidyverse_pi.html[m
+	[31mstatic/blog/2018-12-21-tidyverse_pi_files/[m
+	[31mstatic/img/casino.jpg[m
+
+no changes added to commit (use "git add" and/or "git commit -a")
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-21 7:30[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004hggit add .[?1l>[?2004l
+]2;git add .]1;git]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-21 7:30[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004hggit commit +-  - am"  "pi monte carlo$ "[?1l>[?2004l
+]2;git commit -am "pi monte carlo"]1;git[master 6571d3d] pi monte carlo
+ 12 files changed, 325 insertions(+), 114 deletions(-)
+ create mode 100644 content/blog/2018-12-21-tidyverse_pi.Rmd
+ create mode 100644 content/blog/2018-12-21-tidyverse_pi.html
+ rewrite static/blog/2018-11-10-nethack_analysis_part2_files/figure-html/unnamed-chunk-12-1.png (99%)
+ rewrite static/blog/2018-11-10-nethack_analysis_part2_files/figure-html/unnamed-chunk-22-1.png (98%)
+ create mode 100644 static/blog/2018-12-21-tidyverse_pi_files/figure-html/unnamed-chunk-5-1.png
+ create mode 100644 static/blog/2018-12-21-tidyverse_pi_files/figure-html/unnamed-chunk-7-1.png
+ create mode 100644 static/img/casino.jpg
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-21 7:30[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[00m[00m ➤ [K[?1h=[?2004hggit push origin master[?1l>[?2004l
+]2;git push origin master]1;gitEnumerating objects: 38, done.
+Counting objects:   2% (1/38)   Counting objects:   5% (2/38)   Counting objects:   7% (3/38)   Counting objects:  10% (4/38)   Counting objects:  13% (5/38)   Counting objects:  15% (6/38)   Counting objects:  18% (7/38)   Counting objects:  21% (8/38)   Counting objects:  23% (9/38)   Counting objects:  26% (10/38)   Counting objects:  28% (11/38)   Counting objects:  31% (12/38)   Counting objects:  34% (13/38)   Counting objects:  36% (14/38)   Counting objects:  39% (15/38)   Counting objects:  42% (16/38)   Counting objects:  44% (17/38)   Counting objects:  47% (18/38)   Counting objects:  50% (19/38)   Counting objects:  52% (20/38)   Counting objects:  55% (21/38)   Counting objects:  57% (22/38)   Counting objects:  60% (23/38)   Counting objects:  63% (24/38)   Counting objects:  65% (25/38)   Counting objects:  68% (26/38)   Counting objects:  71% (27/38)   Counting objects:  73% (28/38)   Counting objects:  76% (29/38)   Counting objects:  78% (30/38)   Counting objects:  81% (31/38)   Counting objects:  84% (32/38)   Counting objects:  86% (33/38)   Counting objects:  89% (34/38)   Counting objects:  92% (35/38)   Counting objects:  94% (36/38)   Counting objects:  97% (37/38)   Counting objects: 100% (38/38)   Counting objects: 100% (38/38), done.
+Delta compression using up to 12 threads
+Compressing objects:   4% (1/21)   Compressing objects:   9% (2/21)   Compressing objects:  14% (3/21)   Compressing objects:  19% (4/21)   Compressing objects:  23% (5/21)   Compressing objects:  28% (6/21)   Compressing objects:  33% (7/21)   Compressing objects:  38% (8/21)   Compressing objects:  42% (9/21)   Compressing objects:  47% (10/21)   Compressing objects:  52% (11/21)   Compressing objects:  57% (12/21)   Compressing objects:  61% (13/21)   Compressing objects:  66% (14/21)   Compressing objects:  71% (15/21)   Compressing objects:  76% (16/21)   Compressing objects:  80% (17/21)   Compressing objects:  85% (18/21)   Compressing objects:  90% (19/21)   Compressing objects:  95% (20/21)   Compressing objects: 100% (21/21)   Compressing objects: 100% (21/21), done.
+Writing objects:   4% (1/23)   Writing objects:   8% (2/23)   Writing objects:  13% (3/23)   Writing objects:  17% (4/23)   Writing objects:  21% (5/23)   Writing objects:  26% (6/23)   Writing objects:  30% (7/23)   Writing objects:  34% (8/23)   Writing objects:  39% (9/23)   Writing objects:  43% (10/23)   Writing objects:  47% (11/23)   Writing objects:  52% (12/23)   Writing objects:  56% (13/23)   Writing objects:  60% (14/23)   Writing objects:  65% (15/23)   Writing objects:  69% (16/23)   Writing objects:  73% (17/23)   Writing objects:  78% (18/23)   Writing objects:  82% (19/23)   Writing objects:  86% (20/23)   Writing objects:  91% (21/23)   Writing objects:  95% (22/23)   Writing objects: 100% (23/23)   Writing objects: 100% (23/23), 479.47 KiB | 4.32 MiB/s, done.
+Total 23 (delta 10), reused 0 (delta 0)
+remote: Resolving deltas:   0% (0/10)   [Kremote: Resolving deltas:  10% (1/10)   [Kremote: Resolving deltas:  20% (2/10)   [Kremote: Resolving deltas:  30% (3/10)   [Kremote: Resolving deltas:  40% (4/10)   [Kremote: Resolving deltas:  50% (5/10)   [Kremote: Resolving deltas:  60% (6/10)   [Kremote: Resolving deltas:  70% (7/10)   [Kremote: Resolving deltas:  80% (8/10)   [Kremote: Resolving deltas:  90% (9/10)   [Kremote: Resolving deltas: 100% (10/10)   [Kremote: Resolving deltas: 100% (10/10), completed with 10 local objects.[K
+remote: This repository moved. Please use the new location:[K
+remote:   git@github.com:rbind/b-rodrigues.github.com.git[K
+To github.com:b-rodrigues/b-rodrigues.github.com.git
+   e6fc7ad..6571d3d  master -> master
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-21 7:30[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[00m[00m ➤ [K[?1h=[?2004hggit add x .[?1l>[?2004l
+]2;git add .]1;git]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-21 7:43[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004hggit commit -am "typo"[?1l>[?2004l
+]2;git commit -am "typo"]1;git[master 7938d8e] typo
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-21 7:43[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[00m[00m ➤ [K[?1h=[?2004hggit psuh    ush origin master[?1l>[?2004l
+]2;git push origin master]1;gitEnumerating objects: 11, done.
+Counting objects:   9% (1/11)   Counting objects:  18% (2/11)   Counting objects:  27% (3/11)   Counting objects:  36% (4/11)   Counting objects:  45% (5/11)   Counting objects:  54% (6/11)   Counting objects:  63% (7/11)   Counting objects:  72% (8/11)   Counting objects:  81% (9/11)   Counting objects:  90% (10/11)   Counting objects: 100% (11/11)   Counting objects: 100% (11/11), done.
+Delta compression using up to 12 threads
+Compressing objects:  16% (1/6)   Compressing objects:  33% (2/6)   Compressing objects:  50% (3/6)   Compressing objects:  66% (4/6)   Compressing objects:  83% (5/6)   Compressing objects: 100% (6/6)   Compressing objects: 100% (6/6), done.
+Writing objects:  16% (1/6)   Writing objects:  33% (2/6)   Writing objects:  50% (3/6)   Writing objects:  66% (4/6)   Writing objects:  83% (5/6)   Writing objects: 100% (6/6)   Writing objects: 100% (6/6), 530 bytes | 530.00 KiB/s, done.
+Total 6 (delta 4), reused 0 (delta 0)
+remote: Resolving deltas:   0% (0/4)   [Kremote: Resolving deltas:  25% (1/4)   [Kremote: Resolving deltas:  50% (2/4)   [Kremote: Resolving deltas:  75% (3/4)   [Kremote: Resolving deltas: 100% (4/4)   [Kremote: Resolving deltas: 100% (4/4), completed with 4 local objects.[K
+remote: This repository moved. Please use the new location:[K
+remote:   git@github.com:rbind/b-rodrigues.github.com.git[K
+To github.com:b-rodrigues/b-rodrigues.github.com.git
+   6571d3d..7938d8e  master -> master
+ status[?1l>[?2004l
+]2;git status]1;gitOn branch master
+Your branch is up to date with 'origin/master'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git checkout -- <file>..." to discard changes in working directory)
+
+	[31mmodified:   content/blog/2018-07-08-rob_stderr.html[m
+	[31mmodified:   content/blog/2018-11-10-nethack_analysis_part2.html[m
+	[31mmodified:   content/blog/2018-11-25-tidy_cv.html[m
+	[31mmodified:   content/blog/2018-12-15-lubridate_africa.html[m
+	[31mmodified:   content/blog/test.pptx[m
+	[31mmodified:   static/blog/2018-11-10-nethack_analysis_part2_files/figure-html/unnamed-chunk-12-1.png[m
+	[31mmodified:   static/blog/2018-11-10-nethack_analysis_part2_files/figure-html/unnamed-chunk-22-1.png[m
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+
+	[31mcontent/blog/2018-12-24-modern_objects.Rmd[m
+	[31mcontent/blog/2018-12-24-modern_objects.html[m
+	[31mstatic/img/rstudio_environment_list.gif[m
+	[31mstatic/img/rstudio_view_data.gif[m
+	[31mstatic/img/santa_sanders.jpg[m
+
+no changes added to commit (use "git add" and/or "git commit -a")
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-24 16:13[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004hggit add . .[?1l>[?2004l
+]2;git add .]1;git]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-24 16:13[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004hggit commit -am "opb  bject types"[?1l>[?2004l
+]2;git commit -am "object types"]1;git[master cc3965b] object types
+ 12 files changed, 1313 insertions(+), 115 deletions(-)
+ create mode 100644 content/blog/2018-12-24-modern_objects.Rmd
+ create mode 100644 content/blog/2018-12-24-modern_objects.html
+ rewrite static/blog/2018-11-10-nethack_analysis_part2_files/figure-html/unnamed-chunk-12-1.png (99%)
+ rewrite static/blog/2018-11-10-nethack_analysis_part2_files/figure-html/unnamed-chunk-22-1.png (90%)
+ create mode 100644 static/img/rstudio_environment_list.gif
+ create mode 100644 static/img/rstudio_view_data.gif
+ create mode 100644 static/img/santa_sanders.jpg
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-24 16:13[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[00m[00m ➤ [K[?1h=[?2004hggi t push origin master[?1l>[?2004l
+]2;git push origin master]1;gitEnumerating objects: 36, done.
+Counting objects:   2% (1/36)   Counting objects:   5% (2/36)   Counting objects:   8% (3/36)   Counting objects:  11% (4/36)   Counting objects:  13% (5/36)   Counting objects:  16% (6/36)   Counting objects:  19% (7/36)   Counting objects:  22% (8/36)   Counting objects:  25% (9/36)   Counting objects:  27% (10/36)   Counting objects:  30% (11/36)   Counting objects:  33% (12/36)   Counting objects:  36% (13/36)   Counting objects:  38% (14/36)   Counting objects:  41% (15/36)   Counting objects:  44% (16/36)   Counting objects:  47% (17/36)   Counting objects:  50% (18/36)   Counting objects:  52% (19/36)   Counting objects:  55% (20/36)   Counting objects:  58% (21/36)   Counting objects:  61% (22/36)   Counting objects:  63% (23/36)   Counting objects:  66% (24/36)   Counting objects:  69% (25/36)   Counting objects:  72% (26/36)   Counting objects:  75% (27/36)   Counting objects:  77% (28/36)   Counting objects:  80% (29/36)   Counting objects:  83% (30/36)   Counting objects:  86% (31/36)   Counting objects:  88% (32/36)   Counting objects:  91% (33/36)   Counting objects:  94% (34/36)   Counting objects:  97% (35/36)   Counting objects: 100% (36/36)   Counting objects: 100% (36/36), done.
+Delta compression using up to 12 threads
+Compressing objects:   5% (1/20)   Compressing objects:  10% (2/20)   Compressing objects:  15% (3/20)   Compressing objects:  20% (4/20)   Compressing objects:  25% (5/20)   Compressing objects:  30% (6/20)   Compressing objects:  35% (7/20)   Compressing objects:  40% (8/20)   Compressing objects:  45% (9/20)   Compressing objects:  50% (10/20)   Compressing objects:  55% (11/20)   Compressing objects:  60% (12/20)   Compressing objects:  65% (13/20)   Compressing objects:  70% (14/20)   Compressing objects:  75% (15/20)   Compressing objects:  80% (16/20)   Compressing objects:  85% (17/20)   Compressing objects:  90% (18/20)   Compressing objects:  95% (19/20)   Compressing objects: 100% (20/20)   Compressing objects: 100% (20/20), done.
+Writing objects:   4% (1/21)   Writing objects:   9% (2/21)   Writing objects:  14% (3/21)   Writing objects:  19% (4/21)   Writing objects:  23% (5/21)   Writing objects:  28% (6/21)   Writing objects:  33% (7/21)   Writing objects:  38% (8/21)   Writing objects:  42% (9/21)   Writing objects:  47% (10/21)   Writing objects:  52% (11/21)   Writing objects:  57% (12/21)   Writing objects:  61% (13/21)   Writing objects:  66% (14/21)   Writing objects:  71% (15/21)   Writing objects:  76% (16/21)   Writing objects:  80% (17/21)   Writing objects:  85% (18/21)   Writing objects:  90% (19/21)   Writing objects:  90% (19/21), 1.30 MiB | 1.17 MiB/s   Writing objects:  95% (20/21), 1.30 MiB | 1.17 MiB/s   Writing objects: 100% (21/21), 1.30 MiB | 1.17 MiB/s   Writing objects: 100% (21/21), 1.76 MiB | 1.57 MiB/s, done.
+Total 21 (delta 10), reused 0 (delta 0)
+remote: Resolving deltas:   0% (0/10)   [Kremote: Resolving deltas:  10% (1/10)   [Kremote: Resolving deltas:  20% (2/10)   [Kremote: Resolving deltas:  30% (3/10)   [Kremote: Resolving deltas:  40% (4/10)   [Kremote: Resolving deltas:  50% (5/10)   [Kremote: Resolving deltas:  60% (6/10)   [Kremote: Resolving deltas:  70% (7/10)   [Kremote: Resolving deltas:  80% (8/10)   [Kremote: Resolving deltas:  90% (9/10)   [Kremote: Resolving deltas: 100% (10/10)   [Kremote: Resolving deltas: 100% (10/10), completed with 10 local objects.[K
+remote: This repository moved. Please use the new location:[K
+remote:   git@github.com:rbind/b-rodrigues.github.com.git[K
+To github.com:b-rodrigues/b-rodrigues.github.com.git
+   7938d8e..cc3965b  master -> master
+[0m[27m[24m[J[37m[[33m18-12-27 21:55[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ ggxt status[?1l>[?2004l
+]2;gxt status]1;gxtgxt: searching ...  gxt: command not found                    
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-27 21:55[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004hggit status[?1l>[?2004l
+]2;git status]1;gitOn branch master
+Your branch is up to date with 'origin/master'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git checkout -- <file>..." to discard changes in working directory)
+
+	[31mmodified:   content/blog/2018-07-08-rob_stderr.html[m
+	[31mmodified:   content/blog/2018-11-10-nethack_analysis_part2.html[m
+	[31mmodified:   content/blog/2018-11-25-tidy_cv.html[m
+	[31mmodified:   content/blog/2018-12-15-lubridate_africa.html[m
+	[31mmodified:   content/blog/test.pptx[m
+	[31mmodified:   static/blog/2018-11-10-nethack_analysis_part2_files/figure-html/unnamed-chunk-12-1.png[m
+	[31mmodified:   static/blog/2018-11-10-nethack_analysis_part2_files/figure-html/unnamed-chunk-22-1.png[m
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+
+	[31mcontent/blog/.2018-12-27-fun_gganimate.Rmd.kate-swp[m
+	[31mcontent/blog/2018-12-27-fun_gganimate.Rmd[m
+	[31mcontent/blog/2018-12-27-fun_gganimate.html[m
+	[31mstatic/img/wiid_gganimate.webm[m
+
+no changes added to commit (use "git add" and/or "git commit -a")
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-27 21:55[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004hggit add x [?1l>[?2004l
+]2;git add]1;gitNothing specified, nothing added.
+Maybe you wanted to say 'git add .'?
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-27 21:55[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004h. ggit adda  .   .[?1l>[?2004l
+]2;git add .]1;git]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-27 21:55[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004hggit status[?1l>[?2004l
+]2;git status]1;gitOn branch master
+Your branch is up to date with 'origin/master'.
+
+Changes to be committed:
+  (use "git reset HEAD <file>..." to unstage)
+
+	[32mnew file:   content/blog/.2018-12-27-fun_gganimate.Rmd.kate-swp[m
+	[32mmodified:   content/blog/2018-07-08-rob_stderr.html[m
+	[32mmodified:   content/blog/2018-11-10-nethack_analysis_part2.html[m
+	[32mmodified:   content/blog/2018-11-25-tidy_cv.html[m
+	[32mmodified:   content/blog/2018-12-15-lubridate_africa.html[m
+	[32mnew file:   content/blog/2018-12-27-fun_gganimate.Rmd[m
+	[32mnew file:   content/blog/2018-12-27-fun_gganimate.html[m
+	[32mmodified:   content/blog/test.pptx[m
+	[32mmodified:   static/blog/2018-11-10-nethack_analysis_part2_files/figure-html/unnamed-chunk-12-1.png[m
+	[32mmodified:   static/blog/2018-11-10-nethack_analysis_part2_files/figure-html/unnamed-chunk-22-1.png[m
+	[32mnew file:   static/img/wiid_gganimate.webm[m
+
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-27 21:55[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004hggit commit -am "un  wiid"[?1l>[?2004l
+]2;git commit -am "wiid"]1;git[master 463d3a6] wiid
+ 11 files changed, 424 insertions(+), 114 deletions(-)
+ create mode 100644 content/blog/.2018-12-27-fun_gganimate.Rmd.kate-swp
+ create mode 100644 content/blog/2018-12-27-fun_gganimate.Rmd
+ create mode 100644 content/blog/2018-12-27-fun_gganimate.html
+ rewrite static/blog/2018-11-10-nethack_analysis_part2_files/figure-html/unnamed-chunk-12-1.png (97%)
+ rewrite static/blog/2018-11-10-nethack_analysis_part2_files/figure-html/unnamed-chunk-22-1.png (98%)
+ create mode 100644 static/img/wiid_gganimate.webm
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-27 21:55[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[00m[00m ➤ [K[?1h=[?2004hggi t psuh    ush origin master[?1l>[?2004l
+]2;git push origin master]1;gitEnumerating objects: 35, done.
+Counting objects:   2% (1/35)   Counting objects:   5% (2/35)   Counting objects:   8% (3/35)   Counting objects:  11% (4/35)   Counting objects:  14% (5/35)   Counting objects:  17% (6/35)   Counting objects:  20% (7/35)   Counting objects:  22% (8/35)   Counting objects:  25% (9/35)   Counting objects:  28% (10/35)   Counting objects:  31% (11/35)   Counting objects:  34% (12/35)   Counting objects:  37% (13/35)   Counting objects:  40% (14/35)   Counting objects:  42% (15/35)   Counting objects:  45% (16/35)   Counting objects:  48% (17/35)   Counting objects:  51% (18/35)   Counting objects:  54% (19/35)   Counting objects:  57% (20/35)   Counting objects:  60% (21/35)   Counting objects:  62% (22/35)   Counting objects:  65% (23/35)   Counting objects:  68% (24/35)   Counting objects:  71% (25/35)   Counting objects:  74% (26/35)   Counting objects:  77% (27/35)   Counting objects:  80% (28/35)   Counting objects:  82% (29/35)   Counting objects:  85% (30/35)   Counting objects:  88% (31/35)   Counting objects:  91% (32/35)   Counting objects:  94% (33/35)   Counting objects:  97% (34/35)   Counting objects: 100% (35/35)   Counting objects: 100% (35/35), done.
+Delta compression using up to 12 threads
+Compressing objects:   5% (1/19)   Compressing objects:  10% (2/19)   Compressing objects:  15% (3/19)   Compressing objects:  21% (4/19)   Compressing objects:  26% (5/19)   Compressing objects:  31% (6/19)   Compressing objects:  36% (7/19)   Compressing objects:  42% (8/19)   Compressing objects:  47% (9/19)   Compressing objects:  52% (10/19)   Compressing objects:  57% (11/19)   Compressing objects:  63% (12/19)   Compressing objects:  68% (13/19)   Compressing objects:  73% (14/19)   Compressing objects:  78% (15/19)   Compressing objects:  84% (16/19)   Compressing objects:  89% (17/19)   Compressing objects:  94% (18/19)   Compressing objects: 100% (19/19)   Compressing objects: 100% (19/19), done.
+Writing objects:   5% (1/20)   Writing objects:  10% (2/20)   Writing objects:  15% (3/20)   Writing objects:  20% (4/20)   Writing objects:  25% (5/20)   Writing objects:  30% (6/20)   Writing objects:  35% (7/20)   Writing objects:  40% (8/20)   Writing objects:  45% (9/20)   Writing objects:  55% (11/20)   Writing objects:  60% (12/20)   Writing objects:  65% (13/20)   Writing objects:  70% (14/20)   Writing objects:  75% (15/20)   Writing objects:  80% (16/20)   Writing objects:  85% (17/20)   Writing objects:  90% (18/20)   Writing objects:  95% (19/20)   Writing objects:  95% (19/20), 1.30 MiB | 1.17 MiB/s   Writing objects: 100% (20/20), 1.30 MiB | 1.17 MiB/s   Writing objects: 100% (20/20), 1.71 MiB | 1.54 MiB/s, done.
+Total 20 (delta 11), reused 0 (delta 0)
+remote: Resolving deltas:   0% (0/11)   [Kremote: Resolving deltas:   9% (1/11)   [Kremote: Resolving deltas:  18% (2/11)   [Kremote: Resolving deltas:  27% (3/11)   [Kremote: Resolving deltas:  36% (4/11)   [Kremote: Resolving deltas:  45% (5/11)   [Kremote: Resolving deltas:  54% (6/11)   [Kremote: Resolving deltas:  63% (7/11)   [Kremote: Resolving deltas:  72% (8/11)   [Kremote: Resolving deltas:  81% (9/11)   [Kremote: Resolving deltas:  90% (10/11)   [Kremote: Resolving deltas: 100% (11/11)   [Kremote: Resolving deltas: 100% (11/11), completed with 10 local objects.[K
+remote: This repository moved. Please use the new location:[K
+remote:   git@github.com:rbind/b-rodrigues.github.com.git[K
+To github.com:b-rodrigues/b-rodrigues.github.com.git
+   cc3965b..463d3a6  master -> master
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-27 21:55[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[00m[00m ➤ [K[?1h=[?2004hggit status[?1l>[?2004l
+]2;git status]1;gitOn branch master
+Your branch is up to date with 'origin/master'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git checkout -- <file>..." to discard changes in working directory)
+
+	[31mmodified:   content/blog/2018-12-27-fun_gganimate.Rmd[m
+	[31mmodified:   content/blog/2018-12-27-fun_gganimate.html[m
+
+no changes added to commit (use "git add" and/or "git commit -a")
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-27 21:56[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004hggi it  t g  ggit dda    add .[?1l>[?2004l
+]2;git add .]1;git]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-27 21:57[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004hggit commit -am "link"[?1l>[?2004l
+]2;git commit -am "link"]1;git[master aa3ec7f] link
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-27 21:57[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[00m[00m ➤ [K[?1h=[?2004hggit psuh   ush origin master[?1l>[?2004l
+]2;git push origin master]1;gitEnumerating objects: 11, done.
+Counting objects:   9% (1/11)   Counting objects:  18% (2/11)   Counting objects:  27% (3/11)   Counting objects:  36% (4/11)   Counting objects:  45% (5/11)   Counting objects:  54% (6/11)   Counting objects:  63% (7/11)   Counting objects:  72% (8/11)   Counting objects:  81% (9/11)   Counting objects:  90% (10/11)   Counting objects: 100% (11/11)   Counting objects: 100% (11/11), done.
+Delta compression using up to 12 threads
+Compressing objects:  16% (1/6)   Compressing objects:  33% (2/6)   Compressing objects:  50% (3/6)   Compressing objects:  66% (4/6)   Compressing objects:  83% (5/6)   Compressing objects: 100% (6/6)   Compressing objects: 100% (6/6), done.
+Writing objects:  16% (1/6)   Writing objects:  33% (2/6)   Writing objects:  50% (3/6)   Writing objects:  66% (4/6)   Writing objects:  83% (5/6)   Writing objects: 100% (6/6)   Writing objects: 100% (6/6), 730 bytes | 730.00 KiB/s, done.
+Total 6 (delta 4), reused 0 (delta 0)
+remote: Resolving deltas:   0% (0/4)   [Kremote: Resolving deltas:  25% (1/4)   [Kremote: Resolving deltas:  50% (2/4)   [Kremote: Resolving deltas:  75% (3/4)   [Kremote: Resolving deltas: 100% (4/4)   [Kremote: Resolving deltas: 100% (4/4), completed with 4 local objects.[K
+remote: This repository moved. Please use the new location:[K
+remote:   git@github.com:rbind/b-rodrigues.github.com.git[K
+To github.com:b-rodrigues/b-rodrigues.github.com.git
+   463d3a6..aa3ec7f  master -> master
+ggit status[?1l>[?2004l
+]2;git status]1;gitOn branch master
+Your branch is up to date with 'origin/master'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git checkout -- <file>..." to discard changes in working directory)
+
+	[31mmodified:   content/blog/2018-12-27-fun_gganimate.Rmd[m
+	[31mmodified:   content/blog/2018-12-27-fun_gganimate.html[m
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+
+	[31mstatic/img/wiid_gganimate_gif.gif[m
+
+no changes added to commit (use "git add" and/or "git commit -a")
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-27 22:05[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004hggit add .[?1l>[?2004l
+]2;git add .]1;git]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-27 22:05[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004hggit commit -am "gif"[?1l>[?2004l
+]2;git commit -am "gif"]1;git[master dcd34e0] gif
+ 3 files changed, 14 insertions(+), 2 deletions(-)
+ create mode 100644 static/img/wiid_gganimate_gif.gif
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-27 22:05[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[00m[00m ➤ [K[?1h=[?2004hggit psuh ori      ush origin master[?1l>[?2004l
+]2;git push origin master]1;gitEnumerating objects: 16, done.
+Counting objects:   6% (1/16)   Counting objects:  12% (2/16)   Counting objects:  18% (3/16)   Counting objects:  25% (4/16)   Counting objects:  31% (5/16)   Counting objects:  37% (6/16)   Counting objects:  43% (7/16)   Counting objects:  50% (8/16)   Counting objects:  56% (9/16)   Counting objects:  62% (10/16)   Counting objects:  68% (11/16)   Counting objects:  75% (12/16)   Counting objects:  81% (13/16)   Counting objects:  87% (14/16)   Counting objects:  93% (15/16)   Counting objects: 100% (16/16)   Counting objects: 100% (16/16), done.
+Delta compression using up to 12 threads
+Compressing objects:  11% (1/9)   Compressing objects:  22% (2/9)   Compressing objects:  33% (3/9)   Compressing objects:  44% (4/9)   Compressing objects:  55% (5/9)   Compressing objects:  66% (6/9)   Compressing objects:  77% (7/9)   Compressing objects:  88% (8/9)   Compressing objects: 100% (9/9)   Compressing objects: 100% (9/9), done.
+Writing objects:  11% (1/9)   Writing objects:  22% (2/9)   Writing objects:  33% (3/9)   Writing objects:  44% (4/9)   Writing objects:  55% (5/9)   Writing objects:  66% (6/9)   Writing objects:  77% (7/9)   Writing objects:  88% (8/9)   Writing objects:  88% (8/9), 1.30 MiB | 1.21 MiB/s   Writing objects:  88% (8/9), 1.92 MiB | 973.00 KiB/s   Writing objects: 100% (9/9), 1.92 MiB | 973.00 KiB/s   Writing objects: 100% (9/9), 2.09 MiB | 1021.00 KiB/s, done.
+Total 9 (delta 6), reused 0 (delta 0)
+remote: Resolving deltas:   0% (0/6)   [Kremote: Resolving deltas:  16% (1/6)   [Kremote: Resolving deltas:  33% (2/6)   [Kremote: Resolving deltas:  50% (3/6)   [Kremote: Resolving deltas:  66% (4/6)   [Kremote: Resolving deltas:  83% (5/6)   [Kremote: Resolving deltas: 100% (6/6)   [Kremote: Resolving deltas: 100% (6/6), completed with 6 local objects.[K
+remote: This repository moved. Please use the new location:[K
+remote:   git@github.com:rbind/b-rodrigues.github.com.git[K
+To github.com:b-rodrigues/b-rodrigues.github.com.git
+   aa3ec7f..dcd34e0  master -> master
+ggits  status[?1l>[?2004l
+]2;git status]1;gitOn branch master
+Your branch is up to date with 'origin/master'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git checkout -- <file>..." to discard changes in working directory)
+
+	[31mmodified:   content/blog/2018-12-27-fun_gganimate.Rmd[m
+	[31mmodified:   content/blog/2018-12-27-fun_gganimate.html[m
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+
+	[31mstatic/img/wiid_gganimate_gif_smooth.gif[m
+
+no changes added to commit (use "git add" and/or "git commit -a")
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-28 1:18[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004hggit add .[?1l>[?2004l
+]2;git add .]1;gitg]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-28 1:18[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[31mx [00m[00m[00m[31mx [00m ➤ [K[?1h=[?2004hggito  commit -am "moth    smooth gif"[?1l>[?2004l
+]2;git commit -am "smooth gif"]1;git[master 83f486c] smooth gif
+ 3 files changed, 44 insertions(+)
+ create mode 100644 static/img/wiid_gganimate_gif_smooth.gif
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-28 1:18[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[00m[00m ➤ [K[?1h=[?2004hggi t push r origin master[?1l>[?2004l
+]2;git push origin master]1;gitEnumerating objects: 16, done.
+Counting objects:   6% (1/16)   Counting objects:  12% (2/16)   Counting objects:  18% (3/16)   Counting objects:  25% (4/16)   Counting objects:  31% (5/16)   Counting objects:  37% (6/16)   Counting objects:  43% (7/16)   Counting objects:  50% (8/16)   Counting objects:  56% (9/16)   Counting objects:  62% (10/16)   Counting objects:  68% (11/16)   Counting objects:  75% (12/16)   Counting objects:  81% (13/16)   Counting objects:  87% (14/16)   Counting objects:  93% (15/16)   Counting objects: 100% (16/16)   Counting objects: 100% (16/16), done.
+Delta compression using up to 12 threads
+Compressing objects:  11% (1/9)   Compressing objects:  22% (2/9)   Compressing objects:  33% (3/9)   Compressing objects:  44% (4/9)   Compressing objects:  55% (5/9)   Compressing objects:  66% (6/9)   Compressing objects:  77% (7/9)   Compressing objects:  88% (8/9)   Compressing objects: 100% (9/9)   Compressing objects: 100% (9/9), done.
+Writing objects:  11% (1/9)   Writing objects:  22% (2/9)   Writing objects:  33% (3/9)   Writing objects:  44% (4/9)   Writing objects:  55% (5/9)   Writing objects:  66% (6/9)   Writing objects:  77% (7/9)   Writing objects:  88% (8/9)   Writing objects:  88% (8/9), 1.30 MiB | 1.16 MiB/s   Writing objects:  88% (8/9), 1.91 MiB | 974.00 KiB/s   Writing objects:  88% (8/9), 2.52 MiB | 889.00 KiB/s   Writing objects:  88% (8/9), 3.15 MiB | 848.00 KiB/s   Writing objects:  88% (8/9), 4.39 MiB | 794.00 KiB/s   Writing objects:  88% (8/9), 5.01 MiB | 770.00 KiB/s   Writing objects:  88% (8/9), 5.63 MiB | 756.00 KiB/s   Writing objects:  88% (8/9), 6.25 MiB | 750.00 KiB/s   Writing objects:  88% (8/9), 6.88 MiB | 689.00 KiB/s   Writing objects:  88% (8/9), 7.49 MiB | 686.00 KiB/s   Writing objects: 100% (9/9), 7.49 MiB | 686.00 KiB/s   Writing objects: 100% (9/9), 7.92 MiB | 763.00 KiB/s, done.
+Total 9 (delta 6), reused 0 (delta 0)
+remote: Resolving deltas:   0% (0/6)   [Kremote: Resolving deltas:  16% (1/6)   [Kremote: Resolving deltas:  33% (2/6)   [Kremote: Resolving deltas:  50% (3/6)   [Kremote: Resolving deltas:  66% (4/6)   [Kremote: Resolving deltas:  83% (5/6)   [Kremote: Resolving deltas: 100% (6/6)   [Kremote: Resolving deltas: 100% (6/6), completed with 6 local objects.[K
+remote: This repository moved. Please use the new location:[K
+remote:   git@github.com:rbind/b-rodrigues.github.com.git[K
+To github.com:b-rodrigues/b-rodrigues.github.com.git
+   dcd34e0..83f486c  master -> master
+]2;cbrunos@linux-btcu: ~/Documents/b-rodrigues.github.com]1;..es.github.com[0m[27m[24m[J[37m[[33m18-12-28 1:18[37m][00m [31mcbrunos[00m in [36m~/Documents/b-rodrigues.github.com[37m@[32mmaster[00m[00m ➤ [K[?1h=[?2004h

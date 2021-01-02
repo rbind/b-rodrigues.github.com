@@ -1,0 +1,13 @@
+{
+    "path" : "~/Documents/b-rodrigues.github.com/content/blog",
+    "sortOrder" : [
+        {
+            "ascending" : false,
+            "columnIndex" : 4
+        },
+        {
+            "ascending" : true,
+            "columnIndex" : 2
+        }
+    ]
+}

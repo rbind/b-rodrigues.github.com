@@ -1,0 +1,1524 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"  lang="en-us">
+    <title>Multiple data imputation and explainability - Econometrics and Free Software</title>
+    <meta name="generator" content="Hugo 0.25.1" />
+
+    
+    <meta name="description" content="A blog about econometrics, free software, and R">
+    
+    <link rel="canonical" href="../../blog/2019-11-02-mice_exp/">
+    
+    <meta name="author" content="Bruno Rodrigues">
+    
+    <meta name="generator" content="Hugo 0.25.1" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta property="og:url" content="/blog/2019-11-02-mice_exp/">
+    <meta property="og:title" content="Econometrics and Free Software">
+    <meta property="og:image" content="/map[url:logo.png width:50 height:50 alt:Logo]">
+    <meta name="apple-mobile-web-app-title" content="Econometrics and Free Software">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <link rel="shortcut icon" type="image/x-icon" href="../../images/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="../../images/favicon.ico">
+
+    
+    <link rel="stylesheet" href="../../css/bootstrap.min.css" media="screen">
+    <link rel="stylesheet" href="../../css/custom.css">
+    <link rel="stylesheet" href="../../css/pygments.css">
+    
+    <link rel="stylesheet" href="../../css/jquery.fancybox.css?v=2.1.5" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/helpers/jquery.fancybox-buttons.css?v=1.0.5" type="text/css" media="screen" />
+  </head>
+  <body>
+
+
+<div class="row">
+<div class="navbar navbar-default navbar-fixed-top">
+<div class="container">
+  <div class="navbar-header">
+    <a href="../../" class="navbar-brand">Econometrics and Free Software</a>
+    <button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar-main">
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+    </button>
+  </div>
+  <div class="navbar-collapse collapse" id="navbar-main">
+
+    <ul class="nav navbar-nav navbar-right">
+      <li><a href="https://www.buymeacoffee.com/brodriguesco">Donate</a></li>
+      <li><a href="https://www.youtube.com/c/BrunoRodrigues1988">Youtube</a></li>
+      <li><a href="https://github.com/b-rodrigues/">Github</a></li>
+      <li><a href="https://twitter.com/brodriguesco/">Twitter</a></li>
+    </ul>
+  </div>
+</div>
+
+</div>
+
+<div class="container">
+
+  <div>
+    <div class="row">
+      <div class="col-lg-3 col-md-3 col-sm-4">
+        
+
+<div class="list-group table-of-contents">
+
+  
+    <a class="list-group-item" href=#><b>About Me</b></a>
+    
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../../about/about/">Who am I?</a>
+      
+      <a class="list-group-item" href="../../about/projects/">Projects</a>
+      
+      <a class="list-group-item" href="../../about/research/">Research</a>
+      
+      <a class="list-group-item" href="../../about/software/">Software</a>
+      
+    </div>
+    
+  
+    <a class="list-group-item" href=#><b>Blog</b></a>
+    
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../../blog/2018-11-25-tidy_cv/">A tutorial on tidy cross-validation with R</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-03-nethack_analysis/">Analyzing NetHack data, part 1: What kills the players</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-10-nethack_analysis_part2/">Analyzing NetHack data, part 2: What players kill the most</a>
+      
+      <a class="list-group-item" href="../../blog/2019-02-04-newspapers_shiny_app_tutorial/">Building a shiny app to explore historical newspapers: a step-by-step guide</a>
+      
+      <a class="list-group-item" href="../../blog/2019-03-03-historical_vowpal/">Classification of historical newspapers content: a tutorial combining R, bash and Vowpal Wabbit, part 1</a>
+      
+      <a class="list-group-item" href="../../blog/2019-03-05-historical_vowpal_part2/">Classification of historical newspapers content: a tutorial combining R, bash and Vowpal Wabbit, part 2</a>
+      
+      <a class="list-group-item" href="../../blog/2019-06-20-tidy_eval_saga/">Curly-Curly, the successor of Bang-Bang</a>
+      
+      <a class="list-group-item" href="../../blog/2018-07-08-rob_stderr/">Dealing with heteroskedasticity; regression with robust standard errors using R</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-14-luxairport/">Easy time-series prediction with R: a tutorial with air traffic data from Lux Airport</a>
+      
+      <a class="list-group-item" href="../../blog/2018-10-05-ggplot2_purrr_officer/">Exporting editable plots from R to Powerpoint: making ggplot2 purrr with officer</a>
+      
+      <a class="list-group-item" href="../../blog/2019-04-28-diffindiff_part1/">Fast food, causality and R packages, part 1</a>
+      
+      <a class="list-group-item" href="../../blog/2019-05-04-diffindiff_part2/">Fast food, causality and R packages, part 2</a>
+      
+      <a class="list-group-item" href="../../blog/2019-05-18-xml2/">For posterity: install {xml2} on GNU/Linux distros</a>
+      
+      <a class="list-group-item" href="../../blog/2018-06-24-fun_ts/">Forecasting my weight with R</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-01-nethack/">From webscraping data to releasing it as an R package to share with the world: a full tutorial with data from NetHack</a>
+      
+      <a class="list-group-item" href="../../blog/2019-03-31-tesseract/">Get text from pdfs or images using OCR: a tutorial with {tesseract} and {magick}</a>
+      
+      <a class="list-group-item" href="../../blog/2018-06-10-scraping_pdfs/">Getting data from pdfs using the pdftools package</a>
+      
+      <a class="list-group-item" href="../../blog/2018-10-21-lux_elections/">Getting the data from the Luxembourguish elections out of Excel</a>
+      
+      <a class="list-group-item" href="../../blog/2018-09-11-human_to_machine/">Going from a human readable Excel file to a machine-readable csv with {tidyxl}</a>
+      
+      <a class="list-group-item" href="../../blog/2019-04-07-historical_newspaper_scraping_tesseract/">Historical newspaper scraping with {tesseract} and R</a>
+      
+      <a class="list-group-item" href="../../blog/2018-09-15-time_use/">How Luxembourguish residents spend their time: a small {flexdashboard} demo using the Time use survey data</a>
+      
+      <a class="list-group-item" href="../../blog/2018-04-14-playing_with_furrr/">Imputing missing values in parallel using {furrr}</a>
+      
+      <a class="list-group-item" href="../../blog/2019-06-12-intermittent/">Intermittent demand, Croston and Die Hard</a>
+      
+      <a class="list-group-item" href="../../blog/2019-01-04-newspapers/">Looking into 19th century ads from a Luxembourguish newspaper with R</a>
+      
+      <a class="list-group-item" href="../../blog/2019-01-13-newspapers_mets_alto/">Making sense of the METS and ALTO XML standards</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-15-lubridate_africa/">Manipulate dates easily with {lubridate}</a>
+      
+      <a class="list-group-item" href="../../blog/2019-02-10-stringr_package/">Manipulating strings with the {stringr} package</a>
+      
+      <a class="list-group-item" href="../../blog/2018-10-27-lux_elections_analysis/">Maps with pie charts on top of each administrative division: an example with Luxembourg&#39;s elections data</a>
+      
+      <a class="list-group-item" href="../../blog/2018-07-01-tidy_ive/">Missing data imputation and instrumental variables regression: the tidy approach</a>
+      
+      <a class="list-group-item" href="../../blog/2019-08-17-modern_r/">Modern R with the tidyverse is available on Leanpub</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-24-modern_objects/">Objects types and some useful R functions for beginners</a>
+      
+      <a class="list-group-item" href="../../blog/2019-03-20-pivot/">Pivoting data frames just got easier thanks to `pivot_wide()` and `pivot_long()`</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-30-reticulate/">R or Python? Why not both? Using Anaconda Python within R with {reticulate}</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-15-tidy_gridsearch/">Searching for the optimal hyper-parameters of an ARIMA model in parallel: the tidy gridsearch approach</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-27-fun_gganimate/">Some fun with {gganimate}</a>
+      
+      <a class="list-group-item" href="../../blog/2019-10-05-parallel_maxlik/">Split-apply-combine for Maximum Likelihood Estimation of a linear model</a>
+      
+      <a class="list-group-item" href="../../blog/2019-07-19-statmatch/">Statistical matching, or when one single data source is not enough</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-21-lux_castle/">The best way to visit Luxembourguish castles is doing data science &#43; combinatorial optimization</a>
+      
+      <a class="list-group-item" href="../../blog/2019-05-19-spacemacs/">The never-ending editor war (?)</a>
+      
+      <a class="list-group-item" href="../../blog/2018-09-08-steam_linux/">The year of the GNU&#43;Linux desktop is upon us: using user ratings of Steam Play compatibility to play around with regex and the tidyverse</a>
+      
+      <a class="list-group-item" href="../../blog/2019-01-31-newspapers_shiny_app/">Using Data Science to read 10 years of Luxembourguish newspapers from the 19th century</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-16-rgenoud_arima/">Using a genetic algorithm for the hyperparameter optimization of a SARIMA model</a>
+      
+      <a class="list-group-item" href="../../blog/2019-06-04-cosine_sim/">Using cosine similarity to find matching documents: a tutorial using Seneca&#39;s letters to his friend Lucilius</a>
+      
+      <a class="list-group-item" href="../../blog/2019-08-14-lpm/">Using linear models with binary dependent variables, a simulation study</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-21-tidyverse_pi/">Using the tidyverse for more than data manipulation: estimating pi with Monte Carlo methods</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-02-hyper-parameters/">What hyper-parameters are, and what to do with them; an illustration with ridge regression</a>
+      
+      <a class="list-group-item" href="../../blog/2019-09-03-disk_frame/">{disk.frame} is epic</a>
+      
+      <a class="list-group-item" href="../../blog/2018-04-15-announcing_pmice/">{pmice}, an experimental package for missing data imputation in parallel using {mice} and {furrr}</a>
+      
+      <a class="list-group-item" href="../../blog/2017-12-27-build_formulae/">Building formulae</a>
+      
+      <a class="list-group-item" href="../../blog/2017-11-14-peace_r/">Functional peace of mind</a>
+      
+      <a class="list-group-item" href="../../blog/2018-04-10-brotools_describe/">Get basic summary statistics for all the variables in a data frame</a>
+      
+      <a class="list-group-item" href="../../blog/2018-03-03-sparklyr_h2o_rsparkling/">Getting {sparklyr}, {h2o}, {rsparkling} to work together and some fun with bash</a>
+      
+      <a class="list-group-item" href="../../blog/2018-02-16-importing_30gb_of_data/">Importing 30GB of data into R with sparklyr</a>
+      
+      <a class="list-group-item" href="../../blog/2017-03-27-introducing_brotools/">Introducing brotools</a>
+      
+      <a class="list-group-item" href="../../blog/2018-01-03-lists_all_the_way/">It&#39;s lists all the way down</a>
+      
+      <a class="list-group-item" href="../../blog/2018-01-05-lists_all_the_way2/">It&#39;s lists all the way down, part 2: We need to go deeper</a>
+      
+      <a class="list-group-item" href="../../blog/2018-03-12-keep_trying/">Keep trying that api call with purrr::possibly()</a>
+      
+      <a class="list-group-item" href="../../blog/2017-06-19-dplyr-0-70-tutorial/">Lesser known dplyr 0.7* tricks</a>
+      
+      <a class="list-group-item" href="../../blog/2017-02-17-lesser_known_tricks/">Lesser known dplyr tricks</a>
+      
+      <a class="list-group-item" href="../../blog/2017-03-24-lesser_known_purrr/">Lesser known purrr tricks</a>
+      
+      <a class="list-group-item" href="../../blog/2017-03-29-make-ggplot2-purrr/">Make ggplot2 purrr</a>
+      
+      <a class="list-group-item" href="../../blog/2018-01-19-mapping_functions_with_any_cols/">Mapping a list of functions to a list of datasets with a list of columns as arguments</a>
+      
+      <a class="list-group-item" href="../../blog/2018-02-11-census-random_forest/">Predicting job search by training a random forest on an unbalanced dataset</a>
+      
+      <a class="list-group-item" href="../../blog/2017-12-17-teaching_tidyverse/">Teaching the tidyverse to beginners</a>
+      
+      <a class="list-group-item" href="../../blog/2017-08-27-why_tidyeval/">Why I find tidyeval useful</a>
+      
+      <a class="list-group-item" href="../../blog/2017-07-27-spread_rename_at/">tidyr::spread() and dplyr::rename_at() in action</a>
+      
+      <a class="list-group-item" href="../../blog/2017-10-26-margins_r/">Easy peasy STATA-like marginal effects with R</a>
+      
+      <a class="list-group-item" href="../../blog/2016-12-24-functional-programming-and-unit-testing-for-data-munging-with-r-available-on-leanpub/">Functional programming and unit testing for data munging with R available on Leanpub</a>
+      
+      <a class="list-group-item" href="../../blog/2017-02-17-how_to_use_jailbreakr/">How to use jailbreakr</a>
+      
+      <a class="list-group-item" href="../../blog/2017-01-07-my-free-book-has-a-cover/">My free book has a cover!</a>
+      
+      <a class="list-group-item" href="../../blog/2016-12-21-work-on-lists-of-datasets-instead-of-individual-datasets-by-using-functional-programming/">Work on lists of datasets instead of individual datasets by using functional programming</a>
+      
+      <a class="list-group-item" href="../../blog/2013-01-29-method-of-simulated-moments-with-r/">Method of Simulated Moments with R</a>
+      
+      <a class="list-group-item" href="../../blog/2012-12-11-new-website/">New website!</a>
+      
+      <a class="list-group-item" href="../../blog/2013-11-07-gmm-with-rmd/">Nonlinear Gmm with R - Example with a logistic regression</a>
+      
+      <a class="list-group-item" href="../../blog/2013-01-16-simulated-maximum-likelihood-with-r/">Simulated Maximum Likelihood with R</a>
+      
+      <a class="list-group-item" href="../../blog/2015-11-11-bootstrapping-did-with-r/">Bootstrapping standard errors for difference-in-differences estimation with R</a>
+      
+      <a class="list-group-item" href="../../blog/2016-06-21-careful-with-trycatch/">Careful with tryCatch</a>
+      
+      <a class="list-group-item" href="../../blog/2016-07-18-data-frame-columns-as-arguments-to-dplyr-functions/">Data frame columns as arguments to dplyr functions</a>
+      
+      <a class="list-group-item" href="../../blog/2015-02-22-export-r-output-to-file/">Export R output to a file</a>
+      
+      <a class="list-group-item" href="../../blog/2016-11-04-ive-started-writing-a-book-functional-programming-and-unit-testing-for-data-munging-with-r/">I&#39;ve started writing a &#39;book&#39;: Functional programming and unit testing for data munging with R</a>
+      
+      <a class="list-group-item" href="../../blog/2015-01-12-introduction-to-programming-econometrics-with-r/">Introduction to programming econometrics with R</a>
+      
+      <a class="list-group-item" href="../../blog/2016-07-30-merge-a-list-of-datasets-together/">Merge a list of datasets together</a>
+      
+      <a class="list-group-item" href="../../blog/2014-04-23-r-s4-rootfinding/">Object Oriented Programming with R: An example with a Cournot duopoly</a>
+      
+      <a class="list-group-item" href="../../blog/2014-11-11-benchmarks-r-blas-atlas-rro/">R, R with Atlas, R with OpenBLAS and Revolution R Open: which is fastest?</a>
+      
+      <a class="list-group-item" href="../../blog/2016-07-26-read-a-lot-of-datasets-at-once-with-r/">Read a lot of datasets at once with R</a>
+      
+      <a class="list-group-item" href="../../blog/2016-03-31-unit-testing-with-r/">Unit testing with R</a>
+      
+      <a class="list-group-item" href="../../blog/2015-05-03-update-introduction-r-programming/">Update to Introduction to programming econometrics with R</a>
+      
+      <a class="list-group-item" href="../../blog/2013-12-31-r-cas/">Using R as a Computer Algebra System with Ryacas</a>
+      
+    </div>
+    
+  
+
+</div>
+
+      </div>
+      <div class="col-lg-9 col-md-9 col-sm-8">
+        <div>
+           <h1 id="main">Multiple data imputation and explainability</h1>
+           <span class="article-date">November 2, 2019</span>
+        </div>
+        <div style="text-align:center;">
+<p><a href="https://xkcd.com/303/">
+<img src="../../img/kermit.png" title = "It is always so tempting"></a></p>
+</div>
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>Imputing missing values is quite an important task, but in my experience, very often, it is performed
+using very simplistic approaches. The basic approach is to impute missing values for
+numerical features using the average of each feature, or using the mode for categorical features.
+There are better ways of imputing missing values, for instance by predicting the values using
+a regression model, or KNN. However, imputing only once is not enough, because each imputed
+value carries with it a certain level of uncertainty. To account for this, it is better to perform
+multiple imputation. This means that if you impute your dataset 10 times, you’ll end up with 10
+different datasets. Then, you should perform your analysis 10 times, for instance, if training
+a machine learning model, you should train it on the 10 datasets (and do a train/test split
+for each, even potentially tune a model for each). Finally, you should pool the results of
+these 10 analyses.</p>
+<p>I have met this approach in the social sciences and statistical literature in general, but
+very rarely in machine learning. Usually, in the social sciences, explainability is the goal of
+fitting statistical models to data, and the approach I described above is very well suited for this.
+Fit 10 (linear) regressions to each imputed dataset, and then pool the estimated coefficients/weights
+together. Rubin’s rule is used to pool these estimates. You can read more about this rule
+<a href="https://bookdown.org/mwheymans/bookmi/rubins-rules.html">here</a>.
+In machine learning, the task is very often prediction; in this case, you should pool the
+predictions. Computing the average and other statistics of the predictions
+seem to work just fine in practice.</p>
+<p>However, if you are mainly interested in explainability, how should you proceed? I’ve thought a
+bit about it, and the answer, is “exactly the same way”… I think.
+What I’m sure about, is you should impute m times, run the analysis m times
+(which in this case will include getting explanations) and then pool. So the idea is to be able to
+pool explanations.</p>
+</div>
+<div id="explainability-in-the-standard-case-no-missing-values" class="section level2">
+<h2>Explainability in the “standard” case (no missing values)</h2>
+<p>To illustrate this idea, I’ll be using the <code>{mice}</code> package for multiple imputation,
+<code>{h2o}</code> for the machine learning bit and<code>{iml}</code> for explainability. Note that I could have used
+any other machine learning package instead of <code>{h2o}</code> as <code>{iml}</code> is totally <em>package-agnostic</em>.
+However, I have been experimenting with <code>{h2o}</code>’s automl implementation lately, so I happened
+to have code on hand. Let’s start with the “standard” case where the data does not have any missing
+values.</p>
+<p>First let’s load the needed packages and initialize <code>h2o</code> functions with <code>h2o.init()</code>:</p>
+<pre class="r"><code>library(tidyverse)
+library(Ecdat)
+library(mice)
+library(h2o)
+library(iml)
+h2o.init()</code></pre>
+<p>I’ll be using the <code>DoctorContacts</code> data. Here’s a description:</p>
+<details>
+<p><summary>Click to view the description of the data</summary></p>
+<pre><code>DoctorContacts              package:Ecdat              R Documentation
+
+Contacts With Medical Doctor
+
+Description:
+
+     a cross-section from 1977-1978
+
+     _number of observations_ : 20186
+
+Usage:
+
+     data(DoctorContacts)
+     
+Format:
+
+     A time serie containing :
+
+     mdu number of outpatient visits to a medical doctor
+
+     lc log(coinsrate+1) where coinsurance rate is 0 to 100
+
+     idp individual deductible plan ?
+
+     lpi log(annual participation incentive payment) or 0 if no payment
+
+     fmde log(max(medical deductible expenditure)) if IDP=1 and MDE&gt;1
+          or 0 otherw
+
+     physlim physical limitation ?
+
+     ndisease number of chronic diseases
+
+     health self-rate health (excellent,good,fair,poor)
+
+     linc log of annual family income (in \$)
+
+     lfam log of family size
+
+     educdec years of schooling of household head
+
+     age exact age
+
+     sex sex (male,female)
+
+     child age less than 18 ?
+
+     black is household head black ?
+
+Source:
+
+     Deb, P.  and P.K.  Trivedi (2002) “The Structure of Demand for
+     Medical Care: Latent Class versus Two-Part Models”, _Journal of
+     Health Economics_, *21*, 601-625.
+
+References:
+
+     Cameron, A.C.  and P.K.  Trivedi (2005) _Microeconometrics :
+     methods and applications_, Cambridge, pp. 553-556 and 565.</code></pre>
+</details>
+<p>The task is to predict <code>&quot;mdu&quot;</code>, the number of outpatient visits to an MD. Let’s prepare the data
+and split it into 3; a training, validation and holdout set.</p>
+<pre class="r"><code>data(&quot;DoctorContacts&quot;)
+
+contacts &lt;- as.h2o(DoctorContacts)</code></pre>
+<pre class="r"><code>splits &lt;- h2o.splitFrame(data=contacts, ratios = c(0.7, 0.2))
+
+original_train &lt;- splits[[1]]
+
+validation &lt;- splits[[2]]
+
+holdout &lt;- splits[[3]]
+
+features_names &lt;- setdiff(colnames(original_train), &quot;mdu&quot;)</code></pre>
+<p>As you see, the ratios argument <code>c(0.7, 0.2)</code> does not add up to 1.
+This means that the first of the splits will have 70% of the data, the second split 20% and
+the final 10% will be the holdout set.</p>
+<p>Let’s first go with a poisson regression. To obtain the same results as with R’s built-in <code>glm()</code>
+function, I use the options below, as per H2o’s glm
+<a href="http://docs.h2o.ai/h2o/latest-stable/h2o-docs/data-science/glm.html#faq">faq</a>.</p>
+<p>If you read Cameron and Trivedi’s <em>Microeconometrics</em>, where this data is presented in the
+context of count models, you’ll see that they also fit a negative binomial model 2 to this data,
+as it allows for overdispersion. Here, I’ll stick to a simple poisson regression, simply
+because the goal of this blog post is not to get the best model; as explained in the beginning,
+this is an attempt at pooling explanations when doing multiple imputation (and it’s also because
+GBMs, which I use below, do not handle the negative binomial model).</p>
+<pre class="r"><code>glm_model &lt;- h2o.glm(y = &quot;mdu&quot;, x = features_names,
+                     training_frame = original_train,
+                     validation_frame = validation,
+                     compute_p_values = TRUE,
+                     solver = &quot;IRLSM&quot;,
+                     lambda = 0,
+                     remove_collinear_columns = TRUE,
+                     score_each_iteration = TRUE,
+                     family = &quot;poisson&quot;, 
+                     link = &quot;log&quot;)</code></pre>
+<p>Now that I have this simple model, which returns the (almost) same results as R’s <code>glm()</code> function,
+I can take a look at coefficients and see which are important, because GLMs are easily
+interpretable:</p>
+<details>
+<p><summary>Click to view <code>h2o.glm()</code>’s output</summary></p>
+<pre class="r"><code>summary(glm_model)</code></pre>
+<pre><code>## Model Details:
+## ==============
+## 
+## H2ORegressionModel: glm
+## Model Key:  GLM_model_R_1572735931328_5 
+## GLM Model: summary
+##    family link regularization number_of_predictors_total
+## 1 poisson  log           None                         16
+##   number_of_active_predictors number_of_iterations  training_frame
+## 1                          16                    5 RTMP_sid_8588_3
+## 
+## H2ORegressionMetrics: glm
+## ** Reported on training data. **
+## 
+## MSE:  17.6446
+## RMSE:  4.200547
+## MAE:  2.504063
+## RMSLE:  0.8359751
+## Mean Residual Deviance :  3.88367
+## R^2 :  0.1006768
+## Null Deviance :64161.44
+## Null D.o.F. :14131
+## Residual Deviance :54884.02
+## Residual D.o.F. :14115
+## AIC :83474.52
+## 
+## 
+## H2ORegressionMetrics: glm
+## ** Reported on validation data. **
+## 
+## MSE:  20.85941
+## RMSE:  4.56721
+## MAE:  2.574582
+## RMSLE:  0.8403465
+## Mean Residual Deviance :  4.153042
+## R^2 :  0.09933874
+## Null Deviance :19667.55
+## Null D.o.F. :4078
+## Residual Deviance :16940.26
+## Residual D.o.F. :4062
+## AIC :25273.25
+## 
+## 
+## 
+## 
+## Scoring History: 
+##             timestamp   duration iterations negative_log_likelihood
+## 1 2019-11-03 00:33:46  0.000 sec          0             64161.43611
+## 2 2019-11-03 00:33:46  0.004 sec          1             56464.99004
+## 3 2019-11-03 00:33:46  0.020 sec          2             54935.05581
+## 4 2019-11-03 00:33:47  0.032 sec          3             54884.19756
+## 5 2019-11-03 00:33:47  0.047 sec          4             54884.02255
+## 6 2019-11-03 00:33:47  0.063 sec          5             54884.02255
+##   objective
+## 1   4.54015
+## 2   3.99554
+## 3   3.88728
+## 4   3.88368
+## 5   3.88367
+## 6   3.88367
+## 
+## Variable Importances: (Extract with `h2o.varimp`) 
+## =================================================
+## 
+##        variable relative_importance scaled_importance  percentage
+## 1    black.TRUE          0.67756097        1.00000000 0.236627982
+## 2   health.poor          0.48287163        0.71266152 0.168635657
+## 3  physlim.TRUE          0.33962316        0.50124369 0.118608283
+## 4   health.fair          0.25602066        0.37785627 0.089411366
+## 5      sex.male          0.19542639        0.28842628 0.068249730
+## 6      ndisease          0.16661902        0.24591001 0.058189190
+## 7      idp.TRUE          0.15703578        0.23176627 0.054842384
+## 8    child.TRUE          0.09988003        0.14741114 0.034881600
+## 9          linc          0.09830075        0.14508030 0.034330059
+## 10           lc          0.08126160        0.11993253 0.028379394
+## 11         lfam          0.07234463        0.10677213 0.025265273
+## 12         fmde          0.06622332        0.09773781 0.023127501
+## 13      educdec          0.06416087        0.09469387 0.022407220
+## 14  health.good          0.05501613        0.08119732 0.019213558
+## 15          age          0.03167598        0.04675000 0.011062359
+## 16          lpi          0.01938077        0.02860373 0.006768444</code></pre>
+</details>
+<p>As a bonus, let’s see the output of the <code>glm()</code> function:</p>
+<details>
+<p><summary>Click to view <code>glm()</code>’s output</summary></p>
+<pre class="r"><code>train_tibble &lt;- as_tibble(original_train)
+
+r_glm &lt;- glm(mdu ~ ., data = train_tibble,
+            family = poisson(link = &quot;log&quot;))
+
+summary(r_glm)</code></pre>
+<pre><code>## 
+## Call:
+## glm(formula = mdu ~ ., family = poisson(link = &quot;log&quot;), data = train_tibble)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -5.7039  -1.7890  -0.8433   0.4816  18.4703  
+## 
+## Coefficients:
+##               Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept)  0.0005100  0.0585681   0.009   0.9931    
+## lc          -0.0475077  0.0072280  -6.573 4.94e-11 ***
+## idpTRUE     -0.1794563  0.0139749 -12.841  &lt; 2e-16 ***
+## lpi          0.0129742  0.0022141   5.860 4.63e-09 ***
+## fmde        -0.0166968  0.0042265  -3.951 7.80e-05 ***
+## physlimTRUE  0.3182780  0.0126868  25.087  &lt; 2e-16 ***
+## ndisease     0.0222300  0.0007215  30.811  &lt; 2e-16 ***
+## healthfair   0.2434235  0.0192873  12.621  &lt; 2e-16 ***
+## healthgood   0.0231824  0.0115398   2.009   0.0445 *  
+## healthpoor   0.4608598  0.0329124  14.003  &lt; 2e-16 ***
+## linc         0.0826053  0.0062208  13.279  &lt; 2e-16 ***
+## lfam        -0.1194981  0.0106904 -11.178  &lt; 2e-16 ***
+## educdec      0.0205582  0.0019404  10.595  &lt; 2e-16 ***
+## age          0.0041397  0.0005152   8.035 9.39e-16 ***
+## sexmale     -0.2096761  0.0104668 -20.032  &lt; 2e-16 ***
+## childTRUE    0.1529588  0.0179179   8.537  &lt; 2e-16 ***
+## blackTRUE   -0.6231230  0.0176758 -35.253  &lt; 2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## (Dispersion parameter for poisson family taken to be 1)
+## 
+##     Null deviance: 64043  on 14096  degrees of freedom
+## Residual deviance: 55529  on 14080  degrees of freedom
+## AIC: 84052
+## 
+## Number of Fisher Scoring iterations: 6</code></pre>
+</details>
+<p>I could also use the excellent <code>{ggeffects}</code> package to see the marginal effects of
+different variables, for instance <code>&quot;linc&quot;</code>:</p>
+<pre class="r"><code>library(ggeffects)
+
+ggeffect(r_glm, &quot;linc&quot;) %&gt;% 
+    ggplot(aes(x, predicted)) +
+    geom_ribbon(aes(ymin = conf.low, ymax = conf.high), fill = &quot;#0f4150&quot;) +
+    geom_line(colour = &quot;#82518c&quot;) +
+    brotools::theme_blog()</code></pre>
+<p><img src="../../blog/2019-11-02-mice_exp_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+<p>We can see that as “linc” (and other covariates are held constant), the target variable increases.</p>
+<p>Let’s also take a look at the marginal effect of a categorical variable, namely <code>&quot;sex&quot;</code>:</p>
+<details>
+<p><summary>Click to view another example of marginal effects</summary></p>
+<pre class="r"><code>library(ggeffects)
+
+ggeffect(r_glm, &quot;sex&quot;) %&gt;% 
+    ggplot(aes(x, predicted)) +
+    geom_point(colour = &quot;#82518c&quot;) +
+    geom_errorbar(aes(x, ymin = conf.low, ymax = conf.high), colour = &quot;#82518c&quot;) +
+    brotools::theme_blog()</code></pre>
+<img src="../../blog/2019-11-02-mice_exp_files/figure-html/unnamed-chunk-11-1.png" width="672" />
+</details>
+<p>In the case of the <code>&quot;sex&quot;</code> variable, men have significantly less doctor contacts than women.</p>
+<p>Now, let’s suppose that I want to train a model with a more complicated name, in order to justify
+my salary. Suppose I go with one of those nifty <em>black-box</em> models, for instance a GBM, which
+very likely will perform better than the GLM from before. GBMs are available in <code>{h2o}</code> via the
+<code>h2o.gbm()</code> function:</p>
+<pre class="r"><code>gbm_model &lt;- h2o.gbm(y = &quot;mdu&quot;, x = features_names,
+            training_frame = original_train,
+            validation_frame = validation,
+            distribution = &quot;poisson&quot;,
+            score_each_iteration = TRUE,
+            ntrees = 110,
+            max_depth = 20,
+            sample_rate = 0.6,
+            col_sample_rate = 0.8,
+            col_sample_rate_per_tree = 0.9,
+            learn_rate = 0.05)</code></pre>
+<p>To find a set of good hyper-parameter values, I actually used <code>h2o.automl()</code> and then used the
+returned parameter values from the leader model. Maybe I’ll write another blog post about
+<code>h2o.automl()</code> one day, it’s quite cool. Anyways, now, how do I get me some explainability out of
+this? The model does perform better than the GLM as indicated by all the different metrics, but
+now I cannot compute any marginal effects, or anything like that. I do get feature importance
+by default with:</p>
+<pre class="r"><code>h2o.varimp(gbm_model)</code></pre>
+<pre><code>## Variable Importances: 
+##    variable relative_importance scaled_importance percentage
+## 1       age       380350.093750          1.000000   0.214908
+## 2      linc       282274.343750          0.742143   0.159492
+## 3  ndisease       245862.718750          0.646412   0.138919
+## 4       lpi       173552.734375          0.456297   0.098062
+## 5   educdec       148186.265625          0.389605   0.083729
+## 6      lfam       139174.312500          0.365911   0.078637
+## 7      fmde        94193.585938          0.247650   0.053222
+## 8    health        86160.679688          0.226530   0.048683
+## 9       sex        63502.667969          0.166958   0.035881
+## 10       lc        50674.968750          0.133232   0.028633
+## 11  physlim        45328.382812          0.119175   0.025612
+## 12    black        26376.841797          0.069349   0.014904
+## 13      idp        24809.185547          0.065227   0.014018
+## 14    child         9382.916992          0.024669   0.005302</code></pre>
+<p>but that’s it. And had I chosen a different “black-box” model, not based on trees, then I would
+not even have that.
+Thankfully, there’s the amazing <code>{iml}</code> package that contains a lot of functions for model-agnostic
+explanations. If you are not familiar with this package and the methods it implements, I highly
+encourage you to read the free online <a href="https://christophm.github.io/interpretable-ml-book/">ebook</a>
+written by the packages author, Christoph Molnar
+(who you can follow on <a href="https://twitter.com/ChristophMolnar">Twitter</a>).</p>
+<p>Out of the box, <code>{iml}</code> works with several machine learning frameworks, such as <code>{caret}</code> or <code>{mlr}</code>
+but not with <code>{h2o}</code>. However, this is not an issue; you only need to create a predict function
+which returns a data frame (<code>h2o.predict()</code> used for prediction with h2o models returns an
+h2o frame). I have found this interesting blog post from
+<a href="https://www.business-science.io/business/2018/08/13/iml-model-interpretability.html">business-science.io</a>
+which explains how to do this. I highly recommend you read this blog post, as it goes much deeper
+into the capabilities of <code>{iml}</code>.</p>
+<p>So let’s write a predict function that <code>{iml}</code> can use:</p>
+<pre class="r"><code>#source: https://www.business-science.io/business/2018/08/13/iml-model-interpretability.html
+predict_for_iml &lt;- function(model, newdata){
+  as_tibble(h2o.predict(model, as.h2o(newdata)))
+}</code></pre>
+<p>And let’s now create a <code>Predictor</code> object. These objects are used by <code>{iml}</code> to create explanations:</p>
+<pre class="r"><code>just_features &lt;- as_tibble(holdout[, 2:15])
+actual_target &lt;- as_tibble(holdout[, 1])
+
+predictor_original &lt;- Predictor$new(
+  model = gbm_model, 
+  data = just_features, 
+  y = actual_target, 
+  predict.fun = predict_for_iml
+  )</code></pre>
+<p><code>predictor_original</code> can now be used to compute all kinds of explanations. I won’t go into much
+detail here, as this blog post is already quite long (and I haven’t even reached what I actually
+want to write about yet) and you can read more on the before-mentioned blog post or directly
+from Christoph Molnar’s ebook linked above.</p>
+<p>First, let’s compute a partial dependence plot, which shows the marginal effect of a variable
+on the outcome. This is to compare it to the one from the GLM model:</p>
+<pre class="r"><code>feature_effect_original &lt;- FeatureEffect$new(predictor_original, &quot;linc&quot;, method = &quot;pdp&quot;)
+
+plot(feature_effect_original) +
+    brotools::theme_blog()</code></pre>
+<p><img src="../../blog/2019-11-02-mice_exp_files/figure-html/unnamed-chunk-19-1.png" width="672" /></p>
+<pre class="r"><code>feature_effect_original &lt;- FeatureEffect$new(predictor_original, &quot;linc&quot;, method = &quot;pdp&quot;)
+
+plot(feature_effect_original) +
+    brotools::theme_blog()</code></pre>
+<p>Quite similar to the marginal effects from the GLM!
+Let’s now compute model-agnostic feature importances:</p>
+<pre class="r"><code>feature_importance_original &lt;- FeatureImp$new(predictor_original, loss = &quot;mse&quot;)
+
+plot(feature_importance_original)</code></pre>
+<p><img src="../../blog/2019-11-02-mice_exp_files/figure-html/unnamed-chunk-23-1.png" width="672" /></p>
+<p>And finally, the interaction effect of the <code>sex</code> variable interacted with all the others:</p>
+<pre class="r"><code>interaction_sex_original &lt;- Interaction$new(predictor_original, feature = &quot;sex&quot;)
+
+plot(interaction_sex_original)</code></pre>
+<p><img src="../../blog/2019-11-02-mice_exp_files/figure-html/unnamed-chunk-26-1.png" width="672" /></p>
+<p>Ok so let’s assume that I’m happy with these explanations, and do need or want to go further.
+This would be the end of it in an ideal world, but this is not an ideal world unfortunately,
+but it’s the best we’ve got. In the real world, it often happens that data comes with missing values.</p>
+</div>
+<div id="missing-data-and-explainability" class="section level2">
+<h2>Missing data and explainability</h2>
+<p>As explained in the beginning, I’ve been wondering how to deal with missing values when the goal
+of the analysis is explainability. How can the explanations be pooled? Let’s start
+with creating a data set with missing values, then perform multiple imputation, then perform
+the analysis.</p>
+<p>First, let me create a <code>patterns</code> matrix, that I will pass to the <code>ampute()</code> function from the
+<code>{mice}</code> package. This function creates a dataset with missing values, and by using its <code>patterns</code>
+argument, I can decide which columns should have missing values:</p>
+<pre class="r"><code>patterns &lt;- -1*(diag(1, nrow = 15, ncol = 15) - 1)
+
+patterns[ ,c(seq(1, 6), c(9, 13))] &lt;- 0
+
+amputed_train &lt;- ampute(as_tibble(original_train), prop = 0.1, patterns = patterns, mech = &quot;MNAR&quot;)</code></pre>
+<pre><code>## Warning: Data is made numeric because the calculation of weights requires
+## numeric data</code></pre>
+<p>Let’s take a look at the missingness pattern:</p>
+<pre class="r"><code>naniar::vis_miss(amputed_train$amp) + 
+    brotools::theme_blog() + 
+      theme(axis.text.x=element_text(angle=90, hjust=1))</code></pre>
+<p><img src="../../blog/2019-11-02-mice_exp_files/figure-html/unnamed-chunk-28-1.png" width="672" /></p>
+<p>Ok, so now let’s suppose that this was the dataset I was given. As a serious data scientist,
+I decide to perform multiple imputation first:</p>
+<pre class="r"><code>imputed_train_data &lt;- mice(data = amputed_train$amp, m = 10)
+
+long_train_data &lt;- complete(imputed_train_data, &quot;long&quot;)</code></pre>
+<p>So because I performed multiple imputation 10 times, I now have 10 different datasets. I should
+now perform my analysis on these 10 datasets, which means I should run my GBM on each of them,
+and then get out the explanations for each of them. So let’s do just that. But first, let’s
+change the columns back to how they were; to perform amputation, the factor columns were
+converted to numbers:</p>
+<pre class="r"><code>long_train_data &lt;- long_train_data %&gt;% 
+    mutate(idp = ifelse(idp == 1, FALSE, TRUE),
+           physlim = ifelse(physlim == 1, FALSE, TRUE),
+           health = as.factor(case_when(health == 1 ~ &quot;excellent&quot;,
+                              health == 2 ~ &quot;fair&quot;,
+                              health == 3 ~ &quot;good&quot;, 
+                              health == 4 ~  &quot;poor&quot;)),
+           sex = as.factor(ifelse(sex == 1, &quot;female&quot;, &quot;male&quot;)),
+           child = ifelse(child == 1, FALSE, TRUE),
+           black = ifelse(black == 1, FALSE, TRUE))</code></pre>
+<p>Ok, so now we’re ready to go. I will use the <code>h2o.gbm()</code> function on each imputed data set.
+For this, I’ll use the <code>group_by()</code>-<code>nest()</code> trick which consists in grouping the dataset by
+the <code>.imp</code> column, then nesting it, then mapping the <code>h2o.gbm()</code> function to each imputed
+dataset. If you are not familiar with this, you can read
+<a href="https://www.brodrigues.co/blog/2017-03-29-make-ggplot2-purrr/">this other</a> blog post, which
+explains the approach. I define a custom function, <code>train_on_imputed_data()</code> to run <code>h2o.gbm()</code> on
+each imputed data set:</p>
+<pre class="r"><code>train_on_imputed_data &lt;- function(long_data){
+    long_data %&gt;% 
+        group_by(.imp) %&gt;% 
+        nest() %&gt;% 
+        mutate(model = map(data, ~h2o.gbm(y = &quot;mdu&quot;, x = features_names,
+            training_frame = as.h2o(.),
+            validation_frame = validation,
+            distribution = &quot;poisson&quot;,
+            score_each_iteration = TRUE,
+            ntrees = 110,
+            max_depth = 20,
+            sample_rate = 0.6,
+            col_sample_rate = 0.8,
+            col_sample_rate_per_tree = 0.9,
+            learn_rate = 0.05)))
+}</code></pre>
+<p>Now the training takes place:</p>
+<pre class="r"><code>imp_trained &lt;- train_on_imputed_data(long_train_data)</code></pre>
+<p>Let’s take a look at <code>imp_trained</code>:</p>
+<pre class="r"><code>imp_trained</code></pre>
+<pre><code>## # A tibble: 10 x 3
+## # Groups:   .imp [10]
+##     .imp            data model     
+##    &lt;int&gt; &lt;list&lt;df[,16]&gt;&gt; &lt;list&gt;    
+##  1     1   [14,042 × 16] &lt;H2ORgrsM&gt;
+##  2     2   [14,042 × 16] &lt;H2ORgrsM&gt;
+##  3     3   [14,042 × 16] &lt;H2ORgrsM&gt;
+##  4     4   [14,042 × 16] &lt;H2ORgrsM&gt;
+##  5     5   [14,042 × 16] &lt;H2ORgrsM&gt;
+##  6     6   [14,042 × 16] &lt;H2ORgrsM&gt;
+##  7     7   [14,042 × 16] &lt;H2ORgrsM&gt;
+##  8     8   [14,042 × 16] &lt;H2ORgrsM&gt;
+##  9     9   [14,042 × 16] &lt;H2ORgrsM&gt;
+## 10    10   [14,042 × 16] &lt;H2ORgrsM&gt;</code></pre>
+<p>We see that the column <code>model</code> contains one model for each imputed dataset. Now comes the
+part I wanted to write about (finally): getting explanations out of this. Getting the explanations
+from each model is not the hard part, that’s easily done using some <code>{tidyverse}</code> magic (if
+you’re following along, run this bit of code below, and go make dinner, have dinner, and
+wash the dishes, because it takes time to run):</p>
+<pre class="r"><code>make_predictors &lt;- function(model){
+    Predictor$new(
+        model = model, 
+        data = just_features, 
+        y = actual_target, 
+        predict.fun = predict_for_iml
+        )
+}
+
+make_effect &lt;- function(predictor_object, feature = &quot;linc&quot;, method = &quot;pdp&quot;){
+    FeatureEffect$new(predictor_object, feature, method)
+}
+
+make_feat_imp &lt;- function(predictor_object, loss = &quot;mse&quot;){
+    FeatureImp$new(predictor_object, loss)
+}
+
+make_interactions &lt;- function(predictor_object, feature = &quot;sex&quot;){
+    Interaction$new(predictor_object, feature = feature)
+}
+
+imp_trained &lt;- imp_trained %&gt;%
+    mutate(predictors = map(model, make_predictors)) %&gt;% 
+    mutate(effect_linc = map(predictors, make_effect)) %&gt;% 
+    mutate(feat_imp = map(predictors, make_feat_imp)) %&gt;% 
+    mutate(interactions_sex = map(predictors, make_interactions))</code></pre>
+<p>Ok so now that I’ve got these explanations, I am done with my analysis. This is the time to
+pool the results together. Remember, in the case of regression models as used in the social
+sciences, this means averaging the estimated model parameters and using Rubin’s rule to
+compute their standard errors. But in this case, this is not so obvious. Should the
+explanations be averaged? Should I instead analyse them one by one, and see if they differ?
+My gut feeling is that they shouldn’t differ much, but who knows? Perhaps the answer is doing
+a bit of both. I have checked online for a paper that would shed some light into this, but
+have not found any. So let’s take a closer look to the explanations. Let’s look at feature
+importance:</p>
+<details>
+<p><summary>Click to view the 10 feature importances</summary></p>
+<pre class="r"><code>imp_trained %&gt;% 
+    pull(feat_imp)</code></pre>
+<pre><code>## [[1]]
+## Interpretation method:  FeatureImp 
+## error function: mse
+## 
+## Analysed predictor: 
+## Prediction task: unknown 
+## 
+## 
+## Analysed data:
+## Sampling from data.frame with 2013 rows and 14 columns.
+## 
+## Head of results:
+##    feature importance.05 importance importance.95 permutation.error
+## 1 ndisease     1.0421605   1.362672      1.467244          22.03037
+## 2     fmde     0.8611917   1.142809      1.258692          18.47583
+## 3      lpi     0.8706659   1.103367      1.196081          17.83817
+## 4   health     0.8941010   1.098014      1.480508          17.75164
+## 5       lc     0.8745229   1.024288      1.296668          16.55970
+## 6    black     0.7537278   1.006294      1.095054          16.26879
+## 
+## [[2]]
+## Interpretation method:  FeatureImp 
+## error function: mse
+## 
+## Analysed predictor: 
+## Prediction task: unknown 
+## 
+## 
+## Analysed data:
+## Sampling from data.frame with 2013 rows and 14 columns.
+## 
+## Head of results:
+##    feature importance.05 importance importance.95 permutation.error
+## 1      age      0.984304   1.365702      1.473146          22.52529
+## 2     linc      1.102023   1.179169      1.457907          19.44869
+## 3 ndisease      1.075821   1.173938      1.642938          19.36241
+## 4     fmde      1.059303   1.150112      1.281291          18.96944
+## 5       lc      0.837573   1.132719      1.200556          18.68257
+## 6  physlim      0.763757   1.117635      1.644434          18.43379
+## 
+## [[3]]
+## Interpretation method:  FeatureImp 
+## error function: mse
+## 
+## Analysed predictor: 
+## Prediction task: unknown 
+## 
+## 
+## Analysed data:
+## Sampling from data.frame with 2013 rows and 14 columns.
+## 
+## Head of results:
+##    feature importance.05 importance importance.95 permutation.error
+## 1      age     0.8641304   1.334382      1.821797          21.62554
+## 2    black     1.0553001   1.301338      1.429119          21.09001
+## 3     fmde     0.8965085   1.208761      1.360217          19.58967
+## 4 ndisease     1.0577766   1.203418      1.651611          19.50309
+## 5     linc     0.9299725   1.114041      1.298379          18.05460
+## 6      sex     0.9854144   1.091391      1.361406          17.68754
+## 
+## [[4]]
+## Interpretation method:  FeatureImp 
+## error function: mse
+## 
+## Analysed predictor: 
+## Prediction task: unknown 
+## 
+## 
+## Analysed data:
+## Sampling from data.frame with 2013 rows and 14 columns.
+## 
+## Head of results:
+##   feature importance.05 importance importance.95 permutation.error
+## 1 educdec     0.9469049   1.263961      1.358115          20.52909
+## 2     age     1.0980269   1.197441      1.763202          19.44868
+## 3  health     0.8539843   1.133338      1.343389          18.40753
+## 4    linc     0.7608811   1.123423      1.328756          18.24649
+## 5     lpi     0.8203850   1.103394      1.251688          17.92118
+## 6   black     0.9476909   1.089861      1.328960          17.70139
+## 
+## [[5]]
+## Interpretation method:  FeatureImp 
+## error function: mse
+## 
+## Analysed predictor: 
+## Prediction task: unknown 
+## 
+## 
+## Analysed data:
+## Sampling from data.frame with 2013 rows and 14 columns.
+## 
+## Head of results:
+##   feature importance.05 importance importance.95 permutation.error
+## 1     lpi     0.9897789   1.336405      1.601778          22.03791
+## 2 educdec     0.8701162   1.236741      1.424602          20.39440
+## 3     age     0.8537786   1.181242      1.261411          19.47920
+## 4    lfam     1.0185313   1.133158      1.400151          18.68627
+## 5     idp     0.9502284   1.069772      1.203147          17.64101
+## 6    linc     0.8600586   1.042453      1.395231          17.19052
+## 
+## [[6]]
+## Interpretation method:  FeatureImp 
+## error function: mse
+## 
+## Analysed predictor: 
+## Prediction task: unknown 
+## 
+## 
+## Analysed data:
+## Sampling from data.frame with 2013 rows and 14 columns.
+## 
+## Head of results:
+##   feature importance.05 importance importance.95 permutation.error
+## 1      lc     0.7707383   1.208190      1.379422          19.65436
+## 2     sex     0.9309901   1.202629      1.479511          19.56391
+## 3    linc     1.0549563   1.138404      1.624217          18.51912
+## 4     lpi     0.9360817   1.135198      1.302084          18.46696
+## 5 physlim     0.7357272   1.132525      1.312584          18.42349
+## 6   child     1.0199964   1.109120      1.316306          18.04274
+## 
+## [[7]]
+## Interpretation method:  FeatureImp 
+## error function: mse
+## 
+## Analysed predictor: 
+## Prediction task: unknown 
+## 
+## 
+## Analysed data:
+## Sampling from data.frame with 2013 rows and 14 columns.
+## 
+## Head of results:
+##    feature importance.05 importance importance.95 permutation.error
+## 1     linc     0.9403425   1.262994      1.511122          20.65942
+## 2       lc     1.0481333   1.233136      1.602796          20.17103
+## 3 ndisease     1.1612194   1.212454      1.320208          19.83272
+## 4  educdec     0.7924637   1.197343      1.388218          19.58554
+## 5     lfam     0.8423790   1.178545      1.349884          19.27805
+## 6      age     0.9125829   1.168297      1.409525          19.11043
+## 
+## [[8]]
+## Interpretation method:  FeatureImp 
+## error function: mse
+## 
+## Analysed predictor: 
+## Prediction task: unknown 
+## 
+## 
+## Analysed data:
+## Sampling from data.frame with 2013 rows and 14 columns.
+## 
+## Head of results:
+##    feature importance.05 importance importance.95 permutation.error
+## 1      age     1.1281736   1.261273      1.609524          20.55410
+## 2   health     0.9134557   1.240597      1.432366          20.21716
+## 3     lfam     0.7469043   1.182294      1.345910          19.26704
+## 4      lpi     0.8088552   1.160863      1.491139          18.91779
+## 5 ndisease     1.0756671   1.104357      1.517278          17.99695
+## 6     fmde     0.6929092   1.093465      1.333544          17.81946
+## 
+## [[9]]
+## Interpretation method:  FeatureImp 
+## error function: mse
+## 
+## Analysed predictor: 
+## Prediction task: unknown 
+## 
+## 
+## Analysed data:
+## Sampling from data.frame with 2013 rows and 14 columns.
+## 
+## Head of results:
+##    feature importance.05 importance importance.95 permutation.error
+## 1  educdec     1.0188109   1.287697      1.381982          20.92713
+## 2      lpi     0.9853336   1.213095      1.479002          19.71473
+## 3     linc     0.8354715   1.195344      1.254350          19.42625
+## 4      age     0.9980451   1.179371      1.383545          19.16666
+## 5 ndisease     1.0492685   1.176804      1.397398          19.12495
+## 6     lfam     1.0814043   1.166626      1.264592          18.95953
+## 
+## [[10]]
+## Interpretation method:  FeatureImp 
+## error function: mse
+## 
+## Analysed predictor: 
+## Prediction task: unknown 
+## 
+## 
+## Analysed data:
+## Sampling from data.frame with 2013 rows and 14 columns.
+## 
+## Head of results:
+##    feature importance.05 importance importance.95 permutation.error
+## 1      age     0.9538824   1.211869      1.621151          19.53671
+## 2      sex     0.9148921   1.211253      1.298311          19.52678
+## 3     lfam     0.8227355   1.093094      1.393815          17.62192
+## 4 ndisease     0.8282127   1.090779      1.205994          17.58459
+## 5       lc     0.7004401   1.060870      1.541697          17.10244
+## 6   health     0.8137149   1.058324      1.183639          17.06138</code></pre>
+</details>
+<p>As you can see, the feature importances are quite different from each other, but I don’t think
+this comes from the imputations, but rather from the fact that feature importance
+<em>depends on shuffling the feature, which adds randomness to the measurement</em>
+(source: <a href="https://christophm.github.io/interpretable-ml-book/feature-importance.html#disadvantages-9" class="uri">https://christophm.github.io/interpretable-ml-book/feature-importance.html#disadvantages-9</a>).
+To mitigate this, Christoph Molnar suggests repeating the the permutation and averaging the
+importance measures; I think that this would be my approach for <em>pooling</em> as well.</p>
+<p>Let’s now take a look at interactions:</p>
+<details>
+<p><summary>Click to view the 10 interactions</summary></p>
+<pre class="r"><code>imp_trained %&gt;% 
+    pull(interactions_sex)</code></pre>
+<pre><code>## [[1]]
+## Interpretation method:  Interaction 
+## 
+## 
+## Analysed predictor: 
+## Prediction task: unknown 
+## 
+## 
+## Analysed data:
+## Sampling from data.frame with 2013 rows and 14 columns.
+## 
+## Head of results:
+##       .feature .interaction
+## 1       lc:sex   0.07635197
+## 2      idp:sex   0.08172754
+## 3      lpi:sex   0.10704357
+## 4     fmde:sex   0.11267146
+## 5  physlim:sex   0.04099073
+## 6 ndisease:sex   0.16314524
+## 
+## [[2]]
+## Interpretation method:  Interaction 
+## 
+## 
+## Analysed predictor: 
+## Prediction task: unknown 
+## 
+## 
+## Analysed data:
+## Sampling from data.frame with 2013 rows and 14 columns.
+## 
+## Head of results:
+##       .feature .interaction
+## 1       lc:sex   0.10349820
+## 2      idp:sex   0.07432519
+## 3      lpi:sex   0.11651413
+## 4     fmde:sex   0.18123926
+## 5  physlim:sex   0.12952808
+## 6 ndisease:sex   0.14528876
+## 
+## [[3]]
+## Interpretation method:  Interaction 
+## 
+## 
+## Analysed predictor: 
+## Prediction task: unknown 
+## 
+## 
+## Analysed data:
+## Sampling from data.frame with 2013 rows and 14 columns.
+## 
+## Head of results:
+##       .feature .interaction
+## 1       lc:sex   0.05919320
+## 2      idp:sex   0.05586197
+## 3      lpi:sex   0.24253335
+## 4     fmde:sex   0.05240474
+## 5  physlim:sex   0.06404969
+## 6 ndisease:sex   0.14508072
+## 
+## [[4]]
+## Interpretation method:  Interaction 
+## 
+## 
+## Analysed predictor: 
+## Prediction task: unknown 
+## 
+## 
+## Analysed data:
+## Sampling from data.frame with 2013 rows and 14 columns.
+## 
+## Head of results:
+##       .feature .interaction
+## 1       lc:sex   0.02775529
+## 2      idp:sex   0.02050390
+## 3      lpi:sex   0.11781130
+## 4     fmde:sex   0.11084240
+## 5  physlim:sex   0.17932694
+## 6 ndisease:sex   0.07181589
+## 
+## [[5]]
+## Interpretation method:  Interaction 
+## 
+## 
+## Analysed predictor: 
+## Prediction task: unknown 
+## 
+## 
+## Analysed data:
+## Sampling from data.frame with 2013 rows and 14 columns.
+## 
+## Head of results:
+##       .feature .interaction
+## 1       lc:sex   0.12873151
+## 2      idp:sex   0.03681428
+## 3      lpi:sex   0.15879389
+## 4     fmde:sex   0.16952900
+## 5  physlim:sex   0.07031520
+## 6 ndisease:sex   0.10567463
+## 
+## [[6]]
+## Interpretation method:  Interaction 
+## 
+## 
+## Analysed predictor: 
+## Prediction task: unknown 
+## 
+## 
+## Analysed data:
+## Sampling from data.frame with 2013 rows and 14 columns.
+## 
+## Head of results:
+##       .feature .interaction
+## 1       lc:sex   0.15320481
+## 2      idp:sex   0.08645037
+## 3      lpi:sex   0.16674641
+## 4     fmde:sex   0.14671054
+## 5  physlim:sex   0.09236257
+## 6 ndisease:sex   0.14605618
+## 
+## [[7]]
+## Interpretation method:  Interaction 
+## 
+## 
+## Analysed predictor: 
+## Prediction task: unknown 
+## 
+## 
+## Analysed data:
+## Sampling from data.frame with 2013 rows and 14 columns.
+## 
+## Head of results:
+##       .feature .interaction
+## 1       lc:sex   0.04072960
+## 2      idp:sex   0.05641868
+## 3      lpi:sex   0.19491959
+## 4     fmde:sex   0.07119644
+## 5  physlim:sex   0.05777469
+## 6 ndisease:sex   0.16555363
+## 
+## [[8]]
+## Interpretation method:  Interaction 
+## 
+## 
+## Analysed predictor: 
+## Prediction task: unknown 
+## 
+## 
+## Analysed data:
+## Sampling from data.frame with 2013 rows and 14 columns.
+## 
+## Head of results:
+##       .feature .interaction
+## 1       lc:sex   0.04979709
+## 2      idp:sex   0.06036898
+## 3      lpi:sex   0.14009307
+## 4     fmde:sex   0.10927688
+## 5  physlim:sex   0.08761533
+## 6 ndisease:sex   0.20544585
+## 
+## [[9]]
+## Interpretation method:  Interaction 
+## 
+## 
+## Analysed predictor: 
+## Prediction task: unknown 
+## 
+## 
+## Analysed data:
+## Sampling from data.frame with 2013 rows and 14 columns.
+## 
+## Head of results:
+##       .feature .interaction
+## 1       lc:sex   0.08572075
+## 2      idp:sex   0.12254979
+## 3      lpi:sex   0.17532347
+## 4     fmde:sex   0.12557420
+## 5  physlim:sex   0.05084209
+## 6 ndisease:sex   0.13977328
+## 
+## [[10]]
+## Interpretation method:  Interaction 
+## 
+## 
+## Analysed predictor: 
+## Prediction task: unknown 
+## 
+## 
+## Analysed data:
+## Sampling from data.frame with 2013 rows and 14 columns.
+## 
+## Head of results:
+##       .feature .interaction
+## 1       lc:sex   0.08636490
+## 2      idp:sex   0.04807331
+## 3      lpi:sex   0.17922280
+## 4     fmde:sex   0.05728403
+## 5  physlim:sex   0.09392774
+## 6 ndisease:sex   0.13408956</code></pre>
+</details>
+<p>It would seem that interactions are a bit more stable. Let’s average the values; for this
+I need to access the <code>results</code> element of the interactions object and the result out:</p>
+<pre class="r"><code>interactions_sex_result &lt;- imp_trained %&gt;% 
+    mutate(interactions_results = map(interactions_sex, function(x)(x$results))) %&gt;% 
+    pull()</code></pre>
+<p><code>interactions_sex_result</code> is a list of dataframes, which means I can bind the rows together and
+compute whatever I need:</p>
+<pre class="r"><code>interactions_sex_result %&gt;% 
+    bind_rows() %&gt;% 
+    group_by(.feature) %&gt;% 
+    summarise_at(.vars = vars(.interaction), 
+                 .funs = funs(mean, sd, low_ci = quantile(., 0.05), high_ci = quantile(., 0.95)))</code></pre>
+<pre><code>## # A tibble: 13 x 5
+##    .feature       mean     sd low_ci high_ci
+##    &lt;chr&gt;         &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt;
+##  1 age:sex      0.294  0.0668 0.181    0.369
+##  2 black:sex    0.117  0.0286 0.0763   0.148
+##  3 child:sex    0.0817 0.0308 0.0408   0.125
+##  4 educdec:sex  0.148  0.0411 0.104    0.220
+##  5 fmde:sex     0.114  0.0443 0.0546   0.176
+##  6 health:sex   0.130  0.0190 0.104    0.151
+##  7 idp:sex      0.0643 0.0286 0.0278   0.106
+##  8 lc:sex       0.0811 0.0394 0.0336   0.142
+##  9 lfam:sex     0.149  0.0278 0.125    0.198
+## 10 linc:sex     0.142  0.0277 0.104    0.179
+## 11 lpi:sex      0.160  0.0416 0.111    0.221
+## 12 ndisease:sex 0.142  0.0356 0.0871   0.187
+## 13 physlim:sex  0.0867 0.0415 0.0454   0.157</code></pre>
+<p>That seems pretty good. Now, what about the partial dependence? Let’s take a closer look:</p>
+<details>
+<p><summary>Click to view the 10 pdps</summary></p>
+<pre class="r"><code>imp_trained %&gt;% 
+    pull(effect_linc)</code></pre>
+<pre><code>## [[1]]
+## Interpretation method:  FeatureEffect 
+## features: linc[numerical]
+## grid size: 20
+## 
+## Analysed predictor: 
+## Prediction task: unknown 
+## 
+## 
+## Analysed data:
+## Sampling from data.frame with 2013 rows and 14 columns.
+## 
+## Head of results:
+##        linc   .y.hat .type
+## 1 0.0000000 1.652445   pdp
+## 2 0.5312226 1.687522   pdp
+## 3 1.0624453 1.687522   pdp
+## 4 1.5936679 1.687522   pdp
+## 5 2.1248905 1.685088   pdp
+## 6 2.6561132 1.694112   pdp
+## 
+## [[2]]
+## Interpretation method:  FeatureEffect 
+## features: linc[numerical]
+## grid size: 20
+## 
+## Analysed predictor: 
+## Prediction task: unknown 
+## 
+## 
+## Analysed data:
+## Sampling from data.frame with 2013 rows and 14 columns.
+## 
+## Head of results:
+##        linc   .y.hat .type
+## 1 0.0000000 1.813449   pdp
+## 2 0.5312226 1.816195   pdp
+## 3 1.0624453 1.816195   pdp
+## 4 1.5936679 1.816195   pdp
+## 5 2.1248905 1.804457   pdp
+## 6 2.6561132 1.797238   pdp
+## 
+## [[3]]
+## Interpretation method:  FeatureEffect 
+## features: linc[numerical]
+## grid size: 20
+## 
+## Analysed predictor: 
+## Prediction task: unknown 
+## 
+## 
+## Analysed data:
+## Sampling from data.frame with 2013 rows and 14 columns.
+## 
+## Head of results:
+##        linc   .y.hat .type
+## 1 0.0000000 1.906515   pdp
+## 2 0.5312226 2.039318   pdp
+## 3 1.0624453 2.039318   pdp
+## 4 1.5936679 2.039318   pdp
+## 5 2.1248905 2.002970   pdp
+## 6 2.6561132 2.000922   pdp
+## 
+## [[4]]
+## Interpretation method:  FeatureEffect 
+## features: linc[numerical]
+## grid size: 20
+## 
+## Analysed predictor: 
+## Prediction task: unknown 
+## 
+## 
+## Analysed data:
+## Sampling from data.frame with 2013 rows and 14 columns.
+## 
+## Head of results:
+##        linc   .y.hat .type
+## 1 0.0000000 1.799552   pdp
+## 2 0.5312226 2.012634   pdp
+## 3 1.0624453 2.012634   pdp
+## 4 1.5936679 2.012634   pdp
+## 5 2.1248905 1.982425   pdp
+## 6 2.6561132 1.966392   pdp
+## 
+## [[5]]
+## Interpretation method:  FeatureEffect 
+## features: linc[numerical]
+## grid size: 20
+## 
+## Analysed predictor: 
+## Prediction task: unknown 
+## 
+## 
+## Analysed data:
+## Sampling from data.frame with 2013 rows and 14 columns.
+## 
+## Head of results:
+##        linc   .y.hat .type
+## 1 0.0000000 1.929158   pdp
+## 2 0.5312226 1.905171   pdp
+## 3 1.0624453 1.905171   pdp
+## 4 1.5936679 1.905171   pdp
+## 5 2.1248905 1.879721   pdp
+## 6 2.6561132 1.869113   pdp
+## 
+## [[6]]
+## Interpretation method:  FeatureEffect 
+## features: linc[numerical]
+## grid size: 20
+## 
+## Analysed predictor: 
+## Prediction task: unknown 
+## 
+## 
+## Analysed data:
+## Sampling from data.frame with 2013 rows and 14 columns.
+## 
+## Head of results:
+##        linc   .y.hat .type
+## 1 0.0000000 2.147697   pdp
+## 2 0.5312226 2.162393   pdp
+## 3 1.0624453 2.162393   pdp
+## 4 1.5936679 2.162393   pdp
+## 5 2.1248905 2.119923   pdp
+## 6 2.6561132 2.115131   pdp
+## 
+## [[7]]
+## Interpretation method:  FeatureEffect 
+## features: linc[numerical]
+## grid size: 20
+## 
+## Analysed predictor: 
+## Prediction task: unknown 
+## 
+## 
+## Analysed data:
+## Sampling from data.frame with 2013 rows and 14 columns.
+## 
+## Head of results:
+##        linc   .y.hat .type
+## 1 0.0000000 1.776742   pdp
+## 2 0.5312226 1.957938   pdp
+## 3 1.0624453 1.957938   pdp
+## 4 1.5936679 1.957938   pdp
+## 5 2.1248905 1.933847   pdp
+## 6 2.6561132 1.885287   pdp
+## 
+## [[8]]
+## Interpretation method:  FeatureEffect 
+## features: linc[numerical]
+## grid size: 20
+## 
+## Analysed predictor: 
+## Prediction task: unknown 
+## 
+## 
+## Analysed data:
+## Sampling from data.frame with 2013 rows and 14 columns.
+## 
+## Head of results:
+##        linc   .y.hat .type
+## 1 0.0000000 2.020647   pdp
+## 2 0.5312226 2.017981   pdp
+## 3 1.0624453 2.017981   pdp
+## 4 1.5936679 2.017981   pdp
+## 5 2.1248905 1.981122   pdp
+## 6 2.6561132 2.017604   pdp
+## 
+## [[9]]
+## Interpretation method:  FeatureEffect 
+## features: linc[numerical]
+## grid size: 20
+## 
+## Analysed predictor: 
+## Prediction task: unknown 
+## 
+## 
+## Analysed data:
+## Sampling from data.frame with 2013 rows and 14 columns.
+## 
+## Head of results:
+##        linc   .y.hat .type
+## 1 0.0000000 1.811189   pdp
+## 2 0.5312226 2.003053   pdp
+## 3 1.0624453 2.003053   pdp
+## 4 1.5936679 2.003053   pdp
+## 5 2.1248905 1.938150   pdp
+## 6 2.6561132 1.918518   pdp
+## 
+## [[10]]
+## Interpretation method:  FeatureEffect 
+## features: linc[numerical]
+## grid size: 20
+## 
+## Analysed predictor: 
+## Prediction task: unknown 
+## 
+## 
+## Analysed data:
+## Sampling from data.frame with 2013 rows and 14 columns.
+## 
+## Head of results:
+##        linc   .y.hat .type
+## 1 0.0000000 1.780325   pdp
+## 2 0.5312226 1.850203   pdp
+## 3 1.0624453 1.850203   pdp
+## 4 1.5936679 1.850203   pdp
+## 5 2.1248905 1.880805   pdp
+## 6 2.6561132 1.881305   pdp</code></pre>
+</details>
+<p>As you can see, the values are quite similar. I think that in the case of plots, the best way
+to visualize the impact of the imputation is to simply plot all the lines in a single plot:</p>
+<pre class="r"><code>effect_linc_results &lt;- imp_trained %&gt;% 
+    mutate(effect_linc_results = map(effect_linc, function(x)(x$results))) %&gt;% 
+    select(.imp, effect_linc_results) %&gt;% 
+    unnest(effect_linc_results)
+
+effect_linc_results %&gt;% 
+    bind_rows() %&gt;% 
+    ggplot() + 
+    geom_line(aes(y = .y.hat, x = linc, group = .imp), colour = &quot;#82518c&quot;) + 
+    brotools::theme_blog()</code></pre>
+<p><img src="../../blog/2019-11-02-mice_exp_files/figure-html/unnamed-chunk-43-1.png" width="672" /></p>
+<p>Overall, the partial dependence plot seems to behave in a very similar way across the different
+imputed datasets!</p>
+<p>To conclude, I think that the approach I suggest here is nothing revolutionary; it is consistent
+with the way one should conduct an analysis with multiple imputed datasets. However, the pooling
+step is non-trivial and there is no magic recipe; it really depends on the goal of the analysis
+and what you want or need to show.</p>
+<p>Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my ebook on <a href="https://leanpub.com/modern_tidyverse">Leanpub</a>.</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
+</div>
+
+      </div>
+    </div>
+  <div class="row">
+    <div class="col-lg-9 col-md-9 col-sm-8 col-lg-offset-3 col-md-offset-3">
+    <footer>
+  <div class="row">
+    <div class="col-lg-12">
+      <p>Copyright 2020. <a> Bruno Rodrigues</a> </p>
+      <p>Made with the HUGO theme <a href="https://github.com/adejoux/hugo-darkdoc-theme" rel="nofollow">darkdoc</a>.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+
+    </div>
+  </div>
+
+</div>
+</html>
+<script>
+
+  var api_url = '';
+
+</script>
+<script src="//code.jquery.com/jquery-2.2.3.min.js"></script>
+<script src="../../js/application.js"></script>
+<script type="text/javascript" src="../../js/jquery.fancybox.pack.js?v=2.1.5"></script>
+<script type="text/javascript" src="../../js/helpers/jquery.fancybox-thumbs.js?v=1.0.7"></script>
+<script type="text/javascript" src="../../js/helpers/jquery.fancybox-buttons.js?v=1.0.5"></script>
+<script type="text/javascript" src="../../js/helpers/jquery.fancybox-media.js?v=1.0.6"></script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $(".fancybox").fancybox();
+  });
+</script>
+

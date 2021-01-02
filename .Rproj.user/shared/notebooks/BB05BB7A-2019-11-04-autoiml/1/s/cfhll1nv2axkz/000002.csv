@@ -1,0 +1,2 @@
+"0","saveRDS(models, ""titanic_2_hours_automl.rds"")"
+"0","write_csv(predictions, ""predictions.csv"")"

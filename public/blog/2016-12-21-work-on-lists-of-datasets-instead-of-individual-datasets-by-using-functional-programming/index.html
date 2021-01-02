@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"  lang="en-us">
+    <title>Work on lists of datasets instead of individual datasets by using functional programming - Econometrics and Free Software</title>
+    <meta name="generator" content="Hugo 0.25.1" />
+
+    
+    <meta name="description" content="A blog about econometrics, free software, and R">
+    
+    <link rel="canonical" href="../../blog/2016-12-21-work-on-lists-of-datasets-instead-of-individual-datasets-by-using-functional-programming/">
+    
+    <meta name="author" content="Bruno Rodrigues">
+    
+    <meta name="generator" content="Hugo 0.25.1" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta property="og:url" content="/blog/2016-12-21-work-on-lists-of-datasets-instead-of-individual-datasets-by-using-functional-programming/">
+    <meta property="og:title" content="Econometrics and Free Software">
+    <meta property="og:image" content="/map[width:50 height:50 alt:Logo url:logo.png]">
+    <meta name="apple-mobile-web-app-title" content="Econometrics and Free Software">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <link rel="shortcut icon" type="image/x-icon" href="../../images/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="../../images/favicon.ico">
+
+    
+    <link rel="stylesheet" href="../../css/bootstrap.min.css" media="screen">
+    <link rel="stylesheet" href="../../css/custom.css">
+    <link rel="stylesheet" href="../../css/pygments.css">
+    
+    <link rel="stylesheet" href="../../css/jquery.fancybox.css?v=2.1.5" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/helpers/jquery.fancybox-buttons.css?v=1.0.5" type="text/css" media="screen" />
+  </head>
+  <body>
+
+
+<div class="row">
+<div class="navbar navbar-default navbar-fixed-top">
+<div class="container">
+  <div class="navbar-header">
+    <a href="../../" class="navbar-brand">Econometrics and Free Software</a>
+    <button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar-main">
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+    </button>
+  </div>
+  <div class="navbar-collapse collapse" id="navbar-main">
+
+    <ul class="nav navbar-nav navbar-right">
+      <li><a href="https://www.buymeacoffee.com/brodriguesco">Donate</a></li>
+      <li><a href="https://www.youtube.com/c/BrunoRodrigues1988">Youtube</a></li>
+      <li><a href="https://github.com/b-rodrigues/">Github</a></li>
+      <li><a href="https://twitter.com/brodriguesco/">Twitter</a></li>
+    </ul>
+  </div>
+</div>
+
+</div>
+
+<div class="container">
+
+  <div>
+    <div class="row">
+      <div class="col-lg-3 col-md-3 col-sm-4">
+        
+
+<div class="list-group table-of-contents">
+
+  
+    <a class="list-group-item" href=#><b>About Me</b></a>
+    
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../../about/about/">Who am I?</a>
+      
+      <a class="list-group-item" href="../../about/projects/">Projects</a>
+      
+      <a class="list-group-item" href="../../about/research/">Research</a>
+      
+      <a class="list-group-item" href="../../about/software/">Software</a>
+      
+    </div>
+    
+  
+    <a class="list-group-item" href=#><b>Blog</b></a>
+    
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../../blog/2018-11-25-tidy_cv/">A tutorial on tidy cross-validation with R</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-03-nethack_analysis/">Analyzing NetHack data, part 1: What kills the players</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-10-nethack_analysis_part2/">Analyzing NetHack data, part 2: What players kill the most</a>
+      
+      <a class="list-group-item" href="../../blog/2019-02-04-newspapers_shiny_app_tutorial/">Building a shiny app to explore historical newspapers: a step-by-step guide</a>
+      
+      <a class="list-group-item" href="../../blog/2019-03-03-historical_vowpal/">Classification of historical newspapers content: a tutorial combining R, bash and Vowpal Wabbit, part 1</a>
+      
+      <a class="list-group-item" href="../../blog/2019-03-05-historical_vowpal_part2/">Classification of historical newspapers content: a tutorial combining R, bash and Vowpal Wabbit, part 2</a>
+      
+      <a class="list-group-item" href="../../blog/2019-06-20-tidy_eval_saga/">Curly-Curly, the successor of Bang-Bang</a>
+      
+      <a class="list-group-item" href="../../blog/2018-07-08-rob_stderr/">Dealing with heteroskedasticity; regression with robust standard errors using R</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-14-luxairport/">Easy time-series prediction with R: a tutorial with air traffic data from Lux Airport</a>
+      
+      <a class="list-group-item" href="../../blog/2018-10-05-ggplot2_purrr_officer/">Exporting editable plots from R to Powerpoint: making ggplot2 purrr with officer</a>
+      
+      <a class="list-group-item" href="../../blog/2019-04-28-diffindiff_part1/">Fast food, causality and R packages, part 1</a>
+      
+      <a class="list-group-item" href="../../blog/2019-05-04-diffindiff_part2/">Fast food, causality and R packages, part 2</a>
+      
+      <a class="list-group-item" href="../../blog/2019-05-18-xml2/">For posterity: install {xml2} on GNU/Linux distros</a>
+      
+      <a class="list-group-item" href="../../blog/2018-06-24-fun_ts/">Forecasting my weight with R</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-01-nethack/">From webscraping data to releasing it as an R package to share with the world: a full tutorial with data from NetHack</a>
+      
+      <a class="list-group-item" href="../../blog/2019-03-31-tesseract/">Get text from pdfs or images using OCR: a tutorial with {tesseract} and {magick}</a>
+      
+      <a class="list-group-item" href="../../blog/2018-06-10-scraping_pdfs/">Getting data from pdfs using the pdftools package</a>
+      
+      <a class="list-group-item" href="../../blog/2018-10-21-lux_elections/">Getting the data from the Luxembourguish elections out of Excel</a>
+      
+      <a class="list-group-item" href="../../blog/2018-09-11-human_to_machine/">Going from a human readable Excel file to a machine-readable csv with {tidyxl}</a>
+      
+      <a class="list-group-item" href="../../blog/2019-04-07-historical_newspaper_scraping_tesseract/">Historical newspaper scraping with {tesseract} and R</a>
+      
+      <a class="list-group-item" href="../../blog/2018-09-15-time_use/">How Luxembourguish residents spend their time: a small {flexdashboard} demo using the Time use survey data</a>
+      
+      <a class="list-group-item" href="../../blog/2018-04-14-playing_with_furrr/">Imputing missing values in parallel using {furrr}</a>
+      
+      <a class="list-group-item" href="../../blog/2019-06-12-intermittent/">Intermittent demand, Croston and Die Hard</a>
+      
+      <a class="list-group-item" href="../../blog/2019-01-04-newspapers/">Looking into 19th century ads from a Luxembourguish newspaper with R</a>
+      
+      <a class="list-group-item" href="../../blog/2019-01-13-newspapers_mets_alto/">Making sense of the METS and ALTO XML standards</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-15-lubridate_africa/">Manipulate dates easily with {lubridate}</a>
+      
+      <a class="list-group-item" href="../../blog/2019-02-10-stringr_package/">Manipulating strings with the {stringr} package</a>
+      
+      <a class="list-group-item" href="../../blog/2018-10-27-lux_elections_analysis/">Maps with pie charts on top of each administrative division: an example with Luxembourg&#39;s elections data</a>
+      
+      <a class="list-group-item" href="../../blog/2018-07-01-tidy_ive/">Missing data imputation and instrumental variables regression: the tidy approach</a>
+      
+      <a class="list-group-item" href="../../blog/2019-08-17-modern_r/">Modern R with the tidyverse is available on Leanpub</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-24-modern_objects/">Objects types and some useful R functions for beginners</a>
+      
+      <a class="list-group-item" href="../../blog/2019-03-20-pivot/">Pivoting data frames just got easier thanks to `pivot_wide()` and `pivot_long()`</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-30-reticulate/">R or Python? Why not both? Using Anaconda Python within R with {reticulate}</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-15-tidy_gridsearch/">Searching for the optimal hyper-parameters of an ARIMA model in parallel: the tidy gridsearch approach</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-27-fun_gganimate/">Some fun with {gganimate}</a>
+      
+      <a class="list-group-item" href="../../blog/2019-10-05-parallel_maxlik/">Split-apply-combine for Maximum Likelihood Estimation of a linear model</a>
+      
+      <a class="list-group-item" href="../../blog/2019-07-19-statmatch/">Statistical matching, or when one single data source is not enough</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-21-lux_castle/">The best way to visit Luxembourguish castles is doing data science &#43; combinatorial optimization</a>
+      
+      <a class="list-group-item" href="../../blog/2019-05-19-spacemacs/">The never-ending editor war (?)</a>
+      
+      <a class="list-group-item" href="../../blog/2018-09-08-steam_linux/">The year of the GNU&#43;Linux desktop is upon us: using user ratings of Steam Play compatibility to play around with regex and the tidyverse</a>
+      
+      <a class="list-group-item" href="../../blog/2019-01-31-newspapers_shiny_app/">Using Data Science to read 10 years of Luxembourguish newspapers from the 19th century</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-16-rgenoud_arima/">Using a genetic algorithm for the hyperparameter optimization of a SARIMA model</a>
+      
+      <a class="list-group-item" href="../../blog/2019-06-04-cosine_sim/">Using cosine similarity to find matching documents: a tutorial using Seneca&#39;s letters to his friend Lucilius</a>
+      
+      <a class="list-group-item" href="../../blog/2019-08-14-lpm/">Using linear models with binary dependent variables, a simulation study</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-21-tidyverse_pi/">Using the tidyverse for more than data manipulation: estimating pi with Monte Carlo methods</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-02-hyper-parameters/">What hyper-parameters are, and what to do with them; an illustration with ridge regression</a>
+      
+      <a class="list-group-item" href="../../blog/2019-09-03-disk_frame/">{disk.frame} is epic</a>
+      
+      <a class="list-group-item" href="../../blog/2018-04-15-announcing_pmice/">{pmice}, an experimental package for missing data imputation in parallel using {mice} and {furrr}</a>
+      
+      <a class="list-group-item" href="../../blog/2017-12-27-build_formulae/">Building formulae</a>
+      
+      <a class="list-group-item" href="../../blog/2017-11-14-peace_r/">Functional peace of mind</a>
+      
+      <a class="list-group-item" href="../../blog/2018-04-10-brotools_describe/">Get basic summary statistics for all the variables in a data frame</a>
+      
+      <a class="list-group-item" href="../../blog/2018-03-03-sparklyr_h2o_rsparkling/">Getting {sparklyr}, {h2o}, {rsparkling} to work together and some fun with bash</a>
+      
+      <a class="list-group-item" href="../../blog/2018-02-16-importing_30gb_of_data/">Importing 30GB of data into R with sparklyr</a>
+      
+      <a class="list-group-item" href="../../blog/2017-03-27-introducing_brotools/">Introducing brotools</a>
+      
+      <a class="list-group-item" href="../../blog/2018-01-03-lists_all_the_way/">It&#39;s lists all the way down</a>
+      
+      <a class="list-group-item" href="../../blog/2018-01-05-lists_all_the_way2/">It&#39;s lists all the way down, part 2: We need to go deeper</a>
+      
+      <a class="list-group-item" href="../../blog/2018-03-12-keep_trying/">Keep trying that api call with purrr::possibly()</a>
+      
+      <a class="list-group-item" href="../../blog/2017-06-19-dplyr-0-70-tutorial/">Lesser known dplyr 0.7* tricks</a>
+      
+      <a class="list-group-item" href="../../blog/2017-02-17-lesser_known_tricks/">Lesser known dplyr tricks</a>
+      
+      <a class="list-group-item" href="../../blog/2017-03-24-lesser_known_purrr/">Lesser known purrr tricks</a>
+      
+      <a class="list-group-item" href="../../blog/2017-03-29-make-ggplot2-purrr/">Make ggplot2 purrr</a>
+      
+      <a class="list-group-item" href="../../blog/2018-01-19-mapping_functions_with_any_cols/">Mapping a list of functions to a list of datasets with a list of columns as arguments</a>
+      
+      <a class="list-group-item" href="../../blog/2018-02-11-census-random_forest/">Predicting job search by training a random forest on an unbalanced dataset</a>
+      
+      <a class="list-group-item" href="../../blog/2017-12-17-teaching_tidyverse/">Teaching the tidyverse to beginners</a>
+      
+      <a class="list-group-item" href="../../blog/2017-08-27-why_tidyeval/">Why I find tidyeval useful</a>
+      
+      <a class="list-group-item" href="../../blog/2017-07-27-spread_rename_at/">tidyr::spread() and dplyr::rename_at() in action</a>
+      
+      <a class="list-group-item" href="../../blog/2017-10-26-margins_r/">Easy peasy STATA-like marginal effects with R</a>
+      
+      <a class="list-group-item" href="../../blog/2016-12-24-functional-programming-and-unit-testing-for-data-munging-with-r-available-on-leanpub/">Functional programming and unit testing for data munging with R available on Leanpub</a>
+      
+      <a class="list-group-item" href="../../blog/2017-02-17-how_to_use_jailbreakr/">How to use jailbreakr</a>
+      
+      <a class="list-group-item" href="../../blog/2017-01-07-my-free-book-has-a-cover/">My free book has a cover!</a>
+      
+      <a class="list-group-item" href="../../blog/2016-12-21-work-on-lists-of-datasets-instead-of-individual-datasets-by-using-functional-programming/">Work on lists of datasets instead of individual datasets by using functional programming</a>
+      
+      <a class="list-group-item" href="../../blog/2013-01-29-method-of-simulated-moments-with-r/">Method of Simulated Moments with R</a>
+      
+      <a class="list-group-item" href="../../blog/2012-12-11-new-website/">New website!</a>
+      
+      <a class="list-group-item" href="../../blog/2013-11-07-gmm-with-rmd/">Nonlinear Gmm with R - Example with a logistic regression</a>
+      
+      <a class="list-group-item" href="../../blog/2013-01-16-simulated-maximum-likelihood-with-r/">Simulated Maximum Likelihood with R</a>
+      
+      <a class="list-group-item" href="../../blog/2015-11-11-bootstrapping-did-with-r/">Bootstrapping standard errors for difference-in-differences estimation with R</a>
+      
+      <a class="list-group-item" href="../../blog/2016-06-21-careful-with-trycatch/">Careful with tryCatch</a>
+      
+      <a class="list-group-item" href="../../blog/2016-07-18-data-frame-columns-as-arguments-to-dplyr-functions/">Data frame columns as arguments to dplyr functions</a>
+      
+      <a class="list-group-item" href="../../blog/2015-02-22-export-r-output-to-file/">Export R output to a file</a>
+      
+      <a class="list-group-item" href="../../blog/2016-11-04-ive-started-writing-a-book-functional-programming-and-unit-testing-for-data-munging-with-r/">I&#39;ve started writing a &#39;book&#39;: Functional programming and unit testing for data munging with R</a>
+      
+      <a class="list-group-item" href="../../blog/2015-01-12-introduction-to-programming-econometrics-with-r/">Introduction to programming econometrics with R</a>
+      
+      <a class="list-group-item" href="../../blog/2016-07-30-merge-a-list-of-datasets-together/">Merge a list of datasets together</a>
+      
+      <a class="list-group-item" href="../../blog/2014-04-23-r-s4-rootfinding/">Object Oriented Programming with R: An example with a Cournot duopoly</a>
+      
+      <a class="list-group-item" href="../../blog/2014-11-11-benchmarks-r-blas-atlas-rro/">R, R with Atlas, R with OpenBLAS and Revolution R Open: which is fastest?</a>
+      
+      <a class="list-group-item" href="../../blog/2016-07-26-read-a-lot-of-datasets-at-once-with-r/">Read a lot of datasets at once with R</a>
+      
+      <a class="list-group-item" href="../../blog/2016-03-31-unit-testing-with-r/">Unit testing with R</a>
+      
+      <a class="list-group-item" href="../../blog/2015-05-03-update-introduction-r-programming/">Update to Introduction to programming econometrics with R</a>
+      
+      <a class="list-group-item" href="../../blog/2013-12-31-r-cas/">Using R as a Computer Algebra System with Ryacas</a>
+      
+    </div>
+    
+  
+
+</div>
+
+      </div>
+      <div class="col-lg-9 col-md-9 col-sm-8">
+        <div>
+           <h1 id="main">Work on lists of datasets instead of individual datasets by using functional programming</h1>
+           <span class="article-date">December 21, 2016</span>
+        </div>
+        <p><p>Analyzing a lot of datasets can be tedious. In my work, I often have to compute descriptive statistics, or plot some graphs for some variables for a lot of datasets. The variables in question have the same name accross the datasets but are measured for different years. As an example, imagine you have this situation:</p>
+<pre class="r"><code>data2000 &lt;- mtcars
+data2001 &lt;- mtcars</code></pre>
+<p>For the sake of argument, imagine that <code>data2000</code> is data from a survey conducted in the year 2000 and <code>data2001</code> is the same survey but conducted in the year 2001. For illustration purposes, I use the <code>mtcars</code> dataset, but I could have used any other example. In these sort of situations, the variables are named the same in both datasets. Now if I want to check the summary statistics of a variable, I might do it by running:</p>
+<pre class="r"><code>summary(data2000$cyl)
+summary(data2001$cyl)</code></pre>
+<p>but this can get quite tedious, especially if instead of only having two years of data, you have 20 years. Another possibility is to merge both datasets and then check the summary statistics of the variable of interest. But this might require a lot of preprocessing, and sometimes you really just want to do a quick check, or some dirty graphs. So you might be tempted to write a loop, which would require to put these two datasets in some kind of structure, such as a list:</p>
+<pre class="r"><code>list_data &lt;- list(&quot;data2000&quot; = data2000, &quot;data2001&quot; = data2001)</p>
+
+<p>for (i in 1:2){
+    print(summary(list_data[[i]]$cyl))
+ }</code></pre>
+<pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.
+  4.000   4.000   6.000   6.188   8.000   8.000
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max.
+  4.000   4.000   6.000   6.188   8.000   8.000</code></pre>
+<p>But this also might get tedious, especially if you want to do this for a lot of different variables, and want to use different functions than <code>summary()</code>.</p>
+<p>Another, simpler way of doing this, is to use <code>purrr::map()</code> or <code>lapply()</code>. But there is a catch though: how do we specify the column we want to work on? Let’s try some things out:</p>
+<pre class="r"><code>library(purrr)</p>
+
+<p>map(list_data, summary(cyl))</code></pre>
+<pre class="r"><code>Error in summary(cyl) : object &lsquo;cyl&rsquo; not found</code></pre>
+<p>Maybe this will work:</p>
+<pre class="r"><code>map(list_data, summary, cyl)</code></pre>
+<pre><code>## $data2000
+     mpg             cyl             disp             hp<br />
+Min.   :10.40   Min.   :4.000   Min.   : 71.1   Min.   : 52.0<br />
+1st Qu.:15.43   1st Qu.:4.000   1st Qu.:120.8   1st Qu.: 96.5<br />
+Median :19.20   Median :6.000   Median :196.3   Median :123.0<br />
+Mean   :20.09   Mean   :6.188   Mean   :230.7   Mean   :146.7<br />
+3rd Qu.:22.80   3rd Qu.:8.000   3rd Qu.:326.0   3rd Qu.:180.0<br />
+Max.   :33.90   Max.   :8.000   Max.   :472.0   Max.   :335.0<br />
+     drat             wt             qsec             vs<br />
+Min.   :2.760   Min.   :1.513   Min.   :14.50   Min.   :0.0000<br />
+1st Qu.:3.080   1st Qu.:2.581   1st Qu.:16.89   1st Qu.:0.0000<br />
+Median :3.695   Median :3.325   Median :17.71   Median :0.0000<br />
+Mean   :3.597   Mean   :3.217   Mean   :17.85   Mean   :0.4375<br />
+3rd Qu.:3.920   3rd Qu.:3.610   3rd Qu.:18.90   3rd Qu.:1.0000<br />
+Max.   :4.930   Max.   :5.424   Max.   :22.90   Max.   :1.0000<br />
+      am              gear            carb<br />
+Min.   :0.0000   Min.   :3.000   Min.   :1.000<br />
+1st Qu.:0.0000   1st Qu.:3.000   1st Qu.:2.000<br />
+Median :0.0000   Median :4.000   Median :2.000<br />
+Mean   :0.4062   Mean   :3.688   Mean   :2.812<br />
+3rd Qu.:1.0000   3rd Qu.:4.000   3rd Qu.:4.000<br />
+Max.   :1.0000   Max.   :5.000   Max.   :8.000</p>
+
+<p>data2001
+     mpg             cyl             disp             hp<br />
+Min.   :10.40   Min.   :4.000   Min.   : 71.1   Min.   : 52.0<br />
+1st Qu.:15.43   1st Qu.:4.000   1st Qu.:120.8   1st Qu.: 96.5<br />
+Median :19.20   Median :6.000   Median :196.3   Median :123.0<br />
+Mean   :20.09   Mean   :6.188   Mean   :230.7   Mean   :146.7<br />
+3rd Qu.:22.80   3rd Qu.:8.000   3rd Qu.:326.0   3rd Qu.:180.0<br />
+Max.   :33.90   Max.   :8.000   Max.   :472.0   Max.   :335.0<br />
+     drat             wt             qsec             vs<br />
+Min.   :2.760   Min.   :1.513   Min.   :14.50   Min.   :0.0000<br />
+1st Qu.:3.080   1st Qu.:2.581   1st Qu.:16.89   1st Qu.:0.0000<br />
+Median :3.695   Median :3.325   Median :17.71   Median :0.0000<br />
+Mean   :3.597   Mean   :3.217   Mean   :17.85   Mean   :0.4375<br />
+3rd Qu.:3.920   3rd Qu.:3.610   3rd Qu.:18.90   3rd Qu.:1.0000<br />
+Max.   :4.930   Max.   :5.424   Max.   :22.90   Max.   :1.0000<br />
+      am              gear            carb<br />
+Min.   :0.0000   Min.   :3.000   Min.   :1.000<br />
+1st Qu.:0.0000   1st Qu.:3.000   1st Qu.:2.000<br />
+Median :0.0000   Median :4.000   Median :2.000<br />
+Mean   :0.4062   Mean   :3.688   Mean   :2.812<br />
+3rd Qu.:1.0000   3rd Qu.:4.000   3rd Qu.:4.000<br />
+Max.   :1.0000   Max.   :5.000   Max.   :8.000</code></pre>
+<p>Not quite! You get the summary statistics of every variable, <code>cyl</code> simply gets ignored. This might be ok in our small toy example, but if you have dozens of datasets with hundreds of variables, the output becomes unreadable. The solution is to use an anonymous functions:</p>
+<pre class="r"><code>map(list_data, (function(x) summary(x$cyl)))</code></pre>
+<pre><code>## $data2000
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max.
+  4.000   4.000   6.000   6.188   8.000   8.000</p>
+
+<p>$data2001
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max.
+  4.000   4.000   6.000   6.188   8.000   8.000</code></pre>
+<p>This is, in my opinion, much more readable than a loop, and the output of this is another list, so it’s easy to save it:</p>
+<pre class="r"><code>summary_cyl &lt;- map(list_data, (function(x) summary(x$cyl)))
+str(summary_cyl)</code></pre>
+<pre><code>## List of 2
+$ data2000:Classes &lsquo;summaryDefault&rsquo;, &lsquo;table&rsquo;  Named num [1:6] 4 4 6 6.19 8 &hellip;
+ .. ..- attr(<em>, &quot;names&quot;)= chr [1:6] &quot;Min.&quot; &quot;1st Qu.&quot; &quot;Median&quot; &quot;Mean&quot; &hellip;
+$ data2001:Classes &lsquo;summaryDefault&rsquo;, &lsquo;table&rsquo;  Named num [1:6] 4 4 6 6.19 8 &hellip;
+ .. ..- attr(</em>, &quot;names&quot;)= chr [1:6] &quot;Min.&quot; &quot;1st Qu.&quot; &quot;Median&quot; &quot;Mean&quot; &hellip;</code></pre>
+<p>With the loop, you would need to “allocate” an empty list that you would fill at each iteration.</p>
+<p>So this is already nice, but wouldn’t it be nicer to simply have to type:</p>
+<pre class="r"><code>summary(list_data$cyl)</code></pre>
+<p>and have the summary of variable <code>cyl</code> for each dataset in the list? Well it is possible with the following function I wrote to make my life easier:</p>
+<pre class="r"><code>to_map &lt;- function(func){
+  function(list, column, &hellip;){
+    if(missing(column)){
+        res &lt;- purrr::map(list, (function(x) func(x, &hellip;)))
+      } else {
+        res &lt;- purrr::map(list, (function(x) func(x[column], &hellip;)))
+             }
+    res
+  }
+}</code></pre>
+<p>By following <a href="http://adv-r.had.co.nz/Function-operators.html">this</a> chapter of Hadley Wickham’s book, <i>Advanced R</i>, I was able to write this function. What does it do? It basically <i>generalizes</i> a function to work on a list of datasets instead of just on a dataset. So for example, in the case of <code>summary()</code>:</p>
+<pre class="r"><code>summarymap &lt;- to_map(summary)</p>
+
+<p>summarymap(list_data, &quot;cyl&quot;)</code></pre>
+<pre><code>$data2000
+     cyl<br />
+Min.   :4.000<br />
+1st Qu.:4.000<br />
+Median :6.000<br />
+Mean   :6.188<br />
+3rd Qu.:8.000<br />
+Max.   :8.000</p>
+
+<p>$data2001
+     cyl<br />
+Min.   :4.000<br />
+1st Qu.:4.000<br />
+Median :6.000<br />
+Mean   :6.188<br />
+3rd Qu.:8.000<br />
+Max.   :8.000</code></pre>
+<p>So now everytime I want to have summary statistics for a variable, I just need to use <code>summarymap()</code>:</p>
+<pre class="r"><code>summarymap(list_data, &quot;mpg&quot;)</code></pre>
+<pre><code>## $data2000
+      mpg<br />
+ Min.   :10.40<br />
+ 1st Qu.:15.43<br />
+ Median :19.20<br />
+ Mean   :20.09<br />
+ 3rd Qu.:22.80<br />
+ Max.   :33.90</p>
+
+<p>$data2001
+      mpg<br />
+ Min.   :10.40<br />
+ 1st Qu.:15.43<br />
+ Median :19.20<br />
+ Mean   :20.09<br />
+ 3rd Qu.:22.80<br />
+ Max.   :33.90</code></pre>
+<p>If I want the summary statistics for every variable, I simply omit the column name:</p>
+<pre class="r"><code>summarymap(list_data)</code></pre>
+<pre><code>$data2000
+      mpg             cyl             disp             hp<br />
+ Min.   :10.40   Min.   :4.000   Min.   : 71.1   Min.   : 52.0<br />
+ 1st Qu.:15.43   1st Qu.:4.000   1st Qu.:120.8   1st Qu.: 96.5<br />
+ Median :19.20   Median :6.000   Median :196.3   Median :123.0<br />
+ Mean   :20.09   Mean   :6.188   Mean   :230.7   Mean   :146.7<br />
+ 3rd Qu.:22.80   3rd Qu.:8.000   3rd Qu.:326.0   3rd Qu.:180.0<br />
+ Max.   :33.90   Max.   :8.000   Max.   :472.0   Max.   :335.0<br />
+      drat             wt             qsec             vs<br />
+ Min.   :2.760   Min.   :1.513   Min.   :14.50   Min.   :0.0000<br />
+ 1st Qu.:3.080   1st Qu.:2.581   1st Qu.:16.89   1st Qu.:0.0000<br />
+ Median :3.695   Median :3.325   Median :17.71   Median :0.0000<br />
+ Mean   :3.597   Mean   :3.217   Mean   :17.85   Mean   :0.4375<br />
+ 3rd Qu.:3.920   3rd Qu.:3.610   3rd Qu.:18.90   3rd Qu.:1.0000<br />
+ Max.   :4.930   Max.   :5.424   Max.   :22.90   Max.   :1.0000<br />
+       am              gear            carb<br />
+ Min.   :0.0000   Min.   :3.000   Min.   :1.000<br />
+ 1st Qu.:0.0000   1st Qu.:3.000   1st Qu.:2.000<br />
+ Median :0.0000   Median :4.000   Median :2.000<br />
+ Mean   :0.4062   Mean   :3.688   Mean   :2.812<br />
+ 3rd Qu.:1.0000   3rd Qu.:4.000   3rd Qu.:4.000<br />
+ Max.   :1.0000   Max.   :5.000   Max.   :8.000</p>
+
+<p>$data2001
+      mpg             cyl             disp             hp<br />
+ Min.   :10.40   Min.   :4.000   Min.   : 71.1   Min.   : 52.0<br />
+ 1st Qu.:15.43   1st Qu.:4.000   1st Qu.:120.8   1st Qu.: 96.5<br />
+ Median :19.20   Median :6.000   Median :196.3   Median :123.0<br />
+ Mean   :20.09   Mean   :6.188   Mean   :230.7   Mean   :146.7<br />
+ 3rd Qu.:22.80   3rd Qu.:8.000   3rd Qu.:326.0   3rd Qu.:180.0<br />
+ Max.   :33.90   Max.   :8.000   Max.   :472.0   Max.   :335.0<br />
+      drat             wt             qsec             vs<br />
+ Min.   :2.760   Min.   :1.513   Min.   :14.50   Min.   :0.0000<br />
+ 1st Qu.:3.080   1st Qu.:2.581   1st Qu.:16.89   1st Qu.:0.0000<br />
+ Median :3.695   Median :3.325   Median :17.71   Median :0.0000<br />
+ Mean   :3.597   Mean   :3.217   Mean   :17.85   Mean   :0.4375<br />
+ 3rd Qu.:3.920   3rd Qu.:3.610   3rd Qu.:18.90   3rd Qu.:1.0000<br />
+ Max.   :4.930   Max.   :5.424   Max.   :22.90   Max.   :1.0000<br />
+       am              gear            carb<br />
+ Min.   :0.0000   Min.   :3.000   Min.   :1.000<br />
+ 1st Qu.:0.0000   1st Qu.:3.000   1st Qu.:2.000<br />
+ Median :0.0000   Median :4.000   Median :2.000<br />
+ Mean   :0.4062   Mean   :3.688   Mean   :2.812<br />
+ 3rd Qu.:1.0000   3rd Qu.:4.000   3rd Qu.:4.000<br />
+ Max.   :1.0000   Max.   :5.000   Max.   :8.000</code></pre>
+<p>I can use any function:</p>
+<pre class="r"><code>tablemap &lt;- to_map(table)</p>
+
+<p>tablemap(list_data, &quot;cyl&quot;)</code></pre>
+<pre><code>## $data2000</p>
+
+<p>4  6  8
+11  7 14</p>
+
+<p>$data2001</p>
+
+<p>4  6  8
+11  7 14</code></pre>
+<pre class="r"><code>tablemap(list_data, &quot;mpg&quot;)</code></pre>
+<pre><code>## $data2000</p>
+
+<p>10.4 13.3 14.3 14.7   15 15.2 15.5 15.8 16.4 17.3 17.8 18.1 18.7 19.2 19.7
+   2    1    1    1    1    2    1    1    1    1    1    1    1    2    1
+  21 21.4 21.5 22.8 24.4   26 27.3 30.4 32.4 33.9
+   2    2    1    2    1    1    1    2    1    1</p>
+
+<p>$data2001</p>
+
+<p>10.4 13.3 14.3 14.7   15 15.2 15.5 15.8 16.4 17.3 17.8 18.1 18.7 19.2 19.7
+   2    1    1    1    1    2    1    1    1    1    1    1    1    2    1
+  21 21.4 21.5 22.8 24.4   26 27.3 30.4 32.4 33.9
+   2    2    1    2    1    1    1    2    1    1</code></pre>
+<p>I hope you will find this little function useful, and as usual, for any comments just drop me an email by clicking the red enveloppe in the top right corner or <a href="https://twitter.com/brodriguesco">tweet me</a>.</p>
+</body></p>
+
+      </div>
+    </div>
+  <div class="row">
+    <div class="col-lg-9 col-md-9 col-sm-8 col-lg-offset-3 col-md-offset-3">
+    <footer>
+  <div class="row">
+    <div class="col-lg-12">
+      <p>Copyright 2020. <a> Bruno Rodrigues</a> </p>
+      <p>Made with the HUGO theme <a href="https://github.com/adejoux/hugo-darkdoc-theme" rel="nofollow">darkdoc</a>.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+
+    </div>
+  </div>
+
+</div>
+</html>
+<script>
+
+  var api_url = '';
+
+</script>
+<script src="//code.jquery.com/jquery-2.2.3.min.js"></script>
+<script src="../../js/application.js"></script>
+<script type="text/javascript" src="../../js/jquery.fancybox.pack.js?v=2.1.5"></script>
+<script type="text/javascript" src="../../js/helpers/jquery.fancybox-thumbs.js?v=1.0.7"></script>
+<script type="text/javascript" src="../../js/helpers/jquery.fancybox-buttons.js?v=1.0.5"></script>
+<script type="text/javascript" src="../../js/helpers/jquery.fancybox-media.js?v=1.0.6"></script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $(".fancybox").fancybox();
+  });
+</script>
+

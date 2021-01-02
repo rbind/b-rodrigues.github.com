@@ -1,0 +1,179 @@
+---
+date: 2020-11-21
+title: Graphical User Interfaces were a mistake but you can still make things right
+tags: [R]
+menu:
+main:
+  parent: Blog
+  identifier: /blog/guis_mistake
+  weight: 1
+---
+
+
+<div style="text-align:center;">
+<a href="https://youtu.be/cHw4GER-MiE?t=2">
+  <img src="/img/just_kill_me.png" title = "Welcome to Hell."></a>
+</div>
+
+Some weeks ago I tweeted this:
+
+<blockquote class="twitter-tweet"><p lang="en" dir="ltr">GUIs were a mistake</p>&mdash; Bruno Rodrigues (@brodriguesco) <a href="https://twitter.com/brodriguesco/status/1314505586172624898?ref_src=twsrc%5Etfw">October 9, 2020</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+you might think that I tweeted this as an unfunny joke, but it's not. GUIs were one of the worst
+things to happen for statisticians. Clickable interfaces for data analysis is probably one of the
+greatest source of mistakes and errors in data processing, very likely costing many millions to
+companies worldwide and is a source of constant embarassment when mistakes happen which cost the
+reputation, and money, of institutions or people.
+
+Remember the infamous Excel mistake by Reinhard and Rogoff? If you don't know what I'm 
+talking about, you can get up to speed by reading [this](https://theconversation.com/the-reinhart-rogoff-error-or-how-not-to-excel-at-economics-13646).
+I think the most interesting sentence is this:
+
+> The most serious was that, in their Excel spreadsheet, Reinhart and Rogoff had not selected the entire row when averaging growth figures: they omitted data from Australia, Austria, Belgium, Canada and Denmark.
+
+This is a typical mistake that happens when a mouse is used to select data in a GUI, instead of
+typing whatever you need in a scripting language. Many other mistakes like that happen, and they
+remain hidden, potentially for years, or go unreported. 
+
+Recently there was another Excel-related problem in England where positive Covid tests got lost. For some
+obscure reason, the raw data, which was encoded in a CSV file, got converted into an Excel
+spreadsheet, most likely for further analysis. The problem is that the format that was used was the
+now obsolete XLS format, instead of the latest XLSX format, which can handle millions of rows.
+Because the data was converted in the XLS format, up to 15841 cases were lost. You can get all the
+details from this BBC [article](https://www.bbc.com/news/technology-54423988). Again, not entirely
+Excel's fault, as it was misused. The problem is that when all you have is a hammer, everything
+looks like a nail, and Excel is that data analytics hammer. So to the uncultured, everything
+looks like an Excel problem.
+
+Now don't misunderstand me; I'm not blaming Excel specifically, or any other specific GUI
+application for this. In many cases, the problem lies between the keyboard and the chair. But GUI
+applications have a part of responsibility, as they allow users to implement GUI-based workflows. I
+think that complex GUI based workflows were an unintended consequence of developing GUIs. Who could
+have expected, 40 years ago, that office jobs would evolve so much and that they would require such
+complex workflows to generate an output? Consider the life-cycle of a shared Excel file in your
+typical run-of-the-mill financial advisory firm. In many cases, it starts with an already existing
+file that was made for another client and that is now used as a starting point. The first thing to
+do, is to assign a poor junior to update the file and adapt it for the current assignment. He or
+she will spend hours trying to reverse engineer this Excel file and then update it. This file
+will at some point go to more senior members that will continue working on it, until it gets send
+off for review to a manager. This manager, already overworked and with little time between meetings
+to review the file correctly, just gives it a cursory glance and might find some mistakes here and
+there. As a review method, colours and comments will be used.
+The file goes back for a round of updates and reviews. As time goes by, and as the file gets
+more and more complex, it starts to become impossible to manage and review properly. It eventually
+gets used to give advice to a client, which might be totally wrong, because just as in the case of Reinhard and
+Rogoff, someone, at some point, somewhere, did not select the right cells for the right formula.
+Good luck ever finding this mistake, and who did it. During my consulting years, I have been
+involved with very, very, big clients that were completely overwhelmed because all their 
+workflows were GUI based. They had been working like that for years, and kept recruiting highly
+educated people en masse just to manage Excel and Word files. They were looking for a magic,
+AI-based solution, because in their minds, if AIs could drive fricking cars, they should
+also be able to edit and send Excel files around for review. Well, we're not quite there yet,
+so we told them, after our review of their processes and data sources (which in many
+cases were Excel AND Word files), that what they needed was for their 
+company to go through an in-depth optimisation process "journey". They weren't interested
+so they kept hiring very intelligent people to be office drones. I don't think
+that business model can remain sustainable.
+
+Now how much are situations like that the fault of Excel and how much personal responsibility do the 
+people involved have? I don't know, but my point is that if, by magic, GUIs were
+made to disappear, problems like that would also not exist. The reason is that if
+you're forced to write code to reach the results you want, you avoid a lot of these pitfalls
+I just described. Working with scripts and the command line forces a discipline unto
+you; you cannot be lazy and click around.
+For example, reverse engineering a source code file is much easier that a finished
+Excel spreadsheet. Even poorly written and undocumented code is always much better
+than an Excel spreadsheet. If you throw a version control system in the mix, you have 
+the whole history of the file and the ability to know exactly what happened and when.
+Add unit tests on the pile, and you start to get something that is very robust,
+transparent, and much easier to audit.
+
+"But Bruno, not everyone is a programmer!" I hear you scream at your monitor.
+
+My point, again, is that if GUIs did not exist, people would have enough knowledge of these
+tools to be able to work. What other choice would they have?
+
+Of course, GUIs have been invented, and they're going nowhere. So what can you do?
+
+When it comes to statistics and data analysis/processing, you can at least not be part of the
+problem and avoid using Excel altogether. If we go back to our previous scenario from the financial
+advisory firm, the first step, which consisted in reverse engineering an Excel file, can be done
+using `{tidyxl}`. Let's take a quick look; the spreadsheet I used as the header image for this blog
+post comes from the [Enron corpus](https://en.wikipedia.org/wiki/Enron_Corpus) , which is mostly
+know for being a database of over 600000 emails from the US company Enron. But it also contains
+spreadsheets, which are delightful. You can download the one from the picture
+[here](https://github.com/rbind/b-rodrigues.github.com/raw/master/dutch_quigley__9378__modeldutch.xlsx)
+(8mb xlsx warning). Opening it in your usual spreadsheet application will probably cause your heart
+rate to increase to dangerous levels, so avoid that. Instead, let's take a look at what `{tidyxl}`
+does with it:
+
+```{r}
+library(tidyxl)
+library(tidyverse)
+
+dutch_quigley_9378 <- xlsx_cells("~/six_to/spreadsheets/dutch_quigley__9378__modeldutch.xlsx")
+
+
+head(dutch_quigley_9378)
+```
+
+That whole Excel workbook is inside a neat data frame. Imagine that you want
+to quickly know where all the formulas are:
+
+```{r}
+dutch_quigley_9378 %>%
+  filter(!is.na(formula)) %>%
+  count(sheet, address)
+```
+
+With the code above, you can quickly find, for each sheet, where the formulas
+are. This workbook contains 18776 formulas. If Hell is a real place, it's probably
+an office building full of cubicles where you'll sit for eternity looking
+at these spreadsheets and trying to make sense of them. 
+
+Now imagine that you'd like to know what these formulas are, let's say, for the
+`Swap` sheet:
+
+```{r}
+dutch_quigley_9378 %>%
+  filter(sheet == "Swap", !is.na(formula)) %>%
+  select(address, formula)
+```
+
+Brilliant! Maybe you're interested to find all the `"SUM"` formulas? Easy!
+
+```{r}
+dutch_quigley_9378 %>%
+  filter(sheet == "Swap", !is.na(formula)) %>%
+  filter(grepl("SUM", formula)) %>%
+  select(address, formula)
+```
+
+You get the idea. There are many more things that you can extract such as
+the formatting, the contents of the cells, the comments (and where to find them)
+and much, much more. This will make making sense of a complex Excel file a breeze.
+
+The other thing that you can also do, once you're done understanding this
+monster Excel file, is not to perform the analysis inside Excel. Don't fall into the temptation of
+continuing this bad habit. As one on the data experts in your team/company, you have a
+responsibility to bring the light to your colleagues. Be their Prometheus and decouple the data
+from the code. Let the data be in Excel, but write all the required code to create whatever is
+expected from you inside R. You can then export your finalized results back to Excel if needed. If
+management tells you to do it in Excel, tell them that you're the professional statistician/data
+scientist, and that they shouldn't tell you how to do your job. Granted, this is not always
+possible, but you should plead your case as much as possible. In general, a good manager will be
+all ears if you explain that not using GUIs like Excel makes it easier to spot and correct
+mistakes, with the added benefit of being much easily audited and with huge time savings in the
+long run. This is of course easier for completely new projects, and if you have an open-minded
+manager. If you're the manager, then you should ask your IT department to uninstall Excel 
+from your team member's computers.
+
+Be brave, and ditch the GUI. 
+
+Hope you enjoyed! If you found this blog post useful, you might want to follow 
+me on [twitter](https://www.twitter.com/brodriguesco) for blog post updates and 
+[buy me an espresso](https://www.buymeacoffee.com/brodriguesco) or [paypal.me](https://www.paypal.me/brodriguesco), or buy my ebook on [Leanpub](https://leanpub.com/modern_tidyverse).
+You can also watch my videos on [youtube](https://www.youtube.com/c/BrunoRodrigues1988/).
+So much content for you to consoom!
+
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a>

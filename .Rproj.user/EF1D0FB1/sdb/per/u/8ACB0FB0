@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "---\ndate: 2020-01-30\ntitle: \"Dynamic discrete choice models, reinforcement learning and Harold, part 2\"\ntags: [R]\nmenu:\nmain:\n  parent: Blog\n  identifier: /blog/harold\n  weight: 1\n---\n\n<div style=\"text-align:center;\">\n<a href=\"https://www.youtube.com/watch?v=r30D3SW4OVw\">\n  <img src=\"/img/fork.jpg\" title = \"If this blog post had an OST, this would likely be it.\"></a>\n</div>\n\n\n```{r, include=FALSE}\nlibrary(tidyverse)\nlibrary(lubridate)\nlibrary(ReinforcementLearning)\n```\n\n## Introduction\n",
+    "created" : 1580154864033.000,
+    "dirty" : true,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "1360174746",
+    "id" : "8ACB0FB0",
+    "lastKnownWriteTime" : 8296874535683646303,
+    "last_content_update" : 1580155015008,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "marks" : "<:0,0\n>:0,0",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

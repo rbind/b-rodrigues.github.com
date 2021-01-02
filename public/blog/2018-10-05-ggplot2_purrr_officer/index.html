@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"  lang="en-us">
+    <title>Exporting editable plots from R to Powerpoint: making ggplot2 purrr with officer - Econometrics and Free Software</title>
+    <meta name="generator" content="Hugo 0.25.1" />
+
+    
+    <meta name="description" content="A blog about econometrics, free software, and R">
+    
+    <link rel="canonical" href="../../blog/2018-10-05-ggplot2_purrr_officer/">
+    
+    <meta name="author" content="Bruno Rodrigues">
+    
+    <meta name="generator" content="Hugo 0.25.1" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta property="og:url" content="/blog/2018-10-05-ggplot2_purrr_officer/">
+    <meta property="og:title" content="Econometrics and Free Software">
+    <meta property="og:image" content="/map[url:logo.png width:50 height:50 alt:Logo]">
+    <meta name="apple-mobile-web-app-title" content="Econometrics and Free Software">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <link rel="shortcut icon" type="image/x-icon" href="../../images/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="../../images/favicon.ico">
+
+    
+    <link rel="stylesheet" href="../../css/bootstrap.min.css" media="screen">
+    <link rel="stylesheet" href="../../css/custom.css">
+    <link rel="stylesheet" href="../../css/pygments.css">
+    
+    <link rel="stylesheet" href="../../css/jquery.fancybox.css?v=2.1.5" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/helpers/jquery.fancybox-buttons.css?v=1.0.5" type="text/css" media="screen" />
+  </head>
+  <body>
+
+
+<div class="row">
+<div class="navbar navbar-default navbar-fixed-top">
+<div class="container">
+  <div class="navbar-header">
+    <a href="../../" class="navbar-brand">Econometrics and Free Software</a>
+    <button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar-main">
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+    </button>
+  </div>
+  <div class="navbar-collapse collapse" id="navbar-main">
+
+    <ul class="nav navbar-nav navbar-right">
+      <li><a href="https://www.buymeacoffee.com/brodriguesco">Donate</a></li>
+      <li><a href="https://www.youtube.com/c/BrunoRodrigues1988">Youtube</a></li>
+      <li><a href="https://github.com/b-rodrigues/">Github</a></li>
+      <li><a href="https://twitter.com/brodriguesco/">Twitter</a></li>
+    </ul>
+  </div>
+</div>
+
+</div>
+
+<div class="container">
+
+  <div>
+    <div class="row">
+      <div class="col-lg-3 col-md-3 col-sm-4">
+        
+
+<div class="list-group table-of-contents">
+
+  
+    <a class="list-group-item" href=#><b>About Me</b></a>
+    
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../../about/about/">Who am I?</a>
+      
+      <a class="list-group-item" href="../../about/projects/">Projects</a>
+      
+      <a class="list-group-item" href="../../about/research/">Research</a>
+      
+      <a class="list-group-item" href="../../about/software/">Software</a>
+      
+    </div>
+    
+  
+    <a class="list-group-item" href=#><b>Blog</b></a>
+    
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../../blog/2018-11-25-tidy_cv/">A tutorial on tidy cross-validation with R</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-03-nethack_analysis/">Analyzing NetHack data, part 1: What kills the players</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-10-nethack_analysis_part2/">Analyzing NetHack data, part 2: What players kill the most</a>
+      
+      <a class="list-group-item" href="../../blog/2019-02-04-newspapers_shiny_app_tutorial/">Building a shiny app to explore historical newspapers: a step-by-step guide</a>
+      
+      <a class="list-group-item" href="../../blog/2019-03-03-historical_vowpal/">Classification of historical newspapers content: a tutorial combining R, bash and Vowpal Wabbit, part 1</a>
+      
+      <a class="list-group-item" href="../../blog/2019-03-05-historical_vowpal_part2/">Classification of historical newspapers content: a tutorial combining R, bash and Vowpal Wabbit, part 2</a>
+      
+      <a class="list-group-item" href="../../blog/2019-06-20-tidy_eval_saga/">Curly-Curly, the successor of Bang-Bang</a>
+      
+      <a class="list-group-item" href="../../blog/2018-07-08-rob_stderr/">Dealing with heteroskedasticity; regression with robust standard errors using R</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-14-luxairport/">Easy time-series prediction with R: a tutorial with air traffic data from Lux Airport</a>
+      
+      <a class="list-group-item" href="../../blog/2018-10-05-ggplot2_purrr_officer/">Exporting editable plots from R to Powerpoint: making ggplot2 purrr with officer</a>
+      
+      <a class="list-group-item" href="../../blog/2019-04-28-diffindiff_part1/">Fast food, causality and R packages, part 1</a>
+      
+      <a class="list-group-item" href="../../blog/2019-05-04-diffindiff_part2/">Fast food, causality and R packages, part 2</a>
+      
+      <a class="list-group-item" href="../../blog/2019-05-18-xml2/">For posterity: install {xml2} on GNU/Linux distros</a>
+      
+      <a class="list-group-item" href="../../blog/2018-06-24-fun_ts/">Forecasting my weight with R</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-01-nethack/">From webscraping data to releasing it as an R package to share with the world: a full tutorial with data from NetHack</a>
+      
+      <a class="list-group-item" href="../../blog/2019-03-31-tesseract/">Get text from pdfs or images using OCR: a tutorial with {tesseract} and {magick}</a>
+      
+      <a class="list-group-item" href="../../blog/2018-06-10-scraping_pdfs/">Getting data from pdfs using the pdftools package</a>
+      
+      <a class="list-group-item" href="../../blog/2018-10-21-lux_elections/">Getting the data from the Luxembourguish elections out of Excel</a>
+      
+      <a class="list-group-item" href="../../blog/2018-09-11-human_to_machine/">Going from a human readable Excel file to a machine-readable csv with {tidyxl}</a>
+      
+      <a class="list-group-item" href="../../blog/2019-04-07-historical_newspaper_scraping_tesseract/">Historical newspaper scraping with {tesseract} and R</a>
+      
+      <a class="list-group-item" href="../../blog/2018-09-15-time_use/">How Luxembourguish residents spend their time: a small {flexdashboard} demo using the Time use survey data</a>
+      
+      <a class="list-group-item" href="../../blog/2018-04-14-playing_with_furrr/">Imputing missing values in parallel using {furrr}</a>
+      
+      <a class="list-group-item" href="../../blog/2019-06-12-intermittent/">Intermittent demand, Croston and Die Hard</a>
+      
+      <a class="list-group-item" href="../../blog/2019-01-04-newspapers/">Looking into 19th century ads from a Luxembourguish newspaper with R</a>
+      
+      <a class="list-group-item" href="../../blog/2019-01-13-newspapers_mets_alto/">Making sense of the METS and ALTO XML standards</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-15-lubridate_africa/">Manipulate dates easily with {lubridate}</a>
+      
+      <a class="list-group-item" href="../../blog/2019-02-10-stringr_package/">Manipulating strings with the {stringr} package</a>
+      
+      <a class="list-group-item" href="../../blog/2018-10-27-lux_elections_analysis/">Maps with pie charts on top of each administrative division: an example with Luxembourg&#39;s elections data</a>
+      
+      <a class="list-group-item" href="../../blog/2018-07-01-tidy_ive/">Missing data imputation and instrumental variables regression: the tidy approach</a>
+      
+      <a class="list-group-item" href="../../blog/2019-08-17-modern_r/">Modern R with the tidyverse is available on Leanpub</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-24-modern_objects/">Objects types and some useful R functions for beginners</a>
+      
+      <a class="list-group-item" href="../../blog/2019-03-20-pivot/">Pivoting data frames just got easier thanks to `pivot_wide()` and `pivot_long()`</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-30-reticulate/">R or Python? Why not both? Using Anaconda Python within R with {reticulate}</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-15-tidy_gridsearch/">Searching for the optimal hyper-parameters of an ARIMA model in parallel: the tidy gridsearch approach</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-27-fun_gganimate/">Some fun with {gganimate}</a>
+      
+      <a class="list-group-item" href="../../blog/2019-10-05-parallel_maxlik/">Split-apply-combine for Maximum Likelihood Estimation of a linear model</a>
+      
+      <a class="list-group-item" href="../../blog/2019-07-19-statmatch/">Statistical matching, or when one single data source is not enough</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-21-lux_castle/">The best way to visit Luxembourguish castles is doing data science &#43; combinatorial optimization</a>
+      
+      <a class="list-group-item" href="../../blog/2019-05-19-spacemacs/">The never-ending editor war (?)</a>
+      
+      <a class="list-group-item" href="../../blog/2018-09-08-steam_linux/">The year of the GNU&#43;Linux desktop is upon us: using user ratings of Steam Play compatibility to play around with regex and the tidyverse</a>
+      
+      <a class="list-group-item" href="../../blog/2019-01-31-newspapers_shiny_app/">Using Data Science to read 10 years of Luxembourguish newspapers from the 19th century</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-16-rgenoud_arima/">Using a genetic algorithm for the hyperparameter optimization of a SARIMA model</a>
+      
+      <a class="list-group-item" href="../../blog/2019-06-04-cosine_sim/">Using cosine similarity to find matching documents: a tutorial using Seneca&#39;s letters to his friend Lucilius</a>
+      
+      <a class="list-group-item" href="../../blog/2019-08-14-lpm/">Using linear models with binary dependent variables, a simulation study</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-21-tidyverse_pi/">Using the tidyverse for more than data manipulation: estimating pi with Monte Carlo methods</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-02-hyper-parameters/">What hyper-parameters are, and what to do with them; an illustration with ridge regression</a>
+      
+      <a class="list-group-item" href="../../blog/2019-09-03-disk_frame/">{disk.frame} is epic</a>
+      
+      <a class="list-group-item" href="../../blog/2018-04-15-announcing_pmice/">{pmice}, an experimental package for missing data imputation in parallel using {mice} and {furrr}</a>
+      
+      <a class="list-group-item" href="../../blog/2017-12-27-build_formulae/">Building formulae</a>
+      
+      <a class="list-group-item" href="../../blog/2017-11-14-peace_r/">Functional peace of mind</a>
+      
+      <a class="list-group-item" href="../../blog/2018-04-10-brotools_describe/">Get basic summary statistics for all the variables in a data frame</a>
+      
+      <a class="list-group-item" href="../../blog/2018-03-03-sparklyr_h2o_rsparkling/">Getting {sparklyr}, {h2o}, {rsparkling} to work together and some fun with bash</a>
+      
+      <a class="list-group-item" href="../../blog/2018-02-16-importing_30gb_of_data/">Importing 30GB of data into R with sparklyr</a>
+      
+      <a class="list-group-item" href="../../blog/2017-03-27-introducing_brotools/">Introducing brotools</a>
+      
+      <a class="list-group-item" href="../../blog/2018-01-03-lists_all_the_way/">It&#39;s lists all the way down</a>
+      
+      <a class="list-group-item" href="../../blog/2018-01-05-lists_all_the_way2/">It&#39;s lists all the way down, part 2: We need to go deeper</a>
+      
+      <a class="list-group-item" href="../../blog/2018-03-12-keep_trying/">Keep trying that api call with purrr::possibly()</a>
+      
+      <a class="list-group-item" href="../../blog/2017-06-19-dplyr-0-70-tutorial/">Lesser known dplyr 0.7* tricks</a>
+      
+      <a class="list-group-item" href="../../blog/2017-02-17-lesser_known_tricks/">Lesser known dplyr tricks</a>
+      
+      <a class="list-group-item" href="../../blog/2017-03-24-lesser_known_purrr/">Lesser known purrr tricks</a>
+      
+      <a class="list-group-item" href="../../blog/2017-03-29-make-ggplot2-purrr/">Make ggplot2 purrr</a>
+      
+      <a class="list-group-item" href="../../blog/2018-01-19-mapping_functions_with_any_cols/">Mapping a list of functions to a list of datasets with a list of columns as arguments</a>
+      
+      <a class="list-group-item" href="../../blog/2018-02-11-census-random_forest/">Predicting job search by training a random forest on an unbalanced dataset</a>
+      
+      <a class="list-group-item" href="../../blog/2017-12-17-teaching_tidyverse/">Teaching the tidyverse to beginners</a>
+      
+      <a class="list-group-item" href="../../blog/2017-08-27-why_tidyeval/">Why I find tidyeval useful</a>
+      
+      <a class="list-group-item" href="../../blog/2017-07-27-spread_rename_at/">tidyr::spread() and dplyr::rename_at() in action</a>
+      
+      <a class="list-group-item" href="../../blog/2017-10-26-margins_r/">Easy peasy STATA-like marginal effects with R</a>
+      
+      <a class="list-group-item" href="../../blog/2016-12-24-functional-programming-and-unit-testing-for-data-munging-with-r-available-on-leanpub/">Functional programming and unit testing for data munging with R available on Leanpub</a>
+      
+      <a class="list-group-item" href="../../blog/2017-02-17-how_to_use_jailbreakr/">How to use jailbreakr</a>
+      
+      <a class="list-group-item" href="../../blog/2017-01-07-my-free-book-has-a-cover/">My free book has a cover!</a>
+      
+      <a class="list-group-item" href="../../blog/2016-12-21-work-on-lists-of-datasets-instead-of-individual-datasets-by-using-functional-programming/">Work on lists of datasets instead of individual datasets by using functional programming</a>
+      
+      <a class="list-group-item" href="../../blog/2013-01-29-method-of-simulated-moments-with-r/">Method of Simulated Moments with R</a>
+      
+      <a class="list-group-item" href="../../blog/2012-12-11-new-website/">New website!</a>
+      
+      <a class="list-group-item" href="../../blog/2013-11-07-gmm-with-rmd/">Nonlinear Gmm with R - Example with a logistic regression</a>
+      
+      <a class="list-group-item" href="../../blog/2013-01-16-simulated-maximum-likelihood-with-r/">Simulated Maximum Likelihood with R</a>
+      
+      <a class="list-group-item" href="../../blog/2015-11-11-bootstrapping-did-with-r/">Bootstrapping standard errors for difference-in-differences estimation with R</a>
+      
+      <a class="list-group-item" href="../../blog/2016-06-21-careful-with-trycatch/">Careful with tryCatch</a>
+      
+      <a class="list-group-item" href="../../blog/2016-07-18-data-frame-columns-as-arguments-to-dplyr-functions/">Data frame columns as arguments to dplyr functions</a>
+      
+      <a class="list-group-item" href="../../blog/2015-02-22-export-r-output-to-file/">Export R output to a file</a>
+      
+      <a class="list-group-item" href="../../blog/2016-11-04-ive-started-writing-a-book-functional-programming-and-unit-testing-for-data-munging-with-r/">I&#39;ve started writing a &#39;book&#39;: Functional programming and unit testing for data munging with R</a>
+      
+      <a class="list-group-item" href="../../blog/2015-01-12-introduction-to-programming-econometrics-with-r/">Introduction to programming econometrics with R</a>
+      
+      <a class="list-group-item" href="../../blog/2016-07-30-merge-a-list-of-datasets-together/">Merge a list of datasets together</a>
+      
+      <a class="list-group-item" href="../../blog/2014-04-23-r-s4-rootfinding/">Object Oriented Programming with R: An example with a Cournot duopoly</a>
+      
+      <a class="list-group-item" href="../../blog/2014-11-11-benchmarks-r-blas-atlas-rro/">R, R with Atlas, R with OpenBLAS and Revolution R Open: which is fastest?</a>
+      
+      <a class="list-group-item" href="../../blog/2016-07-26-read-a-lot-of-datasets-at-once-with-r/">Read a lot of datasets at once with R</a>
+      
+      <a class="list-group-item" href="../../blog/2016-03-31-unit-testing-with-r/">Unit testing with R</a>
+      
+      <a class="list-group-item" href="../../blog/2015-05-03-update-introduction-r-programming/">Update to Introduction to programming econometrics with R</a>
+      
+      <a class="list-group-item" href="../../blog/2013-12-31-r-cas/">Using R as a Computer Algebra System with Ryacas</a>
+      
+    </div>
+    
+  
+
+</div>
+
+      </div>
+      <div class="col-lg-9 col-md-9 col-sm-8">
+        <div>
+           <h1 id="main">Exporting editable plots from R to Powerpoint: making ggplot2 purrr with officer</h1>
+           <span class="article-date">October 5, 2018</span>
+        </div>
+        <div style="text-align:center;">
+<p><a href="https://www.youtube.com/watch?v=oc9XOxUcvLY">
+<img src="../../img/officer_meme.jpg"/></a></p>
+</div>
+
+<p>A kind reader let me know that the function <code>create_pptx()</code> is now outdated, and
+proposed an update which you can find here:
+<a href="https://gist.github.com/b-rodrigues/ef4e97ed75028ca1ddd5987bb4085c1c">here</a>.
+Thank you
+<a href="https://twitter.com/jerry_stones/status/1239625489578254336">@Jeremy</a>!
+</p>
+
+
+<p>I was recently confronted to the following problem: creating hundreds of plots that could still be
+edited by our client. What this meant was that I needed to export the graphs in Excel or Powerpoint
+or some other such tool that was familiar to the client, and not export the plots directly to pdf or
+png as I would normally do. I still wanted to use R to do it though, because I could do what I always
+do to when I need to perform repetitive tasks such as producing hundreds of plots; map over a list
+of, say, countries, and make one plot per country. This is something I discussed in a previous
+blog post, <a href="http://www.brodrigues.co/blog/2017-03-29-make-ggplot2-purrr/">Make ggplot2 purrr</a>.</p>
+<p>So, after some online seaching, I found the <code>{officer}</code> package. This package allows you to put
+objects into Microsoft documents. For example, editable plots in a Powerpoint document. This is what
+I will show in this blog post.</p>
+<p>Let’s start by loading the required packages:</p>
+<pre class="r"><code>library(&quot;tidyverse&quot;)
+library(&quot;officer&quot;)
+library(&quot;rvg&quot;)</code></pre>
+<p>Then, I will use the data from the time use survey, which I discussed in a previous blog post
+<a href="http://www.brodrigues.co/blog/2018-09-11-human_to_machine/">Going from a human readable Excel file to a machine-readable csv with {tidyxl}</a>.</p>
+<p>You can download the data <a href="https://github.com/rbind/b-rodrigues.github.com/blob/master/content/blog/clean_data.csv">here</a>.</p>
+<p>Let’s import and prepare it:</p>
+<pre class="r"><code>time_use &lt;- rio::import(&quot;clean_data.csv&quot;)
+
+
+time_use &lt;- time_use %&gt;%
+    filter(population %in% c(&quot;Male&quot;, &quot;Female&quot;)) %&gt;%
+    filter(activities %in% c(&quot;Personal care&quot;, &quot;Sleep&quot;, &quot;Eating&quot;, 
+                             &quot;Employment&quot;, &quot;Household and family care&quot;)) %&gt;%
+    group_by(day) %&gt;%
+    nest()</code></pre>
+<p>I only kept two categories, “Male” and “Female” and 5 activities. Then I grouped by day and nested
+the data. This is how it looks like:</p>
+<pre class="r"><code>time_use</code></pre>
+<pre><code>## # A tibble: 3 x 2
+##   day                         data             
+##   &lt;chr&gt;                       &lt;list&gt;           
+## 1 Year 2014_Monday til Friday &lt;tibble [10 × 4]&gt;
+## 2 Year 2014_Saturday          &lt;tibble [10 × 4]&gt;
+## 3 Year 2014_Sunday            &lt;tibble [10 × 4]&gt;</code></pre>
+<p>As shown, <code>time_use</code> is a tibble with 2 columns, the first <code>day</code> contains the days, and the second
+<code>data</code>, is of type list, and each element of these lists are tibbles themselves. Let’s take a look
+inside one:</p>
+<pre class="r"><code>time_use$data[1]</code></pre>
+<pre><code>## [[1]]
+## # A tibble: 10 x 4
+##    population activities                time  time_in_minutes
+##    &lt;chr&gt;      &lt;chr&gt;                     &lt;chr&gt;           &lt;int&gt;
+##  1 Male       Personal care             11:00             660
+##  2 Male       Sleep                     08:24             504
+##  3 Male       Eating                    01:46             106
+##  4 Male       Employment                08:11             491
+##  5 Male       Household and family care 01:59             119
+##  6 Female     Personal care             11:15             675
+##  7 Female     Sleep                     08:27             507
+##  8 Female     Eating                    01:48             108
+##  9 Female     Employment                06:54             414
+## 10 Female     Household and family care 03:49             229</code></pre>
+<p>I can now create plots for each of the days with the following code:</p>
+<pre class="r"><code>my_plots &lt;- time_use %&gt;%
+    mutate(plots = map2(.y = day, .x = data, ~ggplot(data = .x) + theme_minimal() +
+                       geom_col(aes(y = time_in_minutes, x = activities, fill = population), 
+                                position = &quot;dodge&quot;) +
+                       ggtitle(.y) +
+                       ylab(&quot;Time in minutes&quot;) +
+                       xlab(&quot;Activities&quot;)))</code></pre>
+<p>These steps are all detailled in my blog post
+<a href="http://www.brodrigues.co/blog/2017-03-29-make-ggplot2-purrr/">Make ggplot2 purrr</a>.
+Let’s take a look at <code>my_plots</code>:</p>
+<pre class="r"><code>my_plots</code></pre>
+<pre><code>## # A tibble: 3 x 3
+##   day                         data              plots 
+##   &lt;chr&gt;                       &lt;list&gt;            &lt;list&gt;
+## 1 Year 2014_Monday til Friday &lt;tibble [10 × 4]&gt; &lt;gg&gt;  
+## 2 Year 2014_Saturday          &lt;tibble [10 × 4]&gt; &lt;gg&gt;  
+## 3 Year 2014_Sunday            &lt;tibble [10 × 4]&gt; &lt;gg&gt;</code></pre>
+<p>The last column, called <code>plots</code> is a list where each element is a plot! We can take a look at one:</p>
+<pre class="r"><code>my_plots$plots[1]</code></pre>
+<pre><code>## [[1]]</code></pre>
+<p><img src="../../blog/2018-10-05-ggplot2_purrr_officer_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<p>Now, this is where I could export these plots as pdfs or pngs. But this is not what I need. I need
+to export these plots as editable charts for Powerpoint. To do this for one image, I would do the
+following (as per <code>{officer}</code>’s documentation):</p>
+<pre class="r"><code>read_pptx() %&gt;%
+    add_slide(layout = &quot;Title and Content&quot;, master = &quot;Office Theme&quot;) %&gt;%
+    ph_with_vg(code = print(one_plot), type = &quot;body&quot;) %&gt;% 
+    print(target = path)</code></pre>
+<p>To map this over a list of arguments, I wrote a wrapper:</p>
+<pre class="r"><code>create_pptx &lt;- function(plot, path){
+    if(!file.exists(path)) {
+        out &lt;- read_pptx()
+    } else {
+        out &lt;- read_pptx(path)
+    }
+    
+    out %&gt;%
+        add_slide(layout = &quot;Title and Content&quot;, master = &quot;Office Theme&quot;) %&gt;%
+        ph_with_vg(code = print(plot), type = &quot;body&quot;) %&gt;% 
+        print(target = path)
+}</code></pre>
+<p>This function takes two arguments, <code>plot</code> and <code>path</code>. <code>plot</code> must be an plot object such as the ones
+contained inside the <code>plots</code> column of <code>my_plots</code> tibble. <code>path</code> is the path of where I want to save
+the pptx.</p>
+<p>The first lines check if the file exists, if yes, the slides get added to the existing file, if not
+a new pptx gets created. The rest of the code is very similar to the one from the documentation. Now,
+to create my pptx I simple need to map over the <code>plots</code> column and provide a <code>path</code>:</p>
+<pre class="r"><code>map(my_plots$plots, create_pptx, path = &quot;test.pptx&quot;)</code></pre>
+<pre><code>## Warning in doc_parse_file(con, encoding = encoding, as_html = as_html,
+## options = options): Failed to parse QName &#39;xsi:xmlns:&#39; [202]
+
+## Warning in doc_parse_file(con, encoding = encoding, as_html = as_html,
+## options = options): Failed to parse QName &#39;xsi:xmlns:&#39; [202]
+
+## Warning in doc_parse_file(con, encoding = encoding, as_html = as_html,
+## options = options): Failed to parse QName &#39;xsi:xmlns:&#39; [202]
+
+## Warning in doc_parse_file(con, encoding = encoding, as_html = as_html,
+## options = options): Failed to parse QName &#39;xsi:xmlns:&#39; [202]
+
+## Warning in doc_parse_file(con, encoding = encoding, as_html = as_html,
+## options = options): Failed to parse QName &#39;xsi:xmlns:&#39; [202]
+
+## Warning in doc_parse_file(con, encoding = encoding, as_html = as_html,
+## options = options): Failed to parse QName &#39;xsi:xmlns:&#39; [202]
+
+## Warning in doc_parse_file(con, encoding = encoding, as_html = as_html,
+## options = options): Failed to parse QName &#39;xsi:xmlns:&#39; [202]
+
+## Warning in doc_parse_file(con, encoding = encoding, as_html = as_html,
+## options = options): Failed to parse QName &#39;xsi:xmlns:&#39; [202]
+
+## Warning in doc_parse_file(con, encoding = encoding, as_html = as_html,
+## options = options): Failed to parse QName &#39;xsi:xmlns:&#39; [202]</code></pre>
+<pre><code>## [[1]]
+## [1] &quot;/home/cbrunos/Documents/b-rodrigues.github.com/content/blog/test.pptx&quot;
+## 
+## [[2]]
+## [1] &quot;/home/cbrunos/Documents/b-rodrigues.github.com/content/blog/test.pptx&quot;
+## 
+## [[3]]
+## [1] &quot;/home/cbrunos/Documents/b-rodrigues.github.com/content/blog/test.pptx&quot;</code></pre>
+<p>Here is the end result:</p>
+<p><img src="../../img/editable_plots.png" /><!-- --></p>
+<p>Inside Powerpoint (or in this case Libreoffice), the plots are geometric shapes that can now
+be edited!</p>
+<p>If you found this blog post useful, you might want to follow me on <a href="https://www.twitter.com/brodriguesco">twitter</a>
+for blog post updates.</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
+
+      </div>
+    </div>
+  <div class="row">
+    <div class="col-lg-9 col-md-9 col-sm-8 col-lg-offset-3 col-md-offset-3">
+    <footer>
+  <div class="row">
+    <div class="col-lg-12">
+      <p>Copyright 2020. <a> Bruno Rodrigues</a> </p>
+      <p>Made with the HUGO theme <a href="https://github.com/adejoux/hugo-darkdoc-theme" rel="nofollow">darkdoc</a>.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+
+    </div>
+  </div>
+
+</div>
+</html>
+<script>
+
+  var api_url = '';
+
+</script>
+<script src="//code.jquery.com/jquery-2.2.3.min.js"></script>
+<script src="../../js/application.js"></script>
+<script type="text/javascript" src="../../js/jquery.fancybox.pack.js?v=2.1.5"></script>
+<script type="text/javascript" src="../../js/helpers/jquery.fancybox-thumbs.js?v=1.0.7"></script>
+<script type="text/javascript" src="../../js/helpers/jquery.fancybox-buttons.js?v=1.0.5"></script>
+<script type="text/javascript" src="../../js/helpers/jquery.fancybox-media.js?v=1.0.6"></script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $(".fancybox").fancybox();
+  });
+</script>
+

@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"  lang="en-us">
+    <title>Predicting job search by training a random forest on an unbalanced dataset - Econometrics and Free Software</title>
+    <meta name="generator" content="Hugo 0.25.1" />
+
+    
+    <meta name="description" content="A blog about econometrics, free software, and R">
+    
+    <link rel="canonical" href="../../blog/2018-02-11-census-random_forest/">
+    
+    <meta name="author" content="Bruno Rodrigues">
+    
+    <meta name="generator" content="Hugo 0.25.1" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta property="og:url" content="/blog/2018-02-11-census-random_forest/">
+    <meta property="og:title" content="Econometrics and Free Software">
+    <meta property="og:image" content="/map[width:50 height:50 alt:Logo url:logo.png]">
+    <meta name="apple-mobile-web-app-title" content="Econometrics and Free Software">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <link rel="shortcut icon" type="image/x-icon" href="../../images/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="../../images/favicon.ico">
+
+    
+    <link rel="stylesheet" href="../../css/bootstrap.min.css" media="screen">
+    <link rel="stylesheet" href="../../css/custom.css">
+    <link rel="stylesheet" href="../../css/pygments.css">
+    
+    <link rel="stylesheet" href="../../css/jquery.fancybox.css?v=2.1.5" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/helpers/jquery.fancybox-buttons.css?v=1.0.5" type="text/css" media="screen" />
+  </head>
+  <body>
+
+
+<div class="row">
+<div class="navbar navbar-default navbar-fixed-top">
+<div class="container">
+  <div class="navbar-header">
+    <a href="../../" class="navbar-brand">Econometrics and Free Software</a>
+    <button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar-main">
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+    </button>
+  </div>
+  <div class="navbar-collapse collapse" id="navbar-main">
+
+    <ul class="nav navbar-nav navbar-right">
+      <li><a href="https://www.buymeacoffee.com/brodriguesco">Donate</a></li>
+      <li><a href="https://www.youtube.com/c/BrunoRodrigues1988">Youtube</a></li>
+      <li><a href="https://github.com/b-rodrigues/">Github</a></li>
+      <li><a href="https://twitter.com/brodriguesco/">Twitter</a></li>
+    </ul>
+  </div>
+</div>
+
+</div>
+
+<div class="container">
+
+  <div>
+    <div class="row">
+      <div class="col-lg-3 col-md-3 col-sm-4">
+        
+
+<div class="list-group table-of-contents">
+
+  
+    <a class="list-group-item" href=#><b>About Me</b></a>
+    
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../../about/about/">Who am I?</a>
+      
+      <a class="list-group-item" href="../../about/projects/">Projects</a>
+      
+      <a class="list-group-item" href="../../about/research/">Research</a>
+      
+      <a class="list-group-item" href="../../about/software/">Software</a>
+      
+    </div>
+    
+  
+    <a class="list-group-item" href=#><b>Blog</b></a>
+    
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../../blog/2018-11-25-tidy_cv/">A tutorial on tidy cross-validation with R</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-03-nethack_analysis/">Analyzing NetHack data, part 1: What kills the players</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-10-nethack_analysis_part2/">Analyzing NetHack data, part 2: What players kill the most</a>
+      
+      <a class="list-group-item" href="../../blog/2019-02-04-newspapers_shiny_app_tutorial/">Building a shiny app to explore historical newspapers: a step-by-step guide</a>
+      
+      <a class="list-group-item" href="../../blog/2019-03-03-historical_vowpal/">Classification of historical newspapers content: a tutorial combining R, bash and Vowpal Wabbit, part 1</a>
+      
+      <a class="list-group-item" href="../../blog/2019-03-05-historical_vowpal_part2/">Classification of historical newspapers content: a tutorial combining R, bash and Vowpal Wabbit, part 2</a>
+      
+      <a class="list-group-item" href="../../blog/2019-06-20-tidy_eval_saga/">Curly-Curly, the successor of Bang-Bang</a>
+      
+      <a class="list-group-item" href="../../blog/2018-07-08-rob_stderr/">Dealing with heteroskedasticity; regression with robust standard errors using R</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-14-luxairport/">Easy time-series prediction with R: a tutorial with air traffic data from Lux Airport</a>
+      
+      <a class="list-group-item" href="../../blog/2018-10-05-ggplot2_purrr_officer/">Exporting editable plots from R to Powerpoint: making ggplot2 purrr with officer</a>
+      
+      <a class="list-group-item" href="../../blog/2019-04-28-diffindiff_part1/">Fast food, causality and R packages, part 1</a>
+      
+      <a class="list-group-item" href="../../blog/2019-05-04-diffindiff_part2/">Fast food, causality and R packages, part 2</a>
+      
+      <a class="list-group-item" href="../../blog/2019-05-18-xml2/">For posterity: install {xml2} on GNU/Linux distros</a>
+      
+      <a class="list-group-item" href="../../blog/2018-06-24-fun_ts/">Forecasting my weight with R</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-01-nethack/">From webscraping data to releasing it as an R package to share with the world: a full tutorial with data from NetHack</a>
+      
+      <a class="list-group-item" href="../../blog/2019-03-31-tesseract/">Get text from pdfs or images using OCR: a tutorial with {tesseract} and {magick}</a>
+      
+      <a class="list-group-item" href="../../blog/2018-06-10-scraping_pdfs/">Getting data from pdfs using the pdftools package</a>
+      
+      <a class="list-group-item" href="../../blog/2018-10-21-lux_elections/">Getting the data from the Luxembourguish elections out of Excel</a>
+      
+      <a class="list-group-item" href="../../blog/2018-09-11-human_to_machine/">Going from a human readable Excel file to a machine-readable csv with {tidyxl}</a>
+      
+      <a class="list-group-item" href="../../blog/2019-04-07-historical_newspaper_scraping_tesseract/">Historical newspaper scraping with {tesseract} and R</a>
+      
+      <a class="list-group-item" href="../../blog/2018-09-15-time_use/">How Luxembourguish residents spend their time: a small {flexdashboard} demo using the Time use survey data</a>
+      
+      <a class="list-group-item" href="../../blog/2018-04-14-playing_with_furrr/">Imputing missing values in parallel using {furrr}</a>
+      
+      <a class="list-group-item" href="../../blog/2019-06-12-intermittent/">Intermittent demand, Croston and Die Hard</a>
+      
+      <a class="list-group-item" href="../../blog/2019-01-04-newspapers/">Looking into 19th century ads from a Luxembourguish newspaper with R</a>
+      
+      <a class="list-group-item" href="../../blog/2019-01-13-newspapers_mets_alto/">Making sense of the METS and ALTO XML standards</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-15-lubridate_africa/">Manipulate dates easily with {lubridate}</a>
+      
+      <a class="list-group-item" href="../../blog/2019-02-10-stringr_package/">Manipulating strings with the {stringr} package</a>
+      
+      <a class="list-group-item" href="../../blog/2018-10-27-lux_elections_analysis/">Maps with pie charts on top of each administrative division: an example with Luxembourg&#39;s elections data</a>
+      
+      <a class="list-group-item" href="../../blog/2018-07-01-tidy_ive/">Missing data imputation and instrumental variables regression: the tidy approach</a>
+      
+      <a class="list-group-item" href="../../blog/2019-08-17-modern_r/">Modern R with the tidyverse is available on Leanpub</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-24-modern_objects/">Objects types and some useful R functions for beginners</a>
+      
+      <a class="list-group-item" href="../../blog/2019-03-20-pivot/">Pivoting data frames just got easier thanks to `pivot_wide()` and `pivot_long()`</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-30-reticulate/">R or Python? Why not both? Using Anaconda Python within R with {reticulate}</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-15-tidy_gridsearch/">Searching for the optimal hyper-parameters of an ARIMA model in parallel: the tidy gridsearch approach</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-27-fun_gganimate/">Some fun with {gganimate}</a>
+      
+      <a class="list-group-item" href="../../blog/2019-10-05-parallel_maxlik/">Split-apply-combine for Maximum Likelihood Estimation of a linear model</a>
+      
+      <a class="list-group-item" href="../../blog/2019-07-19-statmatch/">Statistical matching, or when one single data source is not enough</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-21-lux_castle/">The best way to visit Luxembourguish castles is doing data science &#43; combinatorial optimization</a>
+      
+      <a class="list-group-item" href="../../blog/2019-05-19-spacemacs/">The never-ending editor war (?)</a>
+      
+      <a class="list-group-item" href="../../blog/2018-09-08-steam_linux/">The year of the GNU&#43;Linux desktop is upon us: using user ratings of Steam Play compatibility to play around with regex and the tidyverse</a>
+      
+      <a class="list-group-item" href="../../blog/2019-01-31-newspapers_shiny_app/">Using Data Science to read 10 years of Luxembourguish newspapers from the 19th century</a>
+      
+      <a class="list-group-item" href="../../blog/2018-11-16-rgenoud_arima/">Using a genetic algorithm for the hyperparameter optimization of a SARIMA model</a>
+      
+      <a class="list-group-item" href="../../blog/2019-06-04-cosine_sim/">Using cosine similarity to find matching documents: a tutorial using Seneca&#39;s letters to his friend Lucilius</a>
+      
+      <a class="list-group-item" href="../../blog/2019-08-14-lpm/">Using linear models with binary dependent variables, a simulation study</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-21-tidyverse_pi/">Using the tidyverse for more than data manipulation: estimating pi with Monte Carlo methods</a>
+      
+      <a class="list-group-item" href="../../blog/2018-12-02-hyper-parameters/">What hyper-parameters are, and what to do with them; an illustration with ridge regression</a>
+      
+      <a class="list-group-item" href="../../blog/2019-09-03-disk_frame/">{disk.frame} is epic</a>
+      
+      <a class="list-group-item" href="../../blog/2018-04-15-announcing_pmice/">{pmice}, an experimental package for missing data imputation in parallel using {mice} and {furrr}</a>
+      
+      <a class="list-group-item" href="../../blog/2017-12-27-build_formulae/">Building formulae</a>
+      
+      <a class="list-group-item" href="../../blog/2017-11-14-peace_r/">Functional peace of mind</a>
+      
+      <a class="list-group-item" href="../../blog/2018-04-10-brotools_describe/">Get basic summary statistics for all the variables in a data frame</a>
+      
+      <a class="list-group-item" href="../../blog/2018-03-03-sparklyr_h2o_rsparkling/">Getting {sparklyr}, {h2o}, {rsparkling} to work together and some fun with bash</a>
+      
+      <a class="list-group-item" href="../../blog/2018-02-16-importing_30gb_of_data/">Importing 30GB of data into R with sparklyr</a>
+      
+      <a class="list-group-item" href="../../blog/2017-03-27-introducing_brotools/">Introducing brotools</a>
+      
+      <a class="list-group-item" href="../../blog/2018-01-03-lists_all_the_way/">It&#39;s lists all the way down</a>
+      
+      <a class="list-group-item" href="../../blog/2018-01-05-lists_all_the_way2/">It&#39;s lists all the way down, part 2: We need to go deeper</a>
+      
+      <a class="list-group-item" href="../../blog/2018-03-12-keep_trying/">Keep trying that api call with purrr::possibly()</a>
+      
+      <a class="list-group-item" href="../../blog/2017-06-19-dplyr-0-70-tutorial/">Lesser known dplyr 0.7* tricks</a>
+      
+      <a class="list-group-item" href="../../blog/2017-02-17-lesser_known_tricks/">Lesser known dplyr tricks</a>
+      
+      <a class="list-group-item" href="../../blog/2017-03-24-lesser_known_purrr/">Lesser known purrr tricks</a>
+      
+      <a class="list-group-item" href="../../blog/2017-03-29-make-ggplot2-purrr/">Make ggplot2 purrr</a>
+      
+      <a class="list-group-item" href="../../blog/2018-01-19-mapping_functions_with_any_cols/">Mapping a list of functions to a list of datasets with a list of columns as arguments</a>
+      
+      <a class="list-group-item" href="../../blog/2018-02-11-census-random_forest/">Predicting job search by training a random forest on an unbalanced dataset</a>
+      
+      <a class="list-group-item" href="../../blog/2017-12-17-teaching_tidyverse/">Teaching the tidyverse to beginners</a>
+      
+      <a class="list-group-item" href="../../blog/2017-08-27-why_tidyeval/">Why I find tidyeval useful</a>
+      
+      <a class="list-group-item" href="../../blog/2017-07-27-spread_rename_at/">tidyr::spread() and dplyr::rename_at() in action</a>
+      
+      <a class="list-group-item" href="../../blog/2017-10-26-margins_r/">Easy peasy STATA-like marginal effects with R</a>
+      
+      <a class="list-group-item" href="../../blog/2016-12-24-functional-programming-and-unit-testing-for-data-munging-with-r-available-on-leanpub/">Functional programming and unit testing for data munging with R available on Leanpub</a>
+      
+      <a class="list-group-item" href="../../blog/2017-02-17-how_to_use_jailbreakr/">How to use jailbreakr</a>
+      
+      <a class="list-group-item" href="../../blog/2017-01-07-my-free-book-has-a-cover/">My free book has a cover!</a>
+      
+      <a class="list-group-item" href="../../blog/2016-12-21-work-on-lists-of-datasets-instead-of-individual-datasets-by-using-functional-programming/">Work on lists of datasets instead of individual datasets by using functional programming</a>
+      
+      <a class="list-group-item" href="../../blog/2013-01-29-method-of-simulated-moments-with-r/">Method of Simulated Moments with R</a>
+      
+      <a class="list-group-item" href="../../blog/2012-12-11-new-website/">New website!</a>
+      
+      <a class="list-group-item" href="../../blog/2013-11-07-gmm-with-rmd/">Nonlinear Gmm with R - Example with a logistic regression</a>
+      
+      <a class="list-group-item" href="../../blog/2013-01-16-simulated-maximum-likelihood-with-r/">Simulated Maximum Likelihood with R</a>
+      
+      <a class="list-group-item" href="../../blog/2015-11-11-bootstrapping-did-with-r/">Bootstrapping standard errors for difference-in-differences estimation with R</a>
+      
+      <a class="list-group-item" href="../../blog/2016-06-21-careful-with-trycatch/">Careful with tryCatch</a>
+      
+      <a class="list-group-item" href="../../blog/2016-07-18-data-frame-columns-as-arguments-to-dplyr-functions/">Data frame columns as arguments to dplyr functions</a>
+      
+      <a class="list-group-item" href="../../blog/2015-02-22-export-r-output-to-file/">Export R output to a file</a>
+      
+      <a class="list-group-item" href="../../blog/2016-11-04-ive-started-writing-a-book-functional-programming-and-unit-testing-for-data-munging-with-r/">I&#39;ve started writing a &#39;book&#39;: Functional programming and unit testing for data munging with R</a>
+      
+      <a class="list-group-item" href="../../blog/2015-01-12-introduction-to-programming-econometrics-with-r/">Introduction to programming econometrics with R</a>
+      
+      <a class="list-group-item" href="../../blog/2016-07-30-merge-a-list-of-datasets-together/">Merge a list of datasets together</a>
+      
+      <a class="list-group-item" href="../../blog/2014-04-23-r-s4-rootfinding/">Object Oriented Programming with R: An example with a Cournot duopoly</a>
+      
+      <a class="list-group-item" href="../../blog/2014-11-11-benchmarks-r-blas-atlas-rro/">R, R with Atlas, R with OpenBLAS and Revolution R Open: which is fastest?</a>
+      
+      <a class="list-group-item" href="../../blog/2016-07-26-read-a-lot-of-datasets-at-once-with-r/">Read a lot of datasets at once with R</a>
+      
+      <a class="list-group-item" href="../../blog/2016-03-31-unit-testing-with-r/">Unit testing with R</a>
+      
+      <a class="list-group-item" href="../../blog/2015-05-03-update-introduction-r-programming/">Update to Introduction to programming econometrics with R</a>
+      
+      <a class="list-group-item" href="../../blog/2013-12-31-r-cas/">Using R as a Computer Algebra System with Ryacas</a>
+      
+    </div>
+    
+  
+
+</div>
+
+      </div>
+      <div class="col-lg-9 col-md-9 col-sm-8">
+        <div>
+           <h1 id="main">Predicting job search by training a random forest on an unbalanced dataset</h1>
+           <span class="article-date">February 11, 2018</span>
+        </div>
+        <p>In this blog post, I am going to train a random forest on census data from the US to predict
+the probability that someone is looking for a job. To this end, I downloaded the US 1990 census
+data from the UCI <a href="https://archive.ics.uci.edu/ml/datasets/US+Census+Data+%281990%29">Machine Learning Repository</a>.
+Having a background in economics, I am always quite interested by such datasets. I downloaded the raw
+data which is around 820mb uncompressed. You can download it from this folder
+<a href="https://archive.ics.uci.edu/ml/machine-learning-databases/census1990-mld/">here</a>.</p>
+<p>Before training a random forest on it, some preprocessing is needed. First problem: the columns
+in the data do not have names. Actually, training a random forest on unamed variables is possible,
+but I like my columns to have names. The names are on a separate file, called <code>USCensus1990raw.attributes.txt</code>.
+This is how this file looks like:</p>
+<pre><code>VAR:        TYP:   DES:    LEN:   CAT:    VARIABLE/CATEGORY LABEL:
+__________________________________________________________________________________
+HISPANIC     C       X      3             Detailed Hispanic Origin Code See Append
+                                  000     Not Hispanic 006 199
+                                  001     Mexican, Mex Am 210 220
+                                  002     Puerto Rican 261 270
+                                  003     Cuban 271 274
+                                  004     Other Hispanic 200 209, 250 260, 290 401
+
+VAR:        TYP:   DES:    LEN:   CAT:    VARIABLE/CATEGORY LABEL:
+__________________________________________________________________________________
+HOUR89       C       X      2             Usual Hrs. Worked Per Week Last Yr. 1989
+                                  00      N/a Less Than 16 Yrs. Old/did Not Work i
+                                  99      99 or More Usual Hrs.
+
+VAR:        TYP:   DES:    LEN:   CAT:    VARIABLE/CATEGORY LABEL:
+__________________________________________________________________________________
+HOURS        C       X      2             Hrs. Worked Last Week
+                                  00      N/a Less Than 16 Yrs. Old/not At Work/un
+                                  99      99 or More Hrs. Worked Last Week
+
+VAR:        TYP:   DES:    LEN:   CAT:    VARIABLE/CATEGORY LABEL:
+__________________________________________________________________________________
+IMMIGR       C       X      2             Yr. of Entry
+                                  00      Born in the U.S.
+                                  01      1987 to 1990
+                                  02      1985 to 1986
+                                  03      1982 to 1984
+
+
+                                  04      1980 or 1981
+                                  05      1975 to 1979
+                                  06      1970 to 1974
+                                  07      1965 to 1969
+                                  08      1960 to 1964
+                                  09      1950 to 1959
+                                  10      Before 1950</code></pre>
+<p>The variable names are always written in upper case and sometimes end with some numbers.
+Regular expressions will help extract these column names:</p>
+<pre class="r"><code>library(tidyverse)
+
+census_raw = import(&quot;USCensus1990raw.data.txt&quot;)
+
+attributes_raw = readLines(&quot;USCensus1990raw.attributes.txt&quot;)
+
+column_names = str_extract_all(attributes_raw, &quot;^[A-Z]+(\\d{1,}|[A-Z])\\s+&quot;) %&gt;%
+  flatten %&gt;%
+  str_trim %&gt;%
+  tolower</code></pre>
+<p>Using <code>readLines</code> I load this text file into R. Then with <code>stringr::str_extract_all</code>, I can extract
+the variable names from this text file. The regular expression, <code>^[A-Z]+(\\d{1,}|[A-Z])\\s+</code> can
+seem complicated, but by breaking it up, it’ll be clear:</p>
+<ul>
+<li><code>^[A-Z]+</code>: matches one or more uppercase letter, at the beginning of the line (hence the <code>^</code>)</li>
+<li><code>\\d{1,}</code>: matches one or more digits</li>
+<li><code>[A-Z]\\s+</code>: matches one uppercase letter, followed by one or more spaces</li>
+<li><code>(\\d{1,}|[A-Z])\\s+</code>: matches one or more digits OR (the <code>|</code>) matches one uppercase letter, followed by one or more spaces</li>
+</ul>
+<p>This regular expression matches only the variable names. By using <code>^</code> I only limit myself to the
+uppercase letters at the start of the line, which already removes a lot of unneeded lines from the
+text. Then, by matching numbers or letters, followed by spaces, I avoid matching strings such as
+<code>VAR:</code>. There’s probably a shorter way to write this regular expression, but since this one works,
+I stopped looking for another solution.</p>
+<p>Now that I have a vector called <code>column_names</code>, I can baptize the columns in my dataset:</p>
+<pre class="r"><code>colnames(census_raw) &lt;- column_names</code></pre>
+<p>I also add a column called <code>caseid</code> to the dataset, but it’s actually not really needed. But it
+made me look for and find <code>rownames_to_column()</code>, which can be useful:</p>
+<pre class="r"><code>census = census_raw %&gt;%
+  rownames_to_column(&quot;caseid&quot;)</code></pre>
+<p>Now I select the variables I need. I use <code>dplyr::select()</code> to select the columns I need (actually,
+I will remove some of these later for the purposes of the blog post, but will continue exploring
+them. Maybe write a part 2?):</p>
+<pre class="r"><code>census %&lt;&gt;%
+  select(caseid, age, citizen, class, disabl1, disabl2, lang1, looking, fertil, hour89, hours, immigr,
+         industry, means, occup, powpuma, powstate, pwgt1, race, ragechld, rearning,
+         relat1, relat2, remplpar, rlabor, rpincome, rpob, rspouse, rvetserv, school, sex, tmpabsnt,
+         travtime, week89, work89, worklwk, yearsch, yearwrk, yrsserv)</code></pre>
+<p>Now, I convert factor variables to factors and only relevel the <code>race</code> variable:</p>
+<pre class="r"><code>census %&lt;&gt;%
+  mutate(race = case_when(race == 1 ~ &quot;white&quot;,
+                          race == 2 ~ &quot;black&quot;,
+                          !(race %in% c(1, 2)) ~ &quot;other&quot;,
+                          is.na(race) ~ NA_character_)) %&gt;%
+  filter(looking != 0) %&gt;%
+  mutate_at(vars(class, disabl1, disabl2, lang1, looking, fertil, immigr, industry, means,
+                 occup, powstate, race, ragechld, remplpar, rlabor, rpob, rspouse,
+                 rvetserv, school, sex, tmpabsnt, work89, worklwk, yearwrk),
+            as.factor) %&gt;%
+  select(looking, age, class, disabl1, disabl2, lang1, fertil, immigr,
+         race, ragechld, remplpar, rlabor, rpob, rspouse,
+         rvetserv, school, sex, tmpabsnt, work89, worklwk, yearwrk, rpincome, rearning,
+         travtime, week89, work89, hours, yearsch, yrsserv) %&gt;%
+  as_tibble
+
+export(census, &quot;regression_data.rds&quot;)</code></pre>
+<p>So the variable I want to predict is <code>looking</code> which has 2 levels (I removed the level <code>0</code>, which
+stands for <code>NA</code>). I convert all the variables that are supposed to be factors into factors using
+<code>mutate_at()</code> and then reselect a subsample of the columns. <code>census</code> is now a tibble with 39
+columns and 2458285 rows. I will train the forest on a subsample only, because with cross validation
+it would take forever on the whole dataset.</p>
+<p>I run the training on another script, that I will then run using the <code>Rscript</code> command instead of
+running it from Spacemacs (yes, I don’t use RStudio at home but Spacemacs + ESS). Here’s the script:</p>
+<pre class="r"><code>library(caret)
+library(doParallel)
+library(rio)
+
+reg_data = import(&quot;regression_data.rds&quot;)</code></pre>
+<pre class="r"><code>janitor::tabyl(reg_data$looking)</code></pre>
+<pre class="r"><code>reg_data$looking      n   percent
+1                1  75792 0.1089562
+2                2 619827 0.8910438</code></pre>
+<p>90% of the individuals in the sample are not looking for a new job. For training purposes, I will
+only use 50000 observations instead of the whole sample. I’m already thinking about writing another
+blog post where I show how to use the whole data. But 50000 observations should be more than enough
+to have a pretty nice model. However, having 90% of observations belonging to a single class can
+cause problems with the model; the model might predict that everyone should belong to class 2 and in
+doing so, the model would be 90% accurate! Let’s ignore this for now, but later I am going to
+tackle this issue with a procedure calleds SMOTE.</p>
+<pre class="r"><code>set.seed(1234)
+sample_df = sample_n(reg_data, 50000)</code></pre>
+<p>Now, using <code>caret::trainIndex()</code>, I partition the data into a training sample and a testing
+sample:</p>
+<pre class="r"><code>trainIndex = createDataPartition(sample_df$looking, p = 0.8,
+                                 list = FALSE,
+                                 times = 1)
+
+train_data = sample_df[trainIndex, ]
+test_data = sample_df[-trainIndex, ]</code></pre>
+<p>I also save the testing data to disk, because when the training is done I’ll lose my R session
+(remember, I’ll run the training using Rscript):</p>
+<pre class="r"><code>saveRDS(test_data, &quot;test_data.rds&quot;)</code></pre>
+<p>Before training the model, I’ll change some options; I’ll do 5-fold cross validation that I repeat
+5 times. This will further split the training set into training/testing sets which will increase
+my confidence in the metrics that I get from the training. This will ensure that the best model
+really is the best, and not a fluke resulting from the splitting of the data that I did beforehand.
+Then, I will test the best model on the testing data from above:</p>
+<pre class="r"><code>fitControl &lt;- trainControl(
+  method = &quot;repeatedcv&quot;,
+  number = 5,
+  repeats = 5)</code></pre>
+<p>A very nice feature from the <code>caret</code> package is the possibility to make the training in parallel.
+For this, load the <code>doParallel</code> package (which I did above), and then register the number of cores
+you want to use for training with <code>makeCluster()</code>. You can replace <code>detectCores()</code> by the number of
+cores you want to use:</p>
+<pre class="r"><code>cl = makeCluster(detectCores())
+registerDoParallel(cl)</code></pre>
+<p>Finally, we can train the model:</p>
+<pre class="r"><code>fit_caret = train(looking ~ .,
+                  data = train_data,
+                  trainControl = fitControl)</code></pre>
+<p>Because it takes around 1 and a half hours to train, I save the model to disk using <code>saveRDS()</code>:</p>
+<pre class="r"><code>saveRDS(fit_caret, &quot;model_unbalanced.rds&quot;)</code></pre>
+<p>The picture below shows all the cores from my computer running and RAM usage being around 20gb during
+the training process:</p>
+<p><img src="../../img/training_cpu.png" /><!-- --></p>
+<p>And this the results of training the random forest on the unbalanced data:</p>
+<pre class="r"><code>model_unbalanced = readRDS(&quot;model_unbalanced.rds&quot;)
+
+test_data = readRDS(&quot;test_data.rds&quot;)
+
+plot(model_unbalanced)
+
+preds = predict.train(model_unbalanced, newdata = test_data)
+
+confusionMatrix(preds, reference = test_data$looking)</code></pre>
+<p><img src="../../img/plot_acc_unbalanced.png" /><!-- --></p>
+<pre class="r"><code>Confusion Matrix and Statistics
+
+Reference
+Prediction     1     2
+1  1287   112
+2   253 12348
+
+Accuracy : 0.9739
+95% CI : (0.9712, 0.9765)
+    No Information Rate : 0.89
+    P-Value [Acc &gt; NIR] : &lt; 2.2e-16
+
+                  Kappa : 0.8613
+ Mcnemar&#39;s Test P-Value : 2.337e-13
+
+            Sensitivity : 0.83571
+            Specificity : 0.99101
+         Pos Pred Value : 0.91994
+         Neg Pred Value : 0.97992
+             Prevalence : 0.11000
+         Detection Rate : 0.09193
+   Detection Prevalence : 0.09993
+      Balanced Accuracy : 0.91336
+
+       &#39;Positive&#39; Class : 1</code></pre>
+<p>If someone really is looking for a job, the model is able to predict it correctly 92% of the times
+and 98% of the times if that person is not looking for a job. It’s slightly better than simply saying
+than no one is looking for a job, which would be right 90% of the times, but not great either.</p>
+<p>To train to make the model more accurate in predicting class 1, I will resample the training set, but by
+downsampling class 2 and upsampling class 1. This can be done with the function <code>SMOTE()</code> from the
+<code>{DMwR}</code> package. However, the testing set should have the same distribution as the population,
+so I should not apply <code>SMOTE()</code> to the testing set. I will resplit the data, but this time with a 95/5 % percent
+split; this way I have 5% of the original dataset used for testing, I can use <code>SMOTE()</code> on the
+95% remaining training set. Because <code>SMOTE</code>ing takes some time, I save the <em>SMOTE</em>d training set
+using <code>readRDS()</code> for later use:</p>
+<pre class="r"><code>reg_data = import(&quot;regression_data.rds&quot;)
+
+
+set.seed(1234)
+trainIndex = createDataPartition(reg_data$looking, p = 0.95,
+                                 list = FALSE,
+                                 times = 1)
+
+test_data = reg_data[-trainIndex, ]
+
+saveRDS(test_data, &quot;test_smote.rds&quot;)
+
+
+# Balance training set
+train_data = reg_data[trainIndex, ]
+
+train_smote = DMwR::SMOTE(looking ~ ., train_data, perc.over = 100, perc.under=200)
+
+saveRDS(train_smote, &quot;train_smote.rds&quot;)</code></pre>
+<p>The testing set has 34780 observations and below you can see the distribution of the target variable,
+<code>looking</code>:</p>
+<pre class="r"><code>janitor::tabyl(test_data$looking)
+  test_data$looking     n   percent
+1                 1  3789 0.1089419
+2                 2 30991 0.8910581</code></pre>
+<p>Here are the results:</p>
+<pre class="r"><code>model_smote = readRDS(&quot;model_smote.rds&quot;)
+
+test_smote = readRDS(&quot;test_smote.rds&quot;)
+
+plot(model_smote)
+
+preds = predict.train(model_smote, newdata = test_smote)
+
+confusionMatrix(preds, reference = test_smote$looking)</code></pre>
+<pre class="r"><code>Confusion Matrix and Statistics
+
+Reference
+Prediction     1     2
+1  3328  1142
+2   461 29849
+
+Accuracy : 0.9539
+95% CI : (0.9517, 0.9561)
+    No Information Rate : 0.8911
+    P-Value [Acc &gt; NIR] : &lt; 2.2e-16
+
+                  Kappa : 0.78
+ Mcnemar&#39;s Test P-Value : &lt; 2.2e-16
+
+            Sensitivity : 0.87833
+            Specificity : 0.96315
+         Pos Pred Value : 0.74452
+         Neg Pred Value : 0.98479
+             Prevalence : 0.10894
+         Detection Rate : 0.09569
+   Detection Prevalence : 0.12852
+      Balanced Accuracy : 0.92074
+
+       &#39;Positive&#39; Class : 1</code></pre>
+<p><img src="../../img/plot_acc_smote.png" /><!-- --></p>
+<p>The balanced accuracy is higher, but unlike what I expected (and hoped), this model is worse in
+predicting class 1! I will be trying one last thing; since I have a lot of data at my disposal,
+I will simply sample 25000 observations where the target variable <code>looking</code> equals 1, and then sample
+another 25000 observations where the target variable equals 2 (without using <code>SMOTE()</code>). Then I’ll
+simply bind the rows and train the model on that:</p>
+<pre class="r"><code>reg_data = import(&quot;regression_data.rds&quot;)
+
+
+set.seed(1234)
+trainIndex = createDataPartition(reg_data$looking, p = 0.95,
+                                 list = FALSE,
+                                 times = 1)
+
+test_data = reg_data[-trainIndex, ]
+
+saveRDS(test_data, &quot;test_up_down.rds&quot;)
+
+
+# Balance training set
+train_data = reg_data[trainIndex, ]
+
+train_data1 = train_data %&gt;%
+  filter(looking == 1)
+
+set.seed(1234)
+train_data1 = sample_n(train_data1, 25000)
+
+
+train_data2 = train_data %&gt;%
+  filter(looking == 2)
+
+set.seed(1234)
+train_data2 = sample_n(train_data2, 25000)
+
+train_up_down = bind_rows(train_data1, train_data2)
+
+
+fitControl &lt;- trainControl(
+  method = &quot;repeatedcv&quot;,
+  number = 5,
+  repeats = 5)
+
+cl = makeCluster(detectCores())
+registerDoParallel(cl)
+
+fit_caret = train(looking ~ .,
+                  data = train_up_down,
+                  trControl = fitControl,
+                  preProcess = c(&quot;center&quot;, &quot;scale&quot;))
+
+saveRDS(fit_caret, &quot;model_up_down.rds&quot;)</code></pre>
+<p>And here are the results:</p>
+<pre class="r"><code>model_up_down = readRDS(&quot;model_up_down.rds&quot;)
+
+test_up_down = readRDS(&quot;test_up_down.rds&quot;)
+
+plot(model_up_down)
+
+preds = predict.train(model_up_down, newdata = test_up_down)
+
+confusionMatrix(preds, reference = test_up_down$looking)</code></pre>
+<pre class="r"><code>Confusion Matrix and Statistics
+
+Reference
+Prediction     1     2
+1  3403  1629
+2   386 29362
+
+Accuracy : 0.9421
+95% CI : (0.9396, 0.9445)
+    No Information Rate : 0.8911
+    P-Value [Acc &gt; NIR] : &lt; 2.2e-16
+
+                  Kappa : 0.7391
+ Mcnemar&#39;s Test P-Value : &lt; 2.2e-16
+
+            Sensitivity : 0.89813
+            Specificity : 0.94744
+         Pos Pred Value : 0.67627
+         Neg Pred Value : 0.98702
+             Prevalence : 0.10894
+         Detection Rate : 0.09784
+   Detection Prevalence : 0.14468
+      Balanced Accuracy : 0.92278
+
+       &#39;Positive&#39; Class : 1</code></pre>
+<p><img src="../../img/plot_acc_smote.png" /><!-- --></p>
+<p>Looks like it’s not much better than using <code>SMOTE()</code>!</p>
+<p>There are several ways I could achieve better predictions; tuning the model is one possibility,
+or perhaps going with another type of model altogether. I will certainly come back to this dataset
+in future blog posts!</p>
+<p>Using the best model, let’s take a look at which variables are the most important for predicting job search:</p>
+<pre class="r"><code>&gt; varImp(model_unbalanced)
+rf variable importance
+
+only 20 most important variables shown (out of 109)
+
+Overall
+rlabor3   100.0000
+rlabor6    35.2702
+age         6.3758
+rpincome    6.2964
+tmpabsnt1   5.8047
+rearning    5.3560
+week89      5.2863
+tmpabsnt2   4.0195
+yearsch     3.4892
+tmpabsnt3   1.7434
+work892     1.3231
+racewhite   0.9002
+class1      0.7866
+school2     0.7117
+yearwrk2    0.6970
+sex1        0.6955
+disabl12    0.6809
+lang12      0.6619
+rpob23      0.6507
+rspouse6    0.6330</code></pre>
+<p>It’s also possible to have a plot of the above:</p>
+<pre class="r"><code>plot(varImp(model_unbalanced))</code></pre>
+<p><img src="../../img/varimp.png" /><!-- --></p>
+<p>To make sense of this, we have to read the description of the features <a href="https://archive.ics.uci.edu/ml/machine-learning-databases/census1990-mld/USCensus1990raw.attributes.txt">here</a>.</p>
+<p><code>rlabor3</code> is the most important variable, and means that the individual is unemployed. <code>rlabor6</code>
+means not in the labour force. Then the age of the individual as well as the individual’s income
+play a role. <code>tmpabsnt</code> is a variable that equals 1 if the individual is temporary absent from work,
+due to a layoff. All these variables having an influence on the probability of looking
+for a job make sense, but looks like a very simple model focusing on just a couple of variables
+would make as good a job as the random forest.</p>
+<p>If you found this blog post useful, you might want to follow me on <a href="https://www.twitter.com/brodriguesco">twitter</a>
+for blog post updates.</p>
+
+      </div>
+    </div>
+  <div class="row">
+    <div class="col-lg-9 col-md-9 col-sm-8 col-lg-offset-3 col-md-offset-3">
+    <footer>
+  <div class="row">
+    <div class="col-lg-12">
+      <p>Copyright 2020. <a> Bruno Rodrigues</a> </p>
+      <p>Made with the HUGO theme <a href="https://github.com/adejoux/hugo-darkdoc-theme" rel="nofollow">darkdoc</a>.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+
+    </div>
+  </div>
+
+</div>
+</html>
+<script>
+
+  var api_url = '';
+
+</script>
+<script src="//code.jquery.com/jquery-2.2.3.min.js"></script>
+<script src="../../js/application.js"></script>
+<script type="text/javascript" src="../../js/jquery.fancybox.pack.js?v=2.1.5"></script>
+<script type="text/javascript" src="../../js/helpers/jquery.fancybox-thumbs.js?v=1.0.7"></script>
+<script type="text/javascript" src="../../js/helpers/jquery.fancybox-buttons.js?v=1.0.5"></script>
+<script type="text/javascript" src="../../js/helpers/jquery.fancybox-media.js?v=1.0.6"></script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $(".fancybox").fancybox();
+  });
+</script>
+

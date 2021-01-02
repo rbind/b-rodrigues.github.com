@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<style type=text/css>body{font-family:monospace;}</style>
+	<title>Getting {sparklyr}, {h2o}, {rsparkling} to work together and some fun with bash</title>
+	
+	
+	<link rel="stylesheet" href="/css/style.css">
+	
+	
+</head>
+<body>
+	<header>
+<p><a class="nav-link" href="/index.html">Econometrics and Free Software</a> by <a class="nav-link" href="/about/about">Bruno Rodrigues</a>.</p>
+<p>Follow me on <a href="https://twitter.com/brodriguesco" rel="nofollow">twitter</a>.</p>
+<p>Watch my <a href="https://www.youtube.com/user/cbrunos" rel="nofollow">youtube</a> channel.</p>
+</header>
+
+	
+	<main>
+		<article>
+			<h1>Getting {sparklyr}, {h2o}, {rsparkling} to work together and some fun with bash</h1>
+			<b><time>2018/03/03</time></b>
+		       
+		           <a href="/tags/r">R</a>
+        	       
+
+			<div>
+				<p>This is going to be the type of blog posts that would perhaps be better as a gist, but it is easier for me to use my blog as my own personal collection of gists. Plus, someone else might find this useful, so here it is! In this blog post I am going to show a little trick to randomly sample rows from a text file using bash, and then train a model using the <code>{h2o}</code> package. I will also use the <code>{rsparkling}</code> package. From <code>{rsparkling}</code>’s documentation: <em><code>{rsparkling}</code> is a package that provides an R interface to the <code>H2O</code> Sparkling Water machine learning library.</em> and will be needed to transfer the data from Spark to H2O.</p>
+<p>In a <a href="http://www.brodrigues.co/blog/2018-02-16-importing_30gb_of_data/">previous blog post</a> I used the <code>{sparklyr}</code> package to load a 30GB csv file into R. I created the file by combining around 300 csv files, each around 80MB big. Here, I would like to use the machine learning functions included in the <code>{h2o}</code> packages to train a random forest on this data. However, I only want to have a simple prototype that simply runs, and check if all the packages work well together. If everything is ok, I’ll keep iterating to make the model better (in a possible subsequent post).</p>
+<p>For fast prototyping, using 30GB of data is not a good idea, so I am going to sample 500000 from this file using the linux command line (works on macOS too and also on Windows if you installed the linux subsystem). Why not use R to sample 500000 rows? Because on my machine, loading the 30GB file takes 25 minutes. Sampling half a million lines from it would take quite long too. So here are some bash lines that do that directly on the file, without needing to load it into R beforehand:</p>
+<pre><code>[18-03-03 21:50] brodriguesco in /Documents/AirOnTimeCSV ➤ get_seeded_random()
+{
+  seed=&quot;$1&quot;
+  openssl enc -aes-256-ctr -pass pass:&quot;$seed&quot; -nosalt \
+  &lt;/dev/zero 2&gt;/dev/null
+}
+
+[18-03-03 21:50] brodriguesco in /Documents/AirOnTimeCSV ➤ sed &quot;1 d&quot; combined.csv | shuf --random-source=&lt;(get_seeded_random 42) -n 500000 &gt; small_combined_temp.csv
+
+[18-03-03 21:56] brodriguesco in /Documents/AirOnTimeCSV ➤ head -1 combined.csv &gt; colnames.csv
+
+[18-03-03 21:56] brodriguesco in /Documents/AirOnTimeCSV ➤ cat colnames.csv small_combined_temp.csv &gt; small_combined.csv</code></pre>
+<p>The first function I took from the <a href="https://www.gnu.org/software/coreutils/manual/html_node/Random-sources.html">gnu coreutils manual</a> which allows me to fix the random seed to reproduce the same sampling of the file. Then I use <code>&quot;sed 1 d&quot; cobmined.csv</code> to remove the first line of <code>combined.csv</code> which is the header of the file. Then, I pipe the result of <code>sed</code> using <code>|</code> to <code>shuf</code> which does the shuffling. The option <code>--random-source=&lt;(get_seeded_random 42)</code> fixes the seed, and <code>-n 500000</code> only shuffles 500000 and not the whole file. The final bit of the line, <code>&gt; small_combined_temp.csv</code>, saves the result to <code>small_cobmined_temp.csv</code>. Because I need to add back the header, I use <code>head -1</code> to extract the first line of <code>combined.csv</code> and save it into <code>colnames.csv</code>. Finally, I bind the rows of both files using <code>cat colnames.csv small_combined_temp.csv</code> and save the result into <code>small_combined.cvs</code>. Taken together, all these steps took about 5 minutes (without counting the googling around for finding how to pass a fixed seed to <code>shuf</code>).</p>
+<p>Now that I have this small dataset, I can write a small prototype:</p>
+<p>First, you need to install <code>{sparklyr}</code>, <code>{rsparkling}</code> and <code>{h2o}</code>. Refer to <a href="https://github.com/h2oai/rsparkling">this</a> to know how to install the packages. I had a mismatch between the version of H2O that was automatically installed when I installed the <code>{h2o}</code> package, and the version of Spark that <code>{sparklyr}</code> installed but thankfully the <code>{h2o}</code> package returns a very helpful error message with the following lines:</p>
+<pre><code>detach(&quot;package:rsparkling&quot;, unload = TRUE)
+                       if (&quot;package:h2o&quot; %in% search()) { detach(&quot;package:h2o&quot;, unload = TRUE) }
+                       if (isNamespaceLoaded(&quot;h2o&quot;)){ unloadNamespace(&quot;h2o&quot;) }
+                       remove.packages(&quot;h2o&quot;)
+                       install.packages(&quot;h2o&quot;, type = &quot;source&quot;, repos = &quot;https://h2o-release.s3.amazonaws.com/h2o/rel-weierstrass/2/R&quot;)</code></pre>
+<p>which tells you which version to install.</p>
+<p>So now, let’s load everything:</p>
+<pre class="r"><code>library(sparklyr)
+library(rsparkling)
+library(h2o)</code></pre>
+<pre><code>## 
+## ----------------------------------------------------------------------
+## 
+## Your next step is to start H2O:
+##     &gt; h2o.init()
+## 
+## For H2O package documentation, ask for help:
+##     &gt; ??h2o
+## 
+## After starting H2O, you can use the Web UI at http://localhost:54321
+## For more information visit http://docs.h2o.ai
+## 
+## ----------------------------------------------------------------------</code></pre>
+<pre><code>## 
+## Attaching package: &#39;h2o&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:stats&#39;:
+## 
+##     cor, sd, var</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     &amp;&amp;, %*%, %in%, ||, apply, as.factor, as.numeric, colnames,
+##     colnames&lt;-, ifelse, is.character, is.factor, is.numeric, log,
+##     log10, log1p, log2, round, signif, trunc</code></pre>
+<pre class="r"><code>h2o.init()</code></pre>
+<pre><code>## 
+## H2O is not running yet, starting it now...
+## 
+## Note:  In case of errors look at the following log files:
+##     /tmp/Rtmph48vf9/h2o_cbrunos_started_from_r.out
+##     /tmp/Rtmph48vf9/h2o_cbrunos_started_from_r.err
+## 
+## 
+## Starting H2O JVM and connecting: .. Connection successful!
+## 
+## R is connected to the H2O cluster: 
+##     H2O cluster uptime:         1 seconds 944 milliseconds 
+##     H2O cluster version:        3.16.0.2 
+##     H2O cluster version age:    4 months and 15 days !!! 
+##     H2O cluster name:           H2O_started_from_R_cbrunos_bpn152 
+##     H2O cluster total nodes:    1 
+##     H2O cluster total memory:   6.98 GB 
+##     H2O cluster total cores:    12 
+##     H2O cluster allowed cores:  12 
+##     H2O cluster healthy:        TRUE 
+##     H2O Connection ip:          localhost 
+##     H2O Connection port:        54321 
+##     H2O Connection proxy:       NA 
+##     H2O Internal Security:      FALSE 
+##     H2O API Extensions:         XGBoost, Algos, AutoML, Core V3, Core V4 
+##     R Version:                  R version 3.4.4 (2018-03-15)</code></pre>
+<pre><code>## Warning in h2o.clusterInfo(): 
+## Your H2O cluster version is too old (4 months and 15 days)!
+## Please download and install the latest version from http://h2o.ai/download/</code></pre>
+<p>I left all the startup messages because they’re quite helpful. Especially that bit telling you to start <code>H2O</code> with <code>h2o.init()</code>. If something’s wrong, <code>h2o.init()</code> will give you helpful information.</p>
+<p>Now that all this is loaded, I can start working on the data (the steps below are explained in detail in my <a href="http://www.brodrigues.co/blog/2018-02-16-importing_30gb_of_data/">previous blog post</a>):</p>
+<pre><code>spark_dir = &quot;/my_2_to_disk/spark/&quot;
+
+config = spark_config()
+
+config$`sparklyr.shell.driver-memory` &lt;- &quot;4G&quot;
+config$`sparklyr.shell.executor-memory` &lt;- &quot;4G&quot;
+config$`spark.yarn.executor.memoryOverhead` &lt;- &quot;512&quot;
+config$`sparklyr.shell.driver-java-options` = paste0(&quot;-Djava.io.tmpdir=&quot;, spark_dir)
+
+sc = spark_connect(master = &quot;local&quot;, config = config)</code></pre>
+<p>Another useful function that allows you to check if everything is alright is <code>h2o_context()</code>:</p>
+<pre><code>h2o_context(sc)</code></pre>
+<pre><code>&lt;jobj[12]&gt;
+  org.apache.spark.h2o.H2OContext
+
+Sparkling Water Context:
+ * H2O name: sparkling-water-cbrunos_local-1520111879840
+ * cluster size: 1
+ * list of used nodes:
+  (executorId, host, port)
+  ------------------------
+  (driver,127.0.0.1,54323)
+  ------------------------
+
+  Open H2O Flow in browser: http://127.0.0.1:54323 (CMD + click in Mac OSX)
+</code></pre>
+<p>Now, let’s load the data into R with <code>{sparklyr}</code>:</p>
+<pre><code>air = spark_read_csv(sc, name = &quot;air&quot;, path = &quot;small_combined.csv&quot;)</code></pre>
+<p>Of course, here, using Spark is overkill, because <code>small_combined.csv</code> is only around 100MB big, so no need for <code>{sparklyr}</code> but as stated in the beginning this is only to have a quick and dirty prototype. Once all the pieces are working together, I can iterate on the real data, for which <code>{sparklyr}</code> will be needed. Now, if I needed to use <code>{dplyr}</code> I could use it on <code>air</code>, but I don’t want to do anything on it, so I convert it to a <code>h2o</code> data frame. <code>h2o</code> data frames are needed as arguments for the machine learning algorithms included in the <code>{h2o}</code> package. <code>as_h2o_frame()</code> is a function included in <code>{rsparkling}</code>:</p>
+<pre><code>air_hf = as_h2o_frame(sc, air)</code></pre>
+<p>Then, I convert the columns I need to factors (I am only using factors here):</p>
+<pre><code>air_hf$ORIGIN = as.factor(air_hf$ORIGIN)
+air_hf$UNIQUE_CARRIER = as.factor(air_hf$UNIQUE_CARRIER)
+air_hf$DEST = as.factor(air_hf$DEST)</code></pre>
+<p><code>{h2o}</code> functions need the names of the predictors and of the target columns, so let’s define that:</p>
+<pre><code>target = &quot;ARR_DELAY&quot;
+predictors = c(&quot;UNIQUE_CARRIER&quot;, &quot;ORIGIN&quot;, &quot;DEST&quot;)</code></pre>
+<p>Now, let’s train a random Forest, without any hyper parameter tweaking:</p>
+<pre><code>model = h2o.randomForest(predictors, target, training_frame = air_hf)</code></pre>
+<p>Now that this runs, I will in the future split the data into training, validation and test set, and train a model with better hyper parameters. For now, let’s take a look at the summary of <code>model</code>:</p>
+<pre><code>summary(model)</code></pre>
+<pre><code>Model Details:
+==============
+
+H2ORegressionModel: drf
+Model Key:  DRF_model_R_1520111880605_1
+Model Summary:
+  number_of_trees number_of_internal_trees model_size_in_bytes min_depth
+1              50                       50            11055998        20
+  max_depth mean_depth min_leaves max_leaves mean_leaves
+1        20   20.00000       1856       6129  4763.42000
+
+H2ORegressionMetrics: drf
+** Reported on training data. **
+** Metrics reported on Out-Of-Bag training samples **
+
+MSE:  964.9246
+RMSE:  31.06324
+MAE:  17.65517
+RMSLE:  NaN
+Mean Residual Deviance :  964.9246
+
+
+
+
+
+Scoring History:
+             timestamp   duration number_of_trees training_rmse training_mae
+1  2018-03-03 22:52:24  0.035 sec               0
+2  2018-03-03 22:52:25  1.275 sec               1      30.93581     17.78216
+3  2018-03-03 22:52:25  1.927 sec               2      31.36998     17.78867
+4  2018-03-03 22:52:26  2.272 sec               3      31.36880     17.80359
+5  2018-03-03 22:52:26  2.564 sec               4      31.29683     17.79467
+6  2018-03-03 22:52:26  2.854 sec               5      31.31226     17.79467
+7  2018-03-03 22:52:27  3.121 sec               6      31.26214     17.78542
+8  2018-03-03 22:52:27  3.395 sec               7      31.20749     17.75703
+9  2018-03-03 22:52:27  3.666 sec               8      31.19706     17.74753
+10 2018-03-03 22:52:27  3.935 sec               9      31.16108     17.73547
+11 2018-03-03 22:52:28  4.198 sec              10      31.13725     17.72493
+12 2018-03-03 22:52:32  8.252 sec              27      31.07608     17.66648
+13 2018-03-03 22:52:36 12.462 sec              44      31.06325     17.65474
+14 2018-03-03 22:52:38 14.035 sec              50      31.06324     17.65517
+   training_deviance
+1
+2          957.02450
+3          984.07580
+4          984.00150
+5          979.49147
+6          980.45794
+7          977.32166
+8          973.90720
+9          973.25655
+10         971.01272
+11         969.52856
+12         965.72249
+13         964.92530
+14         964.92462
+
+Variable Importances: (Extract with `h2o.varimp`)
+=================================================
+
+Variable Importances:
+        variable relative_importance scaled_importance percentage
+1         ORIGIN    291883392.000000          1.000000   0.432470
+2           DEST    266749168.000000          0.913890   0.395230
+3 UNIQUE_CARRIER    116289536.000000          0.398411   0.172301
+&gt;</code></pre>
+<p>If you found this blog post useful, you might want to follow me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates.</p>
+
+			</div>
+		</article>
+	</main>
+<aside>
+	<div>
+		<div>
+			<h3>LATEST POSTS</h3>
+		</div>
+		<div>
+			<ul>
+				
+				<li><a href="/post/2020-12-30-year_review/">A year in review</a></li>
+				
+				<li><a href="/post/2020-12-12-ethics_statistics/">(Half) Lies, (half) truths and (half) statistics</a></li>
+				
+				<li><a href="/post/2020-12-05-poorman_translate/">Poorman&#39;s automated translation with R and Google Sheets using {googlesheets4}</a></li>
+				
+				<li><a href="/post/2020-11-21-guis_mistake/">Graphical User Interfaces were a mistake but you can still make things right</a></li>
+				
+				<li><a href="/post/2020-11-05-retire_data_science/">It&#39;s time to retire the &#34;data scientist&#34; label</a></li>
+				
+			</ul>
+		</div>
+	</div>
+</aside>
+
+
+	<footer>
+  <div class="row">
+    <div class="col-lg-12">
+      <p>2021, content by Bruno Rodrigues, unless otherwise stated, every content of this blog is licensed under the <a href="http://www.wtfpl.net/txt/copying/" rel="nofollow">WTFPL</a>.</p>
+      <p>The theme this blog uses is a slight variation of the <a href="https://github.com/colorchestra/smol" rel="nofollow">Smol</a> theme.</p>
+      <p><a class="nav-link" href="/index.html">Back to main page.</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

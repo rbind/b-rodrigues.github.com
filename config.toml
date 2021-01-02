@@ -1,45 +1,44 @@
-baseurl = "http://www.brodrigues.co/"
-relativeurls = true
+theme = "smol"
+baseURL = "http://example.org/"
 languageCode = "en-us"
 title = "Econometrics and Free Software"
-theme = "hugo-darkdoc-theme"
-googleAnalytics = ""
-disqusShortname = ""
-ignoreFiles = ["\\.Rmd$", "_files$", "_cache$"]
-
-[social]
-  youtube = "BrunoRodrigues1988"
-	github  = "b-rodrigues"
-	twitter  = "brodriguesco"
-
-[permalinks]
-    post = "/:year/:month/:day/:slug/"
-
-[[menu.main]]
-    name = "About Me"
-    url = "/about/"
-[[menu.main]]
-    name = "Blog"
-    url = "/blog/"
-
-[taxonomies]
-    tag = "tags"
-    category = "categories"
-    series = "series"
-
+# Parameters
 [params]
-    description = "A blog about econometrics, free software, and R"
-    author = "Bruno Rodrigues"
-    email = "contact@brodrigues.co"
+    subtitle = "Actually, it's mostly R."
+    dateFmt = "2006/01/02"
 
-    # options for highlight.js (version, additional languages, and theme)
-    highlightjsVersion = "9.9.0"
-    highlightjsLang = ["r", "yaml"]
-    highlightjsTheme = "github"
+# Header
+[menu]
+  [[menu.main]]
+        identifier = "blog"
+        name = "Blog"
+        url = "/blog/"
+        weight = 1 
 
-    [params.logo]
-    url = "logo.png"
-    width = 50
-    height = 50
-    alt = "Logo"
+  [[menu.main]]
+        identifier = "categories"
+        name = "Categories"
+        url = "/categories/"
+        weight = 2 
 
+  [[menu.main]]
+        identifier = "tags"
+        name = "Tags"
+        url = "/tags/"
+        weight = 3
+
+# Footer
+  [[menu.footer]]
+        name = "Github"
+        url = "https://github.com/example"
+        weight = 1 
+
+    [[menu.footer]]
+        name = "Mastodon"
+        url = "https://example.com/@user"
+        weight = 2 
+
+    [[menu.footer]]
+        name = "Imprint"
+        url = "/imprint"
+        weight = 3 

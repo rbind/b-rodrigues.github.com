@@ -1,0 +1,3 @@
+"0","predictions <- test_data %>% "
+"0","    bind_cols(predictions) %>% "
+"0","    select(PassengerId, Survived)"

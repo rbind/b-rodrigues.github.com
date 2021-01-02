@@ -1,0 +1,314 @@
+---
+date: 2019-08-14
+title: "Using linear models with binary dependent variables, a simulation study"
+tags: [R]
+menu:
+  main:
+    parent: Blog
+    identifier: /blog/lpm
+    weight: 1
+---
+
+<div style="text-align:center;">
+  <a href="https://psyarxiv.com/4gmbv">
+    <img src="/img/illegal.png" title = "Even psychologists are not safe" width="800" height="612"></a>
+</div>
+
+This blog post is an excerpt of my ebook Modern R with the tidyverse that you can read for free 
+[here](https://b-rodrigues.github.io/modern_R/functional-programming.html#modeling-with-functional-programming). 
+This is taken from Chapter 8, in which I discuss advanced functional programming methods for 
+modeling.
+
+```{r, include=FALSE}
+library(tidyverse)
+```
+
+
+As written just above (note: as written above *in the book*), `map()` simply applies a function 
+to a list of inputs, and in the previous
+section we mapped `ggplot()` to generate many plots at once. This approach can also be used to 
+map any modeling functions, for instance `lm()` to a list of datasets.
+
+For instance, suppose that you wish to perform a Monte Carlo simulation. Suppose that you are 
+dealing with a binary choice problem; usually, you would use a logistic regression for this.
+
+However, in certain disciplines, especially in the social sciences, the so-called Linear Probability 
+Model is often used as well. The LPM is a simple linear regression, but unlike the standard setting
+of a linear regression, the dependent variable, or target, is a binary variable, and not a continuous
+variable. Before you yell "Wait, that's illegal", you should know that in practice LPMs do a good 
+job of estimating marginal effects, which is what social scientists and econometricians are often
+interested in. Marginal effects are another way of interpreting models, giving how the outcome 
+(or the target) changes given a change in a independent variable (or a feature). For instance,
+a marginal effect of 0.10 for age would mean that probability of success would increase by 10% for
+each added year of age.
+
+There has been a lot of discussion on logistic regression vs LPMs, and there are pros and cons
+of using LPMs. Micro-econometricians are still fond of LPMs, even though the pros of LPMs are 
+not really convincing. However, quoting Angrist and Pischke:
+
+"While a nonlinear model may fit the CEF (population conditional expectation function) for LDVs
+(limited dependent variables) more closely than a linear model, when it comes to marginal effects,
+this probably matters little" (source: *Mostly Harmless Econometrics*)
+
+so LPMs are still used for estimating marginal effects.
+
+Let us check this assessment with one example. First, we simulate some data, then 
+run a logistic regression and compute the marginal effects, and then compare with a LPM:
+
+```{r}
+set.seed(1234)
+x1 <- rnorm(100)
+x2 <- rnorm(100)
+  
+z <- .5 + 2*x1 + 4*x2
+
+p <- 1/(1 + exp(-z))
+
+y <- rbinom(100, 1, p)
+
+df <- tibble(y = y, x1 = x1, x2 = x2)
+```
+
+This data generating process generates data from a binary choice model. Fitting the model using a 
+logistic regression allows us to recover the structural parameters:
+
+```{r}
+logistic_regression <- glm(y ~ ., data = df, family = binomial(link = "logit"))
+```
+
+Let's see a summary of the model fit:
+
+```{r}
+summary(logistic_regression)
+```
+
+We do recover the parameters that generated the data, but what about the marginal effects? We can
+get the marginal effects easily using the `{margins}` package:
+
+```{r}
+library(margins)
+
+margins(logistic_regression)
+```
+
+Or, even better, we can compute the *true* marginal effects, since we know the data 
+generating process:
+
+```{r}
+meffects <- function(dataset, coefs){
+  X <- dataset %>% 
+  select(-y) %>% 
+  as.matrix()
+  
+  dydx_x1 <- mean(dlogis(X%*%c(coefs[2], coefs[3]))*coefs[2])
+  dydx_x2 <- mean(dlogis(X%*%c(coefs[2], coefs[3]))*coefs[3])
+  
+  tribble(~term, ~true_effect,
+          "x1", dydx_x1,
+          "x2", dydx_x2)
+}
+
+(true_meffects <- meffects(df, c(0.5, 2, 4)))
+```
+
+Ok, so now what about using this infamous Linear Probability Model to estimate the marginal effects?
+
+```{r}
+lpm <- lm(y ~ ., data = df)
+
+summary(lpm)
+```
+
+It's not too bad, but maybe it could have been better in other circumstances. Perhaps if we had more
+observations, or perhaps for a different set of structural parameters the results of the LPM
+would have been closer. The LPM estimates the marginal effect of `x1` to be 
+`r summary(lpm)$coefficients[2]` vs `r mean(marginal_effects(logistic_regression)$dydx_x1)`
+for the logistic regression and for `x2`, the LPM estimation is `r summary(lpm)$coefficients[3]` 
+vs `r mean(marginal_effects(logistic_regression)$dydx_x2)`. The *true* marginal effects are 
+`r true_meffects$true_effect[1]` and `r true_meffects$true_effect[2]` for `x1` and `x2` respectively.
+
+Just as to assess the accuracy of a model data scientists perform cross-validation, a Monte Carlo
+study can be performed to asses how close the estimation of the marginal effects using a LPM is 
+to the marginal effects derived from a logistic regression. It will allow us to test with datasets
+of different sizes, and generated using different structural parameters.
+
+First, let's write a function that generates data. The function below generates 10 datasets of size 
+100 (the code is inspired by this [StackExchange answer](https://stats.stackexchange.com/a/46525)):
+
+```{r}
+generate_datasets <- function(coefs = c(.5, 2, 4), sample_size = 100, repeats = 10){
+
+  generate_one_dataset <- function(coefs, sample_size){
+  x1 <- rnorm(sample_size)
+  x2 <- rnorm(sample_size)
+  
+  z <- coefs[1] + coefs[2]*x1 + coefs[3]*x2
+
+  p <- 1/(1 + exp(-z))
+
+  y <- rbinom(sample_size, 1, p)
+
+  df <- tibble(y = y, x1 = x1, x2 = x2)
+  }
+
+  simulations <- rerun(.n = repeats, generate_one_dataset(coefs, sample_size))
+ 
+  tibble("coefs" = list(coefs), "sample_size" = sample_size, "repeats" = repeats, "simulations" = list(simulations))
+}
+```
+
+Let's first generate one dataset:
+
+```{r}
+one_dataset <- generate_datasets(repeats = 1)
+```
+
+Let's take a look at `one_dataset`:
+
+```{r}
+one_dataset
+```
+
+As you can see, the tibble with the simulated data is inside a list-column called `simulations`.
+Let's take a closer look:
+
+```{r}
+str(one_dataset$simulations)
+```
+
+The structure is quite complex, and it's important to understand this, because it will have an
+impact on the next lines of code; it is a list, containing a list, containing a dataset! No worries
+though, we can still map over the datasets directly, by using `modify_depth()` instead of `map()`.
+
+Now, let's fit a LPM and compare the estimation of the marginal effects with the *true* marginal
+effects. In order to have some confidence in our results, 
+we will not simply run a linear regression on that single dataset, but will instead simulate hundreds, 
+then thousands and ten of thousands of data sets, get the marginal effects and compare 
+them to the true ones (but here I won't simulate more than 500 datasets).
+
+Let's first generate 10 datasets:
+
+```{r}
+many_datasets <- generate_datasets()
+```
+
+Now comes the tricky part. I have this object, `many_datasets` looking like this:
+
+```{r}
+many_datasets
+```
+
+I would like to fit LPMs to the 10 datasets. For this, I will need to use all the power of functional
+programming and the `{tidyverse}`. I will be adding columns to this data frame using `mutate()`
+and mapping over the `simulations` list-column using `modify_depth()`. The list of data frames is
+at the second level (remember, it's a list containing a list containing data frames).
+
+I'll start by fitting the LPMs, then using `broom::tidy()` I will get a nice data frame of the 
+estimated parameters. I will then only select what I need, and then bind the rows of all the 
+data frames. I will do the same for the *true* marginal effects.
+
+I highly suggest that you run the following lines, one after another. It is complicated to understand
+what's going on if you are not used to such workflows. However, I hope to convince you that once
+it will click, it'll be much more intuitive than doing all this inside a loop. Here's the code:
+
+```{r}
+results <- many_datasets %>% 
+  mutate(lpm = modify_depth(simulations, 2, ~lm(y ~ ., data = .x))) %>% 
+  mutate(lpm = modify_depth(lpm, 2, broom::tidy)) %>% 
+  mutate(lpm = modify_depth(lpm, 2, ~select(., term, estimate))) %>% 
+  mutate(lpm = modify_depth(lpm, 2, ~filter(., term != "(Intercept)"))) %>% 
+  mutate(lpm = map(lpm, bind_rows)) %>% 
+  mutate(true_effect = modify_depth(simulations, 2, ~meffects(., coefs = coefs[[1]]))) %>% 
+  mutate(true_effect = map(true_effect, bind_rows))
+```
+
+This is how results looks like:
+
+```{r}
+results
+```
+
+Let's take a closer look to the `lpm` and `true_effect` columns:
+
+```{r}
+results$lpm
+
+results$true_effect
+```
+
+Let's bind the columns, and compute the difference between the *true* and estimated marginal 
+effects:
+
+```{r}
+simulation_results <- results %>% 
+  mutate(difference = map2(.x = lpm, .y = true_effect, bind_cols)) %>% 
+  mutate(difference = map(difference, ~mutate(., difference = true_effect - estimate))) %>% 
+  mutate(difference = map(difference, ~select(., term, difference))) %>% 
+  pull(difference) %>% 
+  .[[1]]
+```
+
+Let's take a look at the simulation results:
+
+```{r}
+simulation_results %>% 
+  group_by(term) %>% 
+  summarise(mean = mean(difference), 
+            sd = sd(difference))
+```
+
+Already with only 10 simulated datasets, the difference in means is not significant. Let's rerun
+the analysis, but for difference sizes. In order to make things easier, we can put all the code
+into a nifty function:
+
+```{r}
+monte_carlo <- function(coefs, sample_size, repeats){
+  many_datasets <- generate_datasets(coefs, sample_size, repeats)
+  
+  results <- many_datasets %>% 
+    mutate(lpm = modify_depth(simulations, 2, ~lm(y ~ ., data = .x))) %>% 
+    mutate(lpm = modify_depth(lpm, 2, broom::tidy)) %>% 
+    mutate(lpm = modify_depth(lpm, 2, ~select(., term, estimate))) %>% 
+    mutate(lpm = modify_depth(lpm, 2, ~filter(., term != "(Intercept)"))) %>% 
+    mutate(lpm = map(lpm, bind_rows)) %>% 
+    mutate(true_effect = modify_depth(simulations, 2, ~meffects(., coefs = coefs[[1]]))) %>% 
+    mutate(true_effect = map(true_effect, bind_rows))
+
+  simulation_results <- results %>% 
+    mutate(difference = map2(.x = lpm, .y = true_effect, bind_cols)) %>% 
+    mutate(difference = map(difference, ~mutate(., difference = true_effect - estimate))) %>% 
+    mutate(difference = map(difference, ~select(., term, difference))) %>% 
+    pull(difference) %>% 
+    .[[1]]
+
+  simulation_results %>% 
+    group_by(term) %>% 
+    summarise(mean = mean(difference), 
+              sd = sd(difference))
+}
+```
+
+And now, let's run the simulation for different parameters and sizes:
+
+```{r}
+monte_carlo(c(.5, 2, 4), 100, 10)
+monte_carlo(c(.5, 2, 4), 100, 100)
+monte_carlo(c(.5, 2, 4), 100, 500)
+
+monte_carlo(c(pi, 6, 9), 100, 10)
+monte_carlo(c(pi, 6, 9), 100, 100)
+monte_carlo(c(pi, 6, 9), 100, 500)
+```
+
+We see that, at least for this set of parameters, the LPM does a good job of estimating marginal 
+effects.
+
+Now, this study might in itself not be very interesting to you, but I believe the general approach
+is quite useful and flexible enough to be adapted to all kinds of use-cases.
+
+Hope you enjoyed! If you found this blog post useful, you might want to follow 
+me on [twitter](https://www.twitter.com/brodriguesco) for blog post updates and 
+[buy me an espresso](https://www.buymeacoffee.com/brodriguesco) or [paypal.me](https://www.paypal.me/brodriguesco).
+
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a>
+

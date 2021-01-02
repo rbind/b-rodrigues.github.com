@@ -1,0 +1,26 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1565813445437.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2233038055",
+    "id" : "4D6A3205",
+    "lastKnownWriteTime" : 1565819066,
+    "last_content_update" : 1565819066255,
+    "path" : "~/Documents/b-rodrigues.github.com/content/blog/2019-08-14-lpm.Rmd",
+    "project_path" : "content/blog/2019-08-14-lpm.Rmd",
+    "properties" : {
+        "cursorPosition" : "0,0",
+        "marks" : "<:0,0\n>:15,-1",
+        "scrollLine" : "0"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}
