@@ -19,6 +19,10 @@
       <description>&lt;p&gt;My name is Bruno Rodrigues and hold a PhD in Economics from the
 &lt;a href=&#34;http://www.unistra.fr&#34;&gt;University of Strasbourg&lt;/a&gt;.&lt;/p&gt;
 
+&lt;div style=&#34;float: left;margin: 0px 80px 50px 0px&#34;&gt;
+    &lt;img src=&#34;/img/profile.webp&#34; width=&#34;400&#34; height=&#34;400&#34;/&gt;
+&lt;/div&gt;
+
 &lt;p&gt;I&amp;rsquo;m currently employed as a statistician for the Ministry of Higher Education and Research in
 Luxembourg. Before that I was senior data scientist and then manager in the data science team
 at PwC Luxembourg, and before that I was a research assistant at &lt;a href=&#34;http://www.statistiques.public.lu/en/actors/statec/organisation/red/&#34;&gt;STATEC Research&lt;/a&gt;.&lt;/p&gt;

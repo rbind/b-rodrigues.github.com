@@ -10,6 +10,11 @@ menu:
 My name is Bruno Rodrigues and hold a PhD in Economics from the 
 [University of Strasbourg](http://www.unistra.fr).
 
+<div style="float: left;margin: 0px 80px 50px 0px">
+    <img src="/img/profile.webp" width="400" height="400"/>
+</div>
+
+
 I'm currently employed as a statistician for the Ministry of Higher Education and Research in 
 Luxembourg. Before that I was senior data scientist and then manager in the data science team 
 at PwC Luxembourg, and before that I was a research assistant at [STATEC Research](http://www.statistiques.public.lu/en/actors/statec/organisation/red/).
