@@ -539,10 +539,6 @@
   
   <url>
     <loc>/about/</loc>
-  </url>
-  
-  <url>
-    <loc>/about/</loc>
     <priority>0</priority>
   </url>
   
