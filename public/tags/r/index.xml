@@ -6,10 +6,363 @@
     <description>Recent content in R on Econometrics and Free Software</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Wed, 30 Dec 2020 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Sat, 06 Feb 2021 00:00:00 +0000</lastBuildDate>
     
         <atom:link href="/tags/r/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>How to draw a map of arbitrary contiguous regions, or visualizing the spread of COVID-19 in the Greater Region</title>
+      <link>/blog/2021-02-06-echarts_map/</link>
+      <pubDate>Sat, 06 Feb 2021 00:00:00 +0000</pubDate>
+      
+      <guid>/blog/2021-02-06-echarts_map/</guid>
+      <description>&lt;script src=&#34;/rmarkdown-libs/header-attrs/header-attrs.js&#34;&gt;&lt;/script&gt;
+&lt;link href=&#34;/rmarkdown-libs/anchor-sections/anchor-sections.css&#34; rel=&#34;stylesheet&#34; /&gt;
+&lt;script src=&#34;/rmarkdown-libs/anchor-sections/anchor-sections.js&#34;&gt;&lt;/script&gt;
+
+
+&lt;div style=&#34;text-align:center;&#34;&gt;
+&lt;p&gt;&lt;a href=&#34;https://happy-newton-bf63ad.netlify.app/&#34;&gt;
+&lt;img src=&#34;/img/covidGrandeRegion.gif&#34; title = &#34;Click to go to visualisations&#34;&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;introduction&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;I was able to blog during the year 2020 without mentioning the ongoing pandemic once. It’s not that I made
+any conscious effort not to talk about it, but I did not really want to do something that had already
+been done a 1000 times. This changed this year, when I wanted to look at the spread of
+COVID-19, not only in the Grand-Duchy of Luxembourg, the country I live in, but also among our
+neighbours. You see, the Grand-Duchy of Luxembourg is like an island, but instead of being surrounded
+by water, it’s surrounded by Belgians, Germans and Frenchmen. Many of them commute every day to Luxembourg
+to work, and even though they technically don’t live inside the country, many aspects of their
+lives happen inside Luxembourguish borders. Their children might even come to school here, and sometimes
+they live so close by the border, that they can catch Luxembourguish public transportation in their
+towns. 200k commuters from Belgium, Germany and France work here every day. That’s half our
+workforce! So that’s why I thought that it would make sense to look at the spread of the disease
+at the level of the so-called &lt;em&gt;Greater Region&lt;/em&gt;. This &lt;em&gt;Greater Region&lt;/em&gt; is made up of the Grand-Duchy
+of Luxembourg, the Provinces of Liège and Luxembourg in Belgium (hence why I keep writing the
+&lt;em&gt;Grand-Duchy of&lt;/em&gt; Luxembourg to refer to the country, and the &lt;em&gt;Province of Luxembourg&lt;/em&gt; to refer
+to the Belgian province of the same name), and two German &lt;em&gt;Länders&lt;/em&gt;, the Saarland and
+the Rhineland-Palatinate. Confused? Welcome to Europe, where supranational institutions
+literally have to have a page entitled &lt;a href=&#34;https://www.coe.int/en/web/about-us/do-not-get-confused&#34;&gt;Do not get confused&lt;/a&gt;
+so that citizens don’t get lost (we still do).&lt;/p&gt;
+&lt;p&gt;So the Greater Region is not a state, but facilitates collaboration between the regions comprising
+it. To me, technically a citizen of the Greater Region, it feels like there was a want to &lt;strong&gt;peacefully&lt;/strong&gt; correct
+for the randomness of history, where German-speaking regions ended up in both France and Belgium,
+and where Belgium and Luxembourg, well, somehow became independent countries.&lt;/p&gt;
+&lt;p&gt;Anyways, what I wanted to do was to first of all get the COVID-19 daily cases data for each of these
+regions. I did that, and even created a package called &lt;code&gt;{covidGrandeRegion}&lt;/code&gt; hosted
+&lt;a href=&#34;https://github.com/b-rodrigues/covidGrandeRegion&#34;&gt;here&lt;/a&gt; that makes it very easy to download the
+latest data for the Greater Region. I will write another blog post about it, I have something
+in mind that I wanted to try for some time, and this was the first step.
+Then I thought that adding a function that would create a map could also be nice. And this is
+where the technical aspect of this blog post starts.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;the-problems-to-map-the-greater-region&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;The problems to map the Greater Region&lt;/h2&gt;
+&lt;p&gt;So how do you draw a map for an arbitrary landmass like the Greater Region? I wanted to draw the
+maps using &lt;code&gt;{echarts4r}&lt;/code&gt;, and there’s a very easy &lt;a href=&#34;https://echarts4r.john-coene.com/articles/make-geo-json.html&#34;&gt;guide you can read&lt;/a&gt;.
+If you want to draw a map for one, or several, countries, this guide is all you need. But I wanted
+a map with only parts of France, Belgium and Germany. The only complete country was Luxembourg.
+So the first problem was how to get only parts of a country. The second problem, is that I had
+daily covid cases for the lowest administrative levels for France (which are &lt;em&gt;Départements&lt;/em&gt;),
+Belgium (the &lt;em&gt;Provinces&lt;/em&gt;) and Germany (&lt;em&gt;Land-&lt;/em&gt; and &lt;em&gt;Stadtkreise&lt;/em&gt;). But for the Grand-Duchy of Luxembourg,
+there’s only data at the level of the country. So this would be another problem. How to draw a map
+with unequal levels of precision?
+One final problem: the names of the administrative divisions in my covid datasets are not the same
+than the ones that get downloaded if you follow the guide I linked before. So I had to rename
+them as well.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;the-solutions&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;The solutions&lt;/h2&gt;
+&lt;p&gt;Let’s first start by following the guide, so loading the packages, and getting the maps I need:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(echarts4r)
+library(sp)
+library(raster)
+library(geojsonio)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;france_dep &amp;lt;- getData(&amp;quot;GADM&amp;quot;, country = &amp;quot;FRANCE&amp;quot;, level = 2)
+
+ger_kreise &amp;lt;- getData(&amp;quot;GADM&amp;quot;, country = &amp;quot;GERMANY&amp;quot;, level = 2)
+
+be_province &amp;lt;- getData(&amp;quot;GADM&amp;quot;, country = &amp;quot;BELGIUM&amp;quot;, level = 2)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The above lines of code load the required packages, and download the maps for France, Belgium
+and Germany with the required administrative level I need. I’ll leave Luxembourg for last.&lt;/p&gt;
+&lt;p&gt;Let’s take a look at what type of object we’re dealing with:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;class(france_dep)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;SpatialPolygonsDataFrame&amp;quot;
+## attr(,&amp;quot;package&amp;quot;)
+## [1] &amp;quot;sp&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;So it seems to be something like a data frame, but probably more complex. Looking for some help
+online, I saw that you can coerce it to a data frame:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;as.data.frame(be_province)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##    GID_0  NAME_0   GID_1     NAME_1 NL_NAME_1     GID_2          NAME_2
+## 1    BEL Belgium BEL.1_1  Bruxelles      &amp;lt;NA&amp;gt; BEL.1.1_1       Bruxelles
+## 2    BEL Belgium BEL.2_1 Vlaanderen      &amp;lt;NA&amp;gt; BEL.2.1_1       Antwerpen
+## 3    BEL Belgium BEL.2_1 Vlaanderen      &amp;lt;NA&amp;gt; BEL.2.2_1         Limburg
+## 4    BEL Belgium BEL.2_1 Vlaanderen      &amp;lt;NA&amp;gt; BEL.2.3_1 Oost-Vlaanderen
+## 5    BEL Belgium BEL.2_1 Vlaanderen      &amp;lt;NA&amp;gt; BEL.2.4_1  Vlaams Brabant
+## 6    BEL Belgium BEL.2_1 Vlaanderen      &amp;lt;NA&amp;gt; BEL.2.5_1 West-Vlaanderen
+## 7    BEL Belgium BEL.3_1   Wallonie      &amp;lt;NA&amp;gt; BEL.3.1_1  Brabant Wallon
+## 8    BEL Belgium BEL.3_1   Wallonie      &amp;lt;NA&amp;gt; BEL.3.2_1         Hainaut
+## 9    BEL Belgium BEL.3_1   Wallonie      &amp;lt;NA&amp;gt; BEL.3.3_1           Liège
+## 10   BEL Belgium BEL.3_1   Wallonie      &amp;lt;NA&amp;gt; BEL.3.4_1      Luxembourg
+## 11   BEL Belgium BEL.3_1   Wallonie      &amp;lt;NA&amp;gt; BEL.3.5_1           Namur
+##                                                                                                             VARNAME_2
+## 1  Brussel Hoofstadt|Brusselse Hoofdstedelijke Gewest|Brüssel|Bruxelas|Région de Bruxelles-Capitale|Brussels|Bruselas
+## 2                                                                            Amberes|Antuérpia|Antwerp|Anvers|Anversa
+## 3                                                                                                   Limbourg|Limburgo
+## 4                   Flandres Oriental|Fiandra Orientale|Flandes Oriental|Flandre orientale|East Flanders|Ost Flandern
+## 5                                                 Brabant Flamand|Brabante Flamenco|Brabante Flamengo|Flemish Brabant
+## 6           Fiandra Occidentale|Flandes Occidental|Flandre occidentale|Flandres Ocidental|West Flandern|West Flanders
+## 7                                                                                       Waals Brabant|Walloon Brabant
+## 8                                                                                                 Henegouwen|Hennegau
+## 9                                                                                            Luik|Liegi|Lieja|Lüttich
+## 10                                                                                   Lussemburgo|Luxemburg|Luxemburgo
+## 11                                                                                                              Namen
+##    NL_NAME_2                                TYPE_2      ENGTYPE_2 CC_2 HASC_2
+## 1       &amp;lt;NA&amp;gt; Hoofdstedelijk Gewest|Région Capitale Capital Region &amp;lt;NA&amp;gt;  BE.BU
+## 2       &amp;lt;NA&amp;gt;                             Provincie       Province &amp;lt;NA&amp;gt;  BE.AN
+## 3       &amp;lt;NA&amp;gt;                             Provincie       Province &amp;lt;NA&amp;gt;  BE.LI
+## 4       &amp;lt;NA&amp;gt;                             Provincie       Province &amp;lt;NA&amp;gt;  BE.OV
+## 5       &amp;lt;NA&amp;gt;                             Provincie       Province &amp;lt;NA&amp;gt;  BE.VB
+## 6       &amp;lt;NA&amp;gt;                             Provincie       Province &amp;lt;NA&amp;gt;  BE.WV
+## 7       &amp;lt;NA&amp;gt;                              Province      Provincie &amp;lt;NA&amp;gt;  BE.BW
+## 8       &amp;lt;NA&amp;gt;                              Province      Provincie &amp;lt;NA&amp;gt;  BE.HT
+## 9       &amp;lt;NA&amp;gt;                              Province      Provincie &amp;lt;NA&amp;gt;  BE.LG
+## 10      &amp;lt;NA&amp;gt;                              Province      Provincie &amp;lt;NA&amp;gt;  BE.LX
+## 11      &amp;lt;NA&amp;gt;                              Province      Provincie &amp;lt;NA&amp;gt;  BE.NA&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We’re not going to convert them to data frames however; but this is an interesting clue; these &lt;code&gt;SpatialPolygonsDataFrame&lt;/code&gt;
+objects share common methods with data frames. What this means is that we can use the usual,
+base R way of manipulating these objects.&lt;/p&gt;
+&lt;p&gt;So to get only the French &lt;em&gt;départements&lt;/em&gt; I need, I can slice them like so:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;lorraine &amp;lt;- france_dep[`%in%`(france_dep$NAME_2, c(&amp;quot;Meurthe-et-Moselle&amp;quot;, &amp;quot;Meuse&amp;quot;, &amp;quot;Moselle&amp;quot;, &amp;quot;Vosges&amp;quot;)),]&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Same for the German &lt;em&gt;kreise&lt;/em&gt;, here I select the &lt;em&gt;Länder&lt;/em&gt; which are a higher administrative division
+than the Kreise, which makes it faster (so I don’t need to type all the 40+ Kreise):&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;ger_kreise &amp;lt;- ger_kreise[`%in%`(ger_kreise$NAME_1, c(&amp;quot;Rheinland-Pfalz&amp;quot;, &amp;quot;Saarland&amp;quot;)),]&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;For Germany, many Kreise had a name which was different than on my covid data, so I had to
+rename them. So here again, the base R way of doing things works:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;ger_kreise$NAME_2[ger_kreise$NAME_2 == &amp;quot;Eifelkreis Bitburg-Prüm&amp;quot;]  &amp;lt;- &amp;quot;Bitburg-Prüm&amp;quot;
+ger_kreise$NAME_2[ger_kreise$NAME_2 == &amp;quot;St. Wendel&amp;quot;]  &amp;lt;- &amp;quot;Sankt Wendel&amp;quot;
+ger_kreise$NAME_2[ger_kreise$NAME_2 == &amp;quot;Altenkirchen (Westerwald)&amp;quot;]  &amp;lt;- &amp;quot;Altenkirchen&amp;quot;
+ger_kreise$NAME_2[ger_kreise$NAME_2 == &amp;quot;Neustadt an der Weinstraße&amp;quot;]  &amp;lt;- &amp;quot;Neustadt a.d.Weinstraße&amp;quot;
+ger_kreise$NAME_2[ger_kreise$NAME_2 == &amp;quot;Landau in der Pfalz&amp;quot;]  &amp;lt;- &amp;quot;Landau i.d.Pfalz&amp;quot;
+ger_kreise$NAME_2[ger_kreise$NAME_2 == &amp;quot;Ludwigshafen am Rhein&amp;quot;]  &amp;lt;- &amp;quot;Ludwigshafen&amp;quot;
+ger_kreise$NAME_2[ger_kreise$NAME_2 == &amp;quot;Frankenthal (Pfalz)&amp;quot;]  &amp;lt;- &amp;quot;Frankenthal&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Finally, I do the same for Belgium, and rename their province of Luxembourg, which was simply called
+“Luxembourg”, to “Province de Luxembourg”:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;be_wallonia &amp;lt;- be_province[be_province$NAME_1 == &amp;quot;Wallonie&amp;quot;, ]
+be_wallonia$NAME_2[be_wallonia$NAME_2 == &amp;quot;Luxembourg&amp;quot;]  &amp;lt;- &amp;quot;Province de Luxembourg&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;I rename the province because the Grand-Duchy of Luxembourg is also only called “Luxembourg” in the
+data, and this would cause issues when mapping.&lt;/p&gt;
+&lt;p&gt;Now, comes Luxembourg. As I’ve written above, I only have data at the level of the country, so
+I download the country map:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;lu_map_0 &amp;lt;- getData(&amp;quot;GADM&amp;quot;, country = &amp;quot;LUXEMBOURG&amp;quot;, level = 0)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Let’s also see how it looks like as a data frame:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;as.data.frame(lu_map_0)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##   GID_0     NAME_0
+## 1   LUX Luxembourg&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Unlike the previous &lt;code&gt;SpatialPolygonsDataFrame&lt;/code&gt;s, there are much less columns and this will cause
+an issue. Indeed, in order to have a single &lt;code&gt;SpatialPolygonsDataFrame&lt;/code&gt; object to draw my map,
+I will need to combine them. This will be very easy, by simple using the &lt;code&gt;rbind()&lt;/code&gt; function.
+Again, simply using base R functions. However, this only works if the data frames have the same
+columns. Another issue, is that I will be using the names of the regions which are in the &lt;code&gt;SpatialPolygonsDataFrame&lt;/code&gt;s’
+column called &lt;code&gt;NAME_2&lt;/code&gt;, but for Luxembourg, the name of the region (in this case the whole country)
+is in the column called &lt;code&gt;NAME_0&lt;/code&gt;. So I need to add this columns to the &lt;code&gt;SpatialPolygonsDataFrame&lt;/code&gt;
+object for Luxembourg:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;lu_map_0$GID_1 &amp;lt;- NA
+lu_map_0$NAME_1 &amp;lt;- NA
+lu_map_0$NL_NAME_1 &amp;lt;- NA
+lu_map_0$GID_2 &amp;lt;- NA
+lu_map_0$NAME_2 &amp;lt;- &amp;quot;Luxembourg&amp;quot;
+lu_map_0$VARNAME_2 &amp;lt;- NA
+lu_map_0$NL_NAME_2 &amp;lt;- NA
+lu_map_0$TYPE_2 &amp;lt;- NA
+lu_map_0$ENGTYPE_2 &amp;lt;- NA
+lu_map_0$CC_2 &amp;lt;- NA
+lu_map_0$HASC_2 &amp;lt;- NA&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Aaaand… that’s it! Wasn’t that hard, but a bit convoluted nonetheless. Now I can bind all
+the &lt;code&gt;SpatialPolygonsDataFrame&lt;/code&gt; objects in one and use that for mapping:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;grande_region &amp;lt;- do.call(rbind, list(lorraine, ger_kreise, be_wallonia, lu_map_0))
+
+as.data.frame(grande_region)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##     GID_0     NAME_0    GID_1          NAME_1 NL_NAME_1       GID_2
+## 76    FRA     France  FRA.6_1       Grand Est      &amp;lt;NA&amp;gt;   FRA.6.7_1
+## 77    FRA     France  FRA.6_1       Grand Est      &amp;lt;NA&amp;gt;   FRA.6.8_1
+## 78    FRA     France  FRA.6_1       Grand Est      &amp;lt;NA&amp;gt;   FRA.6.9_1
+## 70    FRA     France  FRA.6_1       Grand Est      &amp;lt;NA&amp;gt;  FRA.6.10_1
+## 99    DEU    Germany DEU.11_1 Rheinland-Pfalz      &amp;lt;NA&amp;gt;  DEU.11.1_1
+## 110   DEU    Germany DEU.11_1 Rheinland-Pfalz      &amp;lt;NA&amp;gt;  DEU.11.2_1
+## 121   DEU    Germany DEU.11_1 Rheinland-Pfalz      &amp;lt;NA&amp;gt;  DEU.11.3_1
+## 129   DEU    Germany DEU.11_1 Rheinland-Pfalz      &amp;lt;NA&amp;gt;  DEU.11.4_1
+## 130   DEU    Germany DEU.11_1 Rheinland-Pfalz      &amp;lt;NA&amp;gt;  DEU.11.5_1
+## 131   DEU    Germany DEU.11_1 Rheinland-Pfalz      &amp;lt;NA&amp;gt;  DEU.11.6_1
+## 132   DEU    Germany DEU.11_1 Rheinland-Pfalz      &amp;lt;NA&amp;gt;  DEU.11.7_1
+## 133   DEU    Germany DEU.11_1 Rheinland-Pfalz      &amp;lt;NA&amp;gt;  DEU.11.8_1
+## 134   DEU    Germany DEU.11_1 Rheinland-Pfalz      &amp;lt;NA&amp;gt;  DEU.11.9_1
+## 100   DEU    Germany DEU.11_1 Rheinland-Pfalz      &amp;lt;NA&amp;gt; DEU.11.10_1
+## 101   DEU    Germany DEU.11_1 Rheinland-Pfalz      &amp;lt;NA&amp;gt; DEU.11.11_1
+## 102   DEU    Germany DEU.11_1 Rheinland-Pfalz      &amp;lt;NA&amp;gt; DEU.11.12_1
+## 104   DEU    Germany DEU.11_1 Rheinland-Pfalz      &amp;lt;NA&amp;gt; DEU.11.14_1
+## 103   DEU    Germany DEU.11_1 Rheinland-Pfalz      &amp;lt;NA&amp;gt; DEU.11.13_1
+## 105   DEU    Germany DEU.11_1 Rheinland-Pfalz      &amp;lt;NA&amp;gt; DEU.11.15_1
+## 106   DEU    Germany DEU.11_1 Rheinland-Pfalz      &amp;lt;NA&amp;gt; DEU.11.16_1
+## 107   DEU    Germany DEU.11_1 Rheinland-Pfalz      &amp;lt;NA&amp;gt; DEU.11.17_1
+## 108   DEU    Germany DEU.11_1 Rheinland-Pfalz      &amp;lt;NA&amp;gt; DEU.11.18_1
+## 111   DEU    Germany DEU.11_1 Rheinland-Pfalz      &amp;lt;NA&amp;gt; DEU.11.20_1
+## 109   DEU    Germany DEU.11_1 Rheinland-Pfalz      &amp;lt;NA&amp;gt; DEU.11.19_1
+## 112   DEU    Germany DEU.11_1 Rheinland-Pfalz      &amp;lt;NA&amp;gt; DEU.11.21_1
+## 113   DEU    Germany DEU.11_1 Rheinland-Pfalz      &amp;lt;NA&amp;gt; DEU.11.22_1
+## 114   DEU    Germany DEU.11_1 Rheinland-Pfalz      &amp;lt;NA&amp;gt; DEU.11.23_1
+## 115   DEU    Germany DEU.11_1 Rheinland-Pfalz      &amp;lt;NA&amp;gt; DEU.11.24_1
+## 116   DEU    Germany DEU.11_1 Rheinland-Pfalz      &amp;lt;NA&amp;gt; DEU.11.25_1
+## 117   DEU    Germany DEU.11_1 Rheinland-Pfalz      &amp;lt;NA&amp;gt; DEU.11.26_1
+## 118   DEU    Germany DEU.11_1 Rheinland-Pfalz      &amp;lt;NA&amp;gt; DEU.11.27_1
+## 119   DEU    Germany DEU.11_1 Rheinland-Pfalz      &amp;lt;NA&amp;gt; DEU.11.28_1
+## 120   DEU    Germany DEU.11_1 Rheinland-Pfalz      &amp;lt;NA&amp;gt; DEU.11.29_1
+## 122   DEU    Germany DEU.11_1 Rheinland-Pfalz      &amp;lt;NA&amp;gt; DEU.11.30_1
+## 124   DEU    Germany DEU.11_1 Rheinland-Pfalz      &amp;lt;NA&amp;gt; DEU.11.32_1
+## 123   DEU    Germany DEU.11_1 Rheinland-Pfalz      &amp;lt;NA&amp;gt; DEU.11.31_1
+## 125   DEU    Germany DEU.11_1 Rheinland-Pfalz      &amp;lt;NA&amp;gt; DEU.11.33_1
+## 126   DEU    Germany DEU.11_1 Rheinland-Pfalz      &amp;lt;NA&amp;gt; DEU.11.34_1
+## 127   DEU    Germany DEU.11_1 Rheinland-Pfalz      &amp;lt;NA&amp;gt; DEU.11.35_1
+## 128   DEU    Germany DEU.11_1 Rheinland-Pfalz      &amp;lt;NA&amp;gt; DEU.11.36_1
+## 135   DEU    Germany DEU.12_1        Saarland      &amp;lt;NA&amp;gt;  DEU.12.1_1
+## 136   DEU    Germany DEU.12_1        Saarland      &amp;lt;NA&amp;gt;  DEU.12.2_1
+## 137   DEU    Germany DEU.12_1        Saarland      &amp;lt;NA&amp;gt;  DEU.12.3_1
+## 138   DEU    Germany DEU.12_1        Saarland      &amp;lt;NA&amp;gt;  DEU.12.4_1
+## 139   DEU    Germany DEU.12_1        Saarland      &amp;lt;NA&amp;gt;  DEU.12.5_1
+## 140   DEU    Germany DEU.12_1        Saarland      &amp;lt;NA&amp;gt;  DEU.12.6_1
+## 7     BEL    Belgium  BEL.3_1        Wallonie      &amp;lt;NA&amp;gt;   BEL.3.1_1
+## 8     BEL    Belgium  BEL.3_1        Wallonie      &amp;lt;NA&amp;gt;   BEL.3.2_1
+## 9     BEL    Belgium  BEL.3_1        Wallonie      &amp;lt;NA&amp;gt;   BEL.3.3_1
+## 10    BEL    Belgium  BEL.3_1        Wallonie      &amp;lt;NA&amp;gt;   BEL.3.4_1
+## 11    BEL    Belgium  BEL.3_1        Wallonie      &amp;lt;NA&amp;gt;   BEL.3.5_1
+## 1     LUX Luxembourg     &amp;lt;NA&amp;gt;            &amp;lt;NA&amp;gt;      &amp;lt;NA&amp;gt;        &amp;lt;NA&amp;gt;
+##                                NAME_2                        VARNAME_2
+## 76                 Meurthe-et-Moselle                             &amp;lt;NA&amp;gt;
+## 77                              Meuse                             &amp;lt;NA&amp;gt;
+## 78                            Moselle                       Lothringen
+## 70                             Vosges                             &amp;lt;NA&amp;gt;
+## 99                          Ahrweiler                             &amp;lt;NA&amp;gt;
+## 110                      Altenkirchen                             &amp;lt;NA&amp;gt;
+## 121                       Alzey-Worms                             &amp;lt;NA&amp;gt;
+## 129                      Bad Dürkheim                             &amp;lt;NA&amp;gt;
+## 130                     Bad Kreuznach                             &amp;lt;NA&amp;gt;
+## 131               Bernkastel-Wittlich                             &amp;lt;NA&amp;gt;
+## 132                        Birkenfeld                             &amp;lt;NA&amp;gt;
+## 133                       Cochem-Zell                             &amp;lt;NA&amp;gt;
+## 134                  Donnersbergkreis                             &amp;lt;NA&amp;gt;
+## 100                      Bitburg-Prüm                             &amp;lt;NA&amp;gt;
+## 101                       Frankenthal                             &amp;lt;NA&amp;gt;
+## 102                       Germersheim                             &amp;lt;NA&amp;gt;
+## 104                    Kaiserslautern                             &amp;lt;NA&amp;gt;
+## 103 Kaiserslautern (Kreisfreie Stadt)                             &amp;lt;NA&amp;gt;
+## 105                           Koblenz                             &amp;lt;NA&amp;gt;
+## 106                             Kusel                             &amp;lt;NA&amp;gt;
+## 107                  Landau i.d.Pfalz                             &amp;lt;NA&amp;gt;
+## 108                      Ludwigshafen                             &amp;lt;NA&amp;gt;
+## 111                             Mainz                             &amp;lt;NA&amp;gt;
+## 109                      Mainz-Bingen                             &amp;lt;NA&amp;gt;
+## 112                     Mayen-Koblenz                             &amp;lt;NA&amp;gt;
+## 113           Neustadt a.d.Weinstraße                             &amp;lt;NA&amp;gt;
+## 114                           Neuwied                             &amp;lt;NA&amp;gt;
+## 115                         Pirmasens                             &amp;lt;NA&amp;gt;
+## 116              Rhein-Hunsrück-Kreis                             &amp;lt;NA&amp;gt;
+## 117                  Rhein-Lahn-Kreis                             &amp;lt;NA&amp;gt;
+## 118                 Rhein-Pfalz-Kreis                             &amp;lt;NA&amp;gt;
+## 119                            Speyer                             &amp;lt;NA&amp;gt;
+## 120               Südliche Weinstraße                             &amp;lt;NA&amp;gt;
+## 122                      Südwestpfalz                             &amp;lt;NA&amp;gt;
+## 124                             Trier                             &amp;lt;NA&amp;gt;
+## 123                    Trier-Saarburg                             &amp;lt;NA&amp;gt;
+## 125                       Vulkaneifel                             &amp;lt;NA&amp;gt;
+## 126                   Westerwaldkreis                             &amp;lt;NA&amp;gt;
+## 127                             Worms                             &amp;lt;NA&amp;gt;
+## 128                       Zweibrücken                             &amp;lt;NA&amp;gt;
+## 135                     Merzig-Wadern                             &amp;lt;NA&amp;gt;
+## 136                       Neunkirchen                             &amp;lt;NA&amp;gt;
+## 137       Regionalverband Saarbrücken                             &amp;lt;NA&amp;gt;
+## 138                         Saarlouis                             &amp;lt;NA&amp;gt;
+## 139                   Saarpfalz-Kreis                             &amp;lt;NA&amp;gt;
+## 140                      Sankt Wendel                             &amp;lt;NA&amp;gt;
+## 7                      Brabant Wallon    Waals Brabant|Walloon Brabant
+## 8                             Hainaut              Henegouwen|Hennegau
+## 9                               Liège         Luik|Liegi|Lieja|Lüttich
+## 10             Province de Luxembourg Lussemburgo|Luxemburg|Luxemburgo
+## 11                              Namur                            Namen
+## 1                          Luxembourg                             &amp;lt;NA&amp;gt;
+##     NL_NAME_2           TYPE_2  ENGTYPE_2  CC_2   HASC_2
+## 76       &amp;lt;NA&amp;gt;      Département Department    54    FR.MM
+## 77       &amp;lt;NA&amp;gt;      Département Department    55    FR.MS
+## 78       &amp;lt;NA&amp;gt;      Département Department    57    FR.MO
+## 70       &amp;lt;NA&amp;gt;      Département Department    88    FR.VG
+## 99       &amp;lt;NA&amp;gt;        Landkreis   District 07131 DE.RP.AR
+## 110      &amp;lt;NA&amp;gt;        Landkreis   District 07132 DE.RP.AT
+## 121      &amp;lt;NA&amp;gt;        Landkreis   District 07331 DE.RP.AW
+## 129      &amp;lt;NA&amp;gt;        Landkreis   District 07332 DE.RP.BD
+## 130      &amp;lt;NA&amp;gt;        Landkreis   District 07133 DE.RP.BK
+## 131      &amp;lt;NA&amp;gt;        Landkreis   District 07231 DE.RP.BW
+## 132      &amp;lt;NA&amp;gt;        Landkreis   District 07134 DE.RP.BR
+## 133      &amp;lt;NA&amp;gt;        Landkreis   District 07135 DE.RP.CZ
+## 134      &amp;lt;NA&amp;gt;        Landkreis   District 07333 DE.RP.DN
+## 100      &amp;lt;NA&amp;gt;        Landkreis   District 07232 DE.RP.EB
+## 101      &amp;lt;NA&amp;gt; Kreisfreie Stadt   District 07311 DE.RP.FA
+## 102      &amp;lt;NA&amp;gt;        Landkreis   District 07334 DE.RP.GR
+## 104      &amp;lt;NA&amp;gt;        Landkreis   District 07335 DE.RP.KL
+## 103      &amp;lt;NA&amp;gt; Kreisfreie Stadt   District 07312 DE.RP.KL
+## 105      &amp;lt;NA&amp;gt; Kreisfreie Stadt   District 07111 DE.RP.KO
+## 106      &amp;lt;NA&amp;gt;        Landkreis   District 07336 DE.RP.KU
+## 107      &amp;lt;NA&amp;gt; Kreisfreie Stadt   District 07313 DE.RP.LP
+## 108      &amp;lt;NA&amp;gt; Kreisfreie Stadt   District 07314 DE.RP.LR
+## 111      &amp;lt;NA&amp;gt; Kreisfreie Stadt   District 07315 DE.RP.MI
+## 109      &amp;lt;NA&amp;gt;        Landkreis   District 07339 DE.RP.MB
+## 112      &amp;lt;NA&amp;gt;        Landkreis   District 07137 DE.RP.MK
+## 113      &amp;lt;NA&amp;gt; Kreisfreie Stadt   District 07316 DE.RP.NW
+## 114      &amp;lt;NA&amp;gt;        Landkreis   District 07138 DE.RP.NU
+## 115      &amp;lt;NA&amp;gt; Kreisfreie Stadt   District 07317 DE.RP.PR
+## 116      &amp;lt;NA&amp;gt;        Landkreis   District 07140 DE.RP.RH
+## 117      &amp;lt;NA&amp;gt;        Landkreis   District 07141 DE.RP.RN
+## 118      &amp;lt;NA&amp;gt;        Landkreis   District 07338 DE.RP.RZ
+## 119      &amp;lt;NA&amp;gt; Kreisfreie Stadt   District 07318 DE.RP.SE
+## 120      &amp;lt;NA&amp;gt;        Landkreis   District 07337 DE.RP.SW
+## 122      &amp;lt;NA&amp;gt;        Landkreis   District 07340 DE.RP.SD
+## 124      &amp;lt;NA&amp;gt; Kreisfreie Stadt   District 07211 DE.RP.TI
+## 123      &amp;lt;NA&amp;gt;        Landkreis   District 07235 DE.RP.TS
+## 125      &amp;lt;NA&amp;gt;        Landkreis   District 07233 DE.RP.VL
+## 126      &amp;lt;NA&amp;gt;        Landkreis   District 07143 DE.RP.WS
+## 127      &amp;lt;NA&amp;gt; Kreisfreie Stadt   District 07319 DE.RP.WR
+## 128      &amp;lt;NA&amp;gt; Kreisfreie Stadt   District 07320 DE.RP.ZE
+## 135      &amp;lt;NA&amp;gt;        Landkreis   District 10042 DE.SL.MW
+## 136      &amp;lt;NA&amp;gt;        Landkreis   District 10043 DE.SL.NU
+## 137      &amp;lt;NA&amp;gt;        Landkreis   District 10041 DE.SL.SB
+## 138      &amp;lt;NA&amp;gt;        Landkreis   District 10044 DE.SL.SA
+## 139      &amp;lt;NA&amp;gt;        Landkreis   District 10045 DE.SL.SP
+## 140      &amp;lt;NA&amp;gt;        Landkreis   District 10046 DE.SL.SW
+## 7        &amp;lt;NA&amp;gt;         Province  Provincie  &amp;lt;NA&amp;gt;    BE.BW
+## 8        &amp;lt;NA&amp;gt;         Province  Provincie  &amp;lt;NA&amp;gt;    BE.HT
+## 9        &amp;lt;NA&amp;gt;         Province  Provincie  &amp;lt;NA&amp;gt;    BE.LG
+## 10       &amp;lt;NA&amp;gt;         Province  Provincie  &amp;lt;NA&amp;gt;    BE.LX
+## 11       &amp;lt;NA&amp;gt;         Province  Provincie  &amp;lt;NA&amp;gt;    BE.NA
+## 1        &amp;lt;NA&amp;gt;             &amp;lt;NA&amp;gt;       &amp;lt;NA&amp;gt;  &amp;lt;NA&amp;gt;     &amp;lt;NA&amp;gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;And now I can continue following the tutorial from the &lt;code&gt;{echarts4r}&lt;/code&gt; website, by converting this
+&lt;code&gt;SpatialPolygonsDataFrame&lt;/code&gt; object for the Greater Region into a geojson file which can now be
+used to draw maps! You can take a look at the final result &lt;a href=&#34;https://happy-newton-bf63ad.netlify.app/&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;I don’t post the code to draw the map here, because it would require some more tinkering by
+joining the COVID data. But you can find my raw script &lt;a href=&#34;https://github.com/b-rodrigues/covidGrandeRegion/blob/master/data-raw/maps.R&#34;&gt;here&lt;/a&gt;
+(lines 51 to 61) or you could also take a look at the &lt;code&gt;draw_map()&lt;/code&gt; function from the package
+I made, which you can find &lt;a href=&#34;https://github.com/b-rodrigues/covidGrandeRegion/blob/master/R/draw_map.R&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;I really like the end result, &lt;code&gt;{echarts4r}&lt;/code&gt; is really a fantastic package!
+Stay tuned part 2 of the project, which will deal with machine learning.&lt;/p&gt;
+&lt;p&gt;Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on &lt;a href=&#34;https://www.twitter.com/brodriguesco&#34;&gt;twitter&lt;/a&gt; for blog post updates and
+&lt;a href=&#34;https://www.buymeacoffee.com/brodriguesco&#34;&gt;buy me an espresso&lt;/a&gt; or &lt;a href=&#34;https://www.paypal.me/brodriguesco&#34;&gt;paypal.me&lt;/a&gt;, or buy my ebook on &lt;a href=&#34;https://leanpub.com/modern_tidyverse&#34;&gt;Leanpub&lt;/a&gt;.
+You can also watch my videos on &lt;a href=&#34;https://www.youtube.com/c/BrunoRodrigues1988/&#34;&gt;youtube&lt;/a&gt;.
+So much content for you to consoom!&lt;/p&gt;
+&lt;style&gt;.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:&#39;Cookie&#39;, cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}&lt;/style&gt;
+&lt;p&gt;&lt;link href=&#34;https://fonts.googleapis.com/css?family=Cookie&#34; rel=&#34;stylesheet&#34;&gt;&lt;a class=&#34;bmc-button&#34; target=&#34;_blank&#34; href=&#34;https://www.buymeacoffee.com/brodriguesco&#34;&gt;&lt;img src=&#34;https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg&#34; alt=&#34;Buy me an Espresso&#34;&gt;&lt;span style=&#34;margin-left:5px&#34;&gt;Buy me an Espresso&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+</description>
+    </item>
     
     <item>
       <title>A year in review</title>

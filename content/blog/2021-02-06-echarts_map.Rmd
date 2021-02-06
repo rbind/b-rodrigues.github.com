@@ -1,0 +1,214 @@
+---
+date: 2021-02-06
+title: How to draw a map of arbitrary contiguous regions, or visualizing the spread of COVID-19 in the Greater Region
+tags: [R]
+menu:
+main:
+  parent: Blog
+  identifier: /blog/echarts_map
+  weight: 1
+---
+
+
+<div style="text-align:center;">
+<a href="https://happy-newton-bf63ad.netlify.app/">
+<img src="/img/covidGrandeRegion.gif" title = "Click to go to visualisations"></a>
+</div>
+
+
+## Introduction
+
+I was able to blog during the year 2020 without mentioning the ongoing pandemic once. It's not that I made
+any conscious effort not to talk about it, but I did not really want to do something that had already
+been done a 1000 times. This changed this year, when I wanted to look at the spread of 
+COVID-19, not only in the Grand-Duchy of Luxembourg, the country I live in, but also among our 
+neighbours. You see, the Grand-Duchy of Luxembourg is like an island, but instead of being surrounded
+by water, it's surrounded by Belgians, Germans and Frenchmen. Many of them commute every day to Luxembourg
+to work, and even though they technically don't live inside the country, many aspects of their 
+lives happen inside Luxembourguish borders. Their children might even come to school here, and sometimes
+they live so close by the border, that they can catch Luxembourguish public transportation in their
+towns. 200k commuters from Belgium, Germany and France work here every day. That's half our 
+workforce! So that's why I thought that it would make sense to look at the spread of the disease
+at the level of the so-called *Greater Region*. This *Greater Region* is made up of the Grand-Duchy
+of Luxembourg, the Provinces of Liège and Luxembourg in Belgium (hence why I keep writing the
+*Grand-Duchy of* Luxembourg to refer to the country, and the *Province of Luxembourg* to refer
+to the Belgian province of the same name), and two German *Länders*, the Saarland and 
+the Rhineland-Palatinate. Confused? Welcome to Europe, where supranational institutions
+literally have to have a page entitled [Do not get confused](https://www.coe.int/en/web/about-us/do-not-get-confused)
+so that citizens don't get lost (we still do).
+
+So the Greater Region is not a state, but facilitates collaboration between the regions comprising
+it. To me, technically a citizen of the Greater Region, it feels like there was a want to **peacefully** correct
+for the randomness of history, where German-speaking regions ended up in both France and Belgium, 
+and where Belgium and Luxembourg, well, somehow became independent countries.
+
+Anyways, what I wanted to do was to first of all get the COVID-19 daily cases data for each of these
+regions. I did that, and even created a package called `{covidGrandeRegion}` hosted
+[here](https://github.com/b-rodrigues/covidGrandeRegion) that makes it very easy to download the 
+latest data for the Greater Region. I will write another blog post about it, I have something
+in mind that I wanted to try for some time, and this was the first step.
+Then I thought that adding a function that would create a map could also be nice. And this is
+where the technical aspect of this blog post starts.
+
+## The problems to map the Greater Region
+
+So how do you draw a map for an arbitrary landmass like the Greater Region? I wanted to draw the
+maps using `{echarts4r}`, and there's a very easy [guide you can read](https://echarts4r.john-coene.com/articles/make-geo-json.html).
+If you want to draw a map for one, or several, countries, this guide is all you need. But I wanted 
+a map with only parts of France, Belgium and Germany. The only complete country was Luxembourg.
+So the first problem was how to get only parts of a country. The second problem, is that I had 
+daily covid cases for the lowest administrative levels for France (which are *Départements*), 
+Belgium (the *Provinces*) and Germany (*Land-* and *Stadtkreise*). But for the Grand-Duchy of Luxembourg,
+there's only data at the level of the country. So this would be another problem. How to draw a map
+with unequal levels of precision?
+One final problem: the names of the administrative divisions in my covid datasets are not the same
+than the ones that get downloaded if you follow the guide I linked before. So I had to rename 
+them as well.
+
+## The solutions
+
+Let's first start by following the guide, so loading the packages, and getting the maps I need:
+
+```{r, include = FALSE}
+library(echarts4r)
+library(sp)
+library(raster)
+library(geojsonio)
+```
+
+```{r, eval = FALSE}
+library(echarts4r)
+library(sp)
+library(raster)
+library(geojsonio)
+```
+
+```{r}
+france_dep <- getData("GADM", country = "FRANCE", level = 2)
+
+ger_kreise <- getData("GADM", country = "GERMANY", level = 2)
+
+be_province <- getData("GADM", country = "BELGIUM", level = 2)
+```
+
+The above lines of code load the required packages, and download the maps for France, Belgium
+and Germany with the required administrative level I need. I'll leave Luxembourg for last.
+
+Let's take a look at what type of object we're dealing with:
+
+```{r}
+class(france_dep)
+```
+
+So it seems to be something like a data frame, but probably more complex. Looking for some help
+online, I saw that you can coerce it to a data frame:
+
+```{r}
+as.data.frame(be_province)
+```
+
+We're not going to convert them to data frames however; but this is an interesting clue; these `SpatialPolygonsDataFrame`
+objects share common methods with data frames. What this means is that we can use the usual, 
+base R way of manipulating these objects.
+
+So to get only the French *départements* I need, I can slice them like so:
+
+```{r}
+lorraine <- france_dep[`%in%`(france_dep$NAME_2, c("Meurthe-et-Moselle", "Meuse", "Moselle", "Vosges")),]
+```
+
+Same for the German *kreise*, here I select the *Länder* which are a higher administrative division
+than the Kreise, which makes it faster (so I don't need to type all the 40+ Kreise):
+
+```{r}
+ger_kreise <- ger_kreise[`%in%`(ger_kreise$NAME_1, c("Rheinland-Pfalz", "Saarland")),]
+```
+
+For Germany, many Kreise had a name which was different than on my covid data, so I had to 
+rename them. So here again, the base R way of doing things works:
+
+```{r}
+ger_kreise$NAME_2[ger_kreise$NAME_2 == "Eifelkreis Bitburg-Prüm"]  <- "Bitburg-Prüm"
+ger_kreise$NAME_2[ger_kreise$NAME_2 == "St. Wendel"]  <- "Sankt Wendel"
+ger_kreise$NAME_2[ger_kreise$NAME_2 == "Altenkirchen (Westerwald)"]  <- "Altenkirchen"
+ger_kreise$NAME_2[ger_kreise$NAME_2 == "Neustadt an der Weinstraße"]  <- "Neustadt a.d.Weinstraße"
+ger_kreise$NAME_2[ger_kreise$NAME_2 == "Landau in der Pfalz"]  <- "Landau i.d.Pfalz"
+ger_kreise$NAME_2[ger_kreise$NAME_2 == "Ludwigshafen am Rhein"]  <- "Ludwigshafen"
+ger_kreise$NAME_2[ger_kreise$NAME_2 == "Frankenthal (Pfalz)"]  <- "Frankenthal"
+```
+
+Finally, I do the same for Belgium, and rename their province of Luxembourg, which was simply called
+"Luxembourg", to "Province de Luxembourg":
+
+```{r}
+be_wallonia <- be_province[be_province$NAME_1 == "Wallonie", ]
+be_wallonia$NAME_2[be_wallonia$NAME_2 == "Luxembourg"]  <- "Province de Luxembourg"
+```
+
+I rename the province because the Grand-Duchy of Luxembourg is also only called "Luxembourg" in the
+data, and this would cause issues when mapping.
+
+Now, comes Luxembourg. As I've written above, I only have data at the level of the country, so 
+I download the country map:
+
+```{r}
+lu_map_0 <- getData("GADM", country = "LUXEMBOURG", level = 0)
+```
+
+Let's also see how it looks like as a data frame:
+
+```{r}
+as.data.frame(lu_map_0)
+```
+
+Unlike the previous `SpatialPolygonsDataFrame`s, there are much less columns and this will cause
+an issue. Indeed, in order to have a single `SpatialPolygonsDataFrame` object to draw my map, 
+I will need to combine them. This will be very easy, by simple using the `rbind()` function.
+Again, simply using base R functions. However, this only works if the data frames have the same
+columns. Another issue, is that I will be using the names of the regions which are in the `SpatialPolygonsDataFrame`s'
+column called `NAME_2`, but for Luxembourg, the name of the region (in this case the whole country)
+is in the column called `NAME_0`. So I need to add this columns to the `SpatialPolygonsDataFrame`
+object for Luxembourg:
+
+```{r}
+lu_map_0$GID_1 <- NA
+lu_map_0$NAME_1 <- NA
+lu_map_0$NL_NAME_1 <- NA
+lu_map_0$GID_2 <- NA
+lu_map_0$NAME_2 <- "Luxembourg"
+lu_map_0$VARNAME_2 <- NA
+lu_map_0$NL_NAME_2 <- NA
+lu_map_0$TYPE_2 <- NA
+lu_map_0$ENGTYPE_2 <- NA
+lu_map_0$CC_2 <- NA
+lu_map_0$HASC_2 <- NA
+```
+
+Aaaand... that's it! Wasn't that hard, but a bit convoluted nonetheless. Now I can bind all
+the `SpatialPolygonsDataFrame` objects in one and use that for mapping:
+
+```{r}
+grande_region <- do.call(rbind, list(lorraine, ger_kreise, be_wallonia, lu_map_0))
+
+as.data.frame(grande_region)
+```
+
+And now I can continue following the tutorial from the `{echarts4r}` website, by converting this
+`SpatialPolygonsDataFrame` object for the Greater Region into a geojson file which can now be 
+used to draw maps! You can take a look at the final result [here](https://happy-newton-bf63ad.netlify.app/).
+
+I don't post the code to draw the map here, because it would require some more tinkering by 
+joining the COVID data. But you can find my raw script [here](https://github.com/b-rodrigues/covidGrandeRegion/blob/master/data-raw/maps.R)
+(lines 51 to 61) or you could also take a look at the `draw_map()` function from the package
+I made, which you can find [here](https://github.com/b-rodrigues/covidGrandeRegion/blob/master/R/draw_map.R).
+
+I really like the end result, `{echarts4r}` is really a fantastic package!
+Stay tuned part 2 of the project, which will deal with machine learning.
+
+Hope you enjoyed! If you found this blog post useful, you might want to follow 
+me on [twitter](https://www.twitter.com/brodriguesco) for blog post updates and 
+[buy me an espresso](https://www.buymeacoffee.com/brodriguesco) or [paypal.me](https://www.paypal.me/brodriguesco), or buy my ebook on [Leanpub](https://leanpub.com/modern_tidyverse).
+You can also watch my videos on [youtube](https://www.youtube.com/c/BrunoRodrigues1988/).
+So much content for you to consoom!
+
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a>
