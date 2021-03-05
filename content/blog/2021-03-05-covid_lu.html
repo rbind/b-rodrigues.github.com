@@ -1,0 +1,168 @@
+---
+date: 2021-03-05
+title: Using explainability methods to understand (some part) of the spread of COVID-19 in a landlocked country
+tags: [R]
+menu:
+main:
+  parent: Blog
+  identifier: /blog/covid_lu
+  weight: 1
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<div style="text-align:center;">
+<p><a href="https://github.com/b-rodrigues/covid_pred">
+<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Luxembourg_City_pano_Wikimedia_Commons.jpg/800px-Luxembourg_City_pano_Wikimedia_Commons.jpg" title = "Click to go to visualisations"></a></p>
+</div>
+<p><em>This blog post is based on an article I’m currently working on which you can find
+<a href="https://github.com/b-rodrigues/covid_pred">here</a>. Contributions more than welcome!</em></p>
+<div id="you-expect-me-to-read-all-this" class="section level2">
+<h2>“You expect me to read all this?”</h2>
+<p>The gist of this blog post can be summarised in the following sentence:
+lagged positive cases of the neighbouring regions of Luxembourg predict weekly positive cases in Luxembourg.
+But prediction is not the goal of all this, but rather, understanding. Go grab a hot beverage and
+read on.</p>
+</div>
+<div id="introduction" class="section level1">
+<h1>Introduction</h1>
+<p>Due to its quite unique characteristics, the spread of COVID-19 in a landlocked country like
+Luxembourg is the exact opposite of the spread of COVID-19 that can be observed on an island
+country such as New Zealand, or Madagascar. A landlocked country like Luxembourg, which is
+furthermore highly dependent on foreign workers (50% of Luxembourg’s workforce are non-residents
+commuters from France, Belgium and Germany), has many more difficulties to control the spread
+of COVID-19 within its borders. Unlike an island country, a landlocked country that is highly tied
+to its neighbours cannot simply close its borders and put a very hard lockdown in place to control
+the pandemic. Or if the landlocked country does that, as soon as it opens its borders, the disease
+will start spreading again. To illustrate this idea, I will discuss how COVID-19 starting
+spreading, but not only within the borders of Luxembourg, but rather within the so-called Greater
+Region. The Greater Region is <em>a space for cross-border cooperation in the heart of Europe</em> and is
+composed of the Grand-Duchy of Luxembourg, two Belgian Provinces, two French Départements and two
+German Bundesländer.</p>
+<p><img src="https://github.com/b-rodrigues/covid_pred/blob/master/paper/figs/commuters.png?raw=true" /><!-- --></p>
+<p>The figure above shows a map of the Greater Region with the flows of daily commuters between
+its constituent regions. Every day, according to this map from 2018, more than 150000 commuters
+go to Luxembourg to work. In 2019, it was reported that this number reached 200000.</p>
+<p>The approach I will be using here is thus as follows: I will train a machine learning model to predict the
+spread of COVID-19 in Luxembourg using openly available data on the weekly positive cases of
+COVID-19. However, because of the very tight economic and social integration of Luxembourg to its
+neighbours I will use as features weekly positive cases in the border regions as well as
+<a href="https://www.google.com/covid19/mobility/">Google Mobility data</a> for Luxembourg
+to proxy for hard, and soft, lockdowns. I will show that lags of weekly cases in the neighbouring
+regions predict cases for Luxembourg. The end goal however, is <em>not</em> to build a model to predict
+how many weekly positive cases will be detected in Luxembourg. This would be a fools errand;
+in order to predict the future, the future has to look like the past, but in the case of this pandemic
+there is absolutely no guarantee that the future will look like the past, and there are many reasons
+for this. First of all, people are constantly adapting their behaviour, and public health policies
+are also constantly being tuned, and getting sometimes more restrictive, sometimes more relaxed.
+Secondly, vaccines have started being administrated and it would be impossible to predict the effect
+on weekly positive cases using the approach I’m using. Finally, there’s also the threat of the
+variants. Here again, it is impossible to predict which new variants could arise and how much more
+contagious -and deadly- these could be.
+So then, why bother? The end goal is not prediction, but explainability. Once the
+model is trained, I will use explainability methods to show which variables, and their interaction
+with each other, predict positive cases for Luxembourg. This will be a clear illustration of the
+hypothesis that I posited at the beginning; that a landlocked country like Luxembourg which is very
+tightly economically and socially integrated with its neighbours cannot fight a pandemic on its own,
+but must cooperate with its neighbours. This argument can also be applied to any other country in
+the same situation as Luxembourg or even to the constituent states of a federal nation. Unfortunately,
+the virus does not respect the borders of sovereign nations.</p>
+<p>This blog post won’t be a tutorial, I will only present some interesting results. I think that I
+will do a walkthrough tutorial of the methods that I use here in a video, as it will make things
+easier to explain.</p>
+</div>
+<div id="the-data-to-replicate-the-results" class="section level1">
+<h1>The data to replicate the results</h1>
+<p>Data on positive cases from the regions of the Greater Region was collected through each of the
+countries’ open data portal. The levels of detail were heterogeneous, with Belgium and Germany
+providing a high level of detail (daily cases by sex, age group, Province in the case of Belgium, and
+Land- and Stadtkreise in the case of Germany), followed by France (daily cases by department and
+age group), with Luxembourg providing the least amount of details; only daily cases at the national
+level.
+In order to simplify the process of getting the data from all these sources, I wrote an R package
+called <code>{covidGrandeRegion}</code> which can be found on the following <a href="https://github.com/b-rodrigues/covidGrandeRegion">github repository</a>.
+This R package provides several functions to download daily or weekly data, either for one single country or for
+the whole of the Greater Region as well as a function to call an interactive map of the region
+with a timeline, making it easy to visualise the spread of the disease through the region. It is also
+possible to normalize the data by dividing the daily or weekly cases by the size of the population
+in each sub-region. However, at the time of writing, there seems to be issues if you run this
+on Windows, and I suspect it’s because of Windows’ limitation with UTF-8 characters. In any case, you
+can also download the data from <a href="https://github.com/b-rodrigues/covid_pred/blob/master/data/data_for_model.csv">here</a>
+instead of having to install the package and run the preprocessing steps.</p>
+<p>Another variable that was included comes from the <a href="https://www.google.com/covid19/mobility/">Google Mobility website</a>.
+This data shows on a daily basis how communities move since the start of the pandemic. This data
+is used here as proxy for lockdowns.</p>
+<p>Let’s take a look at the data:</p>
+<pre class="r"><code>dplyr::glimpse(data.table::fread(&quot;https://raw.githubusercontent.com/b-rodrigues/covid_pred/master/data/data_for_model.csv&quot;))</code></pre>
+<pre><code>## Rows: 54
+## Columns: 18
+## $ week               &lt;date&gt; 2020-02-24, 2020-03-02, 2020-03-09, 2020-03-16, 20…
+## $ Luxembourg         &lt;dbl&gt; 0.000000, 0.000000, 0.000000, 111.642081, 163.55005…
+## $ lag_Belgique_01    &lt;dbl&gt; 0.00000000, 0.08229904, 2.57870326, 11.27496850, 32…
+## $ lag_Belgique_02    &lt;dbl&gt; 0.00000000, 0.00000000, 0.08229904, 2.57870326, 11.…
+## $ lag_Belgique_03    &lt;dbl&gt; 0.00000000, 0.00000000, 0.00000000, 0.08229904, 2.5…
+## $ lag_Belgique_04    &lt;dbl&gt; 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.0…
+## $ lag_Deutschland_01 &lt;dbl&gt; 0.0000000, 0.7085512, 2.8145229, 20.5086217, 37.356…
+## $ lag_Deutschland_02 &lt;dbl&gt; 0.0000000, 0.0000000, 0.7085512, 2.8145229, 20.5086…
+## $ lag_Deutschland_03 &lt;dbl&gt; 0.0000000, 0.0000000, 0.0000000, 0.7085512, 2.81452…
+## $ lag_Deutschland_04 &lt;dbl&gt; 0.0000000, 0.0000000, 0.0000000, 0.0000000, 0.70855…
+## $ lag_France_01      &lt;dbl&gt; 0.000000, 0.000000, 2.418298, 42.752058, 38.649588,…
+## $ lag_France_02      &lt;dbl&gt; 0.000000, 0.000000, 0.000000, 2.418298, 42.752058, …
+## $ lag_France_03      &lt;dbl&gt; 0.000000, 0.000000, 0.000000, 0.000000, 2.418298, 4…
+## $ lag_France_04      &lt;dbl&gt; 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 2…
+## $ lag_stay_home_01   &lt;dbl&gt; 0.0000000, 1.2857143, 0.7142857, 3.8571429, 3.85714…
+## $ lag_stay_home_02   &lt;dbl&gt; 0.0000000, 0.0000000, 1.2857143, 0.7142857, 3.85714…
+## $ lag_stay_home_03   &lt;dbl&gt; 0.0000000, 0.0000000, 0.0000000, 1.2857143, 0.71428…
+## $ lag_stay_home_04   &lt;dbl&gt; 0.0000000, 0.0000000, 0.0000000, 0.0000000, 1.28571…</code></pre>
+<p>The target variable is <code>Luxembourg</code> and contains the weekly positive COVID-19 cases. Then, we can
+see the weekly positive cases for the French, Belgian and German constituent regions of the Greater
+Region as well as the Google mobility data (four last rows). All these variables were lagged
+up to four times: the idea is to show that lagged positive cases of the neighbouring regions
+predict weekly positive cases in Luxembourg.</p>
+</div>
+<div id="visualisations" class="section level1">
+<h1>Visualisations</h1>
+<p>The plot below shows the epidemic curves for the Regions of the Greater Region (by country):</p>
+<p><img src="/blog/2021-03-05-covid_lu_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<p>The second wave from October/November was quite bad. The German part of the Greater Region did
+pretty well overall. The plot below shows the daily percentage change in time spent at home in Luxembourg
+(from the Google Mobility data):</p>
+<p><img src="/blog/2021-03-05-covid_lu_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<p>The lockdown from Spring 2020 appears very clearly in the data. The soft lockdown during the Christmas
+holidays as well.</p>
+<p>Now armed with this data, I fit a machine learning model using the <code>{modeltime}</code> package and the
+<code>{tidymodels}</code> framework. As I said in the beginning, I won’t go into technical details here.
+I will make a video to explain exactly what I did. In the meantime, let’s take a look at what the
+model predicts:</p>
+<pre><code>## Warning in max(ids, na.rm = TRUE): no non-missing arguments to max; returning
+## -Inf</code></pre>
+<p><img src="/blog/2021-03-05-covid_lu_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<p>I did the usual stuff: split the data into a training set and a testing set (and since we’re
+dealing with time series data, I respected the time structure of the data), fit the model on the
+training set and saw how well it fared on the testing set. It did not bother tuning it, because,
+as said previously, prediction is not really the goal, and also, the model is already doing pretty
+well, which honestly surprised me.
+The model I fit was an ARIMA model, quite standard in the time series literature, but then, in order
+to extract even more signal from the noise, an XGBOOST model is fit on the residuals of the ARIMA
+model. This is where the lagged features come into play. What’s interesting, is that the ARIMA model
+has 0 for each of its hyper-parameters, meaning that the ARIMA model is essentially telling us that
+the average weekly cases over the training set are the best predictor it can find.
+But what about the XGBOOST part of the model? What else can be extracted? This is where explainability
+comes into play. I use the <code>{DALEX}</code> and <code>{DALEXtra}</code> package for explainability, and show here
+the variable importance plot. In the paper in the repository, I have more plots and use more
+methods. But I still need to think more about it. So for this blog post, I focus on this plot
+which is quite simple to interpret, and also quite telling:</p>
+<p><img src="/blog/2021-03-05-covid_lu_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p>It would seem that the single most important feature are the positive cases in Belgium (1, 2 and
+3 weeks lags) and cases from the previous week in Germany.</p>
+<p>This seems to confirm the hypothesis I formulated at the beginning. I will continue exploring
+this, but I am really looking for feedback as well. Tell me where I’m wrong or too optimistic!</p>
+<p>Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my ebook on <a href="https://leanpub.com/modern_tidyverse">Leanpub</a>.
+You can also watch my videos on <a href="https://www.youtube.com/c/BrunoRodrigues1988/">youtube</a>.
+So much content for you to consoom!</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
+</div>
