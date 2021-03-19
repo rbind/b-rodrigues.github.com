@@ -1,0 +1,412 @@
+---
+date: 2021-03-19
+title: How to treat as many files as fit on your hard disk without loops (sorta) nor running out of memory all the while being as lazy as possible
+tags: [R]
+menu:
+main:
+  parent: Blog
+  identifier: /blog/no_loops_tidyeval
+  weight: 1
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<div style="text-align:center;">
+<p><a href="https://www.youtube.com/watch?v=DERMZi3Ck20">
+<img src="/img/30b.png" title = "Click to watch the Netflix adaptation of this blog post"></a></p>
+</div>
+<div id="tldr" class="section level1">
+<h1>tl;dr</h1>
+<p>This blog post is going to be long, and deal with many topics. But I think you’re going to enjoy
+it. So get a hot beverage and relax. Take the time to read. We don’t take enough time to read
+anymore. It’s a shame.
+But if you’re really busy, the tl;dr is that I found out a way of combining tidy evaluation and
+functional programming to analyze potentially millions of files (as many as fit on your hard disk)
+without running out of memory in R. As an example, I’m going to use the 15000ish Excel files
+from the Enron Corpus. It’s a pretty neat blog post, if I may say so myself, so you definitely
+should read it. If at the end you think I wasted your time, you can file a complaint
+<a href="https://is.gd/LFX1YS">here</a>.</p>
+</div>
+<div id="introduction" class="section level1">
+<h1>Introduction</h1>
+<p>If you’ve been a faithful reader of this blog, or if you watch my <a href="https://www.youtube.com/channel/UCTZXht1RTL2Duc3eU8MYGzQ">youtube channel</a>
+you’ve very likely seen me write code that looks like this:</p>
+<pre class="r"><code>library(tidyverse)
+library(rlang)
+library(tidyxl)
+library(brotools)</code></pre>
+<pre class="r"><code>mtcars_plot &lt;- mtcars %&gt;%
+  group_nest(am) %&gt;% #shortcut for group_by(am) %&gt;% nest() 
+  mutate(plots = map2(.y = am, .x = data, ~{ggplot(data = .x) +
+                              geom_smooth(aes(y = mpg, x = hp), colour = &quot;#82518c&quot;) +
+                                ggtitle(paste0(&quot;Miles per gallon as a function of horse power for am = &quot;, .y)) +
+                                theme_blog()}))</code></pre>
+<p>This creates a new data frame that looks like this:</p>
+<pre class="r"><code>mtcars_plot</code></pre>
+<pre><code>## # A tibble: 2 x 3
+##      am           data plots 
+##   &lt;dbl&gt; &lt;list&lt;tibble&gt;&gt; &lt;list&gt;
+## 1     0      [19 × 10] &lt;gg&gt;  
+## 2     1      [13 × 10] &lt;gg&gt;</code></pre>
+<p>In three lines of code, I grouped the <code>mtcars</code> dataframe by the variable <code>am</code> and then created
+two plots, which are contained in a new column called <code>plots</code>. If you’re unfamiliar with R, it is
+quite likely that you’ve never seen anything like this. If you have experience with functional
+programming languages though, you might recognize what’s going on.
+Essentially, <code>map2()</code> <em>loops</em> over two variables, <code>am</code> and <code>data</code> (this variable is not in the original
+data frame, but gets created as a result of the <code>group_nest(am)</code> call) and applies a function,
+in this case a call to <code>ggplot()</code>, to generate two plots…
+If you’ve never seen this before, I invite you to read the section dedicated to this type of
+workflows on my <a href="https://b-rodrigues.github.io/modern_R/functional-programming.html#list-based-workflows-for-efficiency">ebook</a>.</p>
+<p>Let’s take a look at the plots:</p>
+<pre class="r"><code>mtcars_plot %&gt;%
+  pull(plots)</code></pre>
+<pre><code>## [[1]]</code></pre>
+<pre><code>## `geom_smooth()` using method = &#39;loess&#39; and formula &#39;y ~ x&#39;</code></pre>
+<p><img src="/blog/2021-03-19-no_loops_tidyeval_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<pre><code>## 
+## [[2]]</code></pre>
+<pre><code>## `geom_smooth()` using method = &#39;loess&#39; and formula &#39;y ~ x&#39;</code></pre>
+<p><img src="/blog/2021-03-19-no_loops_tidyeval_files/figure-html/unnamed-chunk-5-2.png" width="672" /></p>
+<p>The advantage of this workflow is that you don’t have to think much about anything -once you understand
+how it works-. The alternative would be two create two separate data frames, and create two separate
+plots. That’s a totally valid solution, unless you need to create hundreds of plots. With the
+workflow above, it doesn’t matter if the <code>am</code> variable has 2 or 2000 levels. The code would look
+exactly the same.</p>
+<p>This workflow is very flexible. You can even use this approach to read in, and analyze, many, many
+files. As many as, for instance, 15931 Excel files from an American oil company that went bust in
+the early 2000’s, Enron.</p>
+</div>
+<div id="the-enron-corpus" class="section level1">
+<h1>The Enron Corpus</h1>
+<p>I won’t go into much detail about the Enron Corpus, but to make a long story short:
+Big evil American oil company went bust, company emails got released for research purposes after
+being purchased for 10000USD by a computer scientist, and many of these emails had Excel spreadsheets
+attached to them. Other computer scientist released spreadsheets for research purposes. You can
+read the whole story on <a href="https://www.felienne.com/archives/3634">Felienne Hermans’ blog</a> (read it, it’s quite interesting).</p>
+<p>Anyways, you can now get this treasure trove of nightmarish Excel spreadsheets by clicking <a href="https://figshare.com/articles/dataset/Enron_Spreadsheets_and_Emails/1221767">here</a>
+(this is the link provided in the blog post by Felienne Hermans). I already discussed this
+in a <a href="https://www.brodrigues.co/blog/2020-11-21-guis_mistake/">previous blog post</a>.</p>
+<p>On Felienne Hermans’ blog post, you can spot the following table:</p>
+<p><img src="https://i0.wp.com/www.felienne.com/wp-content/uploads/2014/10/Table1.png" /><!-- --></p>
+<p>I’m going to show how this table could be replicated using R and the <code>mutate()</code>-<code>map()</code> workflow
+above.</p>
+<p>First, let’s load one single spreadsheet with <code>{tidyxl}</code> and get some of the code ready that we
+will need. Let’s get all the paths to all the files in a vector:</p>
+<pre class="r"><code>list_paths &lt;- list.files(path = &quot;~/six_to/spreadsheets&quot;,
+                         pattern = &quot;.xlsx&quot;,
+                         full.names = TRUE)</code></pre>
+<p>Let’s work with the first one. Let’s read it in with <code>{tidyxl}</code>:</p>
+<pre class="r"><code>(example_xlsx &lt;- xlsx_cells(list_paths[1]))</code></pre>
+<pre><code>## # A tibble: 19,859 x 21
+##    sheet       address   row   col is_blank data_type error logical numeric
+##    &lt;chr&gt;       &lt;chr&gt;   &lt;int&gt; &lt;int&gt; &lt;lgl&gt;    &lt;chr&gt;     &lt;chr&gt; &lt;lgl&gt;     &lt;dbl&gt;
+##  1 Preschedule A1          1     1 FALSE    date      &lt;NA&gt;  NA           NA
+##  2 Preschedule B1          1     2 TRUE     blank     &lt;NA&gt;  NA           NA
+##  3 Preschedule C1          1     3 TRUE     blank     &lt;NA&gt;  NA           NA
+##  4 Preschedule D1          1     4 TRUE     blank     &lt;NA&gt;  NA           NA
+##  5 Preschedule E1          1     5 TRUE     blank     &lt;NA&gt;  NA           NA
+##  6 Preschedule F1          1     6 TRUE     blank     &lt;NA&gt;  NA           NA
+##  7 Preschedule G1          1     7 TRUE     blank     &lt;NA&gt;  NA           NA
+##  8 Preschedule H1          1     8 TRUE     blank     &lt;NA&gt;  NA           NA
+##  9 Preschedule I1          1     9 TRUE     blank     &lt;NA&gt;  NA           NA
+## 10 Preschedule J1          1    10 TRUE     blank     &lt;NA&gt;  NA           NA
+## # … with 19,849 more rows, and 12 more variables: date &lt;dttm&gt;, character &lt;chr&gt;,
+## #   character_formatted &lt;list&gt;, formula &lt;chr&gt;, is_array &lt;lgl&gt;,
+## #   formula_ref &lt;chr&gt;, formula_group &lt;int&gt;, comment &lt;chr&gt;, height &lt;dbl&gt;,
+## #   width &lt;dbl&gt;, style_format &lt;chr&gt;, local_format_id &lt;int&gt;</code></pre>
+<p>The beauty of <code>{tidyxl}</code> is that it can read in a very complex and ugly Excel file without any issues.
+Each cell of the spreadsheet is going to be one row of the data set, the contents of all cells is now
+easily accessible. Let’s see how many sheets are in there:</p>
+<pre class="r"><code>example_xlsx %&gt;%
+  summarise(n_sheets = n_distinct(sheet))</code></pre>
+<pre><code>## # A tibble: 1 x 1
+##   n_sheets
+##      &lt;int&gt;
+## 1       11</code></pre>
+<p>11… that’s already quite a lot. How many formulas are there per sheet?</p>
+<pre class="r"><code>example_xlsx %&gt;%
+  mutate(is_formula = !is.na(formula)) %&gt;%  
+  group_by(sheet) %&gt;%
+  summarise(n_formula = sum(is_formula)) %&gt;%
+  arrange(desc(n_formula))</code></pre>
+<pre><code>## # A tibble: 11 x 2
+##    sheet                  n_formula
+##    &lt;chr&gt;                      &lt;int&gt;
+##  1 Preschedule                 2651
+##  2 Deals                        324
+##  3 Economics                    192
+##  4 Balancing                     97
+##  5 Fuel                          70
+##  6 Comp                           0
+##  7 EPEData                        0
+##  8 HeatRate                       0
+##  9 spin reserve log sheet         0
+## 10 Top                            0
+## 11 Unit Summary                   0</code></pre>
+<p>There’s a sheet in there with 2651 formulas. This is insane. Anyways, as you can see, <code>{tidyxl}</code>
+makes analyzing what’s inside such Excel files quite simple. Let’s now create functions that will
+compute what we need. I won’t recreate everything from the table, but you’ll very quickly get
+the idea. Let’s start with a function to count spreadsheets that contain at least one formula:</p>
+<pre class="r"><code>at_least_one_formula &lt;- function(x){
+
+  (any(!is.na(x$formula)))
+
+}</code></pre>
+<p>Let’s get the number of worksheets:</p>
+<pre class="r"><code>n_sheets &lt;- function(x){
+
+  x %&gt;%
+    summarise(n_sheets =  n_distinct(sheet)) %&gt;%
+    pull(n_sheets)
+
+}</code></pre>
+<p>And how many formulas are contained in a spreadsheet:</p>
+<pre class="r"><code>n_formulas &lt;- function(x){
+
+  x %&gt;%
+    mutate(is_formula = !is.na(formula)) %&gt;%
+    summarise(n_formula = sum(is_formula)) %&gt;%
+    pull(n_formula)
+
+}</code></pre>
+<p>Let’s stop here. We could of course continue adding functions, but that’s enough to illustrate
+what’s coming.
+Let’s just define one last function. This function will call all three functions defined above,
+and return the result in a dataframe. You’ll see why soon enough:</p>
+<pre class="r"><code>get_stats &lt;- function(x){
+
+  tribble(~has_formula, ~n_sheets, ~n_formulas,
+          at_least_one_formula(x), n_sheets(x), n_formulas(x))
+
+}</code></pre>
+<p>Let’s try it out on our single spreadsheet:</p>
+<pre class="r"><code>get_stats(example_xlsx)</code></pre>
+<pre><code>## # A tibble: 1 x 3
+##   has_formula n_sheets n_formulas
+##   &lt;lgl&gt;          &lt;int&gt;      &lt;int&gt;
+## 1 TRUE              11       3334</code></pre>
+<p>Neat.</p>
+<p>Now, let’s see how we can apply these function to 15k+ Excel spreadsheets.</p>
+</div>
+<div id="no-loops-ever-allowed" class="section level1">
+<h1>No loops ever allowed</h1>
+<p>10 years ago, I was confronted to a similar problem. I had a pretty huge amount of files on
+a computer that I needed to analyze for a chapter of my Phd thesis. The way I solved this issue
+was by writing a loop that looked horrible and did what I needed on each file. It did the job, but
+it did not look good, and was a nightmare whenever I needed to modify it, which I needed to do often.
+I had to think about a structure to hold the results; it was a nested list with I think 4 or 5 levels,
+and I had to keep track of the dimensions in my head to make sure I was writing the right result in the
+right spot. It wasn’t pleasant.
+Until this week, I thought that such a loop was the only real solution to such a problem.</p>
+<p>But a comment on one of my youtube video changed this:</p>
+<div style="text-align:center;">
+<p><img src="/img/youtube_comment.png" title = "Click to watch the Netflix adaptation of this blog post"></p>
+</div>
+<p>The comment was made on <a href="https://www.youtube.com/watch?v=vtxb1j0aqJM">this video</a> in which I create
+a data set like in the introduction to this blog post, but instead of having 2 groups (and thus
+2 datasets), I had 100. Now, in the video this wasn’t an issue, but what if instead of having 100
+datasets, I had 15k+? And what if these datasets were quite huge? For example, the largest
+spreadsheet in the Enron Corpus is 40MiB. Loading it with <code>{tidyxl}</code> returns a tibble with 17 million
+rows, and needs 2GiB of RAM in a clean R session. If you want to read in all the 15k+, you’re simply
+going to run out of memory even before you could analyze anything.
+As I’ve written above, the solution would be to loop over each file, do whatever I need done, and
+save the results in some kind of structure (very likely some complex nested list).
+Or is it the only solution?
+Turns out that I tried some things out and found a solution that does not require changing my
+beloved <code>mutate()</code>-<code>map()</code> workflow.</p>
+<p>Let’s first start by putting the paths in a data frame:</p>
+<pre class="r"><code>(enron &lt;- enframe(list_paths, name = NULL, value = &quot;paths&quot;))</code></pre>
+<pre><code>## # A tibble: 15,871 x 1
+##    paths                                                                        
+##    &lt;chr&gt;                                                                        
+##  1 /home/cbrunos/six_to/spreadsheets/albert_meyers__1__1-25act.xlsx             
+##  2 /home/cbrunos/six_to/spreadsheets/albert_meyers__2__1-29act.xlsx             
+##  3 /home/cbrunos/six_to/spreadsheets/andrea_ring__10__ENRONGAS(1200).xlsx       
+##  4 /home/cbrunos/six_to/spreadsheets/andrea_ring__11__ENRONGAS(0101).xlsx       
+##  5 /home/cbrunos/six_to/spreadsheets/andrea_ring__12__ENRONGAS(1200).xlsx       
+##  6 /home/cbrunos/six_to/spreadsheets/andrea_ring__13__Trader &amp; Products 5-15-01…
+##  7 /home/cbrunos/six_to/spreadsheets/andrea_ring__14__Trader &amp; Products 5-16-01…
+##  8 /home/cbrunos/six_to/spreadsheets/andrea_ring__15__IFERCnov.xlsx             
+##  9 /home/cbrunos/six_to/spreadsheets/andrea_ring__16__ifercdec.xlsx             
+## 10 /home/cbrunos/six_to/spreadsheets/andrea_ring__17__IFERCJan.xlsx             
+## # … with 15,861 more rows</code></pre>
+<p>For the purposes of this blog post, let’s limit ourselves to 30 spreadsheets. This won’t impact
+how the code is going to work, nor memory usage. It’s just that I won’t my post to compile quickly
+while I’m writing:</p>
+<pre class="r"><code>(enron &lt;- head(enron, 30)) </code></pre>
+<pre><code>## # A tibble: 30 x 1
+##    paths                                                                        
+##    &lt;chr&gt;                                                                        
+##  1 /home/cbrunos/six_to/spreadsheets/albert_meyers__1__1-25act.xlsx             
+##  2 /home/cbrunos/six_to/spreadsheets/albert_meyers__2__1-29act.xlsx             
+##  3 /home/cbrunos/six_to/spreadsheets/andrea_ring__10__ENRONGAS(1200).xlsx       
+##  4 /home/cbrunos/six_to/spreadsheets/andrea_ring__11__ENRONGAS(0101).xlsx       
+##  5 /home/cbrunos/six_to/spreadsheets/andrea_ring__12__ENRONGAS(1200).xlsx       
+##  6 /home/cbrunos/six_to/spreadsheets/andrea_ring__13__Trader &amp; Products 5-15-01…
+##  7 /home/cbrunos/six_to/spreadsheets/andrea_ring__14__Trader &amp; Products 5-16-01…
+##  8 /home/cbrunos/six_to/spreadsheets/andrea_ring__15__IFERCnov.xlsx             
+##  9 /home/cbrunos/six_to/spreadsheets/andrea_ring__16__ifercdec.xlsx             
+## 10 /home/cbrunos/six_to/spreadsheets/andrea_ring__17__IFERCJan.xlsx             
+## # … with 20 more rows</code></pre>
+<p>Ok, so now, in order to read in all these files, I would write the following code:</p>
+<pre class="r"><code>enron %&gt;%
+  mutate(datasets = map(paths, xlsx_cells))</code></pre>
+<p>This would create a new column called <code>datasets</code> where each element would be a complete data set.
+If I run this in my 30 examples, it might be ok. But if I run it on the full thing, there’s no way
+I’m not going to run out of RAM. So how to solve this issue? How to run my neat <code>get_stats()</code>
+function on all datasets if I cannot read in the data? The solution is to only read in the data
+when I need it, and only one dataset at a time. The solution is to build a <em>lazy</em> tibble. And this
+is possible using <code>quo()</code>. To quickly grasp what <code>quo()</code> does, let’s try calling the following
+expression once with, and once without <code>quo()</code>:</p>
+<pre class="r"><code>runif(10)</code></pre>
+<pre><code>##  [1] 0.98342755 0.13500737 0.06196822 0.61304269 0.30600919 0.48015570
+##  [7] 0.05747049 0.04535318 0.37880304 0.70647563</code></pre>
+<p>This runs <code>runif(10)</code> returning 10 randomly generated numbers, as expected.</p>
+<pre class="r"><code>quo(unif(10))</code></pre>
+<pre><code>## &lt;quosure&gt;
+## expr: ^unif(10)
+## env:  global</code></pre>
+<p>This instead returns a quosure, which to be honest, is a complex beast. I’m not sure I get it
+myself. The definition, is that quosures are <em>quoted expressions that keep track of an environment</em>.
+For our practical purposes, we can use that to delay when the data gets read in, and that’s all
+that matters:</p>
+<pre class="r"><code>(enron &lt;- enron %&gt;%
+   mutate(datasets = map(paths, ~quo(xlsx_cells(.)))))</code></pre>
+<pre><code>## # A tibble: 30 x 2
+##    paths                                                                datasets
+##    &lt;chr&gt;                                                                &lt;list&gt;  
+##  1 /home/cbrunos/six_to/spreadsheets/albert_meyers__1__1-25act.xlsx     &lt;quosur…
+##  2 /home/cbrunos/six_to/spreadsheets/albert_meyers__2__1-29act.xlsx     &lt;quosur…
+##  3 /home/cbrunos/six_to/spreadsheets/andrea_ring__10__ENRONGAS(1200).x… &lt;quosur…
+##  4 /home/cbrunos/six_to/spreadsheets/andrea_ring__11__ENRONGAS(0101).x… &lt;quosur…
+##  5 /home/cbrunos/six_to/spreadsheets/andrea_ring__12__ENRONGAS(1200).x… &lt;quosur…
+##  6 /home/cbrunos/six_to/spreadsheets/andrea_ring__13__Trader &amp; Product… &lt;quosur…
+##  7 /home/cbrunos/six_to/spreadsheets/andrea_ring__14__Trader &amp; Product… &lt;quosur…
+##  8 /home/cbrunos/six_to/spreadsheets/andrea_ring__15__IFERCnov.xlsx     &lt;quosur…
+##  9 /home/cbrunos/six_to/spreadsheets/andrea_ring__16__ifercdec.xlsx     &lt;quosur…
+## 10 /home/cbrunos/six_to/spreadsheets/andrea_ring__17__IFERCJan.xlsx     &lt;quosur…
+## # … with 20 more rows</code></pre>
+<p>This takes less than a second to run, and not just because I only have 30 paths. Even if I was
+working on the complete 15k+ datasets, this would run in an instant. That’s because we’re actually
+not reading in anything yet. We’re only setting the scene.</p>
+<p>The magic happens now: we’re going to now map our function that computes the stats we need.
+We only need to change one thing. Let’s see:</p>
+<pre class="r"><code>get_stats &lt;- function(x){
+
+  x &lt;- eval_tidy(x)
+
+  tribble(~has_formula, ~n_sheets, ~n_formulas,
+          at_least_one_formula(x), n_sheets(x), n_formulas(x))
+
+}</code></pre>
+<p>I’ve added this line:</p>
+<pre class="r"><code>x &lt;- eval_tidy(x)</code></pre>
+<p>This evaluates the quosure, thus instantiating the dataset, and then proceeds to make all the
+computations. Let’s see what happens when we run this on our lazy tibble:</p>
+<pre class="r"><code>(enron &lt;- enron %&gt;%
+   mutate(stats = map(datasets, get_stats)))</code></pre>
+<pre><code>## # A tibble: 30 x 3
+##    paths                                                  datasets  stats       
+##    &lt;chr&gt;                                                  &lt;list&gt;    &lt;list&gt;      
+##  1 /home/cbrunos/six_to/spreadsheets/albert_meyers__1__1… &lt;quosure&gt; &lt;tibble [1 …
+##  2 /home/cbrunos/six_to/spreadsheets/albert_meyers__2__1… &lt;quosure&gt; &lt;tibble [1 …
+##  3 /home/cbrunos/six_to/spreadsheets/andrea_ring__10__EN… &lt;quosure&gt; &lt;tibble [1 …
+##  4 /home/cbrunos/six_to/spreadsheets/andrea_ring__11__EN… &lt;quosure&gt; &lt;tibble [1 …
+##  5 /home/cbrunos/six_to/spreadsheets/andrea_ring__12__EN… &lt;quosure&gt; &lt;tibble [1 …
+##  6 /home/cbrunos/six_to/spreadsheets/andrea_ring__13__Tr… &lt;quosure&gt; &lt;tibble [1 …
+##  7 /home/cbrunos/six_to/spreadsheets/andrea_ring__14__Tr… &lt;quosure&gt; &lt;tibble [1 …
+##  8 /home/cbrunos/six_to/spreadsheets/andrea_ring__15__IF… &lt;quosure&gt; &lt;tibble [1 …
+##  9 /home/cbrunos/six_to/spreadsheets/andrea_ring__16__if… &lt;quosure&gt; &lt;tibble [1 …
+## 10 /home/cbrunos/six_to/spreadsheets/andrea_ring__17__IF… &lt;quosure&gt; &lt;tibble [1 …
+## # … with 20 more rows</code></pre>
+<p>What happened here is nothing short of black magic: one by one, each quosure was instantiated, and
+the required stats were computed, then the dataset was thrown into the garbage before moving
+on to the next quosure. This means that RAM usage was kept to a minimum, and I could have run
+this over my 15k+ spreadsheets without any issue. You can watch me run similar code in
+my video <a href="https://youtu.be/DERMZi3Ck20?t=820">here</a>; I show how my RAM usage does not move
+even though I’m mapping over all the Excel sheets.
+The column <code>stats</code> now holds one dataframe with one row and three columns for each Excel file.
+Because <code>stats</code> is a list-column of dataframes, we can use <code>unnest()</code> to get to the data.
+Let’s take a closer look on one dataframe:</p>
+<pre class="r"><code>enron %&gt;%
+  head(1) %&gt;%
+  select(paths, stats) %&gt;%
+  unnest(cols = stats)</code></pre>
+<pre><code>## # A tibble: 1 x 4
+##   paths                                          has_formula n_sheets n_formulas
+##   &lt;chr&gt;                                          &lt;lgl&gt;          &lt;int&gt;      &lt;int&gt;
+## 1 /home/cbrunos/six_to/spreadsheets/albert_meye… TRUE              11       3334</code></pre>
+<p>We see that by using <code>unnest()</code>, the two columns inside the nested dataframe get expanded and
+become columns of the “main” dataframe.</p>
+<p>We’re done, but let’s clean up the dataset a little bit and take a look at the results:</p>
+<pre class="r"><code>(
+  enron &lt;- enron %&gt;%
+    mutate(excel_file = str_remove(paths, &quot;/home/cbrunos/six_to/spreadsheets/&quot;)) %&gt;%
+    select(-paths, -datasets) %&gt;%
+    unnest(cols = stats)
+)</code></pre>
+<pre><code>## # A tibble: 30 x 4
+##    has_formula n_sheets n_formulas excel_file                                   
+##    &lt;lgl&gt;          &lt;int&gt;      &lt;int&gt; &lt;chr&gt;                                        
+##  1 TRUE              11       3334 albert_meyers__1__1-25act.xlsx               
+##  2 TRUE              11       3361 albert_meyers__2__1-29act.xlsx               
+##  3 TRUE               4        550 andrea_ring__10__ENRONGAS(1200).xlsx         
+##  4 TRUE               4        549 andrea_ring__11__ENRONGAS(0101).xlsx         
+##  5 TRUE               4        550 andrea_ring__12__ENRONGAS(1200).xlsx         
+##  6 FALSE              0          0 andrea_ring__13__Trader &amp; Products 5-15-01 E…
+##  7 FALSE              0          0 andrea_ring__14__Trader &amp; Products 5-16-01 E…
+##  8 TRUE               1        169 andrea_ring__15__IFERCnov.xlsx               
+##  9 TRUE               1        177 andrea_ring__16__ifercdec.xlsx               
+## 10 TRUE               1        162 andrea_ring__17__IFERCJan.xlsx               
+## # … with 20 more rows</code></pre>
+<p>Getting some statistics is now easy:</p>
+<pre class="r"><code>enron %&gt;%
+  summarise(average_n_formulas = mean(n_formulas),
+            max_sheets = max(n_sheets))</code></pre>
+<pre><code>## # A tibble: 1 x 2
+##   average_n_formulas max_sheets
+##                &lt;dbl&gt;      &lt;int&gt;
+## 1               490.         11</code></pre>
+<p>By the way, now that we see that the code works, we can run it on all the spreadsheets simply
+by not running the following line:</p>
+<pre class="r"><code>(enron &lt;- head(enron, 30)) </code></pre>
+<p>Also, we can quite easily run all of this in parallel using <code>{furrr}</code>:</p>
+<pre class="r"><code>library(furrr)</code></pre>
+<pre><code>## Loading required package: future</code></pre>
+<pre class="r"><code>plan(multiprocess, workers = 12)
+
+enron &lt;- enframe(list_paths, name = NULL, value = &quot;paths&quot;)
+
+enron &lt;- head(enron, 1200) #just to compile the document faster, I only consider 1200 Excel spreadsheets
+
+enron &lt;- enron %&gt;%
+   mutate(datasets = map(paths, ~quo(xlsx_cells(.))))
+
+start &lt;- Sys.time()
+enron &lt;- enron %&gt;%
+  mutate(stats = future_map(datasets, get_stats))
+Sys.time() - start</code></pre>
+<pre><code>## Time difference of 36.86839 secs</code></pre>
+<p>Same code, no parallelization (it takes longer, obviously):</p>
+<pre class="r"><code>enron &lt;- enframe(list_paths, name = NULL, value = &quot;paths&quot;)
+
+enron &lt;- head(enron, 1200)
+
+enron &lt;- enron %&gt;%
+   mutate(datasets = map(paths, ~quo(xlsx_cells(.))))
+
+start &lt;- Sys.time()
+enron &lt;- enron %&gt;%
+  mutate(stats = map(datasets, get_stats))
+Sys.time() - start</code></pre>
+<pre><code>## Time difference of 1.217199 mins</code></pre>
+<p>I think this is pretty neat.</p>
+<p>Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my ebook on <a href="https://leanpub.com/modern_tidyverse">Leanpub</a>.
+You can also watch my videos on <a href="https://www.youtube.com/c/BrunoRodrigues1988/">youtube</a>.
+So much content for you to consoom!</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
+</div>
