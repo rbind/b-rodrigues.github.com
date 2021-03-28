@@ -1,0 +1,31 @@
+---
+date: 2021-03-28
+title: The link between keyboard layouts and typing speed - Data collection phase
+tags: [R]
+menu:
+main:
+  parent: Blog
+  identifier: /blog/survey
+  weight: 1
+---
+
+
+<div style="text-align:center;">
+<a href="https://forms.gle/vprM4C8yk1bBGCNx8">
+<img src="https://i.imgur.com/JXueyyT.png" title = "Touch typing can also help fight zombies"></a>
+</div>
+
+
+I'm curious about different keyboard layouts, and how that correlates with typing speed (if at all).
+I prepared a little 2 minute survey, and would be very grateful if you could take it. You can
+find it on this [link](https://forms.gle/vprM4C8yk1bBGCNx8).
+
+There's no R code in this blog post, but I'll be analyzing the data using R, promise :)
+
+Hope you enjoyed! If you found this blog post useful, you might want to follow 
+me on [twitter](https://www.twitter.com/brodriguesco) for blog post updates and 
+[buy me an espresso](https://www.buymeacoffee.com/brodriguesco) or [paypal.me](https://www.paypal.me/brodriguesco), or buy my ebook on [Leanpub](https://leanpub.com/modern_tidyverse).
+You can also watch my videos on [youtube](https://www.youtube.com/c/BrunoRodrigues1988/).
+So much content for you to consoom!
+
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a>
