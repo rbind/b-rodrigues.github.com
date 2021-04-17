@@ -1,0 +1,461 @@
+---
+date: 2021-04-17
+title: Dealing with non-representative samples with post-stratification
+tags: [R]
+menu:
+main:
+  parent: Blog
+  identifier: /blog/post_strat
+  weight: 1
+---
+
+
+<div style="text-align:center;">
+<a href="https://www.youtube.com/watch?v=eOBIIB690yE">
+<img src="/img/bingo.png" title = "It could have been worse"></a>
+</div>
+
+
+Let's go back to stats 101: what do you do if you want to know how many people like to play bingo
+in a certain population? The answer, of course, is to ask a sample of people if they enjoy 
+playing bingo, compute the proportion and then... we're done! Right?
+Well not exactly. This works if your sample is representative, which in practice, is not often
+the case. 
+I am not an expert of survey methods, very far from it, but I was recently confronted to a similar
+issue at work. So in this blog post I want to talk about estimating a proportion using a sample
+that is not representative of the population using a method called "post-stratification".
+
+By the way, before continuing, I also made a video about this topic if you're interested, 
+watch it [here](https://www.youtube.com/watch?v=eOBIIB690yE).
+
+The data I use in this blog post is simulated; so I know the "truth", since I made the data, and can
+thus compare the results from post-stratification to the truth. At the end of the blog post, I 
+will post the complete source code, but for now, let's suppose that this is my sample:
+
+```{r, include = FALSE}
+library(tidyverse)
+library(survey)
+library(janitor)
+library(brotools)
+```
+
+```{r, eval = FALSE}
+library(tidyverse)
+library(survey)
+library(janitor)
+library(brotools)
+```
+
+
+```{r, include = FALSE}
+data("eusilcP", package = "simPop")
+
+eusilcP <- eusilcP %>%
+  mutate(age_group = case_when(age < 20 ~ "19-",
+                               between(age, 20, 49.999) ~ "20-49",
+                               between(age, 50, 79.999) ~ "50-79",
+                               age >= 80 ~ "80+"))
+
+proba_vac <- function(gender, age, list_probas_female, list_probas_male){
+
+  if(gender == "female"){
+
+    case_when(age > 70 ~ sample(x = c(1, 0), 1, prob = list_probas_female$prob_70),
+              between(age, 40, 70) ~ sample(x = c(1, 0), 1, prob = list_probas_female$prob_middle_age),
+              between(age, 20, 39.999) ~ sample(x = c(1, 0), 1, prob = list_probas_female$prob_child),
+              age < 20 ~ sample(x = c(1, 0), 1, prob = list_probas_female$prob_child))
+
+  } else {
+
+    case_when(age > 70 ~ sample(x = c(1, 0), 1, prob = list_probas_male$prob_70),
+              between(age, 40, 70) ~ sample(x = c(1, 0), 1, prob = list_probas_male$prob_middle_age),
+              between(age, 20, 39.999) ~ sample(x = c(1, 0), 1, prob = list_probas_male$prob_child),
+              age < 20 ~ sample(x = c(1, 0), 1, prob = list_probas_male$prob_child))
+
+  }
+
+}
+
+list_probas_female_1 <- list(prob_70 = c(.8, .2),
+                           prob_middle_age = c(.25, .65),
+                           prob_young = c(.05, .95),
+                           prob_child = c(.01, .99))
+
+
+list_probas_male_1 <- list(prob_70 = c(.75, .25),
+                         prob_middle_age = c(.2, .8),
+                         prob_young = c(.05, .95),
+                         prob_child = c(.01, .99))
+
+
+list_probas_female_2 <- list(prob_70 = c(.6, .4),
+                             prob_middle_age = c(.45, .55),
+                             prob_young = c(.1, .9),
+                             prob_child = c(.05, .95))
+
+
+list_probas_male_2 <- list(prob_70 = c(.55, .45),
+                           prob_middle_age = c(.4, .6),
+                           prob_young = c(.15, .85),
+                           prob_child = c(.05, .95))
+
+eusilcP <- eusilcP %>%
+  mutate(likes_bingo_1 = pmap_dbl(list(gender, age), ~proba_vac(list_probas_female = list_probas_female_1,
+                                                              list_probas_male = list_probas_male_1,
+                                                              ...))) %>%  
+  mutate(likes_bingo_2 = pmap_dbl(list(gender, age), ~proba_vac(list_probas_female = list_probas_female_2,
+                                                                list_probas_male = list_probas_male_2,
+                                                                ...))) %>%  
+  mutate(likes_bingo_3 = pmap_dbl(list(gender, age), ~proba_vac(list_probas_female = list_probas_female_2,
+                                                                list_probas_male = list_probas_male_2,
+                                                                ...))) %>%  
+  mutate(likes_bingo_4 = pmap_dbl(list(gender, age), ~proba_vac(list_probas_female = list_probas_female_2,
+                                                                list_probas_male = list_probas_male_2,
+                                                                ...))) %>%  
+  mutate(likes_bingo_5 = pmap_dbl(list(gender, age), ~proba_vac(list_probas_female = list_probas_female_2,
+                                                                list_probas_male = list_probas_male_2,
+                                                                ...))) %>%
+  mutate(likes_bingo_2 = ifelse(likes_bingo_1 + likes_bingo_2 >= 1, 1, 0),
+         likes_bingo_3 = ifelse(likes_bingo_2 + likes_bingo_3 >= 1, 1, 0),
+         likes_bingo_4 = ifelse(likes_bingo_3 + likes_bingo_4 >= 1, 1, 0),
+         likes_bingo_5 = ifelse(likes_bingo_4 + likes_bingo_5 >= 1, 1, 0))
+
+
+
+age_distribution_population <- eusilcP %>%
+  tabyl(age_group) 
+
+
+my_sample_1 <- eusilcP %>%
+  group_by(age_group) %>%
+  nest() %>%  
+  #left_join(population_freq) %>%
+  bind_cols(n_to_sample = c(174, 540, 40, 150)) %>%  
+  mutate(sample_in_group = map2(.x = data,
+                                .y = n_to_sample,
+                                ~sample_n(tbl = .x, size = .y))) %>%
+  select(age_group, sample_in_group) %>%
+  unnest(cols = sample_in_group) %>%
+  ungroup()
+
+
+
+
+pop_marginal_age <- eusilcP %>%
+  count(age_group, name = "Freq")
+
+
+unweighted_data <- svydesign(ids = ~1, data = my_sample_1, control = list(maxit = 100))
+
+weighted_data <- rake(design = unweighted_data,
+                      sample.margins = list(~age_group),
+                      population.margins = list(pop_marginal_age))
+
+
+svymean(~likes_bingo_1, weighted_data, na.rm = TRUE)
+
+# every week
+
+likes_bingo_through_time <- eusilcP %>%
+  pivot_longer(cols = starts_with("likes_bingo"),
+               names_to = "week",
+               values_to = "freq") %>%
+  group_by(week) %>%
+  summarise(freq = mean(freq))
+
+ggplot(likes_bingo_through_time) +
+  geom_line(aes(y = freq, x = week), group = 1)
+
+
+my_sample_2 <- eusilcP %>%
+  filter(!(id %in% my_sample_1$id)) %>%  
+  group_by(age_group) %>%
+  nest() %>%  
+  #left_join(population_freq) %>%
+  bind_cols(n_to_sample = c(194, 740, 60, 35)) %>%  
+  mutate(sample_in_group = map2(.x = data,
+                                .y = n_to_sample,
+                                ~sample_n(tbl = .x, size = .y))) %>%
+  select(age_group, sample_in_group) %>%
+  unnest(cols = sample_in_group) %>%
+  ungroup()
+
+my_sample_2 %>%
+  summarise(mean(likes_bingo_2))
+
+
+
+my_sample_3 <- eusilcP %>%
+  filter(!(id %in% my_sample_1$id)) %>%  
+  filter(!(id %in% my_sample_2$id)) %>%  
+  group_by(age_group) %>%
+  nest() %>%  
+  #left_join(population_freq) %>%
+  bind_cols(n_to_sample = c(1224, 120, 72, 20)) %>%  
+  mutate(sample_in_group = map2(.x = data,
+                                .y = n_to_sample,
+                                ~sample_n(tbl = .x, size = .y))) %>%
+  select(age_group, sample_in_group) %>%
+  unnest(cols = sample_in_group) %>%
+  ungroup()
+
+my_sample_3 %>%
+  summarise(mean(likes_bingo_3))
+
+
+my_sample_4 <- eusilcP %>%
+  filter(!(id %in% my_sample_1$id)) %>%  
+  filter(!(id %in% my_sample_2$id)) %>%  
+  filter(!(id %in% my_sample_3$id)) %>%  
+  group_by(age_group) %>%
+  nest() %>%  
+  #left_join(population_freq) %>%
+  bind_cols(n_to_sample = c(440, 200, 320, 420)) %>%  
+  mutate(sample_in_group = map2(.x = data,
+                                .y = n_to_sample,
+                                ~sample_n(tbl = .x, size = .y))) %>%
+  select(age_group, sample_in_group) %>%
+  unnest(cols = sample_in_group) %>%
+  ungroup()
+
+my_sample_4 %>%
+  summarise(mean(likes_bingo_4))
+
+my_sample_5 <- eusilcP %>%
+  filter(!(id %in% my_sample_1$id)) %>%  
+  filter(!(id %in% my_sample_2$id)) %>%  
+  filter(!(id %in% my_sample_3$id)) %>%  
+  filter(!(id %in% my_sample_4$id)) %>%  
+  group_by(age_group) %>%
+  nest() %>%  
+  #left_join(population_freq) %>%
+  bind_cols(n_to_sample = c(504, 325, 720, 20)) %>%  
+  mutate(sample_in_group = map2(.x = data,
+                                .y = n_to_sample,
+                                ~sample_n(tbl = .x, size = .y))) %>%
+  select(age_group, sample_in_group) %>%
+  unnest(cols = sample_in_group) %>%
+  ungroup()
+
+my_sample_5 %>%
+  summarise(mean(likes_bingo_5))
+
+samples <- bind_rows(my_sample_1,
+                     my_sample_2,
+                     my_sample_3,
+                     my_sample_4,
+            my_sample_5) %>% 
+  pivot_longer(cols = starts_with("likes_bingo"),
+               names_to = "week",
+               values_to = "yes") %>%
+  select(age_group, week, yes)
+
+samples_likes_bingo_through_time <- samples %>%
+  group_by(week) %>%
+  summarise(freq = mean(yes))
+
+```
+
+```{r, eval = FALSE}
+my_sample_1
+```
+
+```{r, echo = FALSE}
+my_sample_1 %>%
+  select(age_group, likes_bingo_1)
+```
+
+Let's suppose that we have asked people two questions: their age, and whether or not they like 
+bingo. Using this sample, I obtain the following result:
+
+```{r}
+result <- mean(my_sample_1$likes_bingo_1)
+```
+
+So according to this sample, `r round(result*100, 2)`% of people in my population like bingo.
+But is that right? Let's use the other piece of information we have: the interviewee's ages. This
+is the distribution of the age group in my sample:
+
+```{r}
+my_sample_1 %>%
+  tabyl(age_group)
+```
+
+We want to compare this to the distribution of the same age groups in the population. Thankfully,
+this is something that is readily available in most (all?) countries. National statistical 
+institutes publish such data on a yearly basis. This is the distribution in the population:
+
+```{r}
+age_distribution_population
+```
+
+As we can see, our sample is completely off! Elderly people are over-represented while younger
+people are under-represented. Perhaps this happened because elderly people love bingo more 
+than younger people and, when given the opportunity to confess their love for bingo, are more 
+willing to answer to a survey. Whatever the reason, it would be unreasonable to assume that the 
+proportion given by our sample is a good, unbiased, estimate of the true proportion in the population.
+
+What we would like to do here, is to compute weights for each individual in the sample, such that
+individuals from over-represented groups contribute less to the computation of the proportion than 
+individuals from under-represented groups. This is where post-stratification and raking come 
+into play. As already said, I'm not an expert of these methods. So don't believe that this blog
+post is a tutorial. However, what I'm going to show you might come in handy. 
+
+We're going to use the `{survey}` package to compute the weights using raking, by post-stratifying
+the sample on age group. This can be done with two commands:
+
+```{r}
+unweighted_data <- svydesign(ids = ~1, data = my_sample_1)
+
+weighted_data <- rake(design = unweighted_data,
+                      sample.margins = list(~age_group),
+                      population.margins = list(pop_marginal_age))
+
+```
+
+The first function, `svydesign()` allows you to create a new object based on your data, which 
+specifies the [design](https://stats.oecd.org/glossary/detail.asp?ID=3852) of your study. In this
+case, I have used `ids = ~1` to say "I don't have any weights, nor anything specific to tell you".
+Next, using the `rake()` function, I can compute the weights. For this, I need the object I created
+before, the variable I want to post-stratify on, and then give a table that contains the distribution
+of said variable in the population. This table looks a bit different from the one I already
+showed you: it doesn't contain the categories' frequencies, and the variable containing the counts
+is called `Freq` (`rake()` looks for this variable so it must be named like this):
+
+```{r}
+pop_marginal_age 
+```
+
+We can now take a look at the weights:
+
+```{r}
+summary(weights(weighted_data))
+```
+
+In cases where you have very high or very low weights, the literature recommends trimming them. 
+However, I have not seen anything very definitive on this, and it seems that practitioners rely
+on rules of thumb and gut feeling to know when to trim weights. In my example here, I don't think
+it is needed, but as I said, I have no intuition for this. Anyways, we are now ready to compute the 
+new proportion:
+
+```{r}
+svymean(~likes_bingo_1, weighted_data)
+```
+
+The result is quite different from before (it was `r round(result*100, 2)`% in the "raw" sample)!
+Because I have simulated the data, I can now compare to the "true" value:
+
+```{r}
+eusilcP %>%
+  summarise(mean(likes_bingo_1))
+```
+
+And we're quite close!
+
+
+Now let's continue a little bit, with a more complicated example. Imagine that I collected five
+samples, one per week. Each sample contains totally different people (no person gets asked twice).
+Also, imagine that while I'm collecting my samples and analyzing them, bingo fever is running amok
+in my country, always infecting more and more people. As time passes, the proportion of people who
+love bingo keeps increasing. So my population's parameter keeps changing, and each week, when I get
+a new sample, the proportion in my sample will also grow on a weekly basis.
+Because of this, I have to compute weights each week. Thankfully, the distribution of age groups in
+my population can be assumed to stay constant, so I don't need to think about that.
+
+Let's take a look at my sample which contains 5 weeks of data:
+
+```{r}
+samples
+```
+
+Each row is one person, and this person gets sample exactly once. The `yes` variable collects the 
+answer to the question "do you like bingo?". Let's see how my proportion evolves through time:
+
+```{r}
+(samples_likes_bingo_through_time <- samples %>%
+  group_by(week) %>%
+  summarise(freq = mean(yes)))
+```
+
+We see that it keeps increasing: this is a good sign, since we know that this is also the case
+in the population. We just don't know by how much. Let's compute weights for each week, and then
+recompute estimated proportions using these weights. In order to do this, I will write a function 
+that will make it easy to do just that:
+
+```{r}
+compute_weekly_weights <- function(sample_df){
+
+  unweighted_data <- svydesign(ids = ~1, data = sample_df)
+
+  rake(design = unweighted_data,
+       sample.margins = list(~age_group),
+       population.margins = list(pop_marginal_age))
+
+}
+
+```
+
+This function does the exact same thing as before. But it will now make it easy to apply to each 
+week using the `group_by`-`nest`-`map` approach:
+
+```{r}
+weighted_samples <- samples %>%
+  group_nest(week) %>%
+  mutate(weights = map(data, compute_weekly_weights)) %>%
+  mutate(svymeans = map(weights, ~svymean(~yes, .)))
+```
+
+Let's take a look at this object:
+
+```{r}
+weighted_samples
+```
+
+So for each week, I have now a `svydesign` object and also a new, hopefully unbiased, proportion
+of people who like bingo. The following lines simply but this into a nice tibble:
+
+```{r}
+weighted_samples <- weighted_samples %>%
+  mutate(svymeans = map(svymeans, as_tibble)) %>%
+  select(week, svymeans) %>%
+  unnest(cols = svymeans) %>%
+  rename(freq = mean,
+         SE = yes) %>%
+  mutate(is = "corrected_sample")
+
+```
+
+To conclude, let's create a plot that compares the proportions computed without using weights to the
+proportions computed with weights to the true values that I simulated myself. I put everything
+in a data frame and the create the plot:
+
+```{r}
+all_data <- bind_rows(weighted_samples, # my corrected data
+                      mutate(samples_likes_bingo_through_time, is = "raw_sample"), # the raw samples
+                      mutate(likes_bingo_through_time, is = "true_value")) %>% # the true, simulated, values
+  mutate(SE = ifelse(is.na(SE), 0, SE))
+
+ggplot(all_data) +
+  geom_ribbon(aes(y = freq, x = week,
+                  ymin = freq - 2*SE,
+                  ymax = freq + 2*SE,
+                  group = is),
+              fill = "pink",
+              alpha = .3) +
+  geom_line(aes(y = freq, x = week, colour = is, group = is)) +
+  theme_blog()
+```
+
+We can see that the proportions computed without weights were clearly over-estimating the true
+share of bingo enthusiasts in the population. The weighted proportions are very close to the true 
+values and are acceptable estimates of the true proportions!
+
+If you want to take a look at the source code, go [here](https://gist.github.com/b-rodrigues/d9efe80f879f95d305cd661b63e2dee9).
+
+Hope you enjoyed! If you found this blog post useful, you might want to follow 
+me on [twitter](https://www.twitter.com/brodriguesco) for blog post updates and 
+[buy me an espresso](https://www.buymeacoffee.com/brodriguesco) or [paypal.me](https://www.paypal.me/brodriguesco), or buy my ebook on [Leanpub](https://leanpub.com/modern_tidyverse).
+You can also watch my videos on [youtube](https://www.youtube.com/c/BrunoRodrigues1988/).
+So much content for you to consoom!
+
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a>
