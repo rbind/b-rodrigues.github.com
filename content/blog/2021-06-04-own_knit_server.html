@@ -1,0 +1,196 @@
+---
+date: 2021-06-04
+title: Building your own knitr compile farm on your Raspberry Pi with {plumber}
+tags: [R]
+menu:
+main:
+  parent: Blog
+  identifier: /blog/own_knit_server
+  weight: 1
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<div style="text-align:center;">
+<p><a href="https://www.youtube.com/watch?v=4xYu2WrygtQ">
+<img src="/img/i_do_my_own_plumbing.png" title = "Always do your own plumbing"></a></p>
+</div>
+<script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+<div id="rage-is-my-fuel" class="section level2">
+<h2>Rage is my fuel</h2>
+<p>I’ve had the <code>{plumber}</code> package on my radar for quite some time, but never tried it. However, a
+couple of weeks ago, I finally had a reason to try it out and see how the package works.</p>
+<p>One of my main problems in life is that my work laptop runs Windows, and my second problem is that
+I need to compile <span class="math inline">\(\LaTeX\)</span> documents (via Rmarkdown) on Windows, and it’s just a pain. Not because
+of Rmarkdown, nor <span class="math inline">\(\LaTeX\)</span>, but because of Windows.
+Windows and UTF-8 don’t mix well, and I’ve grown so frustrated that I thought about creating my own
+Rmarkdown knitr compile farm using my Raspberry Pi 4 to solve this issue. The idea would be to send
+in the encrypted <code>.Rmd</code> script and get back an encrypted <code>.pdf</code> file. Dear reader, you surely think
+that this is overkill; let me assure you, it is not. I have wasted so much time on Windows because
+Windows is a joke that cannot properly handle THE MOST COMMON TEXT ENCODING IN THE UNIVERSE that
+this the only way out. Even Yihui Xie, the creator of the <code>{knitr}</code> package (among many others),
+wrote a blog post titled <a href="https://yihui.org/en/2018/11/biggest-regret-knitr/">My Biggest Regret in the knitr
+Package</a>, in which he explains how Windows’
+crappy handling of UTF-8 made him make a regrettable decision. The issue Yihui Xie discusses is
+now resolved since <code>{rmarkdown}</code> version 2, as stated in the <a href="https://rmarkdown.rstudio.com/docs/news/#rmarkdown-2-0-2019-12-12">release
+notes</a> (ctrl-f “utf-8”), but,
+for some reason, I still have problems with UTF-8 on Windows. While it is a fact that characters
+like the french é, è, ô, ç etc are now properly shown in a compiled document, any such character in
+a plot will not show properly, as you can see in the screenshot below:</p>
+<p><img src="https://i.imgur.com/VBVlHLV.png" /><!-- --></p>
+<p>I did not really ever notice this issue in the past because I wrote 100% of my documents in English, but
+now that I’m a public servant in a country where French is the administrative language, man, am I
+having a bad time.</p>
+<p>Now, I make sure my <code>.Rmd</code> files are encoded in UTF-8, but I still get issues with plots. I tried
+changing the graphics device to Cairo or <code>{ragg}</code>, but I still have these issues.</p>
+<p>Who knows, maybe this is also a case of PEBKAC, but in that case it’s still Windows’ fault for
+making me feel bad.</p>
+<p>Anyway, this was reason enough for me to start developing an API that would allow me to get a nice
+looking PDF compiled on a serious operating system.</p>
+</div>
+<div id="getting-started-docker" class="section level2">
+<h2>Getting started: Docker</h2>
+<p>I started by writing a prototype on my local machine that (sort of, but not really) worked, but to
+put it on my Raspberry Pi I wanted to create a new Docker image to make deployment easier. For
+this, just like I did for this <a href="https://www.brodrigues.co/blog/2020-09-20-shiny_raspberry/">other blog
+post</a>, I wrote a ’Dockerfile’ and
+pushed an image to Docker Hub. The Dockerfile is heavily inspired by
+<a href="https://github.com/hvalev/shiny-server-arm-docker">hvalev’s</a> Dockerfile, and also by the official
+<code>plumber</code> one you can find <a href="https://github.com/rstudio/plumber/blob/master/Dockerfile">here</a>. I then
+built the image on my Raspberry Pi.</p>
+<p>You can use the Dockerfile to build your own image, which you can find
+<a href="https://github.com/b-rodrigues/tex-plumber">here</a>, or you can pull the one I pushed on
+<a href="https://hub.docker.com/r/brodriguesco/tex-plumber/">Docker Hub</a>.
+Now, something important: this Docker image does not contain my <code>plumber.R</code> file. So the first
+time you’re going to run it, it’ll fail. You’ll need to make one further adaptation on your server
+first.</p>
+<p>Put your <code>plumber.R</code> where you want, and copy the path to the file.
+For instance, suppose that you put the file at: <code>/path/to/your/apis/plumber.R</code>.
+Then, you can finally run the image like so:</p>
+<pre><code>docker run -d -it -p 8000:8000 -v /path/to/your/apis:/srv/plumber/ --rm --name tex-plumber tex-plumber:latest</code></pre>
+<p>Docker looks for a plumber file inside <code>/srv/plumber/</code> but that’s inside the image; this path
+gets sort of linked to your <code>/path/to/your/apis/</code> and thus the <code>plumber.R</code> file you put there
+will be run. You can also put this there beforehand, adapt the Dockerfile and then build the image.
+It’s not the most elegant way to do it, but hey, I’m a beginner.</p>
+<p>These instructions are very general and independent from my API I’m discussing here. What follows
+will be specific to my API.</p>
+</div>
+<div id="an-api-that-ingests-and-rmd-file-and-spits-out-a-compiled-document" class="section level2">
+<h2>An API that ingests and Rmd file and spits out a compiled document</h2>
+<p>First of all, none of this would have been possible without the following Stackoverflow threads and
+Github repos:</p>
+<ul>
+<li><a href="https://stackoverflow.com/questions/63808430/r-plumber-getting-as-excel-xlsx/63809737#63809737" class="uri">https://stackoverflow.com/questions/63808430/r-plumber-getting-as-excel-xlsx/63809737#63809737</a></li>
+<li><a href="https://github.com/ChrisBeeley/reports_with_plumber/blob/master/plumber.R" class="uri">https://github.com/ChrisBeeley/reports_with_plumber/blob/master/plumber.R</a></li>
+<li><a href="https://stackoverflow.com/questions/64639748/how-to-upload-a-xlsx-file-in-plumber-api-as-a-input" class="uri">https://stackoverflow.com/questions/64639748/how-to-upload-a-xlsx-file-in-plumber-api-as-a-input</a></li>
+</ul>
+<p>and <a href="https://github.com/meztez">Bruno Tremblay’s</a> help on this
+<a href="https://community.rstudio.com/t/trying-to-understand-whats-wrong-with-my-api/106424?u=brodriguesco">thread</a>
+I made calling for help. You’ll probably notice that the answers in the stackoverflow threads all
+come from Bruno Tremblay, so a big thank you to him!</p>
+<p>With his help, I was able to clob together this API:</p>
+<pre class="r"><code>#* Knit Rmarkdown document
+#* @param data:file The Rmd file
+#* @param string The output format
+#* @post /knit
+# We use serializer contentType, the pdf serializer is the plot output from grDevices
+# Since the content is already in the right format from render, we just need to set
+# the content-type
+#* @serializer contentType list(type = &quot;application/gzip&quot;)
+function(data, output_format) { 
+  # Save the RMD file to a temporary location
+  rmd_doc &lt;- file.path(tempdir(), names(data))
+  writeBin(data[[1]], rmd_doc)
+  # render document to the selected output format
+  # (file will be saved side by side with source and with the right extension)
+  output &lt;- rmarkdown::render(rmd_doc, output_format)
+  tar(&quot;output.tar.gz&quot;, normalizePath(output), compression = &quot;gzip&quot;, tar = &quot;tar&quot;)
+  # remove files on exit
+  on.exit({file.remove(rmd_doc, output, &quot;output.tar.gz&quot;)}, add = TRUE)
+  # Include file in response as attachment
+  value &lt;- readBin(&quot;output.tar.gz&quot;, &quot;raw&quot;, file.info(&quot;output.tar.gz&quot;)$size)
+  plumber::as_attachment(value, basename(&quot;output.tar.gz&quot;))
+}</code></pre>
+<p>This will go inside the <code>plumber.R</code> script. When the Docker image is running, you can hit the
+endpoint <code>/knit</code> to knit a document. But before discussing how to hit the API, let’s go through
+the above code.</p>
+<pre class="r"><code>function(data, output_format) { 
+  # Save the RMD file to a temporary location
+  rmd_doc &lt;- file.path(tempdir(), names(data))
+  writeBin(data[[1]], rmd_doc)</code></pre>
+<p>This function takes two arguments: <code>data</code> and <code>output_format</code>. <code>data</code> is your Rmd file (I should
+have named this better… oh well) that you will send via a POST. The Rmd will get written to a
+temporary location. In a previous version of the function I’ve used <code>writeLines</code> instead of
+<code>writeBin</code> which works as well.</p>
+<p>The next lines render the output as the provided output format (through the second argument,
+<code>output_format</code>) and the output file gets compressed to a <code>tar.gz</code> archive. Why? The first reason
+is, obviously, to save precious bandwidth. The second, most important reason, is for the API to
+be able to download it.</p>
+<pre class="r"><code>  output &lt;- rmarkdown::render(rmd_doc, output_format)
+  tar(&quot;output.tar.gz&quot;, normalizePath(output), compression = &quot;gzip&quot;, tar = &quot;tar&quot;)</code></pre>
+<p>The way I understand how this works, is that if you want your API to return
+an attachment, you need to set the right content type. This is done by decorating the function
+with the right serializer:</p>
+<pre class="r"><code>#* @serializer contentType list(type = &quot;application/gzip&quot;)</code></pre>
+<p>At first I only wanted PDF files, and thus set the <code>pdf</code> serializer. This was a mistake, as the
+<code>pdf</code> serializer is only used if the API is supposed to return a plot (in the pdf format).
+When this was pointed out to me (in the Rstudio forums), Bruno Tremblay showed me the right solution:</p>
+<pre class="r"><code>#* @serializer contentType list(type = &quot;application/pdf&quot;)</code></pre>
+<p>which worked! However, I then thought about how I would make the API more flexible by allowing the
+user to compile any format, and this is when I thought about compressing the file and returning
+a <code>tar.gz</code> file instead.</p>
+<p>The first line of the final lines:</p>
+<pre class="r"><code>  on.exit({file.remove(rmd_doc, output, &quot;output.tar.gz&quot;)}, add = TRUE)
+  # Include file in response as attachment
+  value &lt;- readBin(&quot;output.tar.gz&quot;, &quot;raw&quot;, file.info(&quot;output.tar.gz&quot;)$size)
+  plumber::as_attachment(value, basename(&quot;output.tar.gz&quot;))</code></pre>
+<p>simply clean up after exiting. The final lines read in the compressed file in a variable called
+<code>variable</code> which then gets downloaded automatically as an attachment.</p>
+<p>Ok, so now, how do I get a document compiled? With the following script:</p>
+<pre class="r"><code>library(httr)
+library(magrittr)
+
+my_file &lt;- &quot;testmark&quot;
+
+res &lt;- 
+  POST(
+    &quot;http://url_to_compile_farm:8000/knit?output_format=html_document&quot;,
+    body = list(
+      data = upload_file(paste0(my_file, &quot;.Rmd&quot;), &quot;text/plain&quot;)
+    )
+  ) %&gt;%
+  content()
+
+names(res)
+
+output_filename &lt;- file(paste0(my_file, &quot;.tar.gz&quot;), &quot;wb&quot;)
+writeBin(object = res, con = output_filename)
+close(output_filename)</code></pre>
+<p>This script is saved in a folder which also contains <code>testmark.Rmd</code>, which is the Rmarkdown file
+I want to compile (and which gets sent to the server as the <code>data</code> argument).
+You’ll notice in the url that the second argument from my API is defined there:</p>
+<pre class="r"><code>&quot;http://url_to_compile_farm:8000/knit?output_format=html_document&quot;</code></pre>
+<p>you can change <code>html_document</code> to <code>pdf_document</code> or <code>word_document</code> to get a PDF or Word document
+respectively.</p>
+<p>I’m pretty happy with this solution, even though it’s quite rough, and still needs some adjustments.
+For instance, I want to make sure that I can leave this API running without worry; so I need to build
+in some authentication mechanism, which will probably be quite primitive, but perhaps good enough.
+I also need to send and receive encrypted documents, and not plain text.</p>
+</div>
+<div id="further-reading" class="section level2">
+<h2>Further reading</h2>
+<p>If you’re into tinkering with Raspberry Pi’s, Rstudio Server an {plumber},
+<a href="https://twitter.com/tyluRp">Tyler Littlefield</a>
+has a pretty cool <a href="https://github.com/tyluRp/pirate">github repo</a>
+with lots of interesting stuff. Definitely give it a look!</p>
+<p>Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my ebook on <a href="https://leanpub.com/modern_tidyverse">Leanpub</a>.
+You can also watch my videos on <a href="https://www.youtube.com/c/BrunoRodrigues1988/">youtube</a>.
+So much content for you to consoom!</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
+</div>
