@@ -28,7 +28,7 @@ I need to compile <span class="math inline">\(\LaTeX\)</span> documents (via Rma
 of Rmarkdown, nor <span class="math inline">\(\LaTeX\)</span>, but because of Windows.
 Windows and UTF-8 don’t mix well, and I’ve grown so frustrated that I thought about creating my own
 Rmarkdown knitr compile farm using my Raspberry Pi 4 to solve this issue. The idea would be to send
-in the encrypted <code>.Rmd</code> script and get back an encrypted <code>.pdf</code> file. Dear reader, you surely think
+in the encrypted <code>.Rmd</code> file and get back an encrypted <code>.pdf</code> file. Dear reader, you surely think
 that this is overkill; let me assure you, it is not. I have wasted so much time on Windows because
 Windows is a joke that cannot properly handle THE MOST COMMON TEXT ENCODING IN THE UNIVERSE that
 this the only way out. Even Yihui Xie, the creator of the <code>{knitr}</code> package (among many others),
@@ -78,8 +78,8 @@ It’s not the most elegant way to do it, but hey, I’m a beginner.</p>
 <p>These instructions are very general and independent from my API I’m discussing here. What follows
 will be specific to my API.</p>
 </div>
-<div id="an-api-that-ingests-and-rmd-file-and-spits-out-a-compiled-document" class="section level2">
-<h2>An API that ingests and Rmd file and spits out a compiled document</h2>
+<div id="an-api-that-ingests-an-rmd-file-and-spits-out-a-compiled-document" class="section level2">
+<h2>An API that ingests an Rmd file and spits out a compiled document</h2>
 <p>First of all, none of this would have been possible without the following Stackoverflow threads and
 Github repos:</p>
 <ul>
