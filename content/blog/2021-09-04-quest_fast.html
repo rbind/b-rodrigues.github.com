@@ -1,0 +1,415 @@
+---
+date: 2021-09-04
+title: The quest for fast(er?) row-oriented workflows
+tags: [R]
+menu:
+main:
+  parent: Blog
+  identifier: /blog/quest_fast.Rmd
+  weight: 1
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<div style="text-align:center;">
+<p><a href="https://www.youtube.com/watch?v=erlWsquoHlM">
+<img src="/img/bell_curve_tidyverse.png" title = "Like and subscribe"></a></p>
+</div>
+<p>The past few weeks I have been exploring the speed of R. It started with <a href="https://www.youtube.com/watch?v=erlWsquoHlM">this video</a>
+in which I explained that R is not necessarily slower than any other interpreted language, as long
+as you’re using the built-in, optimized functions. However should you write your own implementation
+of an algorithm, especially if that algorithm requires the use of one (or more…) loops, it’ll
+run slowly. As I’ve also mentioned in two other videos, <a href="https://www.youtube.com/watch?v=3xIKZbZKCWQ">here</a>
+and <a href="https://www.youtube.com/watch?v=vxaKamox_CQ">here</a> there are many ways to avoid loops, and
+you should do so if possible.</p>
+<p>To continue exploring this is in more detail, I’ve written two very basic implementations of a
+genetic algorithm. The first version uses only <code>{tidyverse}</code> functions and the other only base R
+functions. My intuition was that base would be faster, but the code would likely be less
+“readable” (I discuss this code in greater detail in a series of videos, you can watch
+<a href="https://www.youtube.com/watch?v=bNh2WDdRleI">part 1</a> and <a href="https://www.youtube.com/watch?v=KynDephKNz4">part 2</a>
+if you’re interested in the nitty-gritty details). Code readability is quite subjective, but I think
+that there are some general “truths” regarding it, namely that it seems to often be that case that
+fast code is code that is “less” readable, and vice-versa. This blog post explores this trade-off
+in the context of row-oriented workflows.</p>
+<p>Once I was done writing the two versions of the genetic algorithm for the video
+(a <code>{tidyverse}</code> one and a base one), I profiled the code
+and realised that, yes base was much much faster, but also that the reason the <code>{tidyverse}</code> version
+was running so slowly was because of one single row-based operation. Trying to replace this row-based
+operation, but remaining inside the <code>{tidyverse}</code> made for an interesting challenge. I will
+explain what I did in this blog post, so first let’s set up the example:</p>
+<pre class="r"><code>library(tidyverse)
+library(brotools)</code></pre>
+<p>Let’s first generate some data. For this, I’m going to use a function I wrote for my genetic
+algorithm. I won’t explain how it works, so if you’re curious, you can watch the videos
+I mention in the introduction where this is all explained in detail:</p>
+<pre class="r"><code>init_pop &lt;- function(objective_function, pop_size = 100, upper_bound = 1, lower_bound = 0){
+
+  parameters &lt;- formals(objective_function)[[1]] %&gt;%
+    eval
+
+  purrr::rerun(length(parameters), runif(n = pop_size,
+                                         min = lower_bound,
+                                         max = upper_bound)) %&gt;%
+    dplyr::bind_cols() %&gt;%
+    janitor::clean_names()
+
+}</code></pre>
+<p>This function takes another function, the objective function to be optimized, as an argument,
+and checks how many parameters this objective functions has, and generates a population of random
+solutions (if you don’t understand what this all means don’t worry. What matters is that this
+generates a random dataset whith as many columns as the objective function has arguments).</p>
+<p>The next function is my objective function:</p>
+<pre class="r"><code>my_function &lt;- function(x = c(0, 0, 0, 0, 0, 0)){
+  x1 &lt;- x[1]
+  x2 &lt;- x[2]
+  x3 &lt;- x[3]
+  x4 &lt;- x[4]
+  x5 &lt;- x[5]
+  x6 &lt;- x[6]
+
+  -(x1**2 + x2 - 11)**2 - (x1 + x2**2 - 7)**2 - (x3**3 + x4 - 11)**2 - (x5 + x6**2 - 7)**2
+}</code></pre>
+<p>(This is not the same as in the videos, which only has two arguments.)</p>
+<p>Let’s generate some data:</p>
+<pre class="r"><code>dataset &lt;- init_pop(my_function) %&gt;%
+  as.data.frame()</code></pre>
+<pre class="r"><code>head(dataset)</code></pre>
+<pre><code>##           x1         x2         x3         x4        x5        x6
+## 1 0.01240753 0.52216369 0.03258892 0.09722631 0.7485749 0.9275532
+## 2 0.35423196 0.13766202 0.32204460 0.05759782 0.2143725 0.2391541
+## 3 0.10378066 0.07571073 0.28378176 0.51448928 0.9616971 0.2702277
+## 4 0.52591063 0.46718618 0.99404463 0.86059204 0.7264650 0.8083685
+## 5 0.46208664 0.56516052 0.46177016 0.15401250 0.9280011 0.9152156
+## 6 0.98528077 0.24898464 0.28815249 0.37093507 0.9020534 0.4355511</code></pre>
+<p>Now, on the actual problem: I need to add another column, with the value of <code>my_function()</code>,
+evaluated on a per row basis. As an example, for the first row, this would be the result of:</p>
+<pre class="r"><code>my_function(dataset[1, ])</code></pre>
+<pre><code>##          x1
+## 1 -302.8056</code></pre>
+<p>Many people would probably solve this using a for loop, so let’s write a function to do just that
+(benchmarking will make it easier if the code is inside a function):</p>
+<pre class="r"><code>run_loop &lt;- function(dataset, my_function = my_function){
+
+  dataset$score &lt;- 0
+
+  for(i in seq(1, nrow(dataset))){
+
+    dataset$score[i] &lt;- my_function(dataset[i, ])
+  }
+
+  dataset
+
+}
+
+
+run_loop(dataset, my_function = my_function) %&gt;%
+  head</code></pre>
+<pre><code>##           x1         x2         x3         x4        x5        x6     score
+## 1 0.01240753 0.52216369 0.03258892 0.09722631 0.7485749 0.9275532 -302.8056
+## 2 0.35423196 0.13766202 0.32204460 0.05759782 0.2143725 0.2391541  -323.473
+## 3 0.10378066 0.07571073 0.28378176 0.51448928 0.9616971 0.2702277 -311.6355
+## 4 0.52591063 0.46718618 0.99404463 0.86059204 0.7264650 0.8083685 -259.7646
+## 5 0.46208664 0.56516052 0.46177016 0.15401250 0.9280011 0.9152156 -286.0531
+## 6 0.98528077 0.24898464 0.28815249 0.37093507 0.9020534 0.4355511 -278.4643</code></pre>
+<p>The advantage of loops is that you don’t need to really know a lot about R to get it done; if you’ve
+learned some programming language some time during your studies, you learned about for loops.
+But they’re generally slower than other methods and error-prone (typos for example, or if you’re
+looping over several indeces, it can get quite complex…). And they’re, in my humble opinion,
+not always very easy to understand. This is not the case here, because it is quite a simple example,
+but often, it can get quite confusing to understand what is going on.</p>
+<p>So what would be a more “R-specific” way of doing it (specific in the sense that it is not a
+universal solution like a for-loop), and which avoids using a loop?
+<code>apply()</code> would here be the best candidate:</p>
+<pre class="r"><code>apply(dataset, MARGIN = 1, FUN = my_function)</code></pre>
+<pre><code>##   [1] -302.8056 -323.4730 -311.6355 -259.7646 -286.0531 -278.4643 -294.4777
+##   [8] -298.5700 -291.3642 -308.0560 -305.0222 -275.0652 -284.7013 -273.9297
+##  [15] -268.5652 -278.1445 -288.9499 -302.2236 -293.8893 -280.6697 -324.6310
+##  [22] -301.8986 -283.3776 -263.1386 -279.0203 -274.6004 -242.8429 -316.1679
+##  [29] -274.2564 -258.7995 -254.5350 -313.4797 -262.1684 -290.9866 -302.7581
+##  [36] -306.8771 -279.7645 -288.2144 -290.5971 -256.1781 -279.2323 -292.5604
+##  [43] -295.9565 -271.1590 -305.5433 -282.4037 -292.0525 -285.0635 -303.1871
+##  [50] -264.1534 -253.6944 -299.2543 -252.5947 -263.6670 -257.2571 -297.9045
+##  [57] -309.2746 -305.7162 -288.1244 -264.2176 -295.2711 -316.3825 -268.1744
+##  [64] -286.3890 -313.4759 -309.1958 -291.4537 -305.1202 -269.3924 -305.3369
+##  [71] -292.2627 -280.4522 -271.2382 -291.9913 -283.5446 -274.8310 -268.6854
+##  [78] -289.4784 -278.0444 -280.8523 -264.4792 -283.4950 -287.7354 -268.5446
+##  [85] -298.2402 -280.7423 -302.1886 -280.4117 -270.9505 -306.2466 -293.8185
+##  [92] -249.7290 -270.2272 -282.2159 -278.4562 -270.2936 -288.2470 -245.2684
+##  [99] -283.6952 -288.1078</code></pre>
+<p>Appending this to a dataframe can be done within a <code>mutate()</code> call (here again I’m encapsulating
+this inside a function, for benchmarking purposes):</p>
+<pre class="r"><code>run_apply &lt;- function(dataset, my_function = my_function){
+
+  dataset %&gt;%
+    mutate(score = apply(., MARGIN = 1, my_function))
+
+}
+
+run_apply(dataset, my_function = my_function) %&gt;%
+  head()</code></pre>
+<pre><code>##           x1         x2         x3         x4        x5        x6     score
+## 1 0.01240753 0.52216369 0.03258892 0.09722631 0.7485749 0.9275532 -302.8056
+## 2 0.35423196 0.13766202 0.32204460 0.05759782 0.2143725 0.2391541 -323.4730
+## 3 0.10378066 0.07571073 0.28378176 0.51448928 0.9616971 0.2702277 -311.6355
+## 4 0.52591063 0.46718618 0.99404463 0.86059204 0.7264650 0.8083685 -259.7646
+## 5 0.46208664 0.56516052 0.46177016 0.15401250 0.9280011 0.9152156 -286.0531
+## 6 0.98528077 0.24898464 0.28815249 0.37093507 0.9020534 0.4355511 -278.4643</code></pre>
+<p><code>MARGIN = 1</code> means that the function is applied on the rows, whereas <code>MARGIN = 2</code> would apply the
+function over columns.</p>
+<p>In terms of readability, I think that this is maybe a bit less readable than the for-loop, just
+because for-loops as very very ubiquitous. But it’s super simple once you understand how <code>apply()</code> works.</p>
+<p>Now, what would be a <code>{tidyverse}</code>-only approach? And why would you want to do a <code>{tidyverse}</code>-only
+approach anyways? Generally, I would argue that scripts written using <code>{tidyverse}</code> functions and style are
+easier to read. For example, I tweeted this code snippet some time ago:</p>
+<pre class="r"><code>blogdown::shortcode(&quot;tweet&quot;,
+                    &quot;1431718740341764099&quot;
+                    )</code></pre>
+<p>{{% tweet "1431718740341764099" %}}</p>
+<p>and in my opinion the example in my tweet shows clearly that the <code>{tidyverse}</code> code is more easily
+understood and readable. Of course, some people disagree…
+However, in this case here, I’m not sure that a <code>{tidyverse}</code> approach <em>would be more readable</em>.
+The solution using <code>apply()</code> seems to me to be quite good. Let’s see how the <code>{tidyverse}</code> approach,
+which leverages <code>rowwise()</code>, looks like:</p>
+<pre class="r"><code>run_rowwise &lt;- function(dataset, my_function = my_function){
+  dataset %&gt;%
+    rowwise() %&gt;%
+    mutate(score = my_function(c_across(everything()))) %&gt;%
+    ungroup()
+}
+
+run_rowwise(dataset, my_function = my_function) %&gt;%
+  head()</code></pre>
+<pre><code>## # A tibble: 6 × 7
+##       x1     x2     x3     x4    x5    x6 score
+##    &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+## 1 0.0124 0.522  0.0326 0.0972 0.749 0.928 -303.
+## 2 0.354  0.138  0.322  0.0576 0.214 0.239 -323.
+## 3 0.104  0.0757 0.284  0.514  0.962 0.270 -312.
+## 4 0.526  0.467  0.994  0.861  0.726 0.808 -260.
+## 5 0.462  0.565  0.462  0.154  0.928 0.915 -286.
+## 6 0.985  0.249  0.288  0.371  0.902 0.436 -278.</code></pre>
+<p>This runs, but much, much, more slower than with <code>apply()</code> (but faster than a for-loop, as we
+shall see) . Plus, it does look much, much
+more complicated than the simple <code>apply()</code> version! So why do it like this? You even need several
+functions
+- <code>rowwise()</code>, <code>c_across()</code> and <code>everything()</code> - to make it work! So why? Well, there is one use
+case in which this approach enables you to do something that I don’t think is possible (or at least
+easily possible) with <code>apply()</code> which is applying the function, but only over certain columns. For example,
+if you want to apply the function only over the columns which names all start with the letter “c”,
+you could write something like this:</p>
+<pre class="r"><code>mtcars %&gt;%
+  rowwise() %&gt;%
+  mutate(score = mean(c_across(starts_with(&quot;c&quot;)))) %&gt;%
+  ungroup()</code></pre>
+<pre><code>## # A tibble: 32 × 12
+##      mpg   cyl  disp    hp  drat    wt  qsec    vs    am  gear  carb score
+##    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+##  1  21       6  160    110  3.9   2.62  16.5     0     1     4     4   5  
+##  2  21       6  160    110  3.9   2.88  17.0     0     1     4     4   5  
+##  3  22.8     4  108     93  3.85  2.32  18.6     1     1     4     1   2.5
+##  4  21.4     6  258    110  3.08  3.22  19.4     1     0     3     1   3.5
+##  5  18.7     8  360    175  3.15  3.44  17.0     0     0     3     2   5  
+##  6  18.1     6  225    105  2.76  3.46  20.2     1     0     3     1   3.5
+##  7  14.3     8  360    245  3.21  3.57  15.8     0     0     3     4   6  
+##  8  24.4     4  147.    62  3.69  3.19  20       1     0     4     2   3  
+##  9  22.8     4  141.    95  3.92  3.15  22.9     1     0     4     2   3  
+## 10  19.2     6  168.   123  3.92  3.44  18.3     1     0     4     4   5  
+## # … with 22 more rows</code></pre>
+<p>Now this is not needed here, so <code>apply()</code> clearly wins in terms readability (and speed as well).
+But in cases like the above, where you need to compute only over several columns, I think that the
+<code>{tidyverse}</code> version not only is very readible, but actually offers a solution to the problem. I’m
+not quite sure you could solve this easily with base, but please prove me wrong.</p>
+<p>In any case, there’s another way to approach our original problem using <code>{tidyverse}</code> functions,
+but we still need the help of a base function.</p>
+<p>The next approach uses the fact that <code>map()</code> needs both a list and a function as an input. As a
+refresher, here’s how map works:</p>
+<pre class="r"><code># We have a list
+
+my_list &lt;- list(&quot;a&quot; = 2,
+                &quot;b&quot; = 4)
+
+# and we have a function, say sqrt, which we want to apply to each element of this list
+
+map(my_list, sqrt)</code></pre>
+<pre><code>## $a
+## [1] 1.414214
+## 
+## $b
+## [1] 2</code></pre>
+<p>So what we need is a way to mimick the basic approach which works on one “element” (in this case,
+a row of the dataframe), and extend that idea to a “list of rows”.
+Now, the issue is that a dataframe is actually a list of columns, not rows. So if you’re using
+<code>map()</code> over a dataframe, you will be looping over the columns, not the rows, as in the
+example below:</p>
+<pre class="r"><code># This applies the function class() to each colum of mtcars
+mtcars %&gt;%
+  map(class)</code></pre>
+<pre><code>## $mpg
+## [1] &quot;numeric&quot;
+## 
+## $cyl
+## [1] &quot;numeric&quot;
+## 
+## $disp
+## [1] &quot;numeric&quot;
+## 
+## $hp
+## [1] &quot;numeric&quot;
+## 
+## $drat
+## [1] &quot;numeric&quot;
+## 
+## $wt
+## [1] &quot;numeric&quot;
+## 
+## $qsec
+## [1] &quot;numeric&quot;
+## 
+## $vs
+## [1] &quot;numeric&quot;
+## 
+## $am
+## [1] &quot;numeric&quot;
+## 
+## $gear
+## [1] &quot;numeric&quot;
+## 
+## $carb
+## [1] &quot;numeric&quot;</code></pre>
+<p>Now the question becomes; is there a way to turn a dataframe, which is a list of columns,
+into a list of rows? Yes, there is, using <code>asplit()</code>:</p>
+<pre class="r"><code>asplit(mtcars, MARGIN = 1) %&gt;%
+  head()</code></pre>
+<pre><code>## $`Mazda RX4`
+##    mpg    cyl   disp     hp   drat     wt   qsec     vs     am   gear   carb 
+##  21.00   6.00 160.00 110.00   3.90   2.62  16.46   0.00   1.00   4.00   4.00 
+## 
+## $`Mazda RX4 Wag`
+##     mpg     cyl    disp      hp    drat      wt    qsec      vs      am    gear 
+##  21.000   6.000 160.000 110.000   3.900   2.875  17.020   0.000   1.000   4.000 
+##    carb 
+##   4.000 
+## 
+## $`Datsun 710`
+##    mpg    cyl   disp     hp   drat     wt   qsec     vs     am   gear   carb 
+##  22.80   4.00 108.00  93.00   3.85   2.32  18.61   1.00   1.00   4.00   1.00 
+## 
+## $`Hornet 4 Drive`
+##     mpg     cyl    disp      hp    drat      wt    qsec      vs      am    gear 
+##  21.400   6.000 258.000 110.000   3.080   3.215  19.440   1.000   0.000   3.000 
+##    carb 
+##   1.000 
+## 
+## $`Hornet Sportabout`
+##    mpg    cyl   disp     hp   drat     wt   qsec     vs     am   gear   carb 
+##  18.70   8.00 360.00 175.00   3.15   3.44  17.02   0.00   0.00   3.00   2.00 
+## 
+## $Valiant
+##    mpg    cyl   disp     hp   drat     wt   qsec     vs     am   gear   carb 
+##  18.10   6.00 225.00 105.00   2.76   3.46  20.22   1.00   0.00   3.00   1.00</code></pre>
+<p><code>asplit()</code> splits a dataframe along rows (with the MARGIN argument set to 1) or along columns
+(with MARGIN = 2). As you can see with the code above, the <code>mtcars</code> dataset is now a list of
+rows. Each element of this list is a single vector of values.
+Now that my dataframe is now a list of rows, well, I can simply use <code>map()</code> to apply any function
+over its rows:</p>
+<pre class="r"><code>run_map &lt;- function(dataset, my_function = my_function){
+  dataset %&gt;%
+    mutate(score = map_dbl(asplit(., 1), .f = my_function))
+}
+
+run_map(dataset, my_function = my_function) %&gt;%
+  head()</code></pre>
+<pre><code>##           x1         x2         x3         x4        x5        x6     score
+## 1 0.01240753 0.52216369 0.03258892 0.09722631 0.7485749 0.9275532 -302.8056
+## 2 0.35423196 0.13766202 0.32204460 0.05759782 0.2143725 0.2391541 -323.4730
+## 3 0.10378066 0.07571073 0.28378176 0.51448928 0.9616971 0.2702277 -311.6355
+## 4 0.52591063 0.46718618 0.99404463 0.86059204 0.7264650 0.8083685 -259.7646
+## 5 0.46208664 0.56516052 0.46177016 0.15401250 0.9280011 0.9152156 -286.0531
+## 6 0.98528077 0.24898464 0.28815249 0.37093507 0.9020534 0.4355511 -278.4643</code></pre>
+<p>So we now have 4 approaches to solve the issue:</p>
+<ul>
+<li><code>run_loop()</code>: uses a for-loop</li>
+<li><code>run_apply()</code>: uses <code>apply()</code>, a base R function</li>
+<li><code>run_rowwise()</code>: a “pure” <code>{tidyverse}</code> approach</li>
+<li><code>run_map()</code>: a cross between a <code>{tidyverse}</code> and a base approach</li>
+</ul>
+<p>Let’s set up a function to run some benchmarks and see which runs faster.
+I’ll create a list of increasingly large data frames over which I’ll run all the above functions:</p>
+<pre class="r"><code>list_datasets &lt;- map(seq(2, 5), ~init_pop(objective_function = my_function,
+                                          pop_size = `^`(10, .x)))</code></pre>
+<p>The function below will run the benchmarks over all the data frames:</p>
+<pre class="r"><code>run_benchmarks &lt;- function(dataset, times = 5){
+  microbenchmark::microbenchmark(
+                    run_loop(dataset, my_function = my_function),
+                    run_apply(dataset, my_function = my_function),
+                    run_rowwise(dataset, my_function = my_function),
+                    run_map(dataset, my_function = my_function),
+                    times = times,
+                    unit = &quot;s&quot;
+                  )
+}</code></pre>
+<p>I’ll run this in parallel using <code>{furrr}</code>:</p>
+<pre class="r"><code>library(furrr)
+
+plan(multisession, workers = 2)
+
+benchmark_results &lt;- future_map(list_datasets, run_benchmarks)</code></pre>
+<p>Let’s take a look at the results:</p>
+<pre class="r"><code>benchmark_data &lt;- map2(.x = benchmark_results, .y = 10^seq(2, 5), .f = ~mutate(tibble(.x), pop_size = .y)) %&gt;%
+  bind_rows() %&gt;%
+  mutate(expr = str_remove_all(expr, &quot;\\(.*\\)&quot;)) %&gt;%  
+  group_by(expr, pop_size) %&gt;%
+  mutate(time_seconds = time/10^9) %&gt;%
+  summarise(fastest_run = min(time_seconds),
+            average_run = mean(time_seconds),
+            slowest_run = max(time_seconds))</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;expr&#39;. You can override using the `.groups` argument.</code></pre>
+<pre class="r"><code>benchmark_data %&gt;%
+  ggplot(aes(y = average_run, x = pop_size)) +
+  geom_ribbon(aes(ymin = fastest_run, ymax = slowest_run, fill = expr), alpha = .6) +
+  geom_line(aes(group = expr, col = expr)) +
+  ylab(&quot;Seconds&quot;) +
+  xlab(&quot;Rows in the dataset&quot;) +
+  ggtitle(&quot;Speed of rowwise operations using different methods&quot;) +
+  theme_blog()</code></pre>
+<p><img src="/blog/2021-09-04-quest_fast_files/figure-html/unnamed-chunk-24-1.png" width="672" /></p>
+<p>Using a for-loop for row-wise operations is clearly the slowest solution. Let’s take a closer
+look at the remaining 3 options:</p>
+<pre class="r"><code>benchmark_data %&gt;%
+  filter(!grepl(&quot;loop&quot;, expr)) %&gt;% 
+  ggplot(aes(y = average_run, x = pop_size)) +
+  geom_ribbon(aes(ymin = fastest_run, ymax = slowest_run, fill = expr), alpha = .6) +
+  ylab(&quot;Seconds&quot;) +
+  xlab(&quot;Rows in the dataset&quot;) +
+  ggtitle(&quot;Speed of rowwise operations using different methods&quot;) +
+  theme_blog()</code></pre>
+<p><img src="/blog/2021-09-04-quest_fast_files/figure-html/unnamed-chunk-25-1.png" width="672" /></p>
+<p><code>rowwise()</code> loses here, but unless you have to literally run such code hundreds of times, it is still
+tolerable. Gives you enough time to browse some memes. But if you have to run such operations
+millions of times, you might want to look at either using <code>apply()</code> or the other approach that uses
+<code>asplit()</code> and <code>map()</code>. Let’s take a closer look at these two:</p>
+<pre class="r"><code>benchmark_data %&gt;%
+  filter(!grepl(&quot;loop|rowwise&quot;, expr)) %&gt;%
+  ggplot(aes(y = average_run, x = pop_size)) +
+  geom_ribbon(aes(ymin = fastest_run, ymax = slowest_run, fill = expr), alpha = .6) +
+  geom_line(aes(group = expr, col = expr)) +
+  ylab(&quot;Seconds&quot;) +
+  xlab(&quot;Rows in the dataset&quot;) +
+  ggtitle(&quot;Speed of rowwise operations using different methods&quot;) +
+  theme_blog()</code></pre>
+<p><img src="/blog/2021-09-04-quest_fast_files/figure-html/unnamed-chunk-26-1.png" width="672" /></p>
+<p>Interestingly, the fastest run using <code>map()</code> was faster than the fastest run using <code>apply()</code>,
+but on average, both methods seem to be equivalent. In conclusion, if you need speed and you
+need to compute over every column <code>apply()</code> is a clear winner. But if you need row-wise operations,
+but only on a subset of columns, <code>rowwise()</code>, even though it is slow, seems to be the only solution.</p>
+<p>I wonder if there is a way to use <code>c_across()</code> with the <code>map()</code> approach, and potentially have
+the benefits of <code>map()</code> (as fast as <code>apply()</code>) and <code>rowwise()</code> (computing only over certain
+columns…). Another subject to explore later.</p>
+<p>Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my ebook on <a href="https://leanpub.com/modern_tidyverse">Leanpub</a>.
+You can also watch my videos on <a href="https://www.youtube.com/c/BrunoRodrigues1988/">youtube</a>.
+So much content for you to consoom!</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
