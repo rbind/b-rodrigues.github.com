@@ -15,6 +15,8 @@ main:
 <img src="/img/bell_curve_tidyverse.png" title = "Like and subscribe"></a>
 </div>
 
+*Part 2 of this blog post is available [here](https://www.brodrigues.co/blog/2021-09-05-speedrunning_rows/)*
+
 The past few weeks I have been exploring the speed of R. It started with [this video](https://www.youtube.com/watch?v=erlWsquoHlM) 
 in which I explained that R is not necessarily slower than any other interpreted language, as long
 as you're using the built-in, optimized functions. However should you write your own implementation
@@ -399,6 +401,10 @@ but only on a subset of columns, `rowwise()`, even though it is slow, seems to b
 I wonder if there is a way to use `c_across()` with the `map()` approach, and potentially have
 the benefits of `map()` (as fast as `apply()`) and `rowwise()` (computing only over certain
 columns...). Another subject to explore later.
+
+
+*Part 2 of this blog post is available [here](https://www.brodrigues.co/blog/2021-09-05-speedrunning_rows/)*
+
 
 Hope you enjoyed! If you found this blog post useful, you might want to follow 
 me on [twitter](https://www.twitter.com/brodriguesco) for blog post updates and 
