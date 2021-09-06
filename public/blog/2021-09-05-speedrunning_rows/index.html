@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<style type=text/css>body{font-family:monospace;}</style>
+	<title>Speedrunning row-oriented workflows</title>
+	
+	
+	<link rel="stylesheet" href="/css/style.css">
+	
+	
+</head>
+<body>
+	<header>
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+<p><a class="nav-link" href="/index.html">Econometrics and Free Software</a> by <a class="nav-link" href="/about/about">Bruno Rodrigues</a>.</p>
+<p><a href="https://www.brodrigues.co/blog/index.xml">RSS feed for blog post updates.</a></p>
+<p>Follow me on <a href="https://twitter.com/brodriguesco" rel="nofollow">twitter</a>, or check out my <a href="https://github.com/b-rodrigues">Github</a>.</p>
+<p>Watch my <a href="https://www.youtube.com/user/cbrunos" rel="nofollow">youtube</a> channel.</p>
+<p>Have a question about one of the blog posts? <a href="https://shinybrodriguesco.duckdns.org/channel/brodrigues.co">Chat here with me.</a></p>
+</header>
+
+	
+	<main>
+		<article>
+			<h1>Speedrunning row-oriented workflows</h1>
+			<b><time>2021/09/05</time></b>
+		       
+		           <a href="/tags/r">R</a>
+        	       
+
+			<div>
+				<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<div style="text-align:center;">
+<p><a href="https://www.youtube.com/watch?v=1UkeFwJ-yHI">
+<img src="/img/cringe_speedrun.png" title = "Doom's first level in 8 seconds"></a></p>
+</div>
+<p><em>If you haven’t, you should read <a href="https://www.brodrigues.co/blog/2021-09-04-quest_fast/">this</a> first. This is part two.</em></p>
+<p>Speedrunning is the… hrm… - sport? art? - of playing games from start to finish as fast as
+possible. Speedrunning requires an insane amount of knowledge of the game being played, as well
+as an enourmous amount of skill. Also, contrary to what you might think, it is a community effort.
+Players do speedrun the game alone, and it is a ferocious competition, each one of them aiming for the
+top spot on the leaderboards. But discovering the strategies that will allow the top players to shave
+off, sometimes literally, hundredths of seconds from the previous world record require many, many,
+people from the speedrunning community trying to break the games in new ways, or testing how fast
+<em>theoretical</em> strategies using computers that play the game perfectly are (these type of speedruns
+are called TAS, for Tool Assisted Speedrun, and are a very important part of the speedrunning effort).</p>
+<p>If you read until here, I commend you dear reader, and thank you for not having already closed the
+tab. The meat of the post is coming.</p>
+<p>If you don’t know anything about speedrunning, I can only urge you to watch
+<a href="https://www.youtube.com/watch?v=7rIJNT7dCmE">this video</a> about the story of the
+Super Mario Bros. World Records. If you’re more into Doom, then watch
+<a href="https://www.youtube.com/watch?v=rqbc4nTivlg">this video</a> abut the history of Doom 2 World Records.
+It really is worth your time, believe me.</p>
+<p>Anyways, why am I talking about this? What is the point of this blog post? Isn’t this a blog about
+<em>Econometrics and Free Software</em> (lol)?</p>
+<p>The reason I’m talking about speedrunning in video games, is because my
+<a href="https://www.brodrigues.co/blog/2021-09-04-quest_fast/">previous blog post</a>
+sparked an interesting discussion on <a href="https://twitter.com/brodriguesco/status/1434076568649969665">twitter</a>,
+which very much reminded me of what you’d see in the speedrunning community.</p>
+<p>Just like in speedrunning, I tried to play a game which consisted in running an arbitrary
+function over the rows of a data frame, and employed some basic strategies for it.
+As a reminder, here is the example code with the top two strategies: using <code>apply()</code> and a combination
+of <code>asplit()</code> and <code>map()</code> (I won’t be showing all the code here, it’s the same as in the
+<a href="https://www.brodrigues.co/blog/2021-09-04-quest_fast/">previous blog post</a>):</p>
+<pre class="r"><code>run_apply &lt;- function(dataset, my_function = my_function){
+
+  dataset %&gt;%
+    mutate(score = apply(., MARGIN = 1, my_function))
+
+}
+
+run_map &lt;- function(dataset, my_function = my_function){
+  dataset %&gt;%
+    mutate(score = map_dbl(asplit(., 1), .f = my_function))
+}</code></pre>
+<p>Also, just as a reminder, here is the <code>rowwise()</code> approach:</p>
+<pre class="r"><code>run_rowwise &lt;- function(dataset, my_function = my_function){
+  dataset %&gt;%
+    rowwise() %&gt;%
+    mutate(score = my_function(c_across(everything()))) %&gt;%
+    ungroup()
+}</code></pre>
+<p>This is, AFAIK, the <em>official</em> tidyverse-approach, but not the fastest. However, while it is slower
+than the two approaches above, it does have the advantage that you can run the function over the
+rows, but only by using certain columns instead of all of them. For example, to apply the function
+over only the columns that start with the letter “c” (and for each row), you could write this:</p>
+<pre class="r"><code>run_rowwise &lt;- function(dataset, my_function = my_function){
+  dataset %&gt;%
+    rowwise() %&gt;%
+    mutate(score = my_function(c_across(starts_with(&quot;c&quot;)))) %&gt;%
+    ungroup()
+}</code></pre>
+<p>This is not possible with the two fast approaches, <code>run_map()</code> and <code>run_apply()</code>. These two approaches
+do run quite fast, but in the twitter discussion I linked above, many more
+suggestions were made, and some are likely faster, so let’s see! There’s first an approach
+using <code>pmap()</code> proposed by both <a href="https://twitter.com/lgaborini/status/1434138358381481989"><code>@lgaborini</code></a>
+and <a href="https://twitter.com/JoeWasserman/status/1434175452457930755"><code>@</code>JoeWasserman</a>:</p>
+<pre class="r"><code>run_pmap &lt;- function(dataset, my_function = my_function){
+  dataset %&gt;%
+    mutate(score = pmap_dbl(., .f = lift_vd(my_function)))
+
+}</code></pre>
+<p>I won’t go into the details here of how and why this works. For more details,
+<a href="https://github.com/jennybc/row-oriented-workflows/blob/master/ex09_row-summaries.md#how-to-use-an-arbitrary-function-inside-pmap">click here</a>.
+In any case, this does not run faster that the two approaches listed above. But it does run faster
+than using <code>rowwise()</code> and also allows for selecting columns over which to run the function:</p>
+<pre class="r"><code>run_pmap &lt;- function(dataset, my_function = my_function){
+  dataset %&gt;%
+    mutate(score = pmap_dbl(select(., matches(&quot;.(4|5|6)&quot;)), .f = lift_vd(mean)))
+
+}
+
+run_pmap(dataset) %&gt;%
+  head</code></pre>
+<pre><code>## # A tibble: 6 × 7
+##       x1     x2     x3    x4    x5     x6 score
+##    &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;
+## 1 0.0644 0.789  0.489  0.665 0.664 0.230  0.520
+## 2 0.771  0.209  0.443  0.248 0.756 0.0164 0.340
+## 3 0.342  0.0382 0.619  0.196 0.115 0.783  0.365
+## 4 0.638  0.915  0.0472 0.891 0.346 0.639  0.625
+## 5 0.0366 0.601  0.426  0.421 0.835 0.906  0.721
+## 6 0.0465 0.937  0.260  0.803 0.376 0.330  0.503</code></pre>
+<p>So this is quite useful!</p>
+<p>There was another proposal, a pure base approach, by <a href="https://twitter.com/grant_mcdermott/status/1434278563994169344"><code>@grant_mcdermott</code></a>:</p>
+<pre class="r"><code>run_pure_base &lt;- function(dataset, my_function = my_function){
+  dataset |&gt;
+    within({score = sapply(asplit(dataset, 1), my_function)})
+}</code></pre>
+<p>It even uses the new, shiny (haha), native pipe, |&gt;! I have not benchmarked this yet, as I’m writing
+this, so let’s see…</p>
+<p>Finally, there is also a <code>{data.table}</code> approach, proposed by
+<a href="https://twitter.com/thatpinkney/status/1434289185532297219?s=20"><code>@thatpinkney</code></a>:</p>
+<pre class="r"><code>library(data.table)
+
+run_dt2 &lt;- function(dataset, my_function = my_function){
+
+  dataset &lt;- as.data.table(dataset)
+  dataset[, rowid := .I]
+  dataset[, &quot;:=&quot; (score = melt(dataset, id.vars = &quot;rowid&quot;)[, my_function(value), by = rowid][, V1],
+                  rowid = NULL)]
+
+}</code></pre>
+<p>The problem of this approach, at least to me, is that I do not know <code>{data.table}</code>, which
+is the reason why I did not include it in the previous blog post. But I have read many times
+that <code>{data.table}</code> is blazing fast, so I definitely should learn at least some basics!</p>
+<p>Now is benchmarking time. Let’s see (I’m not considering <code>run_pmap()</code>, because I already benchmarked
+it before writing this blog post, and know that it runs slower than the <code>run_map()</code> or <code>run_apply()</code>):</p>
+<pre class="r"><code>list_datasets &lt;- map(seq(2, 5), ~init_pop(objective_function = my_function,
+                                          pop_size = `^`(10, .x)))
+
+
+run_benchmarks &lt;- function(dataset, times = 5){
+  microbenchmark::microbenchmark(
+                    run_apply(dataset, my_function = my_function),
+                    run_pure_base(dataset, my_function = my_function),
+                    run_dt2(dataset, my_function = my_function),
+                    run_map(dataset, my_function = my_function),
+                    times = times,
+                    unit = &quot;s&quot;
+                  )
+}</code></pre>
+<pre class="r"><code>benchmark_results &lt;- map(list_datasets, run_benchmarks)
+
+benchmark_data &lt;- map2(.x = benchmark_results, .y = 10^seq(2, 5), .f = ~mutate(tibble(.x), pop_size = .y)) %&gt;%
+  bind_rows() %&gt;%
+  mutate(expr = str_remove_all(expr, &quot;\\(.*\\)&quot;)) %&gt;%
+  group_by(expr, pop_size) %&gt;%
+  mutate(time_seconds = time/10^9) %&gt;%
+  summarise(fastest_run = min(time_seconds),
+            average_run = mean(time_seconds),
+            slowest_run = max(time_seconds))</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;expr&#39;. You can override using the `.groups` argument.</code></pre>
+<pre class="r"><code>benchmark_data %&gt;%
+  ggplot(aes(y = average_run, x = pop_size)) +
+  geom_ribbon(aes(ymin = fastest_run, ymax = slowest_run, fill = expr), alpha = .6) +
+  geom_line(aes(group = expr, col = expr)) +
+  ylab(&quot;Seconds&quot;) +
+  xlab(&quot;Rows in the dataset&quot;) +
+  ggtitle(&quot;Speed of rowwise operations using different methods&quot;) +
+  theme_blog()</code></pre>
+<p><img src="/blog/2021-09-05-speedrunning_rows_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+<p>These are really interesting results! The <em>pure</em> base solution runs almost as fast as the one
+that uses <code>asplit()</code> and <code>map()</code>. The one that uses <code>apply()</code> only is a close second, but
+all these strategies get obliterated by the <code>{data.table}</code> solution!</p>
+<p>So, what have we learned?</p>
+<ul>
+<li>First of all, the #RStats community is really great! I’m really blown away by the interest that my previous blog post generated and by the very interesting discussion that ensued.</li>
+<li>Second, if speed is really paramount to solving your problem, you’d probably want to use <code>{data.table}</code>. It does seem to be incredibly fast!</li>
+<li>Third, and final point, if you need to run rowwise operations, but only over certain columns, use <code>pmap()</code> instead of <code>rowwise()</code> - <code>across()</code> - <code>everything()</code>.</li>
+</ul>
+<p>Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my ebook on <a href="https://leanpub.com/modern_tidyverse">Leanpub</a>.
+You can also watch my videos on <a href="https://www.youtube.com/c/BrunoRodrigues1988/">youtube</a>.
+So much content for you to consoom!</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
+
+			</div>
+		</article>
+	</main>
+<aside>
+	<div>
+		<div>
+			<h3>LATEST POSTS</h3>
+		</div>
+		<div>
+			<ul>
+				
+				<li><a href="/blog/2021-09-05-speedrunning_rows/">Speedrunning row-oriented workflows</a></li>
+				
+				<li><a href="/blog/2021-09-04-quest_fast/">The quest for fast(er?) row-oriented workflows</a></li>
+				
+				<li><a href="/blog/2021-07-30-worth_weight/">Is it worth the weight?</a></li>
+				
+				<li><a href="/blog/2021-06-04-own_knit_server/">Building your own knitr compile farm on your Raspberry Pi with {plumber}</a></li>
+				
+				<li><a href="/blog/2021-04-17-post_strat/">Dealing with non-representative samples with post-stratification</a></li>
+				
+			</ul>
+		</div>
+	</div>
+</aside>
+
+
+	<footer>
+  <div class="row">
+    <div class="col-lg-12">
+      <p>2021, content by Bruno Rodrigues, unless otherwise stated, every content of this blog is licensed under the <a href="http://www.wtfpl.net/txt/copying/" rel="nofollow">WTFPL</a>.</p>
+      <p>The theme this blog uses is a slight variation of the <a href="https://github.com/colorchestra/smol" rel="nofollow">Smol</a> theme.</p>
+      <p><a class="nav-link" href="/index.html">Back to main page.</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

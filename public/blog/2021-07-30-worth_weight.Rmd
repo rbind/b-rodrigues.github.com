@@ -1,0 +1,424 @@
+---
+date: 2021-07-30
+title: Is it worth the weight?
+tags: [R]
+menu:
+main:
+  parent: Blog
+  identifier: /blog/worth_weight
+  weight: 1
+---
+
+
+<div style="text-align:center;">
+<a href="https://www.youtube.com/watch?v=Jt0w9YP_wZ0">
+<img src="/img/gaben.jpg" title = "Will we ever see Half Life 3?"></a>
+</div>
+
+
+## Intro
+
+Oh man, I did it again. Grab a coffee, this is going to be a long one.
+
+Weights got me confused. The justification for using weights seems simple enough; if you're working
+with a sample in which one (or more) strata are over(under)-represented, you should compute
+weighted univariate statistics. I've discussed this already [here](https://www.brodrigues.co/blog/2021-04-17-post_strat/).
+
+But what about regression and prediction? There does not seem to be a consensus in the literature.
+So I wanted to experiment with some data and see if it would help.
+
+Spoiler alert: I'm more confused now than before, so maybe stop reading here. But maybe, by reading
+this blog post, dear reader, you might spot where I am confused and help me? Any help, comments,
+etc. more than welcome.
+
+Anyway, let's start by loading the required packages:
+
+```{r, include = FALSE}
+library("dplyr")
+library("rsample")
+library("yardstick")
+library("readr")
+library("ggplot2")
+library("janitor")
+library("lubridate")
+library("broom")
+library("purrr")
+```
+
+```{r, eval = FALSE}
+library("dplyr")
+library("rsample")
+library("yardstick")
+library("readr")
+library("janitor")
+library("lubridate")
+library("broom")
+library("purrr")
+```
+
+and also the required dataset. This is a dataset that I have already featured in one of my previous
+blog posts [here](https://www.brodrigues.co/blog/2020-02-23-synthpop/), a blog post about synthetic
+datasets. I'll reuse the description from this other blog post here:
+
+*The Survey on the Population in Relation to Activity operation is a continuous source of information on the characteristics and dynamics of the labour force of the Basque Country. It records the relation to productive activity of the population resident in family households, as well as the changes produced in labour situations; it produces indicators of conjunctural variations in the evolution of the active population; it also estimates the degree of participation of the population in economically non-productive activities. It offers information on the province and capital level.*
+
+To make it easy for you to follow along, I have re-uploaded the data [here](https://raw.githubusercontent.com/rbind/b-rodrigues.github.com/master/public/assets/MICRO_PRA_2021_1.csv).
+For the purposes of my analysis, I'll be focusing on the "Hours Worked" variable.
+I'll also assume that the dataset is the entire, complete population, and that I will have to deal
+with unbiased, randomly sampled individuals, but also with samples that are not randomly sampled.
+
+Let's read in the data, rename the columns and do some basic data cleaning:
+
+```{r, cache = TRUE}
+population <- read_csv2("https://raw.githubusercontent.com/rbind/b-rodrigues.github.com/master/public/assets/MICRO_PRA_2021_1.csv")
+
+col_names_english <- c(
+  "Household number",
+  "Year of survey",
+  "Reference quarter",
+  "Province",
+  "Capital",
+  "Sex",
+  "Place of birth",
+  "Age",
+  "Nationality",
+  "Level of education",
+  "Formal education system",
+  "Professional training",
+  "Retirement situation",
+  "Household duties situation",
+  "Part-time employment",
+  "Reason for reduced worknig hours",
+  "Job search",
+  "Reasons for seeking employment",
+  "Working hours sought",
+  "Carry out employment seeking activities",
+  "Main employment seeking method",
+  "Months seeking employment",
+  "Availability",
+  "Relation to activity (ILO)",
+  "Relation to activity",
+  "Main occupation",
+  "Main activity",
+  "Main professional situation",
+  "Main institutional sector",
+  "Type of contract",
+  "Hours worked",
+  "Relationship",
+  "Elevator")
+
+ colnames(population) <- col_names_english
+
+population <- population %>%
+  clean_names() %>%
+  filter(!is.na(hours_worked)) %>%
+  filter(!is.na(part_time_employment)) %>%
+  mutate(part_time_employment = ifelse(part_time_employment == 1, "Working full time", "Working part time")) %>%
+  mutate(type_of_contract = ifelse(is.na(type_of_contract), "Unknown", type_of_contract)) %>%
+  mutate(sex = ifelse(sex == 1, "Male", "Female")) %>%
+  mutate(age_group = case_when(between(age, 4, 7) ~ "1",
+                               between(age, 8, 12) ~ "2",
+                               age > 12 ~ "3")) %>%
+  mutate(type_of_contract = ifelse(type_of_contract %in% c(seq(2, 4), 6), "Other", type_of_contract)) %>%  
+  select(capital,
+         sex,
+         age_group,
+         level_of_education,
+         part_time_employment,
+         type_of_contract,
+         hours_worked) %>%
+  mutate(across(-hours_worked, as.factor)) %>%
+  mutate(id = row_number())
+```
+
+Let's put some data on the side, for later:
+
+```{r}
+holdout <- population %>%
+  sample_n(300)
+
+population <- population %>%
+  filter(!(id %in% holdout$id))
+
+```
+
+This holdout set will be useful later on. I'm now going to compute some sampling weights. This weights
+will make it easy for me to select biased samples, where part-time workers are over-represented:
+
+```{r}
+set.seed(1234)
+beta0 <- -3.6
+beta1 <- 2.63
+population <- population %>%
+  mutate(pi_x = exp(beta0 + beta1 * I(part_time_employment == "Working part time")) / (1 + exp(beta0 + beta1 * I(part_time_employment == "Working part time"))))
+
+```
+
+By the way, I've found this code [here](https://stats.stackexchange.com/questions/12857/generate-random-correlated-data-between-a-binary-and-a-continuous-variable/12858#12858).
+
+Let's see what happens when I randomly sample from the population and compute some basic frequencies,
+and then what happens when I sample using the weights. First, the true frequencies of part-time and
+full-time workers, on the complete population:
+
+```{r}
+population %>%
+  tabyl(part_time_employment)
+```
+
+Now, on a random sample:
+
+```{r}
+sample_n(population, 1000) %>%
+  tabyl(part_time_employment)
+```
+
+Pretty much the same value, now what happens when I don't have a random sample:
+
+```{r}
+sample_n(population, 1000, weight = pi_x) %>%
+  tabyl(part_time_employment)
+```
+
+This might seem obvious, since I have computed the weights such as to over-represent part-time
+workers. But this problem also affects other variables:
+
+```{r}
+sample_n(population, 1000) %>%
+  tabyl(sex)
+
+sample_n(population, 1000, weight = pi_x) %>%
+  tabyl(sex)
+```
+
+Because more women work part-time than men, women are now over-represented. The age structure 
+is also different:
+
+```{r}
+sample_n(population, 1000) %>%
+  tabyl(age_group)
+
+sample_n(population, 1000, weight = pi_x) %>%
+  tabyl(age_group)
+```
+
+And what about what interests us, the hours worked?
+
+```{r}
+sample_n(population, 1000) %>%
+  summarise(mean(hours_worked))
+
+sample_n(population, 1000, weight = pi_x) %>%
+  summarise(mean(hours_worked))
+```
+
+Ok, so this is bad, and the way to deal with it would be to computed post-stratification weights.
+
+But let's go a bit further and see what happens if I rerun this a 1000 times. Maybe I just got
+very unlucky with my non-random sample? With another sample, maybe things wouldn't be so bad?
+
+```{r}
+true_mean <- mean(population$hours_worked)
+
+random_samples <- rerun(1000, sample_n(population, 1000))
+
+hours_worked_random_samples <- map_df(.x = random_samples,
+                                      ~summarise(.x, mean_hours_worked = mean(hours_worked)))
+
+hours_worked_random_samples %>%
+  summarise(mean(mean_hours_worked), sd(mean_hours_worked))
+
+hours_worked_random_samples %>%
+  ggplot() +
+  geom_density(aes(x = mean_hours_worked)) +
+  geom_vline(xintercept = true_mean)
+
+```
+
+We see that the distribution is centered around the true mean. What about a 1000 biased samples?
+
+```{r}
+biased_samples <- rerun(1000, sample_n(population, 1000, weight = pi_x))
+
+hours_worked_biased_samples <- map_df(.x = biased_samples,
+                                      ~summarise(.x, mean_hours_worked = mean(hours_worked)))
+
+hours_worked_biased_samples %>%
+  summarise(mean(mean_hours_worked), sd(mean_hours_worked))
+
+hours_worked_biased_samples %>%
+  ggplot() +
+  geom_density(aes(x = mean_hours_worked)) +
+  geom_vline(xintercept = true_mean)
+
+```
+
+Clearly, the average hours worked are consistently under-estimated. So it's not a matter of being
+unlucky with one particular sample.
+
+But what about other tasks, such as prediction and regression? What is the impact there?
+This is where I started getting confused.
+
+## Regression and prediction (with weights?)
+
+Let me first write a function that will do a bunch of things:
+
+- split the data into training and testing sets
+- run a linear regression
+- predict on the testing set
+- return the rmse, the coefficients and the model
+
+```{r}
+run_regression <- function(dataset){
+
+  split_unbiased_data <- initial_split(dataset, prop = 0.9)
+
+  training_unbiased_data <- training(split_unbiased_data)
+
+  testing_unbiased_data <- testing(split_unbiased_data)
+
+  linear_model <- lm(hours_worked ~ capital +
+                       sex +
+                       age_group +
+                       level_of_education +
+                       part_time_employment +
+                       type_of_contract,
+                     data = training_unbiased_data)
+
+  lm_predictions <- predict(linear_model,
+                            newdata = testing_unbiased_data)
+
+  testing_data_lm_predictions <- testing_unbiased_data %>%
+    mutate(lm_pred = lm_predictions)
+
+  lm_rmse <- testing_data_lm_predictions %>%
+    rmse(hours_worked, lm_pred)
+
+  lm_result <- broom::tidy(linear_model)
+
+  tribble(~rmse, ~tidy_coeffs, ~model,
+          lm_rmse$.estimate, lm_result, linear_model)
+
+}
+```
+
+Let's now run this on the 1000 random samples and on the 1000 non-random samples:
+
+```{r}
+many_lms <- map_df(.x = random_samples, ~run_regression(.x))
+
+many_biased_lms <- map_df(.x = biased_samples, ~run_regression(.x))
+```
+
+Let's take a look at the RMSE of both models:
+
+```{r}
+many_lms %>%
+  summarise(mean(rmse), sd(rmse))
+
+many_biased_lms %>%
+  summarise(mean(rmse), sd(rmse))
+```
+
+So... both models perform the same? Hum. What about the coefficients? Well I don't expect 
+much difference there now, but let's see:
+
+```{r, out.width = "100%"}
+random_sample_coefs <- many_lms %>%
+  pull(tidy_coeffs) %>%
+  bind_rows() %>%
+  mutate(tidy_coeffs = "random_sample")
+
+biased_sample_coefs <- many_biased_lms %>%
+  pull(tidy_coeffs) %>%
+  bind_rows() %>%
+  mutate(tidy_coeffs = "biased_sample")
+
+true_lm <- lm(hours_worked ~ capital +
+                       sex +
+                       age_group +
+                       level_of_education +
+                       part_time_employment +
+                       type_of_contract,
+                     data = population)
+
+true_lm_coefs <- broom::tidy(true_lm) %>%
+  mutate(tidy_coeffs = "true")
+
+simulations <- bind_rows(random_sample_coefs,
+          biased_sample_coefs) 
+```
+
+Let's plot the 1000 coefficients for each variable in a nice violin plot:
+
+```{r}
+ggplot() +
+  geom_violin(data = simulations, aes(y = estimate, x = term, fill = tidy_coeffs),
+              draw_quantiles = c(0.05, 0.5, 0.95)) +
+  geom_point(data = true_lm_coefs, aes(y = estimate, x = term), size = 2) +
+  scale_x_discrete(guide = guide_axis(n.dodge = 4)) +
+  theme(legend.position = "bottom")
+
+```
+
+The dots are the true coefficients (obtained from a linear regression on the whole data). 
+The coefficients from the random sample are "more often" closer
+to the true coefficients, but it doesn't seem to be a lot (the bars in the violins are the 5th,
+50th and 95th percentile).
+
+Let's now see what happens on the holdout set (using the best performing models):
+
+```{r}
+best_unbiased_model <- many_lms %>%
+  filter(rmse == min(rmse)) %>%
+  pull(model) %>%
+  .[[1]]
+
+holdout <- holdout %>%
+  mutate(unbiased = predict(best_unbiased_model, newdata = holdout))
+
+best_biased_model <- many_biased_lms %>%
+  filter(rmse == min(rmse)) %>%
+  pull(model) %>%
+  .[[1]]
+
+holdout <- holdout %>%
+  mutate(biased = predict(best_biased_model, newdata = holdout))
+
+holdout %>%
+  rmse(hours_worked, unbiased)
+
+holdout %>%
+  rmse(hours_worked, biased)
+```
+
+Again, pretty much no difference... What about hours worked?
+
+```{r}
+
+holdout %>%
+  summarise(mean_true = mean(hours_worked),
+            mean_unbiased = mean(unbiased),
+            mean_biased = mean(biased))
+```
+
+Same...??? What about coefficients?
+
+```{r}
+bind_cols(broom::tidy(best_unbiased_model),
+          broom::tidy(best_biased_model)) %>%
+  select(term...1, estimate...2, std.error...3, estimate...7, std.error...8)
+
+```
+
+Again, some differences here (especially for significant coefficients, which makes sense). So I
+guess you *should* use weights if you're interested in the coefficients (and especially their
+standard deviation). I definitely need to explore this more, and read some more.
+
+
+Hope you enjoyed! If you found this blog post useful, you might want to follow 
+me on [twitter](https://www.twitter.com/brodriguesco) for blog post updates and 
+[buy me an espresso](https://www.buymeacoffee.com/brodriguesco) or [paypal.me](https://www.paypal.me/brodriguesco), or buy my ebook on [Leanpub](https://leanpub.com/modern_tidyverse).
+You can also watch my videos on [youtube](https://www.youtube.com/c/BrunoRodrigues1988/).
+So much content for you to consoom!
+
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a>

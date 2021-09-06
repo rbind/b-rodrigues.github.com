@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<style type=text/css>body{font-family:monospace;}</style>
+	<title>Server(shiny)-less dashboards with R, {htmlwidgets} and {crosstalk}</title>
+	
+	
+	<link rel="stylesheet" href="/css/style.css">
+	
+	
+</head>
+<body>
+	<header>
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+<p><a class="nav-link" href="/index.html">Econometrics and Free Software</a> by <a class="nav-link" href="/about/about">Bruno Rodrigues</a>.</p>
+<p><a href="https://www.brodrigues.co/blog/index.xml">RSS feed for blog post updates.</a></p>
+<p>Follow me on <a href="https://twitter.com/brodriguesco" rel="nofollow">twitter</a>, or check out my <a href="https://github.com/b-rodrigues">Github</a>.</p>
+<p>Watch my <a href="https://www.youtube.com/user/cbrunos" rel="nofollow">youtube</a> channel.</p>
+<p>Have a question about one of the blog posts? <a href="https://shinybrodriguesco.duckdns.org/channel/brodrigues.co">Chat here with me.</a></p>
+</header>
+
+	
+	<main>
+		<article>
+			<h1>Server(shiny)-less dashboards with R, {htmlwidgets} and {crosstalk}</h1>
+			<b><time>2021/03/02</time></b>
+		       
+		           <a href="/tags/r">R</a>
+        	       
+
+			<div>
+				<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+<script src="/rmarkdown-libs/htmlwidgets/htmlwidgets.js"></script>
+<script src="/rmarkdown-libs/plotly-binding/plotly.js"></script>
+<script src="/rmarkdown-libs/typedarray/typedarray.min.js"></script>
+<script src="/rmarkdown-libs/jquery/jquery.min.js"></script>
+<link href="/rmarkdown-libs/crosstalk/css/crosstalk.css" rel="stylesheet" />
+<script src="/rmarkdown-libs/crosstalk/js/crosstalk.min.js"></script>
+<link href="/rmarkdown-libs/plotly-htmlwidgets-css/plotly-htmlwidgets.css" rel="stylesheet" />
+<script src="/rmarkdown-libs/plotly-main/plotly-latest.min.js"></script>
+
+
+<div style="text-align:center;">
+<p><a href="">
+<img src="/img/all_dashboards.png" title = "Noservers, soon nocode, and a bit later nocomputer"></a></p>
+</div>
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<p>In this blog post, I want to discuss something that I, personally, have never seen discussed; how to create
+a “serverless” (or “shinyless” you could say) dashboard using R.</p>
+<p>I made one dashboard like that, which you can find <a href="https://raw.githack.com/b-rodrigues/shinyless_dashboard/master/dashboard.html">here</a>.
+This dashboard is running on a simple, standard web server. No Shiny involved!</p>
+<p>The idea is to create a dashboard with simple tables, graphs, and filters, to communicate results without
+the need for a Shiny server. The “dashboard” will be a simple html file that only needs a good old
+web server. Or you could even send the rendered html file per email, and the recipient only needs
+to open it using a web browser. The shortcoming of that, of course, is that this “dashboard”,
+which is a simple html file will be static; no computation will be possible (well not quite as you’ll see),
+so you need to precompute everything that you want to show. It won’t also be possible for the users
+to enter parameters and then have graphs update automatically. For instance, you cannot let a user
+choose how many days should be used in a moving average. At best, you can compute three variable,
+each one with a different number of days, and then let the user choose which of these precomputed
+variables should be drawn.</p>
+<p>But the first question is, why would we want, or need, something so limited?</p>
+<p>The advantage of not needing a Shiny server, is that it makes deployment much easier. If you can
+“deploy” a dashboard that does not need a Shiny server, this means that you don’t need to set up…,
+well a server. In an institutional setting, this can literally mean you end up saving weeks, sometimes
+months, of getting the right green lights and signatures. When I worked as a consultant, deployment
+was definitely the toughest problem to solve (well, toughest maybe after getting access to the data
+itself). And also, this solution might not be as limited as you think. While it is true that users
+cannot compute anything on the fly, it is still possible to do a lot of things, which should
+in all honesty be enough for most use cases. Most users only want or need a glorified Excel
+with pivot tables and pivot charts. So we’re giving them that, but in a nicer package: the dashboard can be
+hosted, and users do not have writing rights. That’s honestly all I need in perhaps 90% of the situations.</p>
+<p>The solution I’m going to present was in front of me for the longest time; it’s just that I did not
+put 2 and 2 together. The first part of the solution is <code>{flexdashboard}</code>, which is the framework
+allowing us to build a dashboard. Dashboards made with <code>{flexdashboard}</code> are simple html files,
+which can have Shiny elements in them, so for instance an interactive plot that gets generated once
+the user has entered some input. But these dashboards don’t need to have Shiny elements in them;
+<code>htmlwidgets</code> are enough. What are <code>htmlwidgets</code>? Take a look at the graph below:</p>
+<pre class="r"><code>library(plotly)</code></pre>
+<pre class="r"><code>mtcars %&gt;%
+  plot_ly(y = ~hp, x = ~mpg, split = ~am)</code></pre>
+<pre><code>## No trace type specified:
+##   Based on info supplied, a &#39;scatter&#39; trace seems appropriate.
+##   Read more about this trace type -&gt; https://plotly.com/r/reference/#scatter</code></pre>
+<pre><code>## No scatter mode specifed:
+##   Setting the mode to markers
+##   Read more about this attribute -&gt; https://plotly.com/r/reference/#scatter-mode</code></pre>
+<div id="htmlwidget-1" style="width:672px;height:480px;" class="plotly html-widget"></div>
+<script type="application/json" data-for="htmlwidget-1">{"x":{"visdat":{"5db310fd169f":["function () ","plotlyVisDat"]},"cur_data":"5db310fd169f","attrs":{"5db310fd169f":{"y":{},"x":{},"split":{},"alpha_stroke":1,"sizes":[10,100],"spans":[1,20]}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"xaxis":{"domain":[0,1],"automargin":true,"title":"mpg"},"yaxis":{"domain":[0,1],"automargin":true,"title":"hp"},"hovermode":"closest","showlegend":true},"source":"A","config":{"showSendToCloud":false},"data":[{"y":[110,175,105,245,62,95,123,123,180,180,180,205,215,230,97,150,150,245,175],"x":[21.4,18.7,18.1,14.3,24.4,22.8,19.2,17.8,16.4,17.3,15.2,10.4,10.4,14.7,21.5,15.5,15.2,13.3,19.2],"type":"scatter","mode":"markers","name":"0","marker":{"color":"rgba(31,119,180,1)","line":{"color":"rgba(31,119,180,1)"}},"error_y":{"color":"rgba(31,119,180,1)"},"error_x":{"color":"rgba(31,119,180,1)"},"line":{"color":"rgba(31,119,180,1)"},"xaxis":"x","yaxis":"y","frame":null},{"y":[110,110,93,66,52,65,66,91,113,264,175,335,109],"x":[21,21,22.8,32.4,30.4,33.9,27.3,26,30.4,15.8,19.7,15,21.4],"type":"scatter","mode":"markers","name":"1","marker":{"color":"rgba(255,127,14,1)","line":{"color":"rgba(255,127,14,1)"}},"error_y":{"color":"rgba(255,127,14,1)"},"error_x":{"color":"rgba(255,127,14,1)"},"line":{"color":"rgba(255,127,14,1)"},"xaxis":"x","yaxis":"y","frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+<p>You can interact with this visualisation, and it’s 100% running in your web browser. No Shiny
+involved, even though you can zoom and select different levels in the legend on the top right
+(try double-clicking on the “0” level for instance). This visualisation was made with the
+<code>{plotly}</code> package, one of the many <code>htmlwidgets</code> available. My favorite for making such visualisations
+is <code>{echarts4r}</code> which I’ve used to create the <a href="https://covid-grande-region.brodrigues.co/">following map</a> (how-to blog post <a href="https://www.brodrigues.co/blog/2021-02-06-echarts_map/">here</a>).
+<code>htmlwidgets</code> bring JavaScript visualisations (and other goodies) to R, and what’s really cool
+about them is that they don’t need a Shiny server to run (that’s the whole point of
+JavaScript, everything runs in the browser).
+So this means that by combining <code>{flexdashboard}</code> with the right <code>htmlwidgets</code> we can create a
+simple, yet useful, dashboard that can be deployed as a web page.</p>
+<p>To illustrate, I’ve made the <a href="https://raw.githack.com/b-rodrigues/shinyless_dashboard/master/dashboard.html">following dashboard</a>, which shows tables, graphs, and even a
+pivot table of COVID-19 cases and deaths of the Greater Region (to know more about the Greater
+Region and why this interests me currently, you can <a href="https://www.brodrigues.co/blog/2021-02-20-covid_paper/">read this</a>).</p>
+<p>Something else I need to talk about: on the very first tab, you can see a sidebar with some
+inputs that the user can interact with. For instance, the user can choose which country’s data should
+appear on the table. It is also possible to filter the positive cases data (not the deaths, but
+this could be added). This interaction between the sidebar and the table (which was made using
+<code>{DT}</code>) was made possible using the <code>{crosstalk}</code> package. This package makes it possible to
+link several <code>htmlwidgets</code> together, but they have to be compatible with <code>{crosstalk}</code>. Unfortunately, at the time
+of writing, not many <code>htmlwidgets</code> are compatible with <code>{crosstalk}</code> (see <a href="https://rstudio.github.io/crosstalk/widgets.html">here</a>),
+but I would say that the ones that are compatible still make it possible to create some pretty
+useful stuff.</p>
+<p>The only thing you need to do to link <code>htmlwidgets</code> with each other is to convent the dataframe
+holding your data to a <code>SharedData</code> object:</p>
+<pre class="r"><code>data_set_shared &lt;- SharedData$new(data_set)</code></pre>
+<p>Widgets compatible with <code>{crosstalk}</code> can now use this <code>SharedData</code> object instead of the regular
+dataframe, and this is how you link them: through this <code>SharedData</code> object.</p>
+<p>Another tab that uses <code>{crosstalk}</code> is the last one, where you can take a look at the weekly
+positive cases and deaths for the countries of the Greater Regions (but only for the sub-regions
+of these countries composing the Greater Region). Here, the user can choose whether deaths or
+positive cases should be shown. The plot updates immediately, and it’s also possible to
+focus on a single country by double-clicking on it in the legend on the top-right.
+Again, it’s also possible to focus on a particular month. Here I wanted to use a slicer like on the
+first table, but on the date. This should work (I’m using exactly that on another dashboard I made),
+but for some reason here, it would not work. The dashboard would compile without any error message
+but trying to open the html file on my browser would make the browser hang. So I settled for
+another type of slicer.
+Something else that is quite cool; if you choose to focus on the cases, you can hover the mouse over
+the bars and see how many cases there were in the sub regions in each country. For this, I had to
+change the default behavior of the popup in the <code>{plotly}</code> visualisation.</p>
+<p>Now comes the cherry on top of this already delicious cake; on the second tab, you can interact
+with a pivot table! This makes it possible to, for instance, see how many deaths there were in each
+country, region or sub-region, on a weekly basis. You can even switch from a table to several
+types of visualisations! This pivot table is made possible using the very nice <code>{rpivotTable}</code>
+package. This package is honestly nuts. It feels like it shouldn’t work so well, and yet, it does
+work beautifully. Seriously, play around with it in the <a href="https://raw.githack.com/b-rodrigues/shinyless_dashboard/master/dashboard.html#weekly-covid-19-cases-and-deaths-detected-by-country-pivot-table">dashboard</a>, it’s pure magic.</p>
+<p>One final note; on the top right of the dashboard you can click on “Source Code” and read the
+dashboard’s source code. You will notice that I use two functions, <code>tar_load()</code> and <code>tar_read()</code>
+that can be found in the <code>{targets}</code> package. I will be explaining what that is exactly in a
+subsequent blog post, or perhaps a video on my <a href="https://www.youtube.com/c/BrunoRodrigues1988/videos">youtube channel</a>.
+You can also see how the inputs in the sidebar work, and how they are linked (through the <code>SharedData</code>
+object) to the visualisations they control.</p>
+<p>In any case, I’m quite happy that I found the possibility to develop dashboards without the need
+of a server, where all the logic is handled client-side by the web browser. I think that this
+definitely can help many of you that need to communicate results fast to stakeholders without the
+need to deploy a full server, which can often take quite a long time.</p>
+<div id="bonus" class="section level2">
+<h2>Bonus</h2>
+<p>By the way, yesterday I read the most amazing tweet:</p>
+<blockquote class="twitter-tweet">
+<p lang="en" dir="ltr">
+Host on GitHub, like you would a normal repo (incl. pics dir etc.)<br><br>GH doesn't render HTML by default… But you just need to change the root of your URL:<br><br>“github” -&gt; “raw DOT githack”<br><br>(Also delete the “blob/” bit.)<br><br>I host all my lectures and seminar slides this way.
+</p>
+— Grant McDermott (<span class="citation">@grant_mcdermott</span>) <a href="https://twitter.com/grant_mcdermott/status/1366597702339891202?ref_src=twsrc%5Etfw">March 2, 2021</a>
+</blockquote>
+<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+<p>I used this trick to host the dashboard on github!</p>
+<p>Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my ebook on <a href="https://leanpub.com/modern_tidyverse">Leanpub</a>.
+You can also watch my videos on <a href="https://www.youtube.com/c/BrunoRodrigues1988/">youtube</a>.
+So much content for you to consoom!</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
+</div>
+
+			</div>
+		</article>
+	</main>
+<aside>
+	<div>
+		<div>
+			<h3>LATEST POSTS</h3>
+		</div>
+		<div>
+			<ul>
+				
+				<li><a href="/blog/2021-09-05-speedrunning_rows/">Speedrunning row-oriented workflows</a></li>
+				
+				<li><a href="/blog/2021-09-04-quest_fast/">The quest for fast(er?) row-oriented workflows</a></li>
+				
+				<li><a href="/blog/2021-07-30-worth_weight/">Is it worth the weight?</a></li>
+				
+				<li><a href="/blog/2021-06-04-own_knit_server/">Building your own knitr compile farm on your Raspberry Pi with {plumber}</a></li>
+				
+				<li><a href="/blog/2021-04-17-post_strat/">Dealing with non-representative samples with post-stratification</a></li>
+				
+			</ul>
+		</div>
+	</div>
+</aside>
+
+
+	<footer>
+  <div class="row">
+    <div class="col-lg-12">
+      <p>2021, content by Bruno Rodrigues, unless otherwise stated, every content of this blog is licensed under the <a href="http://www.wtfpl.net/txt/copying/" rel="nofollow">WTFPL</a>.</p>
+      <p>The theme this blog uses is a slight variation of the <a href="https://github.com/colorchestra/smol" rel="nofollow">Smol</a> theme.</p>
+      <p><a class="nav-link" href="/index.html">Back to main page.</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

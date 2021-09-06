@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<style type=text/css>body{font-family:monospace;}</style>
+	<title>R makes it too easy to write papers</title>
+	
+	
+	<link rel="stylesheet" href="/css/style.css">
+	
+	
+</head>
+<body>
+	<header>
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+<p><a class="nav-link" href="/index.html">Econometrics and Free Software</a> by <a class="nav-link" href="/about/about">Bruno Rodrigues</a>.</p>
+<p><a href="https://www.brodrigues.co/blog/index.xml">RSS feed for blog post updates.</a></p>
+<p>Follow me on <a href="https://twitter.com/brodriguesco" rel="nofollow">twitter</a>, or check out my <a href="https://github.com/b-rodrigues">Github</a>.</p>
+<p>Watch my <a href="https://www.youtube.com/user/cbrunos" rel="nofollow">youtube</a> channel.</p>
+<p>Have a question about one of the blog posts? <a href="https://shinybrodriguesco.duckdns.org/channel/brodrigues.co">Chat here with me.</a></p>
+</header>
+
+	
+	<main>
+		<article>
+			<h1>R makes it too easy to write papers</h1>
+			<b><time>2021/02/20</time></b>
+		       
+		           <a href="/tags/r">R</a>
+        	       
+
+			<div>
+				<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<div style="text-align:center;">
+<p><a href="">
+<img src="/img/drake.png" title = "Read the blog post to understand this cryptic meme."></a></p>
+</div>
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<p>I’m currently working on a preprint on the spread of COVID-19 in Luxembourg. My hypothesis is that
+landlocked countries, especially ones like Luxembourg that have very close ties to their neighbours
+have a very hard time controlling the pandemic, unlike island countries which can completely close
+off their borders, impose very drastic quarantine measure to anyone who would still have to come
+in and successfully wipe out the disease by imposing strict lockdowns and contract tracing measures.</p>
+<p>In actuality, this started more as a project in which I simply wanted to look at COVID-19 cases
+for Luxembourg and its neighbouring regions. As I started digging and writing code, this
+evolved into <a href="https://github.com/b-rodrigues/covidGrandeRegion">this package</a> which makes it easy
+to download open data on the daily COVID-19 cases from Luxembourg and its neighbours. I
+also blogged about it <a href="https://www.brodrigues.co/blog/2021-02-06-echarts_map/">here</a>.
+Creating and animating the map that you see in that blog post, I thought about this hypothesis
+I wanted to test. Maybe it won’t work (preliminary results are <em>encouraging</em> however), but I also
+took this opportunity to write a preprint using only R, Rmarkdown and packages that make
+writing something like that easy. This blog post is a shallow review of these tools.</p>
+<p>By the way, you can take a look at the repo with the preprint <a href="https://github.com/b-rodrigues/covid_pred/tree/master">here</a>,
+and I’ll be writing about it soon as well.</p>
+<div id="packages-as-by-products-of-papers" class="section level2">
+<h2>Packages as by-products of papers</h2>
+<p>The first thing I did was download data from the various open data portals, make sense of it and
+then plot it. At first, I did so in a very big a messy script file. As time went on, I felt more
+and more disgusted with this script and wanted to make something cleaner out of it. This is how the
+package I already mentioned above came to be. It took some time to prepare, but now it simplifies
+the process of updating my plots and machine learning models much faster. It also makes the
+paper more “interesting”; not everyone is interesting in the paper itself, but might be interested
+in the data, or in the process of making the package itself. I think that there are many examples
+of such packages as by-products of papers, especially papers that present and discuss new
+methods are very often accompanied by a package to make it easy for readers of the paper to use
+this new method.
+Package development is made easy with <code>{usethis}</code>.</p>
+</div>
+<div id="starting-a-draft-with-rticles" class="section level2">
+<h2>Starting a draft with {rticles}</h2>
+<p>The second thing I did was start a draft with <code>{rticles}</code>. This package allows users to start a
+Rmarkdown draft with a single command. Users can choose among many different drafts for many
+different journals; I choose the arXiv draft, as I might publish the preprint there. To do so,
+I used the following command:</p>
+<pre class="r"><code>rmarkdown::draft(&quot;paper.Rmd&quot;, template = &quot;arxiv&quot;, package = &quot;rticles&quot;)</code></pre>
+<p>I can now edit this <code>Rmd</code> file and compile it to a nice looking pdf very easily. But I don’t do
+so in the “traditional” way of knitting the <code>Rmd</code> file from Rstudio (or rather, from Spacemacs,
+my editor of choice). No, no, for this I use the magnificent <code>{targets}</code> package.</p>
+</div>
+<div id="setting-up-a-clean-automated-and-reproducible-workflow-with-targets" class="section level2">
+<h2>Setting up a clean, automated and reproducible workflow with {targets}</h2>
+<p><code>{targets}</code> is the latest package by William Landau, who is also the author of <code>{drake}</code>. I was
+very impressed by <code>{drake}</code> and even made a <a href="https://www.youtube.com/watch?v=yNHwM3N8bAQ">video about it</a>
+but now <code>{targets}</code> will replace <code>{drake}</code> as THE build automation tool for the R programming language.
+I started using it for this project, and just like <code>{drake}</code> it’s really an amazing package.
+It allows you to declare your project as a series of steps, each one of them being a call to a function.
+It’s very neat, and clean. The dependencies between each of the steps and objects that are created
+at each step are tracked by <code>{targets}</code> and should one of them get updated (for instance, because
+you changed the code of the underlying function), every object that depends on it will also get
+updated once you run the pipeline again.</p>
+<p>This can get complex very quickly, and here is the network of objects, functions and their
+dependencies for the preprint I’m writing:</p>
+<div>
+<video width="838" height="436" src="/img/targets_network.mp4" controls="true" />
+</div>
+<p>Imagine keeping track of all this in your head. Now I won’t go much into how to use <code>{targets}</code>,
+because the <a href="https://books.ropensci.org/targets/">user manual</a> is very detailed. Also, you can
+inspect the repository of my preprint I linked above to figure out the basics of <code>{targets}</code>.
+What’s really neat though, is that the <code>Rmd</code> file of your paper is also a target that gets built
+automatically. If you check out my repository, you will see that it’s the last target that is built.
+And if you check the <code>Rmd</code> file itself, you will see the only R code I use is:</p>
+<pre class="r"><code>tar_load(something)</code></pre>
+<p><code>tar_load()</code> is a <code>{targets}</code> function that loads an object, in the example above this object
+is called <code>something</code> and puts it in the paper. For instance, if <code>something</code> is a ggplot object,
+then this plot will appear on that spot in the paper. It’s really great, because the paper
+itself gets compiled very quickly once all the targets are built.</p>
+</div>
+<div id="machine-learning-and-everything-else" class="section level2">
+<h2>Machine learning, and everything else</h2>
+<p>Last year I wrote a blog post about <code>{tidymodels}</code>, which you can find <a href="https://www.brodrigues.co/blog/2020-03-08-tidymodels/">here</a>.
+Since then, the package evolved, and it’s in my opinion definitely one of the best machine learning
+packages out there. Just like the other tools I discussed in this blog post, it abstracts away
+many unimportant idiosyncrasies of many other packages and ways of doing things, and let’s you
+focus on what matters; getting results and presenting them neatly.</p>
+<p>I think that this is what I really like about the R programming language, and the ecosystem of
+packages built on top of it. Combining functional programming, build automation tools, markdown,
+and all the helper packages like <code>{usethis}</code> make it really easy to go from idea, to paper, or
+interactive app using <code>{shiny}</code> very quickly.</p>
+<p>Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my ebook on <a href="https://leanpub.com/modern_tidyverse">Leanpub</a>.
+You can also watch my videos on <a href="https://www.youtube.com/c/BrunoRodrigues1988/">youtube</a>.
+So much content for you to consoom!</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
+</div>
+
+			</div>
+		</article>
+	</main>
+<aside>
+	<div>
+		<div>
+			<h3>LATEST POSTS</h3>
+		</div>
+		<div>
+			<ul>
+				
+				<li><a href="/blog/2021-09-05-speedrunning_rows/">Speedrunning row-oriented workflows</a></li>
+				
+				<li><a href="/blog/2021-09-04-quest_fast/">The quest for fast(er?) row-oriented workflows</a></li>
+				
+				<li><a href="/blog/2021-07-30-worth_weight/">Is it worth the weight?</a></li>
+				
+				<li><a href="/blog/2021-06-04-own_knit_server/">Building your own knitr compile farm on your Raspberry Pi with {plumber}</a></li>
+				
+				<li><a href="/blog/2021-04-17-post_strat/">Dealing with non-representative samples with post-stratification</a></li>
+				
+			</ul>
+		</div>
+	</div>
+</aside>
+
+
+	<footer>
+  <div class="row">
+    <div class="col-lg-12">
+      <p>2021, content by Bruno Rodrigues, unless otherwise stated, every content of this blog is licensed under the <a href="http://www.wtfpl.net/txt/copying/" rel="nofollow">WTFPL</a>.</p>
+      <p>The theme this blog uses is a slight variation of the <a href="https://github.com/colorchestra/smol" rel="nofollow">Smol</a> theme.</p>
+      <p><a class="nav-link" href="/index.html">Back to main page.</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

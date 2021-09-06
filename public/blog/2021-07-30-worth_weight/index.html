@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<style type=text/css>body{font-family:monospace;}</style>
+	<title>Is it worth the weight?</title>
+	
+	
+	<link rel="stylesheet" href="/css/style.css">
+	
+	
+</head>
+<body>
+	<header>
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+<p><a class="nav-link" href="/index.html">Econometrics and Free Software</a> by <a class="nav-link" href="/about/about">Bruno Rodrigues</a>.</p>
+<p><a href="https://www.brodrigues.co/blog/index.xml">RSS feed for blog post updates.</a></p>
+<p>Follow me on <a href="https://twitter.com/brodriguesco" rel="nofollow">twitter</a>, or check out my <a href="https://github.com/b-rodrigues">Github</a>.</p>
+<p>Watch my <a href="https://www.youtube.com/user/cbrunos" rel="nofollow">youtube</a> channel.</p>
+<p>Have a question about one of the blog posts? <a href="https://shinybrodriguesco.duckdns.org/channel/brodrigues.co">Chat here with me.</a></p>
+</header>
+
+	
+	<main>
+		<article>
+			<h1>Is it worth the weight?</h1>
+			<b><time>2021/07/30</time></b>
+		       
+		           <a href="/tags/r">R</a>
+        	       
+
+			<div>
+				<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<div style="text-align:center;">
+<p><a href="https://www.youtube.com/watch?v=Jt0w9YP_wZ0">
+<img src="/img/gaben.jpg" title = "Will we ever see Half Life 3?"></a></p>
+</div>
+<div id="intro" class="section level2">
+<h2>Intro</h2>
+<p>Oh man, I did it again. Grab a coffee, this is going to be a long one.</p>
+<p>Weights got me confused. The justification for using weights seems simple enough; if you’re working
+with a sample in which one (or more) strata are over(under)-represented, you should compute
+weighted univariate statistics. I’ve discussed this already <a href="https://www.brodrigues.co/blog/2021-04-17-post_strat/">here</a>.</p>
+<p>But what about regression and prediction? There does not seem to be a consensus in the literature.
+So I wanted to experiment with some data and see if it would help.</p>
+<p>Spoiler alert: I’m more confused now than before, so maybe stop reading here. But maybe, by reading
+this blog post, dear reader, you might spot where I am confused and help me? Any help, comments,
+etc. more than welcome.</p>
+<p>Anyway, let’s start by loading the required packages:</p>
+<pre class="r"><code>library(&quot;dplyr&quot;)
+library(&quot;rsample&quot;)
+library(&quot;yardstick&quot;)
+library(&quot;readr&quot;)
+library(&quot;janitor&quot;)
+library(&quot;lubridate&quot;)
+library(&quot;broom&quot;)
+library(&quot;purrr&quot;)</code></pre>
+<p>and also the required dataset. This is a dataset that I have already featured in one of my previous
+blog posts <a href="https://www.brodrigues.co/blog/2020-02-23-synthpop/">here</a>, a blog post about synthetic
+datasets. I’ll reuse the description from this other blog post here:</p>
+<p><em>The Survey on the Population in Relation to Activity operation is a continuous source of information on the characteristics and dynamics of the labour force of the Basque Country. It records the relation to productive activity of the population resident in family households, as well as the changes produced in labour situations; it produces indicators of conjunctural variations in the evolution of the active population; it also estimates the degree of participation of the population in economically non-productive activities. It offers information on the province and capital level.</em></p>
+<p>To make it easy for you to follow along, I have re-uploaded the data <a href="https://raw.githubusercontent.com/rbind/b-rodrigues.github.com/master/public/assets/MICRO_PRA_2021_1.csv">here</a>.
+For the purposes of my analysis, I’ll be focusing on the “Hours Worked” variable.
+I’ll also assume that the dataset is the entire, complete population, and that I will have to deal
+with unbiased, randomly sampled individuals, but also with samples that are not randomly sampled.</p>
+<p>Let’s read in the data, rename the columns and do some basic data cleaning:</p>
+<pre class="r"><code>population &lt;- read_csv2(&quot;https://raw.githubusercontent.com/rbind/b-rodrigues.github.com/master/public/assets/MICRO_PRA_2021_1.csv&quot;)</code></pre>
+<pre><code>## ℹ Using &quot;&#39;,&#39;&quot; as decimal and &quot;&#39;.&#39;&quot; as grouping mark. Use `read_delim()` for more control.</code></pre>
+<pre><code>## Rows: 12757 Columns: 33</code></pre>
+<pre><code>## ── Column specification ──────────────────────────────────────────────────────────────────────────────────────────────────────────────
+## Delimiter: &quot;;&quot;
+## chr (10): TERH, EDAD, ENRE, FOCU, BUSQ, GBUSQ, FBUSQ, DISP, PRA2, RACT
+## dbl (23): NUMH, AENC, TENC, MUNI, SEXO, LNAC, NACI, LEST, SJUB, SILH, EMPTP,...</code></pre>
+<pre><code>## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<pre class="r"><code>col_names_english &lt;- c(
+  &quot;Household number&quot;,
+  &quot;Year of survey&quot;,
+  &quot;Reference quarter&quot;,
+  &quot;Province&quot;,
+  &quot;Capital&quot;,
+  &quot;Sex&quot;,
+  &quot;Place of birth&quot;,
+  &quot;Age&quot;,
+  &quot;Nationality&quot;,
+  &quot;Level of education&quot;,
+  &quot;Formal education system&quot;,
+  &quot;Professional training&quot;,
+  &quot;Retirement situation&quot;,
+  &quot;Household duties situation&quot;,
+  &quot;Part-time employment&quot;,
+  &quot;Reason for reduced worknig hours&quot;,
+  &quot;Job search&quot;,
+  &quot;Reasons for seeking employment&quot;,
+  &quot;Working hours sought&quot;,
+  &quot;Carry out employment seeking activities&quot;,
+  &quot;Main employment seeking method&quot;,
+  &quot;Months seeking employment&quot;,
+  &quot;Availability&quot;,
+  &quot;Relation to activity (ILO)&quot;,
+  &quot;Relation to activity&quot;,
+  &quot;Main occupation&quot;,
+  &quot;Main activity&quot;,
+  &quot;Main professional situation&quot;,
+  &quot;Main institutional sector&quot;,
+  &quot;Type of contract&quot;,
+  &quot;Hours worked&quot;,
+  &quot;Relationship&quot;,
+  &quot;Elevator&quot;)
+
+ colnames(population) &lt;- col_names_english
+
+population &lt;- population %&gt;%
+  clean_names() %&gt;%
+  filter(!is.na(hours_worked)) %&gt;%
+  filter(!is.na(part_time_employment)) %&gt;%
+  mutate(part_time_employment = ifelse(part_time_employment == 1, &quot;Working full time&quot;, &quot;Working part time&quot;)) %&gt;%
+  mutate(type_of_contract = ifelse(is.na(type_of_contract), &quot;Unknown&quot;, type_of_contract)) %&gt;%
+  mutate(sex = ifelse(sex == 1, &quot;Male&quot;, &quot;Female&quot;)) %&gt;%
+  mutate(age_group = case_when(between(age, 4, 7) ~ &quot;1&quot;,
+                               between(age, 8, 12) ~ &quot;2&quot;,
+                               age &gt; 12 ~ &quot;3&quot;)) %&gt;%
+  mutate(type_of_contract = ifelse(type_of_contract %in% c(seq(2, 4), 6), &quot;Other&quot;, type_of_contract)) %&gt;%  
+  select(capital,
+         sex,
+         age_group,
+         level_of_education,
+         part_time_employment,
+         type_of_contract,
+         hours_worked) %&gt;%
+  mutate(across(-hours_worked, as.factor)) %&gt;%
+  mutate(id = row_number())</code></pre>
+<p>Let’s put some data on the side, for later:</p>
+<pre class="r"><code>holdout &lt;- population %&gt;%
+  sample_n(300)
+
+population &lt;- population %&gt;%
+  filter(!(id %in% holdout$id))</code></pre>
+<p>This holdout set will be useful later on. I’m now going to compute some sampling weights. This weights
+will make it easy for me to select biased samples, where part-time workers are over-represented:</p>
+<pre class="r"><code>set.seed(1234)
+beta0 &lt;- -3.6
+beta1 &lt;- 2.63
+population &lt;- population %&gt;%
+  mutate(pi_x = exp(beta0 + beta1 * I(part_time_employment == &quot;Working part time&quot;)) / (1 + exp(beta0 + beta1 * I(part_time_employment == &quot;Working part time&quot;))))</code></pre>
+<p>By the way, I’ve found this code <a href="https://stats.stackexchange.com/questions/12857/generate-random-correlated-data-between-a-binary-and-a-continuous-variable/12858#12858">here</a>.</p>
+<p>Let’s see what happens when I randomly sample from the population and compute some basic frequencies,
+and then what happens when I sample using the weights. First, the true frequencies of part-time and
+full-time workers, on the complete population:</p>
+<pre class="r"><code>population %&gt;%
+  tabyl(part_time_employment)</code></pre>
+<pre><code>##  part_time_employment    n   percent
+##     Working full time 4107 0.8204155
+##     Working part time  899 0.1795845</code></pre>
+<p>Now, on a random sample:</p>
+<pre class="r"><code>sample_n(population, 1000) %&gt;%
+  tabyl(part_time_employment)</code></pre>
+<pre><code>##  part_time_employment   n percent
+##     Working full time 823   0.823
+##     Working part time 177   0.177</code></pre>
+<p>Pretty much the same value, now what happens when I don’t have a random sample:</p>
+<pre class="r"><code>sample_n(population, 1000, weight = pi_x) %&gt;%
+  tabyl(part_time_employment)</code></pre>
+<pre><code>##  part_time_employment   n percent
+##     Working full time 409   0.409
+##     Working part time 591   0.591</code></pre>
+<p>This might seem obvious, since I have computed the weights such as to over-represent part-time
+workers. But this problem also affects other variables:</p>
+<pre class="r"><code>sample_n(population, 1000) %&gt;%
+  tabyl(sex)</code></pre>
+<pre><code>##     sex   n percent
+##  Female 471   0.471
+##    Male 529   0.529</code></pre>
+<pre class="r"><code>sample_n(population, 1000, weight = pi_x) %&gt;%
+  tabyl(sex)</code></pre>
+<pre><code>##     sex   n percent
+##  Female 633   0.633
+##    Male 367   0.367</code></pre>
+<p>Because more women work part-time than men, women are now over-represented. The age structure
+is also different:</p>
+<pre class="r"><code>sample_n(population, 1000) %&gt;%
+  tabyl(age_group)</code></pre>
+<pre><code>##  age_group   n percent
+##          1 181   0.181
+##          2 726   0.726
+##          3  93   0.093</code></pre>
+<pre class="r"><code>sample_n(population, 1000, weight = pi_x) %&gt;%
+  tabyl(age_group)</code></pre>
+<pre><code>##  age_group   n percent
+##          1 215   0.215
+##          2 662   0.662
+##          3 123   0.123</code></pre>
+<p>And what about what interests us, the hours worked?</p>
+<pre class="r"><code>sample_n(population, 1000) %&gt;%
+  summarise(mean(hours_worked))</code></pre>
+<pre><code>## # A tibble: 1 × 1
+##   `mean(hours_worked)`
+##                  &lt;dbl&gt;
+## 1                 29.9</code></pre>
+<pre class="r"><code>sample_n(population, 1000, weight = pi_x) %&gt;%
+  summarise(mean(hours_worked))</code></pre>
+<pre><code>## # A tibble: 1 × 1
+##   `mean(hours_worked)`
+##                  &lt;dbl&gt;
+## 1                 23.1</code></pre>
+<p>Ok, so this is bad, and the way to deal with it would be to computed post-stratification weights.</p>
+<p>But let’s go a bit further and see what happens if I rerun this a 1000 times. Maybe I just got
+very unlucky with my non-random sample? With another sample, maybe things wouldn’t be so bad?</p>
+<pre class="r"><code>true_mean &lt;- mean(population$hours_worked)
+
+random_samples &lt;- rerun(1000, sample_n(population, 1000))
+
+hours_worked_random_samples &lt;- map_df(.x = random_samples,
+                                      ~summarise(.x, mean_hours_worked = mean(hours_worked)))
+
+hours_worked_random_samples %&gt;%
+  summarise(mean(mean_hours_worked), sd(mean_hours_worked))</code></pre>
+<pre><code>## # A tibble: 1 × 2
+##   `mean(mean_hours_worked)` `sd(mean_hours_worked)`
+##                       &lt;dbl&gt;                   &lt;dbl&gt;
+## 1                      29.8                   0.393</code></pre>
+<pre class="r"><code>hours_worked_random_samples %&gt;%
+  ggplot() +
+  geom_density(aes(x = mean_hours_worked)) +
+  geom_vline(xintercept = true_mean)</code></pre>
+<pre><code>## Warning in grid.Call(C_stringMetric, as.graphicsAnnot(x$label)): X11 used font
+## size 25 when 29 was requested</code></pre>
+<p><img src="/blog/2021-07-30-worth_weight_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
+<p>We see that the distribution is centered around the true mean. What about a 1000 biased samples?</p>
+<pre class="r"><code>biased_samples &lt;- rerun(1000, sample_n(population, 1000, weight = pi_x))
+
+hours_worked_biased_samples &lt;- map_df(.x = biased_samples,
+                                      ~summarise(.x, mean_hours_worked = mean(hours_worked)))
+
+hours_worked_biased_samples %&gt;%
+  summarise(mean(mean_hours_worked), sd(mean_hours_worked))</code></pre>
+<pre><code>## # A tibble: 1 × 2
+##   `mean(mean_hours_worked)` `sd(mean_hours_worked)`
+##                       &lt;dbl&gt;                   &lt;dbl&gt;
+## 1                      23.4                   0.355</code></pre>
+<pre class="r"><code>hours_worked_biased_samples %&gt;%
+  ggplot() +
+  geom_density(aes(x = mean_hours_worked)) +
+  geom_vline(xintercept = true_mean)</code></pre>
+<pre><code>## Warning in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, : X11
+## used font size 25 when 29 was requested</code></pre>
+<p><img src="/blog/2021-07-30-worth_weight_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+<p>Clearly, the average hours worked are consistently under-estimated. So it’s not a matter of being
+unlucky with one particular sample.</p>
+<p>But what about other tasks, such as prediction and regression? What is the impact there?
+This is where I started getting confused.</p>
+</div>
+<div id="regression-and-prediction-with-weights" class="section level2">
+<h2>Regression and prediction (with weights?)</h2>
+<p>Let me first write a function that will do a bunch of things:</p>
+<ul>
+<li>split the data into training and testing sets</li>
+<li>run a linear regression</li>
+<li>predict on the testing set</li>
+<li>return the rmse, the coefficients and the model</li>
+</ul>
+<pre class="r"><code>run_regression &lt;- function(dataset){
+
+  split_unbiased_data &lt;- initial_split(dataset, prop = 0.9)
+
+  training_unbiased_data &lt;- training(split_unbiased_data)
+
+  testing_unbiased_data &lt;- testing(split_unbiased_data)
+
+  linear_model &lt;- lm(hours_worked ~ capital +
+                       sex +
+                       age_group +
+                       level_of_education +
+                       part_time_employment +
+                       type_of_contract,
+                     data = training_unbiased_data)
+
+  lm_predictions &lt;- predict(linear_model,
+                            newdata = testing_unbiased_data)
+
+  testing_data_lm_predictions &lt;- testing_unbiased_data %&gt;%
+    mutate(lm_pred = lm_predictions)
+
+  lm_rmse &lt;- testing_data_lm_predictions %&gt;%
+    rmse(hours_worked, lm_pred)
+
+  lm_result &lt;- broom::tidy(linear_model)
+
+  tribble(~rmse, ~tidy_coeffs, ~model,
+          lm_rmse$.estimate, lm_result, linear_model)
+
+}</code></pre>
+<p>Let’s now run this on the 1000 random samples and on the 1000 non-random samples:</p>
+<pre class="r"><code>many_lms &lt;- map_df(.x = random_samples, ~run_regression(.x))
+
+many_biased_lms &lt;- map_df(.x = biased_samples, ~run_regression(.x))</code></pre>
+<p>Let’s take a look at the RMSE of both models:</p>
+<pre class="r"><code>many_lms %&gt;%
+  summarise(mean(rmse), sd(rmse))</code></pre>
+<pre><code>## # A tibble: 1 × 2
+##   `mean(rmse)` `sd(rmse)`
+##          &lt;dbl&gt;      &lt;dbl&gt;
+## 1         13.3       1.18</code></pre>
+<pre class="r"><code>many_biased_lms %&gt;%
+  summarise(mean(rmse), sd(rmse))</code></pre>
+<pre><code>## # A tibble: 1 × 2
+##   `mean(rmse)` `sd(rmse)`
+##          &lt;dbl&gt;      &lt;dbl&gt;
+## 1         12.1       1.08</code></pre>
+<p>So… both models perform the same? Hum. What about the coefficients? Well I don’t expect
+much difference there now, but let’s see:</p>
+<pre class="r"><code>random_sample_coefs &lt;- many_lms %&gt;%
+  pull(tidy_coeffs) %&gt;%
+  bind_rows() %&gt;%
+  mutate(tidy_coeffs = &quot;random_sample&quot;)
+
+biased_sample_coefs &lt;- many_biased_lms %&gt;%
+  pull(tidy_coeffs) %&gt;%
+  bind_rows() %&gt;%
+  mutate(tidy_coeffs = &quot;biased_sample&quot;)
+
+true_lm &lt;- lm(hours_worked ~ capital +
+                       sex +
+                       age_group +
+                       level_of_education +
+                       part_time_employment +
+                       type_of_contract,
+                     data = population)
+
+true_lm_coefs &lt;- broom::tidy(true_lm) %&gt;%
+  mutate(tidy_coeffs = &quot;true&quot;)
+
+simulations &lt;- bind_rows(random_sample_coefs,
+          biased_sample_coefs) </code></pre>
+<p>Let’s plot the 1000 coefficients for each variable in a nice violin plot:</p>
+<pre class="r"><code>ggplot() +
+  geom_violin(data = simulations, aes(y = estimate, x = term, fill = tidy_coeffs),
+              draw_quantiles = c(0.05, 0.5, 0.95)) +
+  geom_point(data = true_lm_coefs, aes(y = estimate, x = term), size = 2) +
+  scale_x_discrete(guide = guide_axis(n.dodge = 4)) +
+  theme(legend.position = &quot;bottom&quot;)</code></pre>
+<pre><code>## Warning in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, : X11
+## used font size 25 when 29 was requested</code></pre>
+<p><img src="/blog/2021-07-30-worth_weight_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
+<p>The dots are the true coefficients (obtained from a linear regression on the whole data).
+The coefficients from the random sample are “more often” closer
+to the true coefficients, but it doesn’t seem to be a lot (the bars in the violins are the 5th,
+50th and 95th percentile).</p>
+<p>Let’s now see what happens on the holdout set (using the best performing models):</p>
+<pre class="r"><code>best_unbiased_model &lt;- many_lms %&gt;%
+  filter(rmse == min(rmse)) %&gt;%
+  pull(model) %&gt;%
+  .[[1]]
+
+holdout &lt;- holdout %&gt;%
+  mutate(unbiased = predict(best_unbiased_model, newdata = holdout))
+
+best_biased_model &lt;- many_biased_lms %&gt;%
+  filter(rmse == min(rmse)) %&gt;%
+  pull(model) %&gt;%
+  .[[1]]
+
+holdout &lt;- holdout %&gt;%
+  mutate(biased = predict(best_biased_model, newdata = holdout))
+
+holdout %&gt;%
+  rmse(hours_worked, unbiased)</code></pre>
+<pre><code>## # A tibble: 1 × 3
+##   .metric .estimator .estimate
+##   &lt;chr&gt;   &lt;chr&gt;          &lt;dbl&gt;
+## 1 rmse    standard        13.3</code></pre>
+<pre class="r"><code>holdout %&gt;%
+  rmse(hours_worked, biased)</code></pre>
+<pre><code>## # A tibble: 1 × 3
+##   .metric .estimator .estimate
+##   &lt;chr&gt;   &lt;chr&gt;          &lt;dbl&gt;
+## 1 rmse    standard        13.3</code></pre>
+<p>Again, pretty much no difference… What about hours worked?</p>
+<pre class="r"><code>holdout %&gt;%
+  summarise(mean_true = mean(hours_worked),
+            mean_unbiased = mean(unbiased),
+            mean_biased = mean(biased))</code></pre>
+<pre><code>## # A tibble: 1 × 3
+##   mean_true mean_unbiased mean_biased
+##       &lt;dbl&gt;         &lt;dbl&gt;       &lt;dbl&gt;
+## 1      30.4          29.9        29.9</code></pre>
+<p>Same…??? What about coefficients?</p>
+<pre class="r"><code>bind_cols(broom::tidy(best_unbiased_model),
+          broom::tidy(best_biased_model)) %&gt;%
+  select(term...1, estimate...2, std.error...3, estimate...7, std.error...8)</code></pre>
+<pre><code>## New names:
+## * term -&gt; term...1
+## * estimate -&gt; estimate...2
+## * std.error -&gt; std.error...3
+## * statistic -&gt; statistic...4
+## * p.value -&gt; p.value...5
+## * ...</code></pre>
+<pre><code>## # A tibble: 13 × 5
+##    term...1                estimate...2 std.error...3 estimate...7 std.error...8
+##    &lt;chr&gt;                          &lt;dbl&gt;         &lt;dbl&gt;        &lt;dbl&gt;         &lt;dbl&gt;
+##  1 (Intercept)                   30.6           2.11        36.4           1.95 
+##  2 capital2                       0.317         1.91        -3.35          1.72 
+##  3 capital3                       0.501         1.90        -2.66          1.78 
+##  4 capital9                       0.258         1.40        -3.45          1.32 
+##  5 sexMale                        3.54          0.946       -0.649         0.915
+##  6 age_group2                     0.295         1.29        -0.467         1.09 
+##  7 age_group3                    -3.42          1.82        -5.55          1.45 
+##  8 level_of_education2           -0.506         1.21         0.439         1.06 
+##  9 level_of_education3            0.636         1.20         0.545         1.06 
+## 10 part_time_employmentWo…      -13.3           1.23       -14.3           0.960
+## 11 type_of_contract5             -0.646         1.20        -1.86          0.982
+## 12 type_of_contractOther         -5.74          2.60        -4.98          1.63 
+## 13 type_of_contractUnknown        0.378         1.18         3.17          1.25</code></pre>
+<p>Again, some differences here (especially for significant coefficients, which makes sense). So I
+guess you <em>should</em> use weights if you’re interested in the coefficients (and especially their
+standard deviation). I definitely need to explore this more, and read some more.</p>
+<p>Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my ebook on <a href="https://leanpub.com/modern_tidyverse">Leanpub</a>.
+You can also watch my videos on <a href="https://www.youtube.com/c/BrunoRodrigues1988/">youtube</a>.
+So much content for you to consoom!</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
+</div>
+
+			</div>
+		</article>
+	</main>
+<aside>
+	<div>
+		<div>
+			<h3>LATEST POSTS</h3>
+		</div>
+		<div>
+			<ul>
+				
+				<li><a href="/blog/2021-09-05-speedrunning_rows/">Speedrunning row-oriented workflows</a></li>
+				
+				<li><a href="/blog/2021-09-04-quest_fast/">The quest for fast(er?) row-oriented workflows</a></li>
+				
+				<li><a href="/blog/2021-07-30-worth_weight/">Is it worth the weight?</a></li>
+				
+				<li><a href="/blog/2021-06-04-own_knit_server/">Building your own knitr compile farm on your Raspberry Pi with {plumber}</a></li>
+				
+				<li><a href="/blog/2021-04-17-post_strat/">Dealing with non-representative samples with post-stratification</a></li>
+				
+			</ul>
+		</div>
+	</div>
+</aside>
+
+
+	<footer>
+  <div class="row">
+    <div class="col-lg-12">
+      <p>2021, content by Bruno Rodrigues, unless otherwise stated, every content of this blog is licensed under the <a href="http://www.wtfpl.net/txt/copying/" rel="nofollow">WTFPL</a>.</p>
+      <p>The theme this blog uses is a slight variation of the <a href="https://github.com/colorchestra/smol" rel="nofollow">Smol</a> theme.</p>
+      <p><a class="nav-link" href="/index.html">Back to main page.</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,408 @@
+---
+date: 2021-03-19
+title: How to treat as many files as fit on your hard disk without loops (sorta) nor running out of memory all the while being as lazy as possible
+tags: [R]
+menu:
+main:
+  parent: Blog
+  identifier: /blog/no_loops_tidyeval
+  weight: 1
+---
+
+
+<div style="text-align:center;">
+<a href="https://www.youtube.com/watch?v=DERMZi3Ck20">
+<img src="/img/30b.png" title = "Click to watch the Netflix adaptation of this blog post"></a>
+</div>
+
+# tl;dr
+
+This blog post is going to be long, and deal with many topics. But I think you're going to enjoy
+it. So get a hot beverage and relax. Take the time to read. We don't take enough time to read 
+anymore. It's a shame. 
+But if you're really busy, the tl;dr is that I found out a way of combining tidy evaluation and
+functional programming to analyze potentially millions of files (as many as fit on your hard disk)
+without running out of memory in R. As an example, I'm going to use the 15000ish Excel files
+from the Enron Corpus. It's a pretty neat blog post, if I may say so myself, so you definitely 
+should read it. If at the end you think I wasted your time, you can file a complaint 
+[here](https://is.gd/LFX1YS).
+
+# Introduction
+
+```{r, include = FALSE}
+library(tidyverse)
+library(rlang)
+library(tidyxl)
+library(brotools)
+```
+
+If you've been a faithful reader of this blog, or if you watch my [youtube channel](https://www.youtube.com/channel/UCTZXht1RTL2Duc3eU8MYGzQ)
+you've very likely seen me write code that looks like this:
+
+```{r, eval = FALSE}
+library(tidyverse)
+library(rlang)
+library(tidyxl)
+library(brotools)
+```
+
+```{r}
+mtcars_plot <- mtcars %>%
+  group_nest(am) %>% #shortcut for group_by(am) %>% nest() 
+  mutate(plots = map2(.y = am, .x = data, ~{ggplot(data = .x) +
+                              geom_smooth(aes(y = mpg, x = hp), colour = "#82518c") +
+                                ggtitle(paste0("Miles per gallon as a function of horse power for am = ", .y)) +
+                                theme_blog()}))
+```
+
+This creates a new data frame that looks like this:
+
+```{r}
+mtcars_plot
+```
+
+In three lines of code, I grouped the `mtcars` dataframe by the variable `am` and then created
+two plots, which are contained in a new column called `plots`. If you're unfamiliar with R, it is
+quite likely that you've never seen anything like this. If you have experience with functional
+programming languages though, you might recognize what's going on.
+Essentially, `map2()` *loops* over two variables, `am` and `data` (this variable is not in the original
+data frame, but gets created as a result of the `group_nest(am)` call) and applies a function, 
+in this case a call to `ggplot()`, to generate two plots...
+If you've never seen this before, I invite you to read the section dedicated to this type of 
+workflows on my [ebook](https://b-rodrigues.github.io/modern_R/functional-programming.html#list-based-workflows-for-efficiency).
+
+Let's take a look at the plots:
+
+```{r}
+mtcars_plot %>%
+  pull(plots)
+```
+
+The advantage of this workflow is that you don't have to think much about anything -once you understand
+how it works-. The alternative would be two create two separate data frames, and create two separate
+plots. That's a totally valid solution, unless you need to create hundreds of plots. With the 
+workflow above, it doesn't matter if the `am` variable has 2 or 2000 levels. The code would look 
+exactly the same. 
+
+This workflow is very flexible. You can even use this approach to read in, and analyze, many, many
+files. As many as, for instance, 15931 Excel files from an American oil company that went bust in
+the early 2000's, Enron.
+
+# The Enron Corpus
+
+I won't go into much detail about the Enron Corpus, but to make a long story short:
+Big evil American oil company went bust, company emails got released for research purposes after
+being purchased for 10000USD by a computer scientist, and many of these emails had Excel spreadsheets
+attached to them. Other computer scientist released spreadsheets for research purposes. You can
+read the whole story on [Felienne Hermans' blog](https://www.felienne.com/archives/3634) (read it, it's quite interesting).
+
+Anyways, you can now get this treasure trove of nightmarish Excel spreadsheets by clicking [here](https://figshare.com/articles/dataset/Enron_Spreadsheets_and_Emails/1221767)
+(this is the link provided in the blog post by Felienne Hermans). I already discussed this 
+in a [previous blog post](https://www.brodrigues.co/blog/2020-11-21-guis_mistake/).
+
+On Felienne Hermans' blog post, you can spot the following table:
+
+```{r, echo = FALSE}
+knitr::include_graphics("https://i0.wp.com/www.felienne.com/wp-content/uploads/2014/10/Table1.png")
+```
+
+I'm going to show how this table could be replicated using R and the `mutate()`-`map()` workflow
+above. 
+
+First, let's load one single spreadsheet with `{tidyxl}` and get some of the code ready that we 
+will need. Let's get all the paths to all the files in a vector:
+
+```{r}
+list_paths <- list.files(path = "~/six_to/spreadsheets",
+                         pattern = ".xlsx",
+                         full.names = TRUE)
+```
+
+Let's work with the first one. Let's read it in with `{tidyxl}`:
+
+```{r}
+(example_xlsx <- xlsx_cells(list_paths[1]))
+```
+
+The beauty of `{tidyxl}` is that it can read in a very complex and ugly Excel file without any issues.
+Each cell of the spreadsheet is going to be one row of the data set, the contents of all cells is now
+easily accessible. Let's see how many sheets are in there:
+
+```{r}
+example_xlsx %>%
+  summarise(n_sheets = n_distinct(sheet))
+```
+
+11... that's already quite a lot. How many formulas are there per sheet?
+
+
+```{r}
+example_xlsx %>%
+  mutate(is_formula = !is.na(formula)) %>%  
+  group_by(sheet) %>%
+  summarise(n_formula = sum(is_formula)) %>%
+  arrange(desc(n_formula))
+```
+
+There's a sheet in there with 2651 formulas. This is insane. Anyways, as you can see, `{tidyxl}`
+makes analyzing what's inside such Excel files quite simple. Let's now create functions that will
+compute what we need. I won't recreate everything from the table, but you'll very quickly get 
+the idea. Let's start with a function to count spreadsheets that contain at least one formula:
+
+```{r}
+at_least_one_formula <- function(x){
+
+  (any(!is.na(x$formula)))
+
+}
+```
+
+Let's get the number of worksheets:
+
+```{r}
+n_sheets <- function(x){
+
+  x %>%
+    summarise(n_sheets =  n_distinct(sheet)) %>%
+    pull(n_sheets)
+
+}
+```
+
+And how many formulas are contained in a spreadsheet:
+
+```{r}
+n_formulas <- function(x){
+
+  x %>%
+    mutate(is_formula = !is.na(formula)) %>%
+    summarise(n_formula = sum(is_formula)) %>%
+    pull(n_formula)
+
+}
+```
+
+Let's stop here. We could of course continue adding functions, but that's enough to illustrate
+what's coming.
+Let's just define one last function. This function will call all three functions defined above, 
+and return the result in a dataframe. You'll see why soon enough:
+
+```{r}
+get_stats <- function(x){
+
+  tribble(~has_formula, ~n_sheets, ~n_formulas,
+          at_least_one_formula(x), n_sheets(x), n_formulas(x))
+
+}
+```
+
+Let's try it out on our single spreadsheet:
+
+```{r}
+get_stats(example_xlsx)
+```
+Neat.
+
+Now, let's see how we can apply these function to 15k+ Excel spreadsheets.
+
+# No loops ever allowed
+
+10 years ago, I was confronted to a similar problem. I had a pretty huge amount of files on
+a computer that I needed to analyze for a chapter of my Phd thesis. The way I solved this issue
+was by writing a loop that looked horrible and did what I needed on each file. It did the job, but
+it did not look good, and was a nightmare whenever I needed to modify it, which I needed to do often.
+I had to think about a structure to hold the results; it was a nested list with I think 4 or 5 levels,
+and I had to keep track of the dimensions in my head to make sure I was writing the right result in the
+right spot. It wasn't pleasant.
+Until this week, I thought that such a loop was the only real solution to such a problem.
+
+But a comment on one of my youtube video changed this:
+
+<div style="text-align:center;">
+<img src="/img/youtube_comment.png" title = "Click to watch the Netflix adaptation of this blog post">
+</div>
+
+The comment was made on [this video](https://www.youtube.com/watch?v=vtxb1j0aqJM) in which I create
+a data set like in the introduction to this blog post, but instead of having 2 groups (and thus
+2 datasets), I had 100. Now, in the video this wasn't an issue, but what if instead of having 100
+datasets, I had 15k+? And what if these datasets were quite huge? For example, the largest
+spreadsheet in the Enron Corpus is 40MiB. Loading it with `{tidyxl}` returns a tibble with 17 million
+rows, and needs 2GiB of RAM in a clean R session. If you want to read in all the 15k+, you're simply
+going to run out of memory even before you could analyze anything.
+As I've written above, the solution would be to loop over each file, do whatever I need done, and
+save the results in some kind of structure (very likely some complex nested list).
+Or is it the only solution?
+Turns out that I tried some things out and found a solution that does not require changing my
+beloved `mutate()`-`map()` workflow. 
+
+Let's first start by putting the paths in a data frame:
+
+```{r}
+(enron <- enframe(list_paths, name = NULL, value = "paths"))
+```
+
+For the purposes of this blog post, let's limit ourselves to 30 spreadsheets. This won't impact
+how the code is going to work, nor memory usage. It's just that I won't my post to compile quickly
+while I'm writing:
+
+```{r}
+(enron <- head(enron, 30)) 
+```
+
+Ok, so now, in order to read in all these files, I would write the following code:
+
+```{r, eval = FALSE}
+enron %>%
+  mutate(datasets = map(paths, xlsx_cells))
+```
+
+This would create a new column called `datasets` where each element would be a complete data set.
+If I run this in my 30 examples, it might be ok. But if I run it on the full thing, there's no way
+I'm not going to run out of RAM. So how to solve this issue? How to run my neat `get_stats()`
+function on all datasets if I cannot read in the data? The solution is to only read in the data
+when I need it, and only one dataset at a time. The solution is to build a *lazy* tibble. And this
+is possible using `quo()`. To quickly grasp what `quo()` does, let's try calling the following
+expression once with, and once without `quo()`:
+
+```{r}
+runif(10)
+```
+This runs `runif(10)` returning 10 randomly generated numbers, as expected.
+
+```{r}
+quo(unif(10))
+```
+
+This instead returns a quosure, which to be honest, is a complex beast. I'm not sure I get it 
+myself. The definition, is that quosures are *quoted expressions that keep track of an environment*. 
+For our practical purposes, we can use that to delay when the data gets read in, and that's all
+that matters:
+
+```{r}
+(enron <- enron %>%
+   mutate(datasets = map(paths, ~quo(xlsx_cells(.)))))
+```
+
+This takes less than a second to run, and not just because I only have 30 paths. Even if I was 
+working on the complete 15k+ datasets, this would run in an instant. That's because we're actually
+not reading in anything yet. We're only setting the scene. 
+
+The magic happens now: we're going to now map our function that computes the stats we need.
+We only need to change one thing. Let's see:
+
+```{r}
+get_stats <- function(x){
+
+  x <- eval_tidy(x)
+
+  tribble(~has_formula, ~n_sheets, ~n_formulas,
+          at_least_one_formula(x), n_sheets(x), n_formulas(x))
+
+}
+```
+
+I've added this line:
+
+```{r, eval=FALSE}
+x <- eval_tidy(x)
+```
+
+This evaluates the quosure, thus instantiating the dataset, and then proceeds to make all the
+computations. Let's see what happens when we run this on our lazy tibble:
+
+```{r, warning = FALSE}
+(enron <- enron %>%
+   mutate(stats = map(datasets, get_stats)))
+```
+
+What happened here is nothing short of black magic: one by one, each quosure was instantiated, and
+the required stats were computed, then the dataset was thrown into the garbage before moving
+on to the next quosure. This means that RAM usage was kept to a minimum, and I could have run
+this over my 15k+ spreadsheets without any issue. You can watch me run similar code in
+my video [here](https://youtu.be/DERMZi3Ck20?t=820); I show how my RAM usage does not move
+even though I'm mapping over all the Excel sheets.
+The column `stats` now holds one dataframe with one row and three columns for each Excel file. 
+Because `stats` is a list-column of dataframes, we can use `unnest()` to get to the data.
+Let's take a closer look on one dataframe:
+
+```{r}
+enron %>%
+  head(1) %>%
+  select(paths, stats) %>%
+  unnest(cols = stats)
+```
+
+We see that by using `unnest()`, the two columns inside the nested dataframe get expanded and 
+become columns of the "main" dataframe. 
+
+We're done, but let's clean up the dataset a little bit and take a look at the results:
+
+```{r}
+(
+  enron <- enron %>%
+    mutate(excel_file = str_remove(paths, "/home/cbrunos/six_to/spreadsheets/")) %>%
+    select(-paths, -datasets) %>%
+    unnest(cols = stats)
+)
+```
+
+Getting some statistics is now easy:
+
+```{r}
+enron %>%
+  summarise(average_n_formulas = mean(n_formulas),
+            max_sheets = max(n_sheets))
+```
+
+By the way, now that we see that the code works, we can run it on all the spreadsheets simply
+by not running the following line:
+
+```{r, eval = FALSE}
+(enron <- head(enron, 30)) 
+```
+
+Also, we can quite easily run all of this in parallel using `{furrr}`:
+
+```{r, warning = FALSE}
+library(furrr)
+
+plan(multiprocess, workers = 12)
+
+enron <- enframe(list_paths, name = NULL, value = "paths")
+
+enron <- head(enron, 1200) #just to compile the document faster, I only consider 1200 Excel spreadsheets
+
+enron <- enron %>%
+   mutate(datasets = map(paths, ~quo(xlsx_cells(.))))
+
+start <- Sys.time()
+enron <- enron %>%
+  mutate(stats = future_map(datasets, get_stats))
+Sys.time() - start
+```
+
+Same code, no parallelization (it takes longer, obviously):
+
+```{r, warning = FALSE}
+enron <- enframe(list_paths, name = NULL, value = "paths")
+
+enron <- head(enron, 1200)
+
+enron <- enron %>%
+   mutate(datasets = map(paths, ~quo(xlsx_cells(.))))
+
+start <- Sys.time()
+enron <- enron %>%
+  mutate(stats = map(datasets, get_stats))
+Sys.time() - start
+```
+
+I think this is pretty neat.
+
+Hope you enjoyed! If you found this blog post useful, you might want to follow 
+me on [twitter](https://www.twitter.com/brodriguesco) for blog post updates and 
+[buy me an espresso](https://www.buymeacoffee.com/brodriguesco) or [paypal.me](https://www.paypal.me/brodriguesco), or buy my ebook on [Leanpub](https://leanpub.com/modern_tidyverse).
+You can also watch my videos on [youtube](https://www.youtube.com/c/BrunoRodrigues1988/).
+So much content for you to consoom!
+
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a>
