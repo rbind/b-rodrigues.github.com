@@ -1,0 +1,253 @@
+---
+date: 2021-12-17
+title: "How to write code that returns (Rmarkdown) code"
+tags: [R]
+menu:
+main:
+  parent: Blog
+  identifier: /blog/knitr_expand
+  weight: 1
+---
+
+
+<div style="text-align:center;">
+<a href="https://en.wikipedia.org/wiki/Fractal">
+<img src="/img/fractal_doge.gif" title = "Nature is fractal"></a>
+</div>
+
+
+One of the most useful aspects of using a programming language instead of... well, not using a programming language,
+is that you can write code in a way that minimizes, and ideally, eliminates the need to repeat yourself.
+
+For instance, you can write a function to show you a frequency table, like so:
+
+```{r}
+suppressMessages(library(dplyr))
+
+create_table <- function(dataset, var){
+
+  var <- enquo(var)
+
+  dataset %>%
+    count(!!var) %>%
+    knitr::kable()
+
+}
+
+```
+
+And can now get some fancy looking tables by simply writing:
+
+```{r}
+create_table(mtcars, cyl)
+```
+
+If I want such tables for hundreds of columns, I can use this function and loop over the columns and
+not have to write the code inside the body of the function over and over again. You’ll notice that
+the function `create_table()` makes use of some advanced programming techniques I have discussed
+[here](https://www.brodrigues.co/blog/2016-07-18-data-frame-columns-as-arguments-to-dplyr-functions/).
+There’s also an alternative way of programming with `{dplyr}`, using the `{{}}` construct I
+discussed [here](https://www.brodrigues.co/blog/2019-06-20-tidy_eval_saga/), but I couldn’t get
+what I’m going to show you here to work with `{{}}`.
+
+Recently, I had to create a Rmarkdown document with many sections, where each section title was
+a question from a survey and the content was a frequency table. I wanted to write a fuction that
+would create a section with the right question title, and then show the table, and I wanted to 
+then call this function over all the questions from the survey and have my document automatically
+generated. 
+
+The result should look like [this](https://dazzling-thompson-964d5b.netlify.app/), 
+but it would be a PDF instead of HTML.
+
+Let’s first load the data and see how it looks like:
+
+```{r}
+library(dplyr)
+library(purrr)
+library(readr)
+
+suppressMessages(
+  survey_data <- read_csv(
+    "https://gist.githubusercontent.com/b-rodrigues/0c2249dec5a9c9477e0d1ad9964a1340/raw/873bcc7532b8bad613235f029884df1d0b947c90/survey_example.csv"
+  )
+)
+
+glimpse(survey_data)
+
+```
+
+Each column name is the question, and each row is one answer to the survey question.
+To create the document I showed above, you'd probably write something like this:
+
+```
+
+## Random question?
+
+` ``{r}
+
+create_table(survey_data, `Random question?`)
+
+` ``
+
+## Copy of Random question?
+
+` ``{r}
+
+create_table(survey_data, `Copy of Random question?`)
+
+` ``
+
+## Copy of Copy of Random question?
+
+` ``{r}
+
+create_table(survey_data, `Copy of Copy of Random question?`)
+
+` ``
+
+## Copy of Copy of Copy of Random question?
+
+` ``{r}
+
+create_table(survey_data, `Copy of Copy of Copy of Random question?`)
+
+` ``
+
+```
+
+As you can see, this gets tedious very quickly, especially if you have 100’s of variables. So 
+how to not repeat yourself? The solution has two steps; first you should try to automate what you
+have as much as possible. Ideally, you don’t want to have to write the complete question every
+time. So first, let’s replace the questions by simpler variable names:
+
+```{r}
+questions <- colnames(survey_data)
+
+codes <- paste0("var_", seq(1, length(questions)))
+
+lookup <- bind_cols("codes" = codes, "questions" = questions)
+
+colnames(survey_data) <- codes
+
+```
+
+`lookup` is a data frame with the questions and their respective codes:
+
+```{r}
+lookup
+```
+
+and our data now has simpler variable names:
+
+```{r}
+glimpse(survey_data)
+```
+
+Doing this allows us to replace the source code of our Rmarkdown like so:
+
+```{r, results = "asis", eval= FALSE}
+
+## `r lookup$questions[grepl("var_1", lookup$codes)]`
+
+` ``{r}
+create_table(survey_data, var_1)
+` ``
+
+```
+
+This already makes things easier, as now you only have to change `var_1` to `var_2` to `var_3`...
+the inline code gets executed and the right title (the question text) appears. But how to go
+further? I don’t want to have to copy and paste this and change `var_1` to `var_2` etc... So the
+second step of the two-step solution is to use a function called `knitr_expand()` described
+[here](https://bookdown.org/yihui/rmarkdown-cookbook/knit-expand.html). The idea of
+`knitr::knitr_expand()` is that it uses some Rmd source as a template, and also allows the user to define
+some variables that will be replaced at compile time. Simple examples are available
+[here](https://cran.r-project.org/web/packages/knitr/vignettes/knit_expand.html). I want to build
+upon that, because I need to pass my variable (in this case `var_1` for instance) to my function
+`create_table()`.
+
+The solution is to write another function that uses `knitr::knitr_expand()`. This is how
+it could look like:
+
+```{r}
+create_table <- function(dataset, var){
+
+  dataset %>%
+    count(!!var) %>%
+    knitr::kable()
+
+}
+
+
+return_section <- function(var){
+
+  a <- knitr::knit_expand(text = c("## {{question}}",   create_table(survey_data, var)),
+                          question =  lookup$questions[grepl(quo_name(var), lookup$codes)])
+
+  cat(a, sep = "\n")
+}
+
+```
+
+I needed to edit `create_table()` a little bit, and remove the line `var <- enquo(var)`. This
+is because now, I won’t be passing a variable down to the function, but a quosure, and there is
+a very good reason for it, you’ll see. `return_section()` makes use of `knitr_expand()`, 
+and the `text = ` argument is the template that will get expanded. `{{question}}` will get 
+replaced by the variable I defined which is the code I wrote above to automatically get the 
+question text. Finally, `var` will get replaced by the variable I pass to the function.
+
+First, let’s get it running on one single variable:
+
+```{r}
+return_section(quo(var_1))
+```
+
+As you see, I had to use `quo(var_1)` and not only `var_1`. But apart from this, the function seems
+to work well. Putting this in an Rmarkdown document would create a section with the question as 
+the text of the section and a frequency table as the body. I could now copy and paste this and
+only have to change `var_1`. But I don’t want to have to copy and paste! So the idea would be 
+to loop the function over a list of variables.
+
+I have such a list already:
+
+```{r}
+codes
+```
+
+But it’s not a list of quosures, but a list of strings, and this is not going to work (it will
+return an error):
+
+```{r, eval = FALSE}
+walk(codes, return_section)
+```
+
+(I’m using `walk()` instead of `map()` because `return_section()` doesn’t return an object, but only
+shows something on screen. This is called a side effect, and `walk()` allows you to loop properly
+over functions that only return side effects).
+
+The problem I have now is to convert strings to quosures. This is possible using `rlang::sym()`:
+
+```{r}
+sym_codes <- map(codes, sym)
+```
+
+And now I’m done:
+
+```{r}
+walk(sym_codes, return_section)
+```
+
+Putting this in an Rmarkdown source create a PDF (or Word, or HTML) document with one section per 
+question, and without have to do copy-pasting which is quite error-prone. Here is the final
+Rmarkdown [file](https://gist.github.com/b-rodrigues/843011bb863f27a8fe7f299e13eb4491). You'll 
+notice that the last chunk has the option `results = 'asis'`, which is needed for this trick
+to work.
+
+
+Hope you enjoyed! If you found this blog post useful, you might want to follow 
+me on [twitter](https://www.twitter.com/brodriguesco) for blog post updates and 
+[buy me an espresso](https://www.buymeacoffee.com/brodriguesco) or [paypal.me](https://www.paypal.me/brodriguesco), or buy my ebook on [Leanpub](https://leanpub.com/modern_tidyverse).
+You can also watch my videos on [youtube](https://www.youtube.com/c/BrunoRodrigues1988/).
+So much content for you to consoom!
+
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a>
