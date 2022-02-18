@@ -1,0 +1,172 @@
+---
+date: 2022-02-18
+title: Add logging to your functions using my newest package `{loud}`
+tags: [R]
+menu:
+main:
+  parent: Blog
+  identifier: /blog/loudly
+  weight: 1
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<div style="text-align:center;">
+<p><a href="https://www.youtube.com/channel/UCTZXht1RTL2Duc3eU8MYGzQ">
+<img src="/img/tuba.jpg" title = "I have nothing to add"></a></p>
+</div>
+<p>This is a short blog post to announce the early alpha, hyper unstable, use at your own peril,
+package I’ve been working on for the past 6 hours or so
+(actually longer if I add all the research/study time).
+This package provides the function <code>loudly()</code> which allows you to do cool stuff like:</p>
+<pre class="r"><code># First two lines install the package
+# install.packages(&quot;devtools&quot;)
+# devtools::install_github(&quot;b-rodrigues/loud&quot;)
+library(loud)</code></pre>
+<pre><code>## Loading required package: rlang</code></pre>
+<pre class="r"><code>loud_sqrt &lt;- loudly(sqrt)
+
+loud_sqrt(1:10)</code></pre>
+<pre><code>## $result
+##  [1] 1.000000 1.414214 1.732051 2.000000 2.236068 2.449490 2.645751 2.828427
+##  [9] 3.000000 3.162278
+## 
+## $log
+## [1] &quot;Log start...&quot;                                                              
+## [2] &quot;sqrt(1:10) started at 2022-02-18 21:17:22 and ended at 2022-02-18 21:17:22&quot;</code></pre>
+<p>As you can see, I start by applying <code>loudly()</code> to a function, and then I can use this function
+as usual. Not only do I get the result, but also a logging message telling me which function and
+which arguments got used, and when the computation started and ended.</p>
+<p>It is also possible to chain operations:</p>
+<pre class="r"><code>loud_sqrt &lt;- loudly(sqrt)
+loud_exp &lt;- loudly(exp)
+loud_mean &lt;- loudly(mean)
+
+1:10 |&gt;
+  loud_sqrt() |&gt;
+  bind_loudly(loud_exp) |&gt;
+  bind_loudly(loud_mean)</code></pre>
+<pre><code>## $result
+## [1] 11.55345
+## 
+## $log
+## [1] &quot;Log start...&quot;                                                                   
+## [2] &quot;sqrt(1:10) started at 2022-02-18 21:17:22 and ended at 2022-02-18 21:17:22&quot;     
+## [3] &quot;exp(.l$result) started at 2022-02-18 21:17:22 and ended at 2022-02-18 21:17:22&quot; 
+## [4] &quot;mean(.l$result) started at 2022-02-18 21:17:22 and ended at 2022-02-18 21:17:22&quot;</code></pre>
+<p>You’ll notice that here I have to use another function called <code>bind_loudly()</code>. The reason is because
+<em>loud</em> functions return a list. The first element of that list is the result of the function
+applied to the inputs, and the second element is the log message. So <code>bind_loudly()</code> passes the
+first element of the output of <code>loud_sqrt()</code> to the actual function <code>exp()</code> and also passes the
+second element, this time the log message, to the part of the function that concatenates the log
+messages.</p>
+<p>This works with any function:</p>
+<pre class="r"><code>library(dplyr)</code></pre>
+<pre class="r"><code>loud_group_by &lt;- loudly(group_by)
+loud_select &lt;- loudly(select)
+loud_summarise &lt;- loudly(summarise)
+loud_filter &lt;- loudly(filter)
+
+starwars %&gt;%
+  loud_select(height, mass, species, sex) %&gt;%
+  bind_loudly(loud_group_by, species, sex) %&gt;%
+  bind_loudly(loud_filter, sex != &quot;male&quot;) %&gt;%
+  bind_loudly(loud_summarise,
+              mass = mean(mass, na.rm = TRUE)
+              )</code></pre>
+<pre><code>## $result
+## # A tibble: 9 × 3
+## # Groups:   species [9]
+##   species    sex              mass
+##   &lt;chr&gt;      &lt;chr&gt;           &lt;dbl&gt;
+## 1 Clawdite   female           55  
+## 2 Droid      none             69.8
+## 3 Human      female           56.3
+## 4 Hutt       hermaphroditic 1358  
+## 5 Kaminoan   female          NaN  
+## 6 Mirialan   female           53.1
+## 7 Tholothian female           50  
+## 8 Togruta    female           57  
+## 9 Twi&#39;lek    female           55  
+## 
+## $log
+## [1] &quot;Log start...&quot;                                                                                                 
+## [2] &quot;select(.,height,mass,species,sex) started at 2022-02-18 21:17:23 and ended at 2022-02-18 21:17:23&quot;            
+## [3] &quot;group_by(.l$result,species,sex) started at 2022-02-18 21:17:23 and ended at 2022-02-18 21:17:23&quot;              
+## [4] &quot;filter(.l$result,sex != \&quot;male\&quot;) started at 2022-02-18 21:17:23 and ended at 2022-02-18 21:17:23&quot;            
+## [5] &quot;summarise(.l$result,mean(mass, na.rm = TRUE)) started at 2022-02-18 21:17:23 and ended at 2022-02-18 21:17:23&quot;</code></pre>
+<p>This is not perfect however. You’ll notice that the last log message states:</p>
+<pre><code>summarise(.l$result,mean(mass, na.rm = TRUE)) ....</code></pre>
+<p>ideally I would like for it to say:</p>
+<pre><code>summarise(.l$result,mass = mean(mass, na.rm = TRUE)) ....</code></pre>
+<p>Also, I’ve added a pipe operator so you don’t need to use <code>bind_loudly()</code> if you don’t
+want to:</p>
+<pre class="r"><code>1:10 |&gt;
+  loud_sqrt() %&gt;=%
+  loud_exp() %&gt;=%
+  loud_mean()</code></pre>
+<pre><code>## $result
+## [1] 11.55345
+## 
+## $log
+## [1] &quot;Log start...&quot;                                                                   
+## [2] &quot;sqrt(1:10) started at 2022-02-18 21:17:23 and ended at 2022-02-18 21:17:23&quot;     
+## [3] &quot;exp(.l$result) started at 2022-02-18 21:17:23 and ended at 2022-02-18 21:17:23&quot; 
+## [4] &quot;mean(.l$result) started at 2022-02-18 21:17:23 and ended at 2022-02-18 21:17:23&quot;</code></pre>
+<p>However, this operator does not work well with <code>{dplyr}</code> functions. See here:</p>
+<pre class="r"><code>starwars %&gt;%
+  loud_select(height, mass, species, sex) %&gt;=%
+  loud_group_by(species, sex) %&gt;=%
+  loud_filter(sex != &quot;male&quot;) %&gt;=%
+  loud_summarise(mass = mean(mass, na.rm = TRUE))</code></pre>
+<pre><code>## $result
+## # A tibble: 23 × 4
+## # Groups:   species, sex [9]
+##    species  sex     mass na.rm
+##    &lt;chr&gt;    &lt;chr&gt;  &lt;dbl&gt; &lt;lgl&gt;
+##  1 Clawdite female    55 TRUE 
+##  2 Droid    none      75 TRUE 
+##  3 Droid    none      32 TRUE 
+##  4 Droid    none      32 TRUE 
+##  5 Droid    none     140 TRUE 
+##  6 Droid    none      NA TRUE 
+##  7 Droid    none      NA TRUE 
+##  8 Human    female    49 TRUE 
+##  9 Human    female    75 TRUE 
+## 10 Human    female    NA TRUE 
+## # … with 13 more rows
+## 
+## $log
+## [1] &quot;Log start...&quot;                                                                                     
+## [2] &quot;select(.,height,mass,species,sex) started at 2022-02-18 21:17:23 and ended at 2022-02-18 21:17:23&quot;
+## [3] &quot;group_by(.l$result,species,sex) started at 2022-02-18 21:17:23 and ended at 2022-02-18 21:17:23&quot;  
+## [4] &quot;filter(.l$result,sex != \&quot;male\&quot;) started at 2022-02-18 21:17:23 and ended at 2022-02-18 21:17:23&quot;
+## [5] &quot;summarise(.l$result,mass,TRUE) started at 2022-02-18 21:17:23 and ended at 2022-02-18 21:17:23&quot;</code></pre>
+<p>If you look at the result, you’ll see that it is not equal to the obtained with <code>bind_loudly()</code>,
+and if you look at the last logging message you’ll see why. Instead of</p>
+<pre><code>summarise(.l$result,mean(mass, na.rm = TRUE)) ....</code></pre>
+<p>the message states:</p>
+<pre><code>summarise(.l$result,mass,TRUE) started at</code></pre>
+<p>I know where the problem is (it’s due to some regex fuckery) so I think that I should be able
+to correct this in the coming days. Ideally, in the future, I would also like for the users to
+provide their own log messages.</p>
+<p>The package has a website with a vignette that shows another interesting example
+<a href="https://b-rodrigues.github.io/loud/articles/real-world-example.html">here</a>.
+Source code can be found <a href="https://github.com/b-rodrigues/loud">here</a>.</p>
+<p>It is almost certain that function names will change, maybe even the package name itself.
+Contributions, bug reports, suggestions, etc, welcome of course.</p>
+<p>A final word: this is the result of me exploring more advanced functional programming
+concepts and discussing with really nice people like
+<a href="https://twitter.com/ShinyD3js">Andrew R Mcneil</a>,
+<a href="https://twitter.com/kupac">Laszlo Kupcsik</a>. Andrew wrote a cool package called
+<a href="https://armcn.github.io/maybe/">maybe</a> and Laszlo a super cool blog post
+explaining what monads are <a href="https://kupac.gitlab.io/biofunctor/2019/05/25/maybe-monad-in-r/">here</a>.</p>
+<p>I’ll be writing a blog post on monads, in particular the maybe monad soonish.</p>
+<p>Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my ebook on <a href="https://leanpub.com/modern_tidyverse">Leanpub</a>.
+You can also watch my videos on <a href="https://www.youtube.com/c/BrunoRodrigues1988/">youtube</a>.
+So much content for you to consoom!</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>

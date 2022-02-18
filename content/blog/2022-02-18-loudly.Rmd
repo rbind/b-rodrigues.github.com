@@ -1,0 +1,156 @@
+---
+date: 2022-02-18
+title: Add logging to your functions using my newest package `{loud}`
+tags: [R]
+menu:
+main:
+  parent: Blog
+  identifier: /blog/loudly
+  weight: 1
+---
+
+
+<div style="text-align:center;">
+<a href="https://www.youtube.com/channel/UCTZXht1RTL2Duc3eU8MYGzQ">
+<img src="/img/tuba.jpg" title = "I have nothing to add"></a>
+</div>
+
+This is a short blog post to announce the early alpha, hyper unstable, use at your own peril,
+package I've been working on for the past 6 hours or so 
+(actually longer if I add all the research/study time). 
+This package provides the function `loudly()` which allows you to do cool stuff like:
+
+```{r}
+# First two lines install the package
+# install.packages("devtools")
+# devtools::install_github("b-rodrigues/loud")
+library(loud)
+
+loud_sqrt <- loudly(sqrt)
+
+loud_sqrt(1:10)
+```
+
+As you can see, I start by applying `loudly()` to a function, and then I can use this function
+as usual. Not only do I get the result, but also a logging message telling me which function and
+which arguments got used, and when the computation started and ended.
+
+It is also possible to chain operations:
+
+```{r}
+loud_sqrt <- loudly(sqrt)
+loud_exp <- loudly(exp)
+loud_mean <- loudly(mean)
+
+1:10 |>
+  loud_sqrt() |>
+  bind_loudly(loud_exp) |>
+  bind_loudly(loud_mean)
+```
+
+You'll notice that here I have to use another function called `bind_loudly()`. The reason is because
+*loud* functions return a list. The first element of that list is the result of the function
+applied to the inputs, and the second element is the log message. So `bind_loudly()` passes the 
+first element of the output of `loud_sqrt()` to the actual function `exp()` and also passes the 
+second element, this time the log message, to the part of the function that concatenates the log
+messages.
+
+This works with any function:
+
+```{r, include = FALSE}
+library(dplyr)
+paint::unmask_print()
+```
+
+```{r, eval = FALSE}
+library(dplyr)
+```
+
+```{r}
+loud_group_by <- loudly(group_by)
+loud_select <- loudly(select)
+loud_summarise <- loudly(summarise)
+loud_filter <- loudly(filter)
+
+starwars %>%
+  loud_select(height, mass, species, sex) %>%
+  bind_loudly(loud_group_by, species, sex) %>%
+  bind_loudly(loud_filter, sex != "male") %>%
+  bind_loudly(loud_summarise,
+              mass = mean(mass, na.rm = TRUE)
+              )
+```
+
+This is not perfect however. You'll notice that the last log message states:
+
+```
+summarise(.l$result,mean(mass, na.rm = TRUE)) ....
+```
+
+ideally I would like for it to say:
+
+```
+summarise(.l$result,mass = mean(mass, na.rm = TRUE)) ....
+```
+
+Also, I've added a pipe operator so you don't need to use `bind_loudly()` if you don't
+want to:
+
+```{r}
+1:10 |>
+  loud_sqrt() %>=%
+  loud_exp() %>=%
+  loud_mean()
+```
+
+However, this operator does not work well with `{dplyr}` functions. See here:
+
+```{r}
+starwars %>%
+  loud_select(height, mass, species, sex) %>=%
+  loud_group_by(species, sex) %>=%
+  loud_filter(sex != "male") %>=%
+  loud_summarise(mass = mean(mass, na.rm = TRUE))
+
+```
+
+If you look at the result, you'll see that it is not equal to the obtained with `bind_loudly()`,
+and if you look at the last logging message you'll see why. Instead of
+
+```
+summarise(.l$result,mean(mass, na.rm = TRUE)) ....
+```
+
+the message states:
+
+```
+summarise(.l$result,mass,TRUE) started at
+```
+
+I know where the problem is (it's due to some regex fuckery) so I think that I should be able
+to correct this in the coming days. Ideally, in the future, I would also like for the users to 
+provide their own log messages.
+
+The package has a website with a vignette that shows another interesting example 
+[here](https://b-rodrigues.github.io/loud/articles/real-world-example.html). 
+Source code can be found [here](https://github.com/b-rodrigues/loud).
+
+It is almost certain that function names will change, maybe even the package name itself.
+Contributions, bug reports, suggestions, etc, welcome of course.
+
+A final word: this is the result of me exploring more advanced functional programming 
+concepts and discussing with really nice people like 
+[Andrew R Mcneil](https://twitter.com/ShinyD3js), 
+[Laszlo Kupcsik](https://twitter.com/kupac). Andrew wrote a cool package called 
+[maybe](https://armcn.github.io/maybe/) and Laszlo a super cool blog post 
+explaining what monads are [here](https://kupac.gitlab.io/biofunctor/2019/05/25/maybe-monad-in-r/).
+
+I'll be writing a blog post on monads, in particular the maybe monad soonish.
+
+Hope you enjoyed! If you found this blog post useful, you might want to follow 
+me on [twitter](https://www.twitter.com/brodriguesco) for blog post updates and 
+[buy me an espresso](https://www.buymeacoffee.com/brodriguesco) or [paypal.me](https://www.paypal.me/brodriguesco), or buy my ebook on [Leanpub](https://leanpub.com/modern_tidyverse).
+You can also watch my videos on [youtube](https://www.youtube.com/c/BrunoRodrigues1988/).
+So much content for you to consoom!
+
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a>
