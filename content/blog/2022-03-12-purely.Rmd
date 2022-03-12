@@ -1,0 +1,269 @@
+---
+date: 2022-03-12
+title: Capture errors, warnings and messages
+tags: [R]
+menu:
+main:
+  parent: Blog
+  identifier: /blog/purely.Rmd
+  weight: 1
+---
+
+
+<div style="text-align:center;">
+<a href="https://www.youtube.com/watch?v=vUvut7jOPgs">
+<img src="/img/pure.jpg" title = "Hell is side effects"></a>
+</div>
+
+In my [last video](https://www.youtube.com/watch?v=vUvut7jOPgs) I tried to add a feature to my
+{loud} package (more info [here](https://b-rodrigues.github.io/loud/)) and I succeeded. But in 
+succeeding in realised that I would need to write a bit more code than what I expected. To make
+a long story short: it is possible to capture errors using `purrr::safely()`:
+
+```{r}
+library(purrr)
+safe_log <- safely(log)
+
+a <- safe_log("10")
+
+str(a)
+
+```
+
+`a` is now a list with elements `$result` and `$error`. If everything goes right, `$result` holds
+the result of the operation, and if everything goes wrong, `$result` is `NULL` but `$error` now
+contains the error message. This is especially useful in non-interactive contexts. There is 
+another similar function in `{purrr}` called `quietly()`, which captures warnings and messages:
+
+```{r}
+quiet_log <- quietly(log)
+
+b <- quiet_log(-10)
+
+str(b)
+
+```
+
+as you can see, providing a negative number to `log()` does not cause an error, but simply a 
+warning. A result of `NaN` is returned (you can try with `log(-10)` in your console). `quietly()`
+captures the warning message and returns a list of 4 elements, `$result`, `$output`, `$warnings`
+and `$messages`. The problem here, is that:
+
+```{r}
+safe_log(-10)
+```
+
+returns something useless: `$result` is `NaN` (because that’s what `log()` returns for negative
+numbers) but `$error` is `NULL` since no error was thrown, but only a warning! We have a similar 
+problem with `quiet_log()`:
+
+```{r, eval = FALSE}
+quiet_log("10")
+```
+
+```
+Error in .Primitive("log")(x, base) : 
+  non-numeric argument to mathematical function
+```
+
+here, the error message is thrown, but not captured, since `quietly()` does not capture error messages.
+
+So, are we back to square one? Not necessarily, since you could compose both functions:
+
+```{r}
+pure_log <- quietly(safely(log))
+
+a2 <- pure_log(-10)
+
+str(a2)
+
+b2 <- pure_log("10")
+
+str(b2)
+
+```
+
+As you can see, in the case of `a2`, the warning was captured, and in the case of `b2` the error 
+was captured. The problem, is that the resulting object is quite complex. It’s a list where
+`$result` is itself a list in case of a warning, or `$error` is a list in case of an error.
+
+I tried to write a function that would decorate a function (as do `safely()` and `quietly()`), which
+in turn would then return a simple list and capture, errors, warnings and messages. I came up with
+this code, after re-reading *Advanced R*, in particular this
+[chapter](https://adv-r.hadley.nz/conditions.html):
+
+```{r}
+purely <- function(.f){
+
+  function(..., .log = "Log start..."){
+
+    res <- rlang::try_fetch(
+                    rlang::eval_tidy(.f(...)),
+                    error = function(err) err,
+                    warning = function(warn) warn,
+                    message = function(message) message,
+                    )
+
+    final_result <- list(
+      result = NULL,
+      log = NULL
+    )
+
+    final_result$result <- if(any(c("error", "warning", "message") %in% class(res))){
+                             NA
+                           } else {
+                             res
+                           }
+
+    final_result$log <- if(any(c("error", "warning", "message") %in% class(res))){
+                          res$message
+                        } else {
+                          NA
+                        }
+    final_result
+  }
+}
+
+```
+
+```{r}
+f_m <- function(x){
+  message("this is a message")
+  str(x)
+}
+
+f_w <- function(x){
+  warning("this is a warning")
+  str(x)
+
+}
+
+f_e <- function(){
+  stop("This is an error")
+
+}
+
+pure_fm <- purely(f_m)
+pure_fw <- purely(f_w)
+pure_fe <- purely(f_e)
+```
+
+Messages get captured:
+
+```{r}
+pure_fm(10) |>
+  str()
+```
+
+as do warnings:
+
+```{r}
+pure_fw(10) |>
+  str()
+```
+
+as do errors:
+
+```{r}
+pure_fe() |>
+  str()
+```
+
+The structure of the result is always `$result` and `$log`. In case everything goes well
+`$result` holds the result:
+
+```{r}
+pure_log <- purely(log)
+
+pure_log(c(1,10))
+```
+
+And another example, with a more complex call:
+
+```{r}
+pure_mean <- purely(mean)
+
+pure_mean(c(1,10, NA), na.rm = TRUE)
+
+```
+
+But in case something goes wrong, the error message will get captured.
+
+```{r}
+suppressPackageStartupMessages(library(dplyr))
+
+pure_select <- purely(select)
+```
+
+Let's try here to select a column that does not exist:
+
+```{r}
+clean_mtcars <- mtcars %>%
+  pure_select(hp, am, bm) #bm does not exist
+
+str(clean_mtcars)
+
+```
+
+Compare to what happens with `select()`:
+
+```{r, eval = FALSE}
+clean_mtcars2 <- mtcars %>%
+  select(hp, am, bm) #bm does not exist
+
+```
+
+```
+Error in `select()`:
+! Can't subset columns that don't exist.
+✖ Column `bm` doesn't exist.
+Backtrace:
+  1. mtcars %>% select(hp, am, bm)
+...
+...
+```
+
+The code (and thus the pipeline) completely fails! I’ve added this function to my
+[{loud}](https://b-rodrigues.github.io/loud/) package, but the biggest benefit of all this is that the
+main function of the package, `loudly()` now uses `purely()` under the hood to provide more useful
+log messages in case of failure:
+
+```{r}
+suppressPackageStartupMessages(library(loud))
+
+loud_sqrt <- loudly(sqrt)
+loud_mean <- loudly(mean)
+loud_exp <- loudly(exp)
+
+
+result_pipe <- -1:-10 |>
+  loud_mean() %>=% # This results in a negative number...
+  loud_sqrt() %>=% # which sqrt() does not know how to handle
+  loud_exp()
+
+```
+
+If we now inspect `result_pipe`, we find a complete log of what went wrong:
+
+```{r}
+result_pipe
+```
+
+If you want to know more about `{loud}`, I suggest you read
+[my previous blog post](https://www.brodrigues.co/blog/2022-02-18-loudly/) and if you need a more
+realistic example, take a look at 
+[this](https://b-rodrigues.github.io/loud/articles/real-world-example.html).
+
+If you try it, please let me know! 
+
+Hope you enjoyed! If you found this blog post useful, you might want to follow 
+me on [twitter](https://www.twitter.com/brodriguesco) for blog post updates and 
+[buy me an espresso](https://www.buymeacoffee.com/brodriguesco) or [paypal.me](https://www.paypal.me/brodriguesco), or buy my ebook on [Leanpub](https://leanpub.com/modern_tidyverse).
+You can also watch my videos on [youtube](https://www.youtube.com/c/BrunoRodrigues1988/).
+So much content for you to consoom!
+
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a>
+
+
+
+
