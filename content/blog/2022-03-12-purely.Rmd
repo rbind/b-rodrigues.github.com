@@ -98,8 +98,9 @@ purely <- function(.f){
   function(..., .log = "Log start..."){
 
     res <- rlang::try_fetch(
-                    rlang::eval_tidy(.f(...)),
+                    rlang::eval_bare(.f(...)),
                     error = function(err) err,
+                    #rlang_error = function(rlerr) rlerr,
                     warning = function(warn) warn,
                     message = function(message) message,
                     )
@@ -109,14 +110,15 @@ purely <- function(.f){
       log = NULL
     )
 
-    final_result$result <- if(any(c("error", "warning", "message") %in% class(res))){
+    final_result$result <- if(any(c("error", "rlang_error", "warning", "message") %in% class(res))){
                              NA
                            } else {
                              res
                            }
 
-    final_result$log <- if(any(c("error", "warning", "message") %in% class(res))){
-                          res$message
+    final_result$log <- if(any(c("error", "rlang_error", "warning", "message") %in% class(res))){
+                          #res$message
+                          purrr::pluck(res, "message", .default = "undefined error")
                         } else {
                           NA
                         }
@@ -222,6 +224,23 @@ Backtrace:
 ...
 ...
 ```
+
+## Update 2022-03-13
+
+After writing this post I realised that the error message of select does not get captured.
+This is the only example I've found where the error message does not get caught. This
+seems to be related to the fact that tidyverse function have their own class of error
+messages that inherit from `error`. For some reason, there are no issues with other
+functions, for example:
+
+```{r}
+purely(group_by)(mtcars, bm)
+```
+
+I will need to solve this...
+
+## Post continued...
+
 
 The code (and thus the pipeline) completely fails! I’ve added this function to my
 [{loud}](https://b-rodrigues.github.io/loud/) package, but the biggest benefit of all this is that the
