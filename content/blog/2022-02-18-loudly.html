@@ -16,6 +16,8 @@ main:
 <p><a href="https://www.youtube.com/channel/UCTZXht1RTL2Duc3eU8MYGzQ">
 <img src="/img/tuba.jpg" title = "I have nothing to add"></a></p>
 </div>
+<div id="update-loud-has-been-superseded-by-chronicle-read-about-it-here" class="section level2">
+<h2>UPDATE: {loud} has been superseded by {chronicle}, read about it <a href="https://www.brodrigues.co/blog/2022-04-04-chron_post/">here</a></h2>
 <p>This is a short blog post to announce the early alpha, hyper unstable, use at your own peril,
 package I’ve been working on for the past 6 hours or so
 (actually longer if I add all the research/study time).
@@ -33,8 +35,8 @@ loud_sqrt(1:10)</code></pre>
 ##  [9] 3.000000 3.162278
 ## 
 ## $log
-## [1] &quot;Log start...&quot;                                                              
-## [2] &quot;sqrt(1:10) started at 2022-02-18 21:17:22 and ended at 2022-02-18 21:17:22&quot;</code></pre>
+## [1] &quot;Log start...&quot;                                                                
+## [2] &quot;✔ sqrt(1:10) started at 2022-04-01 21:20:00 and ended at 2022-04-01 21:20:00&quot;</code></pre>
 <p>As you can see, I start by applying <code>loudly()</code> to a function, and then I can use this function
 as usual. Not only do I get the result, but also a logging message telling me which function and
 which arguments got used, and when the computation started and ended.</p>
@@ -51,10 +53,10 @@ loud_mean &lt;- loudly(mean)
 ## [1] 11.55345
 ## 
 ## $log
-## [1] &quot;Log start...&quot;                                                                   
-## [2] &quot;sqrt(1:10) started at 2022-02-18 21:17:22 and ended at 2022-02-18 21:17:22&quot;     
-## [3] &quot;exp(.l$result) started at 2022-02-18 21:17:22 and ended at 2022-02-18 21:17:22&quot; 
-## [4] &quot;mean(.l$result) started at 2022-02-18 21:17:22 and ended at 2022-02-18 21:17:22&quot;</code></pre>
+## [1] &quot;Log start...&quot;                                                                     
+## [2] &quot;✔ sqrt(1:10) started at 2022-04-01 21:20:00 and ended at 2022-04-01 21:20:00&quot;     
+## [3] &quot;✔ exp(.l$result) started at 2022-04-01 21:20:00 and ended at 2022-04-01 21:20:00&quot; 
+## [4] &quot;✔ mean(.l$result) started at 2022-04-01 21:20:00 and ended at 2022-04-01 21:20:00&quot;</code></pre>
 <p>You’ll notice that here I have to use another function called <code>bind_loudly()</code>. The reason is because
 <em>loud</em> functions return a list. The first element of that list is the result of the function
 applied to the inputs, and the second element is the log message. So <code>bind_loudly()</code> passes the
@@ -91,11 +93,11 @@ starwars %&gt;%
 ## 9 Twi&#39;lek    female           55  
 ## 
 ## $log
-## [1] &quot;Log start...&quot;                                                                                                 
-## [2] &quot;select(.,height,mass,species,sex) started at 2022-02-18 21:17:23 and ended at 2022-02-18 21:17:23&quot;            
-## [3] &quot;group_by(.l$result,species,sex) started at 2022-02-18 21:17:23 and ended at 2022-02-18 21:17:23&quot;              
-## [4] &quot;filter(.l$result,sex != \&quot;male\&quot;) started at 2022-02-18 21:17:23 and ended at 2022-02-18 21:17:23&quot;            
-## [5] &quot;summarise(.l$result,mean(mass, na.rm = TRUE)) started at 2022-02-18 21:17:23 and ended at 2022-02-18 21:17:23&quot;</code></pre>
+## [1] &quot;Log start...&quot;                                                                                                   
+## [2] &quot;✔ select(.,height,mass,species,sex) started at 2022-04-01 21:20:00 and ended at 2022-04-01 21:20:00&quot;            
+## [3] &quot;✔ group_by(.l$result,species,sex) started at 2022-04-01 21:20:00 and ended at 2022-04-01 21:20:00&quot;              
+## [4] &quot;✔ filter(.l$result,sex != \&quot;male\&quot;) started at 2022-04-01 21:20:00 and ended at 2022-04-01 21:20:00&quot;            
+## [5] &quot;✔ summarise(.l$result,mean(mass, na.rm = TRUE)) started at 2022-04-01 21:20:00 and ended at 2022-04-01 21:20:00&quot;</code></pre>
 <p>This is not perfect however. You’ll notice that the last log message states:</p>
 <pre><code>summarise(.l$result,mean(mass, na.rm = TRUE)) ....</code></pre>
 <p>ideally I would like for it to say:</p>
@@ -110,10 +112,10 @@ want to:</p>
 ## [1] 11.55345
 ## 
 ## $log
-## [1] &quot;Log start...&quot;                                                                   
-## [2] &quot;sqrt(1:10) started at 2022-02-18 21:17:23 and ended at 2022-02-18 21:17:23&quot;     
-## [3] &quot;exp(.l$result) started at 2022-02-18 21:17:23 and ended at 2022-02-18 21:17:23&quot; 
-## [4] &quot;mean(.l$result) started at 2022-02-18 21:17:23 and ended at 2022-02-18 21:17:23&quot;</code></pre>
+## [1] &quot;Log start...&quot;                                                                     
+## [2] &quot;✔ sqrt(1:10) started at 2022-04-01 21:20:00 and ended at 2022-04-01 21:20:00&quot;     
+## [3] &quot;✔ exp(.l$result) started at 2022-04-01 21:20:00 and ended at 2022-04-01 21:20:00&quot; 
+## [4] &quot;✔ mean(.l$result) started at 2022-04-01 21:20:00 and ended at 2022-04-01 21:20:00&quot;</code></pre>
 <p>However, this operator does not work well with <code>{dplyr}</code> functions. See here:</p>
 <pre class="r"><code>starwars %&gt;%
   loud_select(height, mass, species, sex) %&gt;=%
@@ -121,28 +123,26 @@ want to:</p>
   loud_filter(sex != &quot;male&quot;) %&gt;=%
   loud_summarise(mass = mean(mass, na.rm = TRUE))</code></pre>
 <pre><code>## $result
-## # A tibble: 23 × 4
-## # Groups:   species, sex [9]
-##    species  sex     mass na.rm
-##    &lt;chr&gt;    &lt;chr&gt;  &lt;dbl&gt; &lt;lgl&gt;
-##  1 Clawdite female    55 TRUE 
-##  2 Droid    none      75 TRUE 
-##  3 Droid    none      32 TRUE 
-##  4 Droid    none      32 TRUE 
-##  5 Droid    none     140 TRUE 
-##  6 Droid    none      NA TRUE 
-##  7 Droid    none      NA TRUE 
-##  8 Human    female    49 TRUE 
-##  9 Human    female    75 TRUE 
-## 10 Human    female    NA TRUE 
-## # … with 13 more rows
+## # A tibble: 9 × 3
+## # Groups:   species [9]
+##   species    sex              mass
+##   &lt;chr&gt;      &lt;chr&gt;           &lt;dbl&gt;
+## 1 Clawdite   female           55  
+## 2 Droid      none             69.8
+## 3 Human      female           56.3
+## 4 Hutt       hermaphroditic 1358  
+## 5 Kaminoan   female          NaN  
+## 6 Mirialan   female           53.1
+## 7 Tholothian female           50  
+## 8 Togruta    female           57  
+## 9 Twi&#39;lek    female           55  
 ## 
 ## $log
-## [1] &quot;Log start...&quot;                                                                                     
-## [2] &quot;select(.,height,mass,species,sex) started at 2022-02-18 21:17:23 and ended at 2022-02-18 21:17:23&quot;
-## [3] &quot;group_by(.l$result,species,sex) started at 2022-02-18 21:17:23 and ended at 2022-02-18 21:17:23&quot;  
-## [4] &quot;filter(.l$result,sex != \&quot;male\&quot;) started at 2022-02-18 21:17:23 and ended at 2022-02-18 21:17:23&quot;
-## [5] &quot;summarise(.l$result,mass,TRUE) started at 2022-02-18 21:17:23 and ended at 2022-02-18 21:17:23&quot;</code></pre>
+## [1] &quot;Log start...&quot;                                                                                                   
+## [2] &quot;✔ select(.,height,mass,species,sex) started at 2022-04-01 21:20:00 and ended at 2022-04-01 21:20:00&quot;            
+## [3] &quot;✔ group_by(.l$result,species,sex) started at 2022-04-01 21:20:00 and ended at 2022-04-01 21:20:00&quot;              
+## [4] &quot;✔ filter(.l$result,sex != \&quot;male\&quot;) started at 2022-04-01 21:20:00 and ended at 2022-04-01 21:20:00&quot;            
+## [5] &quot;✔ summarise(.l$result,mean(mass, na.rm = TRUE)) started at 2022-04-01 21:20:00 and ended at 2022-04-01 21:20:00&quot;</code></pre>
 <p>If you look at the result, you’ll see that it is not equal to the obtained with <code>bind_loudly()</code>,
 and if you look at the last logging message you’ll see why. Instead of</p>
 <pre><code>summarise(.l$result,mean(mass, na.rm = TRUE)) ....</code></pre>
@@ -170,3 +170,4 @@ You can also watch my videos on <a href="https://www.youtube.com/c/BrunoRodrigue
 So much content for you to consoom!</p>
 <style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
 <p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
+</div>
