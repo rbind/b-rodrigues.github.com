@@ -249,7 +249,7 @@ starwars %&gt;%
 <pre class="r"><code>toc &lt;- Sys.time()
 
 (running_time &lt;- toc - tic)</code></pre>
-<pre><code>## Time difference of 0.04553175 secs</code></pre>
+<pre><code>## Time difference of 0.04110336 secs</code></pre>
 <p>You could totally do that. But now you’re back to square one. You have to deal with this tic-toc
 nonsense separately, have to keep track it, overburdening you mentally and polluting your code.
 To keep track of it, you’ll want to add the running times in a separate data frame, in which
@@ -257,9 +257,9 @@ you could have all the running times of all your operations you need to run:</p>
 <pre class="r"><code>data.frame(list(&quot;operations&quot; = seq(1:3),
                 &quot;running_time&quot; = c(running_time, running_time * 2, running_time * 3)))</code></pre>
 <pre><code>##   operations    running_time
-## 1          1 0.04553175 secs
-## 2          2 0.09106350 secs
-## 3          3 0.13659525 secs</code></pre>
+## 1          1 0.04110336 secs
+## 2          2 0.08220673 secs
+## 3          3 0.12331009 secs</code></pre>
 <p>This data frame is the consequence of this tic-toc nonsense not being composable and now you have
 to deal with it, but you don’t want to. So what now? You might be tempted to do something like
 this:</p>
@@ -279,7 +279,7 @@ this:</p>
 
 starwars %&gt;%
   tic_filter(species == &quot;Human&quot;)</code></pre>
-<pre><code>## Running time: 0.00488638877868652</code></pre>
+<pre><code>## Running time: 0.00474810600280762</code></pre>
 <pre><code>## # A tibble: 35 × 14
 ##    name     height  mass hair_color skin_color eye_color birth_year sex   gender
 ##    &lt;chr&gt;     &lt;int&gt; &lt;dbl&gt; &lt;chr&gt;      &lt;chr&gt;      &lt;chr&gt;          &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt; 
@@ -333,7 +333,7 @@ starwars %&gt;%
 ## #   films &lt;list&gt;, vehicles &lt;list&gt;, starships &lt;list&gt;
 ## 
 ## $running_time
-## Time difference of 0.005256176 secs</code></pre>
+## Time difference of 0.004680395 secs</code></pre>
 <p>At least now you save the running time along with the object. But the problem of rewriting many
 functions remains, and these rewritten <code>{dplyr}</code> functions now return a list, and not a data frame
 anymore so something like this:</p>
@@ -364,12 +364,12 @@ one &lt;- starwars %&gt;%
   tic_filter(species == &quot;Human&quot;, running_time = running_time)
 
 running_time</code></pre>
-<pre><code>## Time difference of 0.004782438 secs</code></pre>
+<pre><code>## Time difference of 0.004715443 secs</code></pre>
 <pre class="r"><code>two &lt;- one %&gt;%
   tic_select(species, sex, running_time = running_time)
 
 running_time</code></pre>
-<pre><code>## Time difference of 0.006985903 secs</code></pre>
+<pre><code>## Time difference of 0.006836653 secs</code></pre>
 <p>(I defined <code>tic_select()</code> but am not showing it here.)</p>
 <p>This has the advantage that the wrapped functions now return data frames as well, and can thus
 be composed/chained. But these functions are not pure functions, because they change something
@@ -431,7 +431,7 @@ t_sqrt(10)</code></pre>
 ## [1] 3.162278
 ## 
 ## $running_time
-## Time difference of 7.629395e-06 secs</code></pre>
+## Time difference of 7.152557e-06 secs</code></pre>
 <p>That’s great, but we can’t compose these functions. This fails:</p>
 <pre class="r"><code>t_log &lt;- timeit(log)
 
@@ -461,7 +461,7 @@ gets added to the running time of <code>.f</code> (see the definition of the lis
 ## [1] 1.151293
 ## 
 ## $running_time
-## Time difference of 9.608269e-05 secs</code></pre>
+## Time difference of 8.177757e-05 secs</code></pre>
 <p>What’s nice with this solution, is that it works with any function:</p>
 <pre class="r"><code>t_filter &lt;- timeit(filter)
 t_select &lt;- timeit(select)
@@ -501,7 +501,7 @@ starwars %&gt;%
 ## 10 male   max_mass          120  
 ## 
 ## $running_time
-## Time difference of 0.09510636 secs</code></pre>
+## Time difference of 0.08988643 secs</code></pre>
 <p>There is some overhead compared to the solution that simply calls <code>tic</code> at the beginning of
 all the <code>{dplyr}</code> calls and then <code>toc</code> at the end, but this overhead becomes negligible the longer
 the base operations run for. And now the advantage is that you don’t have to think about keeping
