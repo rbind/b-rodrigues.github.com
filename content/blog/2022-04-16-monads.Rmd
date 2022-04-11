@@ -1,0 +1,575 @@
+---
+date: 2022-04-11
+title: Why you should(n't) care about Monads if you're an R programmer
+tags: [R]
+menu:
+main:
+  parent: Blog
+  identifier: /blog/monads
+  weight: 1
+---
+
+<div style="text-align:center;">
+<a href="https://www.youtube.com/watch?v=I8LbkfSSR58&list=PLbgaMIhjbmEnaH_LTkxLI7FMa2HsnawM_">
+<img src="/img/pondering.jpg" title = "How to feels to implement your own monad"></a>
+</div>
+
+## Introduction: functions
+
+To understand Monads, I think it's useful to first think about functions; why do we use functions?
+Why don't we simply write scripts with the required operations one after the other? For instance,
+to compute the average height by species in a data set of individuals from 
+the famous space opera "Star Wars", we could very well write this code:
+
+```{r}
+suppressPackageStartupMessages(library(dplyr))
+
+data(starwars)
+
+sum_humans <- 0
+sum_others <- 0
+n_humans <- 0
+n_others <- 0
+
+for(i in seq_along(1:nrow(starwars))){
+
+  if(!is.na(unlist(starwars[i, "species"])) &
+     unlist(starwars[i, "species"]) == "Human"){
+    if(!is.na(unlist(starwars[i, "height"]))){
+      sum_humans <- sum_humans + unlist(starwars[i, "height"])
+      n_humans <- n_humans + 1
+    } else {
+
+      0
+
+    }
+
+  } else {
+    if(!is.na(unlist(starwars[i, "height"]))){
+      sum_others <- sum_others + unlist(starwars[i, "height"])
+      n_others <- n_others + 1
+    } else {
+      0
+    }
+  }
+}
+
+mean_height_humans <- sum_humans/n_humans
+mean_height_others <- sum_others/n_others
+
+```
+
+Well, we *could* do it like this, but we definitely shouldn't:
+
+- what this code does is not immediately obvious. If the code blocks aren't commented, readers of this code will have to read line by line to understand what is going on;
+- this code is not reusable. If now I need the average height by species and sex, I need to copy and
+paste the code, and modify it, and in some cases modify it substantially;
+- this code handles missing values in a cumbersome way, with nested `if...else...`s;
+- this code is not easy to test;
+- this code cannot be composed (meaning, chained) with other code without substantially altering it (to be precise, chaining and composing are two different things, strictly speaking, but for simplicity's sake, let's just assume it is the same. Whenever I'm talking about "composing" something, I mean "chaining" something.)
+
+But it's not just shortcomings, this *imperative* code has one advantage; it uses only some very fundamental 
+building blocks: `if...else...`, for loops and that's almost it (it does use some functions provided
+by a base installation of R, namely `is.na()`, `!()`, `unlist()` and `[()`, so strictly speaking,
+the code above is not purely imperative, but maybe closer to being procedural?).
+
+Using functions solves all the issues from imperative programming. Here is a base solution to the 
+problem above, using a declarative, or functional, approach:
+
+```{r}
+aggregate(starwars$height,
+          by = list(starwars$species == "Human"),
+          FUN = \(x)(mean(x, na.rm = TRUE)))
+
+```
+
+This code has many advantages:
+
+- what this code does is obvious, but only if you know what `aggregate()` does. But if you read its
+documentation you'll know, and you'll know every time you'll see `aggregate()` unlike a loop 
+like the loop above where you'll have to read it each time to understand;
+- this code is reusable. Replace the data frame by another, and that's it;
+- Missing values are now ignored easily using the `na.rm` argument of `mean()`;
+- this code is easy to test (using unit tests);
+- this code can be composed, for instance like this:
+
+```{r}
+aggregate(starwars$height,
+          by = list(starwars$species == "Human"),
+          FUN = \(x)(mean(x, na.rm = TRUE))) |>
+  setNames(c("is_human", "mean_height"))
+
+```
+
+The issue with the functional approach (at least that's the issue that many people I spoke to about
+this raise) is that... in some way people that don't like this approach feel like they "lose"
+control over what's going on. You don't know what happens inside these functions. I remember, while
+working my first job, that my boss required that I don't use any functions nor packages, but
+instead write all the loops explicitely, because she wanted to understand what was going on (of
+course, I completely ignored this request and just did as I pleased). As discussed above, the
+imperative approach requires minimum knowledge of the language, and almost anyone with an ounce of
+programming experience can understand imperative code. That's not the case with a functional
+approach. Readers will have to be familiar with the individual functions like `aggregate()`, but
+also anonymous functions (I had to use `\(x)(mean(x, na.rm = TRUE))` to set `na.rm = TRUE`, which
+is `FALSE` by default) and also `|>` for composition/chaining.
+
+It may same more complex, and maybe it is, but the advantages far outweigh the shortcoming.
+
+For completeness, here is a `{dplyr}` version:
+
+```{r}
+starwars %>%
+  group_by(is_human = species == "Human") %>%
+  summarise(mean_height = mean(height, na.rm = TRUE))
+
+```
+
+`{dplyr}` code is even more concise than base functional code. Here again, users will have to know 
+about the individual functions and `%>%`. But personally, I think that the only hurdle is 
+understanding what `%>%` does, and once you know this, `{dplyr}` code can be understood quite easily,
+thanks to very explicit function names.
+
+So functions are great. They're easy to test, easy to document, easy to package, easy to reuse, and
+easy to compose. Composition is really important. For example, let's go back to the imperative
+code, and put the result in a neat data frame object, like the functional solutions do:
+
+```{r}
+sum_humans <- 0
+sum_others <- 0
+n_humans <- 0
+n_others <- 0
+
+for(i in seq_along(1:nrow(starwars))){
+
+  if(!is.na(unlist(starwars[i, "species"])) &
+     unlist(starwars[i, "species"]) == "Human"){
+    if(!is.na(unlist(starwars[i, "height"]))){
+      sum_humans <- sum_humans + unlist(starwars[i, "height"])
+      n_humans <- n_humans + 1
+    } else {
+
+      0
+
+    }
+
+  } else {
+    if(!is.na(unlist(starwars[i, "height"]))){
+      sum_others <- sum_others + unlist(starwars[i, "height"])
+      n_others <- n_others + 1
+    } else {
+      0
+    }
+  }
+}
+
+mean_height_humans <- sum_humans/n_humans
+mean_height_others <- sum_others/n_others
+
+# These two lines are new
+data.frame(list("is_human" = c(TRUE, FALSE),
+           "mean_height" = c(mean_height_others, mean_height_humans)))
+
+```
+
+It's just two lines (right at the end), but the implications are huge; because imperative code
+cannot be composed, I had to write separate code to put the result into a data frame. More code
+that I need to write, more opportunities for mistakes. I actually did a mistake, did you notice? This
+kind of mistake could go unnoticed for eons. But if you use functions, you don't have this problem,
+and can focus on getting (even complex) things done:
+
+```{r}
+starwars %>%
+  filter(skin_color == "light") %>%
+  select(species, sex, mass) %>%
+  group_by(sex, species) %>%
+  summarise(
+    total_individuals = n(),
+    min_mass = min(mass, na.rm = TRUE),
+    mean_mass = mean(mass, na.rm = TRUE),
+    sd_mass = sd(mass, na.rm = TRUE),
+    max_mass = max(mass, na.rm = TRUE)
+  ) %>%
+  select(-species) %>%
+  tidyr::pivot_longer(-sex, names_to = "statistic", values_to = "value")
+
+```
+
+Needless to say, trying to write the above code using only for loops and `if...else...` is not
+something I'd wish to do, especially passing the result of all the `{dplyr}` calls to `pivot_longer()`.
+Creating that last data frame by hand is error prone, and there would definitely be mistakes in there.
+
+I hope I don't need to convince you any more that functions are great, and that one of the great 
+things they offer is their ability to be chained, or composed. But strictly speaking, you don't need
+them. You *could* write your code without any function whatsoever, and use the most basic building
+blocks there are (loops and `if...else...` and little more). However, doing this would result in 
+much messier code. It's the same with monads. You can live without them. But there will be situations
+where not using them will result in messier code.
+
+One more thing: as I was writing this blog post, I happened on this tweet:
+
+```{r echo=FALSE}
+blogdown::shortcode('tweet', '1513080736785604611')
+```
+
+This is a fine example of all that I've been discussing until now. The person who wrote this code was
+very likely trying to get the diagonal elements of a matrix. That person was likely a beginner in
+R and used for loops to try to get the answer. We have all been there; what I'm trying to articulate
+is this: imperative programming can be useful, but it can get messy very quickly...
+
+## When functions are not enough
+
+Functions are awesome, but there are situations which functions simply can't easily deal with.
+Situations in which you would like your functions to do a little extra more, and the only way
+forward you see is to rewrite them to do something totally unrelated. For example, suppose you
+would like to time your code. Most people would to something such as:
+
+
+```{r}
+tic <- Sys.time()
+starwars %>%
+  filter(skin_color == "light") %>%
+  select(species, sex, mass) %>%
+  group_by(sex, species) %>%
+  summarise(
+    total_individuals = n(),
+    min_mass = min(mass, na.rm = TRUE),
+    mean_mass = mean(mass, na.rm = TRUE),
+    sd_mass = sd(mass, na.rm = TRUE),
+    max_mass = max(mass, na.rm = TRUE)
+  ) %>%
+  select(-species) %>%
+  tidyr::pivot_longer(-sex, names_to = "statistic", values_to = "value")
+toc <- Sys.time()
+
+(running_time <- toc - tic)
+
+```
+
+You could totally do that. But now you're back to square one. You have to deal with this tic-toc
+nonsense separately, have to keep track it, overburdening you mentally and polluting your code.
+To keep track of it, you'll want to add the running times in a separate data frame, in which 
+you could have all the running times of all your operations you need to run:
+
+```{r}
+data.frame(list("operations" = seq(1:3),
+                "running_time" = c(running_time, running_time * 2, running_time * 3)))
+
+```
+
+This data frame is the consequence of this tic-toc nonsense not being composable and now you have
+to deal with it, but you don't want to. So what now? You might be tempted to do something like
+this:
+
+```{r}
+tic_filter <- function(...){
+
+  tic <- Sys.time()
+
+  result <- filter(...)
+
+  toc <- Sys.time()
+
+  message("Running time: ", toc - tic)
+
+  return(result)
+
+}
+
+starwars %>%
+  tic_filter(species == "Human")
+
+```
+
+But that's actually worse: not only do you have to change all the functions you need, and wrap them
+around tic-toc, but the running time is only shown as a message, so you can't reuse it. 
+You could then try to rewrite the function like this:
+
+```{r}
+tic_filter <- function(...){
+
+  tic <- Sys.time()
+
+  result <- filter(...)
+
+  toc <- Sys.time()
+
+  running_time <- toc - tic
+
+  list("result" = result,
+       "running_time" = running_time)
+
+}
+
+starwars %>%
+  tic_filter(species == "Human")
+
+```
+
+At least now you save the running time along with the object. But the problem of rewriting many
+functions remains, and these rewritten `{dplyr}` functions now return a list, and not a data frame
+anymore so something like this:
+
+```{r, eval = FALSE}
+starwars %>%
+  tic_filter(species == "Human") %>%
+  tic_select(species, sex)
+
+```
+
+wouldn't work, because `tic_select()` expects a data frame, not a list where the first element
+is a data frame and the second a double. 
+
+So what else can be done? Perhaps you'd be tempted to use a global variable for this:
+
+```{r}
+
+tic_filter <- function(..., running_time = 0){
+
+  tic <- Sys.time()
+
+  result <- filter(...)
+
+  toc <- Sys.time()
+
+  running_time <<- toc - tic + running_time
+
+  result
+
+}
+
+```
+
+Functions written like this would save the running time in a global variable called `running_time`
+and each of them would take turns overwriting it:
+
+```{r, include = FALSE}
+tic_select <- function(..., running_time = 0){
+
+  tic <- Sys.time()
+
+  result <- select(...)
+
+  toc <- Sys.time()
+
+  running_time <<- toc - tic + running_time
+
+  result
+
+}
+
+```
+
+```{r}
+
+running_time <- 0
+
+one <- starwars %>%
+  tic_filter(species == "Human", running_time = running_time)
+
+running_time
+
+two <- one %>%
+  tic_select(species, sex, running_time = running_time)
+
+running_time
+
+```
+
+(I defined `tic_select()` but am not showing it here.)
+
+This has the advantage that the wrapped functions now return data frames as well, and can thus
+be composed/chained. But these functions are not pure functions, because they change something
+(the global variable `running_time`) outside their scope. Impure functions can be tricky; for instance
+here, because the code keeps overwriting the same variable, if you run the whole script and then
+separate chunks to try some things, `running_time` will keep getting incremented. Once again, you
+have to be extra careful and keep track of it, once again overburdening you mentally.
+
+## The solution
+
+The solution to this problem looks like one of the previous things we tried, namely:
+
+```{r}
+tic_filter <- function(...){
+
+  tic <- Sys.time()
+
+  result <- filter(...)
+
+  toc <- Sys.time()
+
+  running_time <- toc - tic
+
+  list("result" = result,
+       "running_time" = running_time)
+
+}
+
+```
+
+While it is true that it returns a list, this function has the yuge advantage of being pure. But
+still, we need to solve two problems:
+
+- how to avoid having to rewrite every function;
+- how to compose these functions so that the output of one function can be ingested as the input of the next.
+
+Solving the first problem consists in writing a new function that builds functions, what Hadley Wickham
+calls [function factories](https://adv-r.hadley.nz/function-factories.html). Let's try:
+
+```{r}
+timeit <- function(.f, ..., running_time = 0){
+
+  function(..., .running_time = running_time){
+
+    tic <- Sys.time()
+
+    result <- .f(...)
+
+    toc <- Sys.time()
+
+    list(result = result,
+         running_time = toc - tic + .running_time)
+  }
+
+
+}
+
+```
+
+`timeit()` is a function that takes a function (and its arguments as an input), and returns a new
+function. This function returns the result of the original function (`.f`) evaluated on its arguments
+(`...`) as well as the time it took to run as a list. You'll notice as well that this function
+takes another argument, called `running_time` with a default value of 0. This will become useful
+below, for now, ignore it.
+
+```{r}
+t_sqrt <- timeit(sqrt)
+
+t_sqrt(10)
+
+```
+
+That's great, but we can't compose these functions. This fails:
+
+```{r, eval = FALSE}
+
+t_log <- timeit(log)
+
+10 |>
+  t_sqrt() |>
+  t_log()
+
+```
+
+```{r, eval = FALSE}
+Error in .f(...) : non-numeric argument to mathematical function
+```
+
+because `t_log()` expects a number, not a list. The solution? Write another functions to help! 
+Let's call this function bind:
+
+```{r}
+bind <- function(.l, .f, ...){
+
+  .f(.l$result, ..., .running_time = .l$running_time)
+
+}
+
+```
+
+`bind()` takes a list object returned by a timed function (`.l`, with elements `$result` and `$running_time`)
+and applies another timed function `.f()` to the `$result` element of `.l` as well as any further 
+arguments `...` and finally sets the `running_time` argument of `.f` equal to `.l$running_time`.
+`.l$running_time` is the running time of the previous timed function call, so now this running time
+gets added to the running time of `.f` (see the definition of the list of `timeit()`). 
+
+An example might help:
+
+```{r}
+t_log <- timeit(log)
+
+10 |>
+  t_sqrt() |>
+  bind(t_log)
+
+```
+
+What's nice with this solution, is that it works with any function:
+
+```{r}
+t_filter <- timeit(filter)
+t_select <- timeit(select)
+t_group_by <- timeit(group_by)
+t_summarise <- timeit(summarise)
+t_p_longer <- timeit(tidyr::pivot_longer)
+
+starwars %>%
+  t_filter(skin_color == "light") %>% # no need to use bind here
+  bind(t_select, species, sex, mass) %>%
+  bind(t_group_by, sex, species) %>%
+  bind(t_summarise,
+    total_individuals = n(),
+    min_mass = min(mass, na.rm = TRUE),
+    mean_mass = mean(mass, na.rm = TRUE),
+    sd_mass = sd(mass, na.rm = TRUE),
+    max_mass = max(mass, na.rm = TRUE)
+  ) %>%
+  bind(t_select, -species) %>%
+  bind(t_p_longer, -sex, names_to = "statistic", values_to = "value")
+
+```
+
+There is some overhead compared to the solution that simply calls `tic` at the beginning of 
+all the `{dplyr}` calls and then `toc` at the end, but this overhead becomes negligible the longer
+the base operations run for. And now the advantage is that you don't have to think about keeping
+track of running times. Re-running separate chunks will also not interfere with the running time
+of any other chunk.
+
+## Monads
+
+So here we are, ready to learn what monads are, or rather, we're done, because you already know
+what monads are. The solution described before is a monad:
+
+- a function factory to create functions that return a special, wrapped value (here it simply was a list of elements `$result` and `$running_time`). This wrapped value is also called a monadic value.
+- a function to compose, or chain, these special functions together.
+
+Some other pieces can be added to the list, and one would need to check so-called monadic laws to make
+extra sure we're dealing with a monad, but that's outside the scope of this blog post.
+
+There are many monads, for instance the so-called `Maybe` monad, available on R thanks to 
+[Andrew McNeil](https://twitter.com/armcn_) who implemented this monad as an R 
+[package](https://armcn.github.io/maybe/). I have also developed a monad for logging (which
+also logs execution time), which I called `{chronicler}`, read more about it 
+[here](https://www.brodrigues.co/blog/2022-04-04-chron_post/).
+
+To conclude, why did I title this post *why you should(n't) care about Monads if you're an R programmer*?
+The reason is that you can live without monads. However, certain things will be more complex if you
+don't know about monads or if you don't want to use them, just like functions. If for some reason
+you don't use functions in your code, your life will be more complicated. So should you go ahead
+and start using monads in your code? Well, maybe (hehe) you should, especially if you're doing the
+same thing over and over again, like timing your code. Maybe using a monad to time your code could
+be a nice solution, especially if you've been burned in the past by using the other, sub-optimal
+solutions?
+
+## Extra reading
+
+If this blog post was not enough to satiate your curiosity, here are some more nice resources:
+
+- [Laszlo Kupcsik](https://twitter.com/kupac) great
+[blog post](https://kupac.gitlab.io/biofunctor/2019/05/25/maybe-monad-in-r/) on the maybe monad,
+- [Andrew McNeil](https://twitter.com/armcn_) implementation of the `Maybe` monad as a 
+[package](https://armcn.github.io/maybe/)
+- this nice [video](https://www.youtube.com/watch?v=C2w45qRc3aU) 
+by [Studying With Alex](https://www.youtube.com/channel/UCUdkjbeIFea0qUSgwR1CUOg) 
+- and of course, the GOAT, [Bartosz Milewski's](https://twitter.com/BartoszMilewski) 
+Category Theory For Programmers on [YouTube](https://www.youtube.com/watch?v=I8LbkfSSR58&list=PLbgaMIhjbmEnaH_LTkxLI7FMa2HsnawM_) if you really want to go into the nitty-gritty theoretical details of functional programming.
+- There's also this very accessible and nice blog post, 
+[Functors, applicatives and monads in pictures](https://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html) which I highly recommend.
+
+
+Hope you enjoyed! If you found this blog post useful, you might want to follow 
+me on [twitter](https://www.twitter.com/brodriguesco) for blog post updates and 
+[buy me an espresso](https://www.buymeacoffee.com/brodriguesco) or [paypal.me](https://www.paypal.me/brodriguesco), or buy my ebook on [Leanpub](https://leanpub.com/modern_tidyverse).
+You can also watch my videos on [youtube](https://www.youtube.com/c/BrunoRodrigues1988/).
+So much content for you to consoom!
+
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a>
