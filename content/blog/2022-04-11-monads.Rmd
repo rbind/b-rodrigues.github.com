@@ -11,8 +11,10 @@ main:
 
 <div style="text-align:center;">
 <a href="https://www.youtube.com/watch?v=I8LbkfSSR58&list=PLbgaMIhjbmEnaH_LTkxLI7FMa2HsnawM_">
-<img src="/img/pondering.jpg" title = "How to feels to implement your own monad"></a>
+<img src="/img/pondering.jpg" title = "How it feels to implement your own monad"></a>
 </div>
+
+*Update: I also made a video out of this blog post; watch it on [youtube](https://www.youtube.com/watch?v=Hlypj6-n51c).*
 
 ## Introduction: functions
 
