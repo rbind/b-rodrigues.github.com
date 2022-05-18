@@ -17,7 +17,9 @@ main:
 <img src="https://b-rodrigues.github.io/chronicler/reference/figures/hex.png" title = "chronicler's hex logo" height="400px"></a></p>
 </div>
 <p>I am very happy to annouce that the <code>{chronicler}</code> package, which I’ve been working on for the past
-3 months has been released on CRAN. <code>{chronicler}</code> allows you to create objects that carry a log
+3 months has been released on CRAN. Install it with:</p>
+<pre class="r"><code>install.packages(&quot;chronicler&quot;)</code></pre>
+<p><code>{chronicler}</code> allows you to create objects that carry a log
 with them. Here is an example of an object that has been created using <code>{chronicler}</code>, and saved
 using <code>saveRDS()</code> (which we now load back into our session using <code>readRDS()</code>):</p>
 <pre class="r"><code>library(chronicler)
@@ -51,11 +53,11 @@ to know how this data set was created, you can call <code>read_log(my_df)</code>
 be renamed to <code>read.log()</code> in the next release, to avoid clashing with <code>readr::read_log()</code>):</p>
 <pre class="r"><code>read_log(my_df)</code></pre>
 <pre><code>## [1] &quot;Complete log:&quot;                                                                  
-## [2] &quot;OK! select(height,mass,species,sex) ran successfully at 2022-05-18 10:23:49&quot;    
-## [3] &quot;OK! group_by(species,sex) ran successfully at 2022-05-18 10:23:49&quot;              
-## [4] &quot;OK! filter(sex != \&quot;male\&quot;) ran successfully at 2022-05-18 10:23:49&quot;            
-## [5] &quot;OK! summarise(mean(mass, na.rm = TRUE)) ran successfully at 2022-05-18 10:23:49&quot;
-## [6] &quot;Total running time: 0.20783805847168 secs&quot;</code></pre>
+## [2] &quot;OK! select(height,mass,species,sex) ran successfully at 2022-05-18 10:56:52&quot;    
+## [3] &quot;OK! group_by(species,sex) ran successfully at 2022-05-18 10:56:52&quot;              
+## [4] &quot;OK! filter(sex != \&quot;male\&quot;) ran successfully at 2022-05-18 10:56:52&quot;            
+## [5] &quot;OK! summarise(mean(mass, na.rm = TRUE)) ran successfully at 2022-05-18 10:56:52&quot;
+## [6] &quot;Total running time: 0.185953617095947 secs&quot;</code></pre>
 <p>if you want to get the dataset out of the <code>{chronicler}</code> “box”, you can do so with <code>pick(my_df, "value")</code>:</p>
 <pre class="r"><code>pick(my_df, &quot;value&quot;)</code></pre>
 <pre><code>## # A tibble: 9 × 3

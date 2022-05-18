@@ -16,7 +16,13 @@ main:
 </div>
 
 I am very happy to annouce that the `{chronicler}` package, which I’ve been working on for the past
-3 months has been released on CRAN. `{chronicler}` allows you to create objects that carry a log
+3 months has been released on CRAN. Install it with:
+
+```{r, eval = FALSE}
+install.packages("chronicler")
+```
+
+`{chronicler}` allows you to create objects that carry a log
 with them. Here is an example of an object that has been created using `{chronicler}`, and saved
 using `saveRDS()` (which we now load back into our session using `readRDS()`):
 
