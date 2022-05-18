@@ -1,0 +1,108 @@
+---
+date: 2022-05-18
+title: chronicler is now available on CRAN
+tags: [R]
+menu:
+main:
+  parent: Blog
+  identifier: /blog/chronicler_0_2_0_CRAN.Rmd
+  weight: 1
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<div style="text-align:center;">
+<p><a href="https://b-rodrigues.github.io/chronicler/">
+<img src="https://b-rodrigues.github.io/chronicler/reference/figures/hex.png" title = "chronicler's hex logo" height="400px"></a></p>
+</div>
+<p>I am very happy to annouce that the <code>{chronicler}</code> package, which I’ve been working on for the past
+3 months has been released on CRAN. <code>{chronicler}</code> allows you to create objects that carry a log
+with them. Here is an example of an object that has been created using <code>{chronicler}</code>, and saved
+using <code>saveRDS()</code> (which we now load back into our session using <code>readRDS()</code>):</p>
+<pre class="r"><code>library(chronicler)
+
+my_df &lt;- readRDS(&quot;path/to/my_df.rds&quot;)</code></pre>
+<p>Printing <code>my_df</code> shows the following output:</p>
+<pre class="r"><code>my_df</code></pre>
+<pre><code>## OK! Value computed successfully:
+## ---------------
+## Just
+## # A tibble: 9 × 3
+## # Groups:   species [9]
+##   species    sex              mass
+##   &lt;chr&gt;      &lt;chr&gt;           &lt;dbl&gt;
+## 1 Clawdite   female           55  
+## 2 Droid      none             69.8
+## 3 Human      female           56.3
+## 4 Hutt       hermaphroditic 1358  
+## 5 Kaminoan   female          NaN  
+## 6 Mirialan   female           53.1
+## 7 Tholothian female           50  
+## 8 Togruta    female           57  
+## 9 Twi&#39;lek    female           55  
+## 
+## ---------------
+## This is an object of type `chronicle`.
+## Retrieve the value of this object with pick(.c, &quot;value&quot;).
+## To read the log of this object, call read_log(.c).</code></pre>
+<p><code>my_df</code> is made up of two parts, one is a data set, and the other is the log. If you wish
+to know how this data set was created, you can call <code>read_log(my_df)</code> (this function will
+be renamed to <code>read.log()</code> in the next release, to avoid clashing with <code>readr::read_log()</code>):</p>
+<pre class="r"><code>read_log(my_df)</code></pre>
+<pre><code>## [1] &quot;Complete log:&quot;                                                                  
+## [2] &quot;OK! select(height,mass,species,sex) ran successfully at 2022-05-18 10:23:49&quot;    
+## [3] &quot;OK! group_by(species,sex) ran successfully at 2022-05-18 10:23:49&quot;              
+## [4] &quot;OK! filter(sex != \&quot;male\&quot;) ran successfully at 2022-05-18 10:23:49&quot;            
+## [5] &quot;OK! summarise(mean(mass, na.rm = TRUE)) ran successfully at 2022-05-18 10:23:49&quot;
+## [6] &quot;Total running time: 0.20783805847168 secs&quot;</code></pre>
+<p>if you want to get the dataset out of the <code>{chronicler}</code> “box”, you can do so with <code>pick(my_df, "value")</code>:</p>
+<pre class="r"><code>pick(my_df, &quot;value&quot;)</code></pre>
+<pre><code>## # A tibble: 9 × 3
+## # Groups:   species [9]
+##   species    sex              mass
+##   &lt;chr&gt;      &lt;chr&gt;           &lt;dbl&gt;
+## 1 Clawdite   female           55  
+## 2 Droid      none             69.8
+## 3 Human      female           56.3
+## 4 Hutt       hermaphroditic 1358  
+## 5 Kaminoan   female          NaN  
+## 6 Mirialan   female           53.1
+## 7 Tholothian female           50  
+## 8 Togruta    female           57  
+## 9 Twi&#39;lek    female           55</code></pre>
+<p>To know more about all the package has to offer, read the
+<a href="https://b-rodrigues.github.io/chronicler/">readme</a> and the
+<a href="https://b-rodrigues.github.io/chronicler/articles/">vignettes</a> on the package’s website. I’m
+already working on the next release, where I plan to add the following features:</p>
+<ul>
+<li>Rename <code>read_log()</code> to <code>read.log()</code></li>
+<li>Make <code>{chronicler}</code> work with <code>{ggplot2}</code> (as described <a href="https://www.brodrigues.co/blog/2022-05-15-self_doc_ggplot/">here</a>)</li>
+<li>Introduce functions to save <code>{chronicler}</code> objects as <code>.csv</code> or <code>.xlsx</code> files to disk (if the underlying value is a <code>data.frame</code>, as in the example above)</li>
+<li>Anything else I think of between now and then!</li>
+</ul>
+<p>I’m really looking forward to see how people are going to use this package for their work,
+personally I’ve been mixing <code>{chronicler}</code> with <code>{targets}</code> to build very robust pipelines to build
+<code>chronicle</code> objects!</p>
+<div id="thanks" class="section level2">
+<h2>Thanks</h2>
+<p>I’d like to thank <a href="https://github.com/armcn">armcn</a>, <a href="https://github.com/Kupac">Kupac</a> for their
+blog posts (<a href="https://kupac.gitlab.io/biofunctor/2019/05/25/maybe-monad-in-r/">here</a>) and packages
+(<a href="https://armcn.github.io/maybe/">maybe</a>) which inspired me to build this package. Thank you as
+well to
+<a href="https://community.rstudio.com/t/help-with-writing-a-custom-pipe-and-environments/133447/2?u=brodriguesco">TimTeaFan</a>
+for his help with writing the <code>%&gt;=%</code> infix operator,
+<a href="https://community.rstudio.com/t/best-way-to-catch-rlang-errors-consistently/131632/5?u=brodriguesco">nigrahamuk</a>
+for showing me a nice way to catch errors, and finally
+<a href="https://community.rstudio.com/t/how-to-do-call-a-dplyr-function/131396/2?u=brodriguesco">Mwavu</a>
+for pointing me towards the right direction with an issue I’ve had as I started working on this
+package. Thanks to <a href="https://twitter.com/putosaure">Putosaure</a> for designing the hex logo,
+and of course to every single person that makes free and open source software possible.</p>
+<p>Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my ebook on <a href="https://leanpub.com/modern_tidyverse">Leanpub</a>.
+You can also watch my videos on <a href="https://www.youtube.com/c/BrunoRodrigues1988/">youtube</a>.
+So much content for you to consoom!</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
+</div>
