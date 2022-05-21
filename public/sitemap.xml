@@ -3,6 +3,46 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
+    <loc>https://www.brodrigues.co/blog/2022-06-21-heavy_syntax/</loc>
+    <lastmod>2022-05-21T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://www.brodrigues.co/blog/2022-05-18-cran_0_2_0/</loc>
+    <lastmod>2022-05-18T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://www.brodrigues.co/blog/2022-05-15-self_doc_ggplot/</loc>
+    <lastmod>2022-05-15T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://www.brodrigues.co/blog/2022-04-11-monads/</loc>
+    <lastmod>2022-04-11T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://www.brodrigues.co/blog/2022-04-04-chron_post/</loc>
+    <lastmod>2022-04-01T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://www.brodrigues.co/blog/2022-03-12-purely/</loc>
+    <lastmod>2022-03-12T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://www.brodrigues.co/blog/2022-02-18-loudly/</loc>
+    <lastmod>2022-02-18T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://www.brodrigues.co/blog/2021-12-17-expand_knitr/</loc>
+    <lastmod>2021-12-17T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
     <loc>https://www.brodrigues.co/blog/2021-09-05-speedrunning_rows/</loc>
     <lastmod>2021-09-05T00:00:00+00:00</lastmod>
   </url>
@@ -599,7 +639,7 @@
   
   <url>
     <loc>https://www.brodrigues.co/blog/</loc>
-    <lastmod>2021-09-05T00:00:00+00:00</lastmod>
+    <lastmod>2022-05-21T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -610,19 +650,19 @@
   
   <url>
     <loc>https://www.brodrigues.co/</loc>
-    <lastmod>2021-09-05T00:00:00+00:00</lastmod>
+    <lastmod>2022-05-21T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://www.brodrigues.co/tags/r/</loc>
-    <lastmod>2021-09-05T00:00:00+00:00</lastmod>
+    <lastmod>2022-05-21T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://www.brodrigues.co/tags/</loc>
-    <lastmod>2021-09-05T00:00:00+00:00</lastmod>
+    <lastmod>2022-05-21T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   

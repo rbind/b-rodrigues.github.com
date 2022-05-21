@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<style type=text/css>body{font-family:monospace;}</style>
+	<title>Get packages that introduce unique syntax adopted less?</title>
+	
+	
+	<link rel="stylesheet" href="/css/style.css">
+	
+	
+</head>
+<body>
+	<header>
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+<pre>
+<a class="nav-link" href="/index.html">Econometrics and Free Software</a> by <a class="nav-link" href="/about/about">Bruno Rodrigues</a>.
+<a href="https://www.brodrigues.co/blog/index.xml">RSS feed for blog post updates</a>.
+Follow me on <a href="https://twitter.com/brodriguesco" rel="nofollow">twitter</a>, or check out my <a href="https://github.com/b-rodrigues">Github</a>.
+Check out my package that adds logging to R functions, <a href="https://b-rodrigues.github.io/chronicler/">{chronicler}</a>.
+Or read my free ebook to learn some R, <a href="https://b-rodrigues.github.io/modern_R/">Modern R with the tidyverse</a>.
+Watch my <a href="https://www.youtube.com/user/cbrunos" rel="nofollow">youtube</a> channel.
+<a href="https://www.buymeacoffee.com/brodriguesco" rel="nofollow">Buy me a coffee</a>, my kids don't let me sleep.
+</pre>
+</header>
+
+	
+	<main>
+		<article>
+			<h1>Get packages that introduce unique syntax adopted less?</h1>
+			<b><time>2022/05/21</time></b>
+		       
+		           <a href="/tags/r">R</a>
+        	       
+
+			<div>
+				<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<div style="text-align:center;">
+<p>
+<a href="https://www.youtube.com/watch?v=I8LbkfSSR58&list=PLbgaMIhjbmEnaH_LTkxLI7FMa2HsnawM_">
+<img src="/img/monoids_endofunctors.jpg" title = "How it feels to implement your own monad"></a>
+</p>
+</div>
+<p>I have this hypothesis that packages that introduce a unique syntax, or a workflow change,
+get adopted less by users, even if what these packages do is super useful.
+I’m going to discuss two examples of packages that I think are really, really useful, but sometimes
+I wonder how many R users use them, or would use them if they were aware these packages existed.
+I myself, only use one of them!</p>
+<p>The first package is <a href="https://github.com/moodymudskipper/typed"><code>{typed}</code></a> which introduces a type
+system for R. No more silent conversion to and from types without your knowing! If you don’t
+know what a type system is, consider the following:</p>
+<pre class="r"><code>nchar(&quot;100000000&quot;)</code></pre>
+<pre><code>## [1] 9</code></pre>
+<p>you get “9” back, no problem. But if you do:</p>
+<pre class="r"><code>nchar(100000000)</code></pre>
+<pre><code>## [1] 5</code></pre>
+<p>You get 5 back… what in the Lord’s name happened here? What happened is that the number 100000000 could
+converted to a character implicitly. But because of all these 0’s, this is what happened:</p>
+<pre class="r"><code>as.character(100000000)</code></pre>
+<pre><code>## [1] &quot;1e+08&quot;</code></pre>
+<p>It gets converted to a character alright, but scientific notation gets used! So yes,
+1e+08 is 5 characters long… Ideally <code>nchar()</code> would at least warn you that
+this conversion is happening, or maybe even error. After all, it’s called <code>nchar()</code> not <code>nnumeric()</code> or
+whatever. (Thanks to
+<a href="https://twitter.com/cararthompson/status/1525114767614087169?s=20&amp;t=oEOD1Vf7q9l0ZpdVLyDeUw"><code>@cararthompson</code></a>
+for this!)</p>
+<p>A solution could be to write a wrapper around it:</p>
+<pre class="r"><code>nchar2 &lt;- function(x, ...){
+  stopifnot(&quot;x is not a character&quot; = is.character(x))
+
+  nchar(x, ...)
+}</code></pre>
+<p>Now this function is safe:</p>
+<pre class="r"><code>nchar2(123456789)</code></pre>
+<pre class="r"><code>## [1] Error in nchar2(123456789) : x is not a character</code></pre>
+<p><code>{typed}</code> makes things like this easier. Using <code>{typed}</code> you can write the wrapper like this:</p>
+<pre class="r"><code>library(typed)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;typed&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:utils&#39;:
+## 
+##     ?</code></pre>
+<pre class="r"><code>strict_nchar &lt;- ? function(x = ? Character(), ...){
+
+  nchar(x, ...)
+
+}</code></pre>
+<p><code>{typed}</code> introduces <code>?</code> (masking the <code>?</code> command) allowing you to set the type the functions arguments
+(<code>x = ? Character()</code>) and also we had to write <code>?</code> in front of <code>function</code>. It’s also possible to set
+the return type:</p>
+<pre class="r"><code>strict_nchar &lt;- Integer() ? function(x = ? Character(), ...){
+
+  nchar(x, ...)
+
+}</code></pre>
+<pre class="r"><code>strict_nchar(&quot;10000000&quot;)</code></pre>
+<pre><code>## [1] 8</code></pre>
+<p>
+Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my ebook on <a href="https://leanpub.com/modern_tidyverse">Leanpub</a>.
+You can also watch my videos on <a href="https://www.youtube.com/c/BrunoRodrigues1988/">youtube</a>.
+So much content for you to consoom!
+</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p>
+<link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a>
+</p>
+</div>
+
+			</div>
+		</article>
+	</main>
+<aside>
+	<div>
+		<div>
+			<h3>LATEST POSTS</h3>
+		</div>
+		<div>
+			<ul>
+				
+				<li><a href="/blog/2022-06-21-heavy_syntax/">Get packages that introduce unique syntax adopted less?</a></li>
+				
+				<li><a href="/blog/2022-05-18-cran_0_2_0/">chronicler is now available on CRAN</a></li>
+				
+				<li><a href="/blog/2022-05-15-self_doc_ggplot/">Self-documenting {ggplot}s thanks to the power of monads!</a></li>
+				
+				<li><a href="/blog/2022-04-11-monads/">Why you should(n&#39;t) care about Monads if you&#39;re an R programmer</a></li>
+				
+				<li><a href="/blog/2022-04-04-chron_post/">The {chronicler} package, an implementation of the logger monad in R</a></li>
+				
+			</ul>
+		</div>
+	</div>
+</aside>
+
+
+	<footer>
+  <div class="row">
+    <div class="col-lg-12">
+      <p>2022, content by Bruno Rodrigues, unless otherwise stated, every content of this blog is licensed under the <a href="http://www.wtfpl.net/txt/copying/" rel="nofollow">WTFPL</a>.</p>
+      <p>The theme this blog uses is a slight variation of the <a href="https://github.com/colorchestra/smol" rel="nofollow">Smol</a> theme.</p>
+      <p><a class="nav-link" href="/index.html">Back to main page.</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

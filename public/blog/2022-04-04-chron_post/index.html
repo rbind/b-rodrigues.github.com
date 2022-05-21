@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<style type=text/css>body{font-family:monospace;}</style>
+	<title>The {chronicler} package, an implementation of the logger monad in R</title>
+	
+	
+	<link rel="stylesheet" href="/css/style.css">
+	
+	
+</head>
+<body>
+	<header>
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+<pre>
+<a class="nav-link" href="/index.html">Econometrics and Free Software</a> by <a class="nav-link" href="/about/about">Bruno Rodrigues</a>.
+<a href="https://www.brodrigues.co/blog/index.xml">RSS feed for blog post updates</a>.
+Follow me on <a href="https://twitter.com/brodriguesco" rel="nofollow">twitter</a>, or check out my <a href="https://github.com/b-rodrigues">Github</a>.
+Check out my package that adds logging to R functions, <a href="https://b-rodrigues.github.io/chronicler/">{chronicler}</a>.
+Or read my free ebook to learn some R, <a href="https://b-rodrigues.github.io/modern_R/">Modern R with the tidyverse</a>.
+Watch my <a href="https://www.youtube.com/user/cbrunos" rel="nofollow">youtube</a> channel.
+<a href="https://www.buymeacoffee.com/brodriguesco" rel="nofollow">Buy me a coffee</a>, my kids don't let me sleep.
+</pre>
+</header>
+
+	
+	<main>
+		<article>
+			<h1>The {chronicler} package, an implementation of the logger monad in R</h1>
+			<b><time>2022/04/01</time></b>
+		       
+		           <a href="/tags/r">R</a>
+        	       
+
+			<div>
+				<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<div style="text-align:center;">
+<p><a href="https://wiki.haskell.org/Monad_laws">
+<img src="/img/monads.jpg" title = "Believe me, the reward is not so great without the struggle. - Wilma Rudolph"></a></p>
+</div>
+<p><a href="https://www.brodrigues.co/blog/2022-02-18-loudly/">Back in February</a> I discussed a package I was working on
+which allowed users to add logging to function calls. I named the package <code>{loudly}</code> but decided
+to rename it to <a href="https://github.com/b-rodrigues/chronicler"><code>{chronicler}</code></a>.</p>
+<p>I have been working on it for the past few weeks, and I think that a CRAN release could happen soon.</p>
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>So what does <code>{chronicler}</code> do? <code>{chronicler}</code> allows you do decorate functions, so that they
+provide enhanced output:</p>
+<pre class="r"><code>library(chronicler)</code></pre>
+<pre><code>## Loading required package: rlang</code></pre>
+<pre class="r"><code>r_sqrt &lt;- record(sqrt)
+
+a &lt;- r_sqrt(1:5)</code></pre>
+<p>Object <code>a</code> is now an object of class <code>chronicle</code>. Let’s print <code>a</code> to the terminal:</p>
+<pre class="r"><code>a</code></pre>
+<pre><code>## ✔ Value computed successfully:
+## ---------------
+## [1] 1.000000 1.414214 1.732051 2.000000 2.236068
+## 
+## ---------------
+## This is an object of type `chronicle`.
+## Retrieve the value of this object with pick(.c, &quot;value&quot;).
+## To read the log of this object, call read_log().</code></pre>
+<p>as the output says, <code>a</code> is an object of type <code>chronicle</code>. Let’s use <code>read_log()</code> as suggested:</p>
+<pre class="r"><code>read_log(a)</code></pre>
+<pre><code>## [1] &quot;Complete log:&quot;                                      
+## [2] &quot;✔ sqrt(1:5) ran successfully at 2022-04-01 21:14:28&quot;
+## [3] &quot;Total running time: 0.000240325927734375 secs&quot;</code></pre>
+<p>The log tells us how <code>a</code> was built, and it’s especially useful for objects that are the result
+of many function calls:</p>
+<pre class="r"><code>r_sqrt &lt;- record(sqrt)
+r_exp &lt;- record(exp)
+r_mean &lt;- record(mean)
+
+b &lt;- 1:10 |&gt;
+  r_sqrt() |&gt;
+  bind_record(r_exp) |&gt;
+  bind_record(r_mean)</code></pre>
+<p>The log gives all the details:</p>
+<pre class="r"><code>read_log(b)</code></pre>
+<pre><code>## [1] &quot;Complete log:&quot;                                           
+## [2] &quot;✔ sqrt(1:10) ran successfully at 2022-04-01 21:14:28&quot;    
+## [3] &quot;✔ exp(.c$value) ran successfully at 2022-04-01 21:14:28&quot; 
+## [4] &quot;✔ mean(.c$value) ran successfully at 2022-04-01 21:14:28&quot;
+## [5] &quot;Total running time: 0.00820255279541016 secs&quot;</code></pre>
+<p>The end result, or what is called <code>value</code> can be obtained using <code>pick()</code> (you could also use <code>a$value</code>):</p>
+<pre class="r"><code>pick(a, &quot;value&quot;)</code></pre>
+<pre><code>## [1] 1.000000 1.414214 1.732051 2.000000 2.236068</code></pre>
+<pre class="r"><code>pick(b, &quot;value&quot;)</code></pre>
+<pre><code>## [1] 11.55345</code></pre>
+</div>
+<div id="composing-decorated-functions" class="section level2">
+<h2>Composing decorated functions</h2>
+<p><code>bind_record()</code> is used to pass the output from one decorated function to the next:</p>
+<pre class="r"><code>suppressPackageStartupMessages(
+  library(dplyr)
+)
+
+r_group_by &lt;- record(group_by)
+r_select &lt;- record(select)
+r_summarise &lt;- record(summarise)
+r_filter &lt;- record(filter)
+
+output &lt;- starwars %&gt;%
+  r_select(height, mass, species, sex) %&gt;%
+  bind_record(r_group_by, species, sex) %&gt;%
+  bind_record(r_filter, sex != &quot;male&quot;) %&gt;%
+  bind_record(r_summarise,
+              mass = mean(mass, na.rm = TRUE)
+              )</code></pre>
+<pre class="r"><code>read_log(output)</code></pre>
+<pre><code>## [1] &quot;Complete log:&quot;                                                                         
+## [2] &quot;✔ select(.,height,mass,species,sex) ran successfully at 2022-04-01 21:14:28&quot;           
+## [3] &quot;✔ group_by(.c$value,species,sex) ran successfully at 2022-04-01 21:14:28&quot;              
+## [4] &quot;✔ filter(.c$value,sex != \&quot;male\&quot;) ran successfully at 2022-04-01 21:14:28&quot;            
+## [5] &quot;✔ summarise(.c$value,mean(mass, na.rm = TRUE)) ran successfully at 2022-04-01 21:14:28&quot;
+## [6] &quot;Total running time: 0.11384654045105 secs&quot;</code></pre>
+<p>The value can then be saved in a new variable:</p>
+<pre class="r"><code>(my_df &lt;- pick(output, &quot;value&quot;))</code></pre>
+<pre><code>## # A tibble: 9 × 3
+## # Groups:   species [9]
+##   species    sex              mass
+##   &lt;chr&gt;      &lt;chr&gt;           &lt;dbl&gt;
+## 1 Clawdite   female           55  
+## 2 Droid      none             69.8
+## 3 Human      female           56.3
+## 4 Hutt       hermaphroditic 1358  
+## 5 Kaminoan   female          NaN  
+## 6 Mirialan   female           53.1
+## 7 Tholothian female           50  
+## 8 Togruta    female           57  
+## 9 Twi&#39;lek    female           55</code></pre>
+<p>You can save the <code>output</code> object with <code>saveRDS()</code> and share it; your colleague can then read the log
+to learn how the object was created.</p>
+<p>This package also ships with a dedicated pipe, <code>%&gt;=%</code> which you can use instead of <code>bind_record()</code>:</p>
+<pre class="r"><code>output_pipe &lt;- starwars %&gt;%
+  r_select(height, mass, species, sex) %&gt;=%
+  r_group_by(species, sex) %&gt;=%
+  r_filter(sex != &quot;male&quot;) %&gt;=%
+  r_summarise(mass = mean(mass, na.rm = TRUE))</code></pre>
+<pre class="r"><code>pick(output_pipe, &quot;value&quot;)</code></pre>
+<pre><code>## # A tibble: 9 × 3
+## # Groups:   species [9]
+##   species    sex              mass
+##   &lt;chr&gt;      &lt;chr&gt;           &lt;dbl&gt;
+## 1 Clawdite   female           55  
+## 2 Droid      none             69.8
+## 3 Human      female           56.3
+## 4 Hutt       hermaphroditic 1358  
+## 5 Kaminoan   female          NaN  
+## 6 Mirialan   female           53.1
+## 7 Tholothian female           50  
+## 8 Togruta    female           57  
+## 9 Twi&#39;lek    female           55</code></pre>
+</div>
+<div id="condition-handling" class="section level2">
+<h2>Condition handling</h2>
+<p>By default, errors and warnings get caught and composed in the log:</p>
+<pre class="r"><code>errord_output &lt;- starwars %&gt;%
+  r_select(height, mass, species, sex) %&gt;=%
+  r_group_by(species, sx) %&gt;=% # typo, &quot;sx&quot; instead of &quot;sex&quot;
+  r_filter(sex != &quot;male&quot;) %&gt;=%
+  r_summarise(mass = mean(mass, na.rm = TRUE))</code></pre>
+<pre class="r"><code>errord_output</code></pre>
+<pre><code>## ✖ Value computed unsuccessfully:
+## ---------------
+## [1] NA
+## 
+## ---------------
+## This is an object of type `chronicle`.
+## Retrieve the value of this object with pick(.c, &quot;value&quot;).
+## To read the log of this object, call read_log().</code></pre>
+<p>Reading the log tells you which function failed, and with which error message:</p>
+<pre class="r"><code>read_log(errord_output)</code></pre>
+<pre><code>## [1] &quot;Complete log:&quot;                                                                                                                                                                                    
+## [2] &quot;✔ select(.,height,mass,species,sex) ran successfully at 2022-04-01 21:14:28&quot;                                                                                                                      
+## [3] &quot;✖ group_by(.c$value,species,sx) ran unsuccessfully with following exception: Must group by variables found in `.data`.\n✖ Column `sx` is not found. at 2022-04-01 21:14:28&quot;                       
+## [4] &quot;✖ filter(.c$value,sex != \&quot;male\&quot;) ran unsuccessfully with following exception: no applicable method for &#39;filter&#39; applied to an object of class \&quot;logical\&quot; at 2022-04-01 21:14:28&quot;               
+## [5] &quot;✖ summarise(.c$value,mean(mass, na.rm = TRUE)) ran unsuccessfully with following exception: no applicable method for &#39;summarise&#39; applied to an object of class \&quot;logical\&quot; at 2022-04-01 21:14:28&quot;
+## [6] &quot;Total running time: 0.163575887680054 secs&quot;</code></pre>
+<p>It is also possible to only capture errors, or catpure errors, warnings and messages using
+the <code>strict</code> parameter of <code>record()</code></p>
+<pre class="r"><code># Only errors:
+
+r_sqrt &lt;- record(sqrt, strict = 1)
+
+# Nothing will be captured here, since sqrt(-10) returns a NA and a warning
+r_sqrt(-10) |&gt;
+  read_log()</code></pre>
+<pre><code>## Warning in .f(...): NaNs produced</code></pre>
+<pre><code>## [1] &quot;Complete log:&quot;                                                                     
+## [2] &quot;✖ sqrt(-10) ran unsuccessfully with following exception: NA at 2022-04-01 21:14:28&quot;
+## [3] &quot;Total running time: 0.000255584716796875 secs&quot;</code></pre>
+<pre class="r"><code># Errors and warnings:
+
+r_sqrt &lt;- record(sqrt, strict = 2)
+
+# The warning gets captured
+r_sqrt(-10) |&gt;
+  read_log()</code></pre>
+<pre><code>## [1] &quot;Complete log:&quot;                                                                                
+## [2] &quot;✖ sqrt(-10) ran unsuccessfully with following exception: NaNs produced at 2022-04-01 21:14:28&quot;
+## [3] &quot;Total running time: 0.00019383430480957 secs&quot;</code></pre>
+<pre class="r"><code># Errors, warnings and messages
+
+my_f &lt;- function(x){
+  message(&quot;this is a message&quot;)
+  10
+}
+
+record(my_f, strict = 3)(10) |&gt;
+                         read_log()</code></pre>
+<pre><code>## [1] &quot;Complete log:&quot;                                                                                     
+## [2] &quot;✖ my_f(10) ran unsuccessfully with following exception: this is a message\n at 2022-04-01 21:14:28&quot;
+## [3] &quot;Total running time: 0.000336408615112305 secs&quot;</code></pre>
+</div>
+<div id="advanced-logging" class="section level2">
+<h2>Advanced logging</h2>
+<p>You can provide a function to <code>record()</code>, which will be evaluated on the output. This makes it possible
+to, for example, monitor the size of a data frame throughout the pipeline. In the example below I
+provide <code>dim()</code>, which will return the dimensions of the data frame, as an argument to <code>record()</code>:</p>
+<pre class="r"><code>r_group_by &lt;- record(group_by)
+r_select &lt;- record(select, .g = dim)
+r_summarise &lt;- record(summarise, .g = dim)
+r_filter &lt;- record(filter, .g = dim)
+
+output_pipe &lt;- starwars %&gt;%
+  r_select(height, mass, species, sex) %&gt;=%
+  r_group_by(species, sex) %&gt;=%
+  r_filter(sex != &quot;male&quot;) %&gt;=%
+  r_summarise(mass = mean(mass, na.rm = TRUE))</code></pre>
+<p>The <code>$log_df</code> element of a <code>chronicle</code> object contains detailed information. In most cases you
+don’t need to worry about it:</p>
+<pre class="r"><code>pick(output_pipe, &quot;log_df&quot;)</code></pre>
+<pre><code>## # A tibble: 4 × 8
+##   outcome   `function` arguments message start_time          end_time           
+##   &lt;chr&gt;     &lt;chr&gt;      &lt;chr&gt;     &lt;chr&gt;   &lt;dttm&gt;              &lt;dttm&gt;             
+## 1 ✔ Success select     &quot;.,heigh… NA      2022-04-01 21:14:28 2022-04-01 21:14:28
+## 2 ✔ Success group_by   &quot;.c$valu… NA      2022-04-01 21:14:28 2022-04-01 21:14:28
+## 3 ✔ Success filter     &quot;.c$valu… NA      2022-04-01 21:14:28 2022-04-01 21:14:29
+## 4 ✔ Success summarise  &quot;.c$valu… NA      2022-04-01 21:14:28 2022-04-01 21:14:29
+## # … with 2 more variables: run_time &lt;drtn&gt;, g &lt;list&gt;</code></pre>
+<p>but if you want to look at the output of <code>.g</code>, then you have to grab it and see:</p>
+<pre class="r"><code># I coerce it to a data.frame just for the output here on my blog, to make the column `g` readable
+as.data.frame(output_pipe$log_df[, c(&quot;function&quot;, &quot;g&quot;)])</code></pre>
+<pre><code>##    function     g
+## 1    select 87, 4
+## 2  group_by    NA
+## 3    filter 23, 4
+## 4 summarise  9, 3</code></pre>
+<p>We can see that the dimension of the dataframe was (87, 4) after the call to <code>select()</code>, (23, 4)
+after the call to <code>filter()</code> and finally (9, 3) after the call to <code>summarise()</code>.</p>
+</div>
+<div id="monads" class="section level2">
+<h2>Monads</h2>
+<p>This package implements a logger monad. I might talk about monads in the future, but probably in a
+video; if you don’t know what monads are, don’t worry, no one really knows. Legend has it that to
+truly understand what monads are you have to have a PhD in computer science and have been born in
+the former Soviet Union. But to make things simple, you can think of a monad as a way to:</p>
+<ul>
+<li>embelish functions to provide additional output without having to touch the function’s core behaviour</li>
+<li>a way to compose these functions and work with the embelished outputs (also called monadic values)</li>
+<li>monadic values are basically containers that contain the actual value of the function evaluated on its inputs and something else (here, a log)</li>
+</ul>
+<p>Monads are quite useful in some programming languanges, like Haskell. Not so much in R, but I think
+that the logger monad I propose here can be quite useful. So let me know if you find it useful or if
+you have suggestions!</p>
+<p>You can install <code>{chronicler}</code> from its <a href="https://github.com/b-rodrigues/chronicler">github repo</a>.</p>
+<p>Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my ebook on <a href="https://leanpub.com/modern_tidyverse">Leanpub</a>.
+You can also watch my videos on <a href="https://www.youtube.com/c/BrunoRodrigues1988/">youtube</a>.
+So much content for you to consoom!</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
+</div>
+
+			</div>
+		</article>
+	</main>
+<aside>
+	<div>
+		<div>
+			<h3>LATEST POSTS</h3>
+		</div>
+		<div>
+			<ul>
+				
+				<li><a href="/blog/2022-06-21-heavy_syntax/">Get packages that introduce unique syntax adopted less?</a></li>
+				
+				<li><a href="/blog/2022-05-18-cran_0_2_0/">chronicler is now available on CRAN</a></li>
+				
+				<li><a href="/blog/2022-05-15-self_doc_ggplot/">Self-documenting {ggplot}s thanks to the power of monads!</a></li>
+				
+				<li><a href="/blog/2022-04-11-monads/">Why you should(n&#39;t) care about Monads if you&#39;re an R programmer</a></li>
+				
+				<li><a href="/blog/2022-04-04-chron_post/">The {chronicler} package, an implementation of the logger monad in R</a></li>
+				
+			</ul>
+		</div>
+	</div>
+</aside>
+
+
+	<footer>
+  <div class="row">
+    <div class="col-lg-12">
+      <p>2022, content by Bruno Rodrigues, unless otherwise stated, every content of this blog is licensed under the <a href="http://www.wtfpl.net/txt/copying/" rel="nofollow">WTFPL</a>.</p>
+      <p>The theme this blog uses is a slight variation of the <a href="https://github.com/colorchestra/smol" rel="nofollow">Smol</a> theme.</p>
+      <p><a class="nav-link" href="/index.html">Back to main page.</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

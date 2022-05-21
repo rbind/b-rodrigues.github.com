@@ -1,0 +1,172 @@
+---
+date: 2022-05-21
+title: Get packages that introduce unique syntax adopted less?
+tags: [R]
+menu:
+main:
+  parent: Blog
+  identifier: /blog/heavy_syntax
+  weight: 1
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<div style="text-align:center;">
+<p>
+<a href="https://cran.r-project.org/src/contrib/Archive/">
+<img src="/img/packages.jpg" title = "The CRAN archive will always be there, at least"></a>
+</p>
+</div>
+<p>I have this hypothesis that packages that introduce a unique syntax, or a workflow change,
+get adopted less by users, even if what these packages do is super useful.
+I’m going to discuss two examples of packages that I think are really, really useful, but sometimes
+I wonder how many R users use them, or would use them if they were aware these packages existed.
+I myself, only use one of them!</p>
+<p>The first package is <a href="https://github.com/moodymudskipper/typed"><code>{typed}</code></a> which introduces a type
+system for R. No more silent conversion to and from types without your knowing! If you don’t
+know what a type system is, consider the following:</p>
+<pre class="r"><code>nchar(&quot;100000000&quot;)</code></pre>
+<pre><code>## [1] 9</code></pre>
+<p>you get “9” back, no problem. But if you do:</p>
+<pre class="r"><code>nchar(100000000)</code></pre>
+<pre><code>## [1] 5</code></pre>
+<p>You get 5 back… what in the Lord’s name happened here? What happened is that the number 100000000 was
+converted to a character implicitly. But because of all these 0’s, this is what happened:</p>
+<pre class="r"><code>as.character(100000000)</code></pre>
+<pre><code>## [1] &quot;1e+08&quot;</code></pre>
+<p>It gets converted to a character alright, but scientific notation gets used! So yes,
+1e+08 is 5 characters long… Ideally <code>nchar()</code> would at least warn you that
+this conversion is happening, or maybe even error. After all, it’s called <code>nchar()</code> not <code>nnumeric()</code> or
+whatever. (Thanks to
+<a href="https://twitter.com/cararthompson/status/1525114767614087169?s=20&amp;t=oEOD1Vf7q9l0ZpdVLyDeUw"><code>@cararthompson</code></a>
+for this!)</p>
+<p>A solution could be to write a wrapper around it:</p>
+<pre class="r"><code>nchar2 &lt;- function(x, ...){
+  stopifnot(&quot;x is not a character&quot; = is.character(x))
+
+  nchar(x, ...)
+}</code></pre>
+<p>Now this function is safe:</p>
+<pre class="r"><code>nchar2(123456789)</code></pre>
+<pre class="r"><code>## [1] Error in nchar2(123456789) : x is not a character</code></pre>
+<p><code>{typed}</code> makes writing safe functions like this easier.
+Using <code>{typed}</code> you can write the wrapper like this:</p>
+<pre class="r"><code>library(typed, warn.conflicts = FALSE) 
+
+strict_nchar &lt;- ? function(x = ? Character(), ...){
+
+  nchar(x, ...)
+
+}</code></pre>
+<p><code>{typed}</code> introduces <code>?</code> (masking the base <code>?</code> function to read a function’s docs) allowing you
+to set the type the function’s arguments. It’s also possible to set the return type of the function:</p>
+<pre class="r"><code>strict_nchar &lt;- Integer() ? function(x = ? Character(), ...){
+
+  nchar(x, ...)
+
+}</code></pre>
+<pre class="r"><code>strict_nchar(&quot;10000000&quot;)</code></pre>
+<pre><code>## [1] 8</code></pre>
+<p>This is very useful if you want to write safe functions in a very concise and clean way.</p>
+<p>The second kind of package I was thinking about are packages like <code>{targets}</code>, which force users to
+structure their projects in a very specific way. I really like <code>{targets}</code> and have been using it for quite
+some time. <code>{targets}</code> takes inspiration from build automation tools from the software development world
+and introduces the concept of build automation in R. If you’re a linux user, you’ve probably dealt with
+<code>Makefile</code>s (especially if you’ve been using linux for more than 10 years), and <code>{targets}</code> works in
+a similar way; by writing a script in which you define <em>targets</em>, these get built in a reproducible way.
+If you’d like to see it in action, take a look at <a href="https://www.youtube.com/watch?v=FvJ4xRGiEgw">this video</a>
+of mine. As useful as it is, I can imagine that some potential users will end up not adopting it, because
+<code>{targets}</code> really does things in a very unique and different way. Most people do not know what build
+automation tools are, and the cost of adopting <code>{targets}</code> seems disproportionally higher to its benefits
+(but believe me, it is well worth the cost!).</p>
+<p>Now here’s the meat of the post: I think that packages like these, even though they’re very useful,
+get adopted less by users than other packages, that either:</p>
+<ul>
+<li>do not introduce a unique way of doing things;</li>
+<li>for which alternatives are available.</li>
+</ul>
+<p>The reason, I believe, is that users do not feel comfortable adopting a unique syntax and way of doing
+things that impact their code so much, because if these libraries get abandoned, users will need
+to completely rewrite their scripts. And this is especially true when the two conditions above are not
+verified.</p>
+<p>Take <code>{dplyr}</code>: one could argue that it introduces both a unique syntax, and a very specific
+workflow/way of doing things:</p>
+<pre class="r"><code>library(dplyr)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;dplyr&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:stats&#39;:
+## 
+##     filter, lag</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     intersect, setdiff, setequal, union</code></pre>
+<pre class="r"><code>mtcars %&gt;%
+ filter(am == 0) %&gt;%
+ group_by(cyl) %&gt;%
+ summarise(mean_hp = mean(hp))</code></pre>
+<pre><code>## # A tibble: 3 × 2
+##     cyl mean_hp
+##   &lt;dbl&gt;   &lt;dbl&gt;
+## 1     4    84.7
+## 2     6   115. 
+## 3     8   194.</code></pre>
+<p>But there are alternatives to it (a lot of <code>{dplyr}</code> functionality is covered by <code>base</code> functions already,
+and there’s also <code>{data.table}</code>), so IF <code>{dplyr}</code> would get abandoned by Rstudio (which will never
+happen, but let’s assume for the sake of argument), users <em>could</em> switch to <code>{data.table}</code>. Not so with
+more niche packages like the ones discussed above.
+Also, even <code>{dplyr}</code>’s unique syntax making heavy use of <code>%&gt;%</code> is not so unique anymore, since
+the release of R 4.1. A base approach to the above snippet would be:</p>
+<pre class="r"><code>mtcars |&gt;
+  subset(am == 0) |&gt;
+  with(aggregate(hp, by = list(cyl), mean))</code></pre>
+<pre><code>##   Group.1         x
+## 1       4  84.66667
+## 2       6 115.25000
+## 3       8 194.16667</code></pre>
+<p>Before R 4.1, looking at <code>{dplyr}</code> chains felt like looking at a completely different language than
+base R, but now with the introduction of <code>|&gt;</code> not so anymore. The other thing packages like <code>{dplyr}</code>
+have going for them, even when they introduce a completely new syntax, and do not have any alternative
+like <code>{ggplot2}</code> (I don’t consider <code>base</code> plotting an alternative to <code>{ggplot2}</code>, because it works
+in a completely different way) is that they have big teams and/or companies behind them, like Rstudio.
+So users feel much more confident adopting such packages, than if they’re written by a very small
+team (sometimes even just one person).</p>
+<p>The reason I’m thinking about all this, is because I
+<a href="https://www.brodrigues.co/blog/2022-05-18-cran_0_2_0/">recently released a package</a> that raises
+all of the above red flags:</p>
+<ul>
+<li>new syntax (makes heavy use of a new pipe <code>%&gt;=%</code>);</li>
+<li>forces a new workflow on users;</li>
+<li>developed by a single dude in his free time who isn’t even a programmer (me).</li>
+</ul>
+<p>If I was a potential interested user, I honestly don’t know if I’d adopt this package for anything
+critical. I might play around with it a bit, but using that in production? What if the author (me)
+gets sick of it after a few months/years? Even I, as the author, cannot guarantee today that this
+package will still be maintained in 2 years. So users that might have important stuff running which uses my
+package are now screwed. I think that the only way for such packages to succeed, is if a sizeable
+community gathers around it and if the team of developers expands, and ideally, if it gets backed
+by a company (like Rstudio with all their packages, or rOpenSci <a href="https://docs.ropensci.org/targets/">does for
+<code>{targets}</code></a>.</p>
+<p>To be clear, I am NOT complaining about free and open source software: these problems also exist
+with proprietary software. If a company builds something and they decide to abandon it, that’s it,
+it’s over. If there are no alternatives to it, users are screwed just as well. And companies can also
+go bankrupt or <em>change focus on other more profitable projects</em>.
+At least with free and open source software, if the author of a package has had enough
+and decides to not maintain anymore, there is still the possibility of someone else taking it over,
+and this someone else might be a user! There is also the possibility of running old R version with
+older versions of packages, even if they’re abandoned, using Docker. So maybe it’s not so bad.</p>
+<p>What do you think? I’d be curious to hear your thoughts. Tell me what you think on
+<a href="https://github.com/b-rodrigues/fp_in_R_discussion/issues/2">this github issue I opened</a>.</p>
+<p>Oh and by the way, IF you’re using <code>{chronicler}</code> after reading this, really, thank you.</p>
+<p>
+Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my ebook on <a href="https://leanpub.com/modern_tidyverse">Leanpub</a>.
+You can also watch my videos on <a href="https://www.youtube.com/c/BrunoRodrigues1988/">youtube</a>.
+So much content for you to consoom!
+</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p>
+<link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a>
+</p>
+</div>

@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<style type=text/css>body{font-family:monospace;}</style>
+	<title>How to write code that returns (Rmarkdown) code</title>
+	
+	
+	<link rel="stylesheet" href="/css/style.css">
+	
+	
+</head>
+<body>
+	<header>
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+<pre>
+<a class="nav-link" href="/index.html">Econometrics and Free Software</a> by <a class="nav-link" href="/about/about">Bruno Rodrigues</a>.
+<a href="https://www.brodrigues.co/blog/index.xml">RSS feed for blog post updates</a>.
+Follow me on <a href="https://twitter.com/brodriguesco" rel="nofollow">twitter</a>, or check out my <a href="https://github.com/b-rodrigues">Github</a>.
+Check out my package that adds logging to R functions, <a href="https://b-rodrigues.github.io/chronicler/">{chronicler}</a>.
+Or read my free ebook to learn some R, <a href="https://b-rodrigues.github.io/modern_R/">Modern R with the tidyverse</a>.
+Watch my <a href="https://www.youtube.com/user/cbrunos" rel="nofollow">youtube</a> channel.
+<a href="https://www.buymeacoffee.com/brodriguesco" rel="nofollow">Buy me a coffee</a>, my kids don't let me sleep.
+</pre>
+</header>
+
+	
+	<main>
+		<article>
+			<h1>How to write code that returns (Rmarkdown) code</h1>
+			<b><time>2021/12/17</time></b>
+		       
+		           <a href="/tags/r">R</a>
+        	       
+
+			<div>
+				<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<div style="text-align:center;">
+<p><a href="https://en.wikipedia.org/wiki/Fractal">
+<img src="/img/fractal_doge.gif" title = "Nature is fractal"></a></p>
+</div>
+<p>One of the most useful aspects of using a programming language instead of… well, not using a programming language,
+is that you can write code in a way that minimizes, and ideally, eliminates the need to repeat yourself.</p>
+<p>For instance, you can write a function to show you a frequency table, like so:</p>
+<pre class="r"><code>suppressMessages(library(dplyr))
+
+create_table &lt;- function(dataset, var){
+
+  var &lt;- enquo(var)
+
+  dataset %&gt;%
+    count(!!var) %&gt;%
+    knitr::kable()
+
+}</code></pre>
+<p>And can now get some fancy looking tables by simply writing:</p>
+<pre class="r"><code>create_table(mtcars, cyl)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">cyl</th>
+<th align="right">n</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">4</td>
+<td align="right">11</td>
+</tr>
+<tr class="even">
+<td align="right">6</td>
+<td align="right">7</td>
+</tr>
+<tr class="odd">
+<td align="right">8</td>
+<td align="right">14</td>
+</tr>
+</tbody>
+</table>
+<p>If I want such tables for hundreds of columns, I can use this function and loop over the columns and
+not have to write the code inside the body of the function over and over again. You’ll notice that
+the function <code>create_table()</code> makes use of some advanced programming techniques I have discussed
+<a href="https://www.brodrigues.co/blog/2016-07-18-data-frame-columns-as-arguments-to-dplyr-functions/">here</a>.
+There’s also an alternative way of programming with <code>{dplyr}</code>, using the <code>{{}}</code> construct I
+discussed <a href="https://www.brodrigues.co/blog/2019-06-20-tidy_eval_saga/">here</a>, but I couldn’t get
+what I’m going to show you here to work with <code>{{}}</code>.</p>
+<p>Recently, I had to create a Rmarkdown document with many sections, where each section title was
+a question from a survey and the content was a frequency table. I wanted to write a fuction that
+would create a section with the right question title, and then show the table, and I wanted to
+then call this function over all the questions from the survey and have my document automatically
+generated.</p>
+<p>The result should look like <a href="https://dazzling-thompson-964d5b.netlify.app/">this</a>,
+but it would be a PDF instead of HTML.</p>
+<p>Let’s first load the data and see how it looks like:</p>
+<pre class="r"><code>library(dplyr)
+library(purrr)
+library(readr)
+
+suppressMessages(
+  survey_data &lt;- read_csv(
+    &quot;https://gist.githubusercontent.com/b-rodrigues/0c2249dec5a9c9477e0d1ad9964a1340/raw/873bcc7532b8bad613235f029884df1d0b947c90/survey_example.csv&quot;
+  )
+)
+
+glimpse(survey_data)</code></pre>
+<pre><code>## Rows: 100
+## Columns: 4
+## $ `Random question?`                         &lt;chr&gt; &quot;no&quot;, &quot;yes&quot;, &quot;yes&quot;, &quot;yes&quot;, …
+## $ `Copy of Random question?`                 &lt;chr&gt; &quot;yes&quot;, &quot;yes&quot;, &quot;no&quot;, &quot;yes&quot;, …
+## $ `Copy of Copy of Random question?`         &lt;chr&gt; &quot;yes&quot;, &quot;no&quot;, &quot;no&quot;, &quot;yes&quot;, &quot;…
+## $ `Copy of Copy of Copy of Random question?` &lt;chr&gt; &quot;yes&quot;, &quot;yes&quot;, &quot;no&quot;, &quot;yes&quot;, …</code></pre>
+<p>Each column name is the question, and each row is one answer to the survey question.
+To create the document I showed above, you’d probably write something like this:</p>
+<pre><code>
+## Random question?
+
+` ``{r}
+
+create_table(survey_data, `Random question?`)
+
+` ``
+
+## Copy of Random question?
+
+` ``{r}
+
+create_table(survey_data, `Copy of Random question?`)
+
+` ``
+
+## Copy of Copy of Random question?
+
+` ``{r}
+
+create_table(survey_data, `Copy of Copy of Random question?`)
+
+` ``
+
+## Copy of Copy of Copy of Random question?
+
+` ``{r}
+
+create_table(survey_data, `Copy of Copy of Copy of Random question?`)
+
+` ``
+</code></pre>
+<p>As you can see, this gets tedious very quickly, especially if you have 100’s of variables. So
+how to not repeat yourself? The solution has two steps; first you should try to automate what you
+have as much as possible. Ideally, you don’t want to have to write the complete question every
+time. So first, let’s replace the questions by simpler variable names:</p>
+<pre class="r"><code>questions &lt;- colnames(survey_data)
+
+codes &lt;- paste0(&quot;var_&quot;, seq(1, length(questions)))
+
+lookup &lt;- bind_cols(&quot;codes&quot; = codes, &quot;questions&quot; = questions)
+
+colnames(survey_data) &lt;- codes</code></pre>
+<p><code>lookup</code> is a data frame with the questions and their respective codes:</p>
+<pre class="r"><code>lookup</code></pre>
+<pre><code>## tibble [4, 2] 
+## codes     chr var_1 var_2 var_3 var_4
+## questions chr Random question? Copy of Random question? Cop~</code></pre>
+<p>and our data now has simpler variable names:</p>
+<pre class="r"><code>glimpse(survey_data)</code></pre>
+<pre><code>## Rows: 100
+## Columns: 4
+## $ var_1 &lt;chr&gt; &quot;no&quot;, &quot;yes&quot;, &quot;yes&quot;, &quot;yes&quot;, &quot;no&quot;, NA, &quot;no&quot;, NA, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;,…
+## $ var_2 &lt;chr&gt; &quot;yes&quot;, &quot;yes&quot;, &quot;no&quot;, &quot;yes&quot;, &quot;no&quot;, &quot;yes&quot;, &quot;yes&quot;, NA, &quot;yes&quot;, NA, &quot;n…
+## $ var_3 &lt;chr&gt; &quot;yes&quot;, &quot;no&quot;, &quot;no&quot;, &quot;yes&quot;, &quot;yes&quot;, &quot;no&quot;, &quot;no&quot;, &quot;yes&quot;, &quot;no&quot;, &quot;yes&quot;,…
+## $ var_4 &lt;chr&gt; &quot;yes&quot;, &quot;yes&quot;, &quot;no&quot;, &quot;yes&quot;, &quot;yes&quot;, &quot;no&quot;, &quot;no&quot;, &quot;yes&quot;, &quot;no&quot;, &quot;no&quot;,…</code></pre>
+<p>Doing this allows us to replace the source code of our Rmarkdown like so:</p>
+<pre class="r"><code>## `r lookup$questions[grepl(&quot;var_1&quot;, lookup$codes)]`
+
+` ``{r}
+create_table(survey_data, var_1)
+` ``</code></pre>
+<p>This already makes things easier, as now you only have to change <code>var_1</code> to <code>var_2</code> to <code>var_3</code>…
+the inline code gets executed and the right title (the question text) appears. But how to go
+further? I don’t want to have to copy and paste this and change <code>var_1</code> to <code>var_2</code> etc… So the
+second step of the two-step solution is to use a function called <code>knitr_expand()</code> described
+<a href="https://bookdown.org/yihui/rmarkdown-cookbook/knit-expand.html">here</a>. The idea of
+<code>knitr::knitr_expand()</code> is that it uses some Rmd source as a template, and also allows the user to define
+some variables that will be replaced at compile time. Simple examples are available
+<a href="https://cran.r-project.org/web/packages/knitr/vignettes/knit_expand.html">here</a>. I want to build
+upon that, because I need to pass my variable (in this case <code>var_1</code> for instance) to my function
+<code>create_table()</code>.</p>
+<p>The solution is to write another function that uses <code>knitr::knitr_expand()</code>. This is how
+it could look like:</p>
+<pre class="r"><code>create_table &lt;- function(dataset, var){
+
+  dataset %&gt;%
+    count(!!var) %&gt;%
+    knitr::kable()
+
+}
+
+
+return_section &lt;- function(var){
+
+  a &lt;- knitr::knit_expand(text = c(&quot;## {{question}}&quot;,   create_table(survey_data, var)),
+                          question =  lookup$questions[grepl(quo_name(var), lookup$codes)])
+
+  cat(a, sep = &quot;\n&quot;)
+}</code></pre>
+<p>I needed to edit <code>create_table()</code> a little bit, and remove the line <code>var &lt;- enquo(var)</code>. This
+is because now, I won’t be passing a variable down to the function, but a quosure, and there is
+a very good reason for it, you’ll see. <code>return_section()</code> makes use of <code>knitr_expand()</code>,
+and the <code>text =</code> argument is the template that will get expanded. <code>{{question}}</code> will get
+replaced by the variable I defined which is the code I wrote above to automatically get the
+question text. Finally, <code>var</code> will get replaced by the variable I pass to the function.</p>
+<p>First, let’s get it running on one single variable:</p>
+<pre class="r"><code>return_section(quo(var_1))</code></pre>
+<pre><code>## ## Random question?
+## |var_1 |  n|
+## |:-----|--:|
+## |no    | 40|
+## |yes   | 44|
+## |NA    | 16|</code></pre>
+<p>As you see, I had to use <code>quo(var_1)</code> and not only <code>var_1</code>. But apart from this, the function seems
+to work well. Putting this in an Rmarkdown document would create a section with the question as
+the text of the section and a frequency table as the body. I could now copy and paste this and
+only have to change <code>var_1</code>. But I don’t want to have to copy and paste! So the idea would be
+to loop the function over a list of variables.</p>
+<p>I have such a list already:</p>
+<pre class="r"><code>codes</code></pre>
+<pre><code>## [1] &quot;var_1&quot; &quot;var_2&quot; &quot;var_3&quot; &quot;var_4&quot;</code></pre>
+<p>But it’s not a list of quosures, but a list of strings, and this is not going to work (it will
+return an error):</p>
+<pre class="r"><code>walk(codes, return_section)</code></pre>
+<p>(I’m using <code>walk()</code> instead of <code>map()</code> because <code>return_section()</code> doesn’t return an object, but only
+shows something on screen. This is called a side effect, and <code>walk()</code> allows you to loop properly
+over functions that only return side effects).</p>
+<p>The problem I have now is to convert strings to quosures. This is possible using <code>rlang::sym()</code>:</p>
+<pre class="r"><code>sym_codes &lt;- map(codes, sym)</code></pre>
+<p>And now I’m done:</p>
+<pre class="r"><code>walk(sym_codes, return_section)</code></pre>
+<pre><code>## ## Random question?
+## |var_1 |  n|
+## |:-----|--:|
+## |no    | 40|
+## |yes   | 44|
+## |NA    | 16|
+## ## Copy of Random question?
+## |var_2 |  n|
+## |:-----|--:|
+## |no    | 52|
+## |yes   | 32|
+## |NA    | 16|
+## ## Copy of Copy of Random question?
+## |var_3 |  n|
+## |:-----|--:|
+## |no    | 46|
+## |yes   | 47|
+## |NA    |  7|
+## ## Copy of Copy of Copy of Random question?
+## |var_4 |  n|
+## |:-----|--:|
+## |no    | 48|
+## |yes   | 42|
+## |NA    | 10|</code></pre>
+<p>Putting this in an Rmarkdown source create a PDF (or Word, or HTML) document with one section per
+question, and without have to do copy-pasting which is quite error-prone. Here is the final
+Rmarkdown <a href="https://gist.github.com/b-rodrigues/843011bb863f27a8fe7f299e13eb4491">file</a>. You’ll
+notice that the last chunk has the option <code>results = 'asis'</code>, which is needed for this trick
+to work.</p>
+<p>Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my ebook on <a href="https://leanpub.com/modern_tidyverse">Leanpub</a>.
+You can also watch my videos on <a href="https://www.youtube.com/c/BrunoRodrigues1988/">youtube</a>.
+So much content for you to consoom!</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
+
+			</div>
+		</article>
+	</main>
+<aside>
+	<div>
+		<div>
+			<h3>LATEST POSTS</h3>
+		</div>
+		<div>
+			<ul>
+				
+				<li><a href="/blog/2022-06-21-heavy_syntax/">Get packages that introduce unique syntax adopted less?</a></li>
+				
+				<li><a href="/blog/2022-05-18-cran_0_2_0/">chronicler is now available on CRAN</a></li>
+				
+				<li><a href="/blog/2022-05-15-self_doc_ggplot/">Self-documenting {ggplot}s thanks to the power of monads!</a></li>
+				
+				<li><a href="/blog/2022-04-11-monads/">Why you should(n&#39;t) care about Monads if you&#39;re an R programmer</a></li>
+				
+				<li><a href="/blog/2022-04-04-chron_post/">The {chronicler} package, an implementation of the logger monad in R</a></li>
+				
+			</ul>
+		</div>
+	</div>
+</aside>
+
+
+	<footer>
+  <div class="row">
+    <div class="col-lg-12">
+      <p>2022, content by Bruno Rodrigues, unless otherwise stated, every content of this blog is licensed under the <a href="http://www.wtfpl.net/txt/copying/" rel="nofollow">WTFPL</a>.</p>
+      <p>The theme this blog uses is a slight variation of the <a href="https://github.com/colorchestra/smol" rel="nofollow">Smol</a> theme.</p>
+      <p><a class="nav-link" href="/index.html">Back to main page.</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

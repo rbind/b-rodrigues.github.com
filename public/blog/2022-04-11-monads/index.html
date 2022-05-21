@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<style type=text/css>body{font-family:monospace;}</style>
+	<title>Why you should(n&#39;t) care about Monads if you&#39;re an R programmer</title>
+	
+	
+	<link rel="stylesheet" href="/css/style.css">
+	
+	
+</head>
+<body>
+	<header>
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+<pre>
+<a class="nav-link" href="/index.html">Econometrics and Free Software</a> by <a class="nav-link" href="/about/about">Bruno Rodrigues</a>.
+<a href="https://www.brodrigues.co/blog/index.xml">RSS feed for blog post updates</a>.
+Follow me on <a href="https://twitter.com/brodriguesco" rel="nofollow">twitter</a>, or check out my <a href="https://github.com/b-rodrigues">Github</a>.
+Check out my package that adds logging to R functions, <a href="https://b-rodrigues.github.io/chronicler/">{chronicler}</a>.
+Or read my free ebook to learn some R, <a href="https://b-rodrigues.github.io/modern_R/">Modern R with the tidyverse</a>.
+Watch my <a href="https://www.youtube.com/user/cbrunos" rel="nofollow">youtube</a> channel.
+<a href="https://www.buymeacoffee.com/brodriguesco" rel="nofollow">Buy me a coffee</a>, my kids don't let me sleep.
+</pre>
+</header>
+
+	
+	<main>
+		<article>
+			<h1>Why you should(n&#39;t) care about Monads if you&#39;re an R programmer</h1>
+			<b><time>2022/04/11</time></b>
+		       
+		           <a href="/tags/r">R</a>
+        	       
+
+			<div>
+				<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<div style="text-align:center;">
+<p><a href="https://www.youtube.com/watch?v=I8LbkfSSR58&list=PLbgaMIhjbmEnaH_LTkxLI7FMa2HsnawM_">
+<img src="/img/pondering.jpg" title = "How it feels to implement your own monad"></a></p>
+</div>
+<p><em>Update: I also made a video out of this blog post; watch it on <a href="https://www.youtube.com/watch?v=Hlypj6-n51c">youtube</a>.</em></p>
+<div id="introduction-functions" class="section level2">
+<h2>Introduction: functions</h2>
+<p>To understand Monads, I think it’s useful to first think about functions; why do we use functions?
+Why don’t we simply write scripts with the required operations one after the other? For instance,
+to compute the average height by species in a data set of individuals from
+the famous space opera “Star Wars”, we could very well write this code:</p>
+<pre class="r"><code>suppressPackageStartupMessages(library(dplyr))
+
+data(starwars)
+
+sum_humans &lt;- 0
+sum_others &lt;- 0
+n_humans &lt;- 0
+n_others &lt;- 0
+
+for(i in seq_along(1:nrow(starwars))){
+
+  if(!is.na(unlist(starwars[i, &quot;species&quot;])) &amp;
+     unlist(starwars[i, &quot;species&quot;]) == &quot;Human&quot;){
+    if(!is.na(unlist(starwars[i, &quot;height&quot;]))){
+      sum_humans &lt;- sum_humans + unlist(starwars[i, &quot;height&quot;])
+      n_humans &lt;- n_humans + 1
+    } else {
+
+      0
+
+    }
+
+  } else {
+    if(!is.na(unlist(starwars[i, &quot;height&quot;]))){
+      sum_others &lt;- sum_others + unlist(starwars[i, &quot;height&quot;])
+      n_others &lt;- n_others + 1
+    } else {
+      0
+    }
+  }
+}
+
+mean_height_humans &lt;- sum_humans/n_humans
+mean_height_others &lt;- sum_others/n_others</code></pre>
+<p>Well, we <em>could</em> do it like this, but we definitely shouldn’t:</p>
+<ul>
+<li>what this code does is not immediately obvious. If the code blocks aren’t commented, readers of this code will have to read line by line to understand what is going on;</li>
+<li>this code is not reusable. If now I need the average height by species and sex, I need to copy and
+paste the code, and modify it, and in some cases modify it substantially;</li>
+<li>this code handles missing values in a cumbersome way, with nested <code>if...else...</code>s;</li>
+<li>this code is not easy to test;</li>
+<li>this code cannot be composed (meaning, chained) with other code without substantially altering it (to be precise, chaining and composing are two different things, strictly speaking, but for simplicity’s sake, let’s just assume it is the same. Whenever I’m talking about “composing” something, I mean “chaining” something.)</li>
+</ul>
+<p>But it’s not just shortcomings, this <em>imperative</em> code has one advantage; it uses only some very fundamental
+building blocks: <code>if...else...</code>, for loops and that’s almost it (it does use some functions provided
+by a base installation of R, namely <code>is.na()</code>, <code>!()</code>, <code>unlist()</code> and <code>[()</code>, so strictly speaking,
+the code above is not purely imperative, but maybe closer to being procedural?).</p>
+<p>Using functions solves all the issues from imperative programming. Here is a base solution to the
+problem above, using a declarative, or functional, approach:</p>
+<pre class="r"><code>aggregate(starwars$height,
+          by = list(starwars$species == &quot;Human&quot;),
+          FUN = \(x)(mean(x, na.rm = TRUE)))</code></pre>
+<pre><code>##   Group.1        x
+## 1   FALSE 172.4043
+## 2    TRUE 176.6452</code></pre>
+<p>This code has many advantages:</p>
+<ul>
+<li>what this code does is obvious, but only if you know what <code>aggregate()</code> does. But if you read its
+documentation you’ll know, and you’ll know every time you’ll see <code>aggregate()</code> unlike a loop
+like the loop above where you’ll have to read it each time to understand;</li>
+<li>this code is reusable. Replace the data frame by another, and that’s it;</li>
+<li>Missing values are now ignored easily using the <code>na.rm</code> argument of <code>mean()</code>;</li>
+<li>this code is easy to test (using unit tests);</li>
+<li>this code can be composed, for instance like this:</li>
+</ul>
+<pre class="r"><code>aggregate(starwars$height,
+          by = list(starwars$species == &quot;Human&quot;),
+          FUN = \(x)(mean(x, na.rm = TRUE))) |&gt;
+  setNames(c(&quot;is_human&quot;, &quot;mean_height&quot;))</code></pre>
+<pre><code>##   is_human mean_height
+## 1    FALSE    172.4043
+## 2     TRUE    176.6452</code></pre>
+<p>The issue with the functional approach (at least that’s the issue that many people I spoke to about
+this raise) is that… in some way people that don’t like this approach feel like they “lose”
+control over what’s going on. You don’t know what happens inside these functions. I remember, while
+working my first job, that my boss required that I don’t use any functions nor packages, but
+instead write all the loops explicitely, because she wanted to understand what was going on (of
+course, I completely ignored this request and just did as I pleased). As discussed above, the
+imperative approach requires minimum knowledge of the language, and almost anyone with an ounce of
+programming experience can understand imperative code. That’s not the case with a functional
+approach. Readers will have to be familiar with the individual functions like <code>aggregate()</code>, but
+also anonymous functions (I had to use <code>\(x)(mean(x, na.rm = TRUE))</code> to set <code>na.rm = TRUE</code>, which
+is <code>FALSE</code> by default) and also <code>|&gt;</code> for composition/chaining.</p>
+<p>It may same more complex, and maybe it is, but the advantages far outweigh the shortcoming.</p>
+<p>For completeness, here is a <code>{dplyr}</code> version:</p>
+<pre class="r"><code>starwars %&gt;%
+  group_by(is_human = species == &quot;Human&quot;) %&gt;%
+  summarise(mean_height = mean(height, na.rm = TRUE))</code></pre>
+<pre><code>## # A tibble: 3 × 2
+##   is_human mean_height
+##   &lt;lgl&gt;          &lt;dbl&gt;
+## 1 FALSE           172.
+## 2 TRUE            177.
+## 3 NA              181.</code></pre>
+<p><code>{dplyr}</code> code is even more concise than base functional code. Here again, users will have to know
+about the individual functions and <code>%&gt;%</code>. But personally, I think that the only hurdle is
+understanding what <code>%&gt;%</code> does, and once you know this, <code>{dplyr}</code> code can be understood quite easily,
+thanks to very explicit function names.</p>
+<p>So functions are great. They’re easy to test, easy to document, easy to package, easy to reuse, and
+easy to compose. Composition is really important. For example, let’s go back to the imperative
+code, and put the result in a neat data frame object, like the functional solutions do:</p>
+<pre class="r"><code>sum_humans &lt;- 0
+sum_others &lt;- 0
+n_humans &lt;- 0
+n_others &lt;- 0
+
+for(i in seq_along(1:nrow(starwars))){
+
+  if(!is.na(unlist(starwars[i, &quot;species&quot;])) &amp;
+     unlist(starwars[i, &quot;species&quot;]) == &quot;Human&quot;){
+    if(!is.na(unlist(starwars[i, &quot;height&quot;]))){
+      sum_humans &lt;- sum_humans + unlist(starwars[i, &quot;height&quot;])
+      n_humans &lt;- n_humans + 1
+    } else {
+
+      0
+
+    }
+
+  } else {
+    if(!is.na(unlist(starwars[i, &quot;height&quot;]))){
+      sum_others &lt;- sum_others + unlist(starwars[i, &quot;height&quot;])
+      n_others &lt;- n_others + 1
+    } else {
+      0
+    }
+  }
+}
+
+mean_height_humans &lt;- sum_humans/n_humans
+mean_height_others &lt;- sum_others/n_others
+
+# These two lines are new
+data.frame(list(&quot;is_human&quot; = c(TRUE, FALSE),
+           &quot;mean_height&quot; = c(mean_height_others, mean_height_humans)))</code></pre>
+<pre><code>##   is_human mean_height
+## 1     TRUE    172.9400
+## 2    FALSE    176.6452</code></pre>
+<p>It’s just two lines (right at the end), but the implications are huge; because imperative code
+cannot be composed, I had to write separate code to put the result into a data frame. More code
+that I need to write, more opportunities for mistakes. I actually did a mistake, did you notice? This
+kind of mistake could go unnoticed for eons. But if you use functions, you don’t have this problem,
+and can focus on getting (even complex) things done:</p>
+<pre class="r"><code>starwars %&gt;%
+  filter(skin_color == &quot;light&quot;) %&gt;%
+  select(species, sex, mass) %&gt;%
+  group_by(sex, species) %&gt;%
+  summarise(
+    total_individuals = n(),
+    min_mass = min(mass, na.rm = TRUE),
+    mean_mass = mean(mass, na.rm = TRUE),
+    sd_mass = sd(mass, na.rm = TRUE),
+    max_mass = max(mass, na.rm = TRUE)
+  ) %&gt;%
+  select(-species) %&gt;%
+  tidyr::pivot_longer(-sex, names_to = &quot;statistic&quot;, values_to = &quot;value&quot;)</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;sex&#39;. You can override using the `.groups`
+## argument.</code></pre>
+<pre><code>## # A tibble: 10 × 3
+## # Groups:   sex [2]
+##    sex    statistic         value
+##    &lt;chr&gt;  &lt;chr&gt;             &lt;dbl&gt;
+##  1 female total_individuals   6  
+##  2 female min_mass           45  
+##  3 female mean_mass          56.3
+##  4 female sd_mass            16.3
+##  5 female max_mass           75  
+##  6 male   total_individuals   5  
+##  7 male   min_mass           79  
+##  8 male   mean_mass          90.5
+##  9 male   sd_mass            19.8
+## 10 male   max_mass          120</code></pre>
+<p>Needless to say, trying to write the above code using only for loops and <code>if...else...</code> is not
+something I’d wish to do, especially passing the result of all the <code>{dplyr}</code> calls to <code>pivot_longer()</code>.
+Creating that last data frame by hand is error prone, and there would definitely be mistakes in there.</p>
+<p>I hope I don’t need to convince you any more that functions are great, and that one of the great
+things they offer is their ability to be chained, or composed. But strictly speaking, you don’t need
+them. You <em>could</em> write your code without any function whatsoever, and use the most basic building
+blocks there are (loops and <code>if...else...</code> and little more). However, doing this would result in
+much messier code. It’s the same with monads. You can live without them. But there will be situations
+where not using them will result in messier code.</p>
+<p>One more thing: as I was writing this blog post, I happened on this tweet:</p>
+<blockquote class="twitter-tweet"><p lang="en" dir="ltr"><a href="https://twitter.com/hashtag/RStats?src=hash&amp;ref_src=twsrc%5Etfw">#RStats</a> question: What wheel are they trying to re-invent? <a href="https://t.co/tsoAfCHroK">pic.twitter.com/tsoAfCHroK</a></p>&mdash; Tokhir Dadaev (@zx8754) <a href="https://twitter.com/zx8754/status/1513080736785604611?ref_src=twsrc%5Etfw">April 10, 2022</a></blockquote>
+<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+<p>This is a fine example of all that I’ve been discussing until now. The person who wrote this code was
+very likely trying to get the diagonal elements of a matrix. That person was likely a beginner in
+R and used for loops to try to get the answer. We have all been there; what I’m trying to articulate
+is this: imperative programming can be useful, but it can get messy very quickly…</p>
+</div>
+<div id="when-functions-are-not-enough" class="section level2">
+<h2>When functions are not enough</h2>
+<p>Functions are awesome, but there are situations which functions simply can’t easily deal with.
+Situations in which you would like your functions to do a little extra more, and the only way
+forward you see is to rewrite them to do something totally unrelated. For example, suppose you
+would like to time your code. Most people would to something such as:</p>
+<pre class="r"><code>tic &lt;- Sys.time()
+starwars %&gt;%
+  filter(skin_color == &quot;light&quot;) %&gt;%
+  select(species, sex, mass) %&gt;%
+  group_by(sex, species) %&gt;%
+  summarise(
+    total_individuals = n(),
+    min_mass = min(mass, na.rm = TRUE),
+    mean_mass = mean(mass, na.rm = TRUE),
+    sd_mass = sd(mass, na.rm = TRUE),
+    max_mass = max(mass, na.rm = TRUE)
+  ) %&gt;%
+  select(-species) %&gt;%
+  tidyr::pivot_longer(-sex, names_to = &quot;statistic&quot;, values_to = &quot;value&quot;)</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;sex&#39;. You can override using the `.groups`
+## argument.</code></pre>
+<pre><code>## # A tibble: 10 × 3
+## # Groups:   sex [2]
+##    sex    statistic         value
+##    &lt;chr&gt;  &lt;chr&gt;             &lt;dbl&gt;
+##  1 female total_individuals   6  
+##  2 female min_mass           45  
+##  3 female mean_mass          56.3
+##  4 female sd_mass            16.3
+##  5 female max_mass           75  
+##  6 male   total_individuals   5  
+##  7 male   min_mass           79  
+##  8 male   mean_mass          90.5
+##  9 male   sd_mass            19.8
+## 10 male   max_mass          120</code></pre>
+<pre class="r"><code>toc &lt;- Sys.time()
+
+(running_time &lt;- toc - tic)</code></pre>
+<pre><code>## Time difference of 0.04228544 secs</code></pre>
+<p>You could totally do that. But now you’re back to square one. You have to deal with this tic-toc
+nonsense separately, have to keep track it, overburdening you mentally and polluting your code.
+To keep track of it, you’ll want to add the running times in a separate data frame, in which
+you could have all the running times of all your operations you need to run:</p>
+<pre class="r"><code>data.frame(list(&quot;operations&quot; = seq(1:3),
+                &quot;running_time&quot; = c(running_time, running_time * 2, running_time * 3)))</code></pre>
+<pre><code>##   operations    running_time
+## 1          1 0.04228544 secs
+## 2          2 0.08457088 secs
+## 3          3 0.12685633 secs</code></pre>
+<p>This data frame is the consequence of this tic-toc nonsense not being composable and now you have
+to deal with it, but you don’t want to. So what now? You might be tempted to do something like
+this:</p>
+<pre class="r"><code>tic_filter &lt;- function(...){
+
+  tic &lt;- Sys.time()
+
+  result &lt;- filter(...)
+
+  toc &lt;- Sys.time()
+
+  message(&quot;Running time: &quot;, toc - tic)
+
+  return(result)
+
+}
+
+starwars %&gt;%
+  tic_filter(species == &quot;Human&quot;)</code></pre>
+<pre><code>## Running time: 0.00481176376342773</code></pre>
+<pre><code>## # A tibble: 35 × 14
+##    name     height  mass hair_color skin_color eye_color birth_year sex   gender
+##    &lt;chr&gt;     &lt;int&gt; &lt;dbl&gt; &lt;chr&gt;      &lt;chr&gt;      &lt;chr&gt;          &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt; 
+##  1 Luke Sk…    172    77 blond      fair       blue            19   male  mascu…
+##  2 Darth V…    202   136 none       white      yellow          41.9 male  mascu…
+##  3 Leia Or…    150    49 brown      light      brown           19   fema… femin…
+##  4 Owen La…    178   120 brown, gr… light      blue            52   male  mascu…
+##  5 Beru Wh…    165    75 brown      light      blue            47   fema… femin…
+##  6 Biggs D…    183    84 black      light      brown           24   male  mascu…
+##  7 Obi-Wan…    182    77 auburn, w… fair       blue-gray       57   male  mascu…
+##  8 Anakin …    188    84 blond      fair       blue            41.9 male  mascu…
+##  9 Wilhuff…    180    NA auburn, g… fair       blue            64   male  mascu…
+## 10 Han Solo    180    80 brown      fair       brown           29   male  mascu…
+## # … with 25 more rows, and 5 more variables: homeworld &lt;chr&gt;, species &lt;chr&gt;,
+## #   films &lt;list&gt;, vehicles &lt;list&gt;, starships &lt;list&gt;</code></pre>
+<p>But that’s actually worse: not only do you have to change all the functions you need, and wrap them
+around tic-toc, but the running time is only shown as a message, so you can’t reuse it.
+You could then try to rewrite the function like this:</p>
+<pre class="r"><code>tic_filter &lt;- function(...){
+
+  tic &lt;- Sys.time()
+
+  result &lt;- filter(...)
+
+  toc &lt;- Sys.time()
+
+  running_time &lt;- toc - tic
+
+  list(&quot;result&quot; = result,
+       &quot;running_time&quot; = running_time)
+
+}
+
+starwars %&gt;%
+  tic_filter(species == &quot;Human&quot;)</code></pre>
+<pre><code>## $result
+## # A tibble: 35 × 14
+##    name     height  mass hair_color skin_color eye_color birth_year sex   gender
+##    &lt;chr&gt;     &lt;int&gt; &lt;dbl&gt; &lt;chr&gt;      &lt;chr&gt;      &lt;chr&gt;          &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt; 
+##  1 Luke Sk…    172    77 blond      fair       blue            19   male  mascu…
+##  2 Darth V…    202   136 none       white      yellow          41.9 male  mascu…
+##  3 Leia Or…    150    49 brown      light      brown           19   fema… femin…
+##  4 Owen La…    178   120 brown, gr… light      blue            52   male  mascu…
+##  5 Beru Wh…    165    75 brown      light      blue            47   fema… femin…
+##  6 Biggs D…    183    84 black      light      brown           24   male  mascu…
+##  7 Obi-Wan…    182    77 auburn, w… fair       blue-gray       57   male  mascu…
+##  8 Anakin …    188    84 blond      fair       blue            41.9 male  mascu…
+##  9 Wilhuff…    180    NA auburn, g… fair       blue            64   male  mascu…
+## 10 Han Solo    180    80 brown      fair       brown           29   male  mascu…
+## # … with 25 more rows, and 5 more variables: homeworld &lt;chr&gt;, species &lt;chr&gt;,
+## #   films &lt;list&gt;, vehicles &lt;list&gt;, starships &lt;list&gt;
+## 
+## $running_time
+## Time difference of 0.004878759 secs</code></pre>
+<p>At least now you save the running time along with the object. But the problem of rewriting many
+functions remains, and these rewritten <code>{dplyr}</code> functions now return a list, and not a data frame
+anymore so something like this:</p>
+<pre class="r"><code>starwars %&gt;%
+  tic_filter(species == &quot;Human&quot;) %&gt;%
+  tic_select(species, sex)</code></pre>
+<p>wouldn’t work, because <code>tic_select()</code> expects a data frame, not a list where the first element
+is a data frame and the second a double.</p>
+<p>So what else can be done? Perhaps you’d be tempted to use a global variable for this:</p>
+<pre class="r"><code>tic_filter &lt;- function(..., running_time = 0){
+
+  tic &lt;- Sys.time()
+
+  result &lt;- filter(...)
+
+  toc &lt;- Sys.time()
+
+  running_time &lt;&lt;- toc - tic + running_time
+
+  result
+
+}</code></pre>
+<p>Functions written like this would save the running time in a global variable called <code>running_time</code>
+and each of them would take turns overwriting it:</p>
+<pre class="r"><code>running_time &lt;- 0
+
+one &lt;- starwars %&gt;%
+  tic_filter(species == &quot;Human&quot;, running_time = running_time)
+
+running_time</code></pre>
+<pre><code>## Time difference of 0.00490284 secs</code></pre>
+<pre class="r"><code>two &lt;- one %&gt;%
+  tic_select(species, sex, running_time = running_time)
+
+running_time</code></pre>
+<pre><code>## Time difference of 0.007258415 secs</code></pre>
+<p>(I defined <code>tic_select()</code> but am not showing it here.)</p>
+<p>This has the advantage that the wrapped functions now return data frames as well, and can thus
+be composed/chained. But these functions are not pure functions, because they change something
+(the global variable <code>running_time</code>) outside their scope. Impure functions can be tricky; for instance
+here, because the code keeps overwriting the same variable, if you run the whole script and then
+separate chunks to try some things, <code>running_time</code> will keep getting incremented. Once again, you
+have to be extra careful and keep track of it, once again overburdening you mentally.</p>
+</div>
+<div id="the-solution" class="section level2">
+<h2>The solution</h2>
+<p>The solution to this problem looks like one of the previous things we tried, namely:</p>
+<pre class="r"><code>tic_filter &lt;- function(...){
+
+  tic &lt;- Sys.time()
+
+  result &lt;- filter(...)
+
+  toc &lt;- Sys.time()
+
+  running_time &lt;- toc - tic
+
+  list(&quot;result&quot; = result,
+       &quot;running_time&quot; = running_time)
+
+}</code></pre>
+<p>While it is true that it returns a list, this function has the yuge advantage of being pure. But
+still, we need to solve two problems:</p>
+<ul>
+<li>how to avoid having to rewrite every function;</li>
+<li>how to compose these functions so that the output of one function can be ingested as the input of the next.</li>
+</ul>
+<p>Solving the first problem consists in writing a new function that builds functions, what Hadley Wickham
+calls <a href="https://adv-r.hadley.nz/function-factories.html">function factories</a>. Let’s try:</p>
+<pre class="r"><code>timeit &lt;- function(.f, ..., running_time = 0){
+
+  function(..., .running_time = running_time){
+
+    tic &lt;- Sys.time()
+
+    result &lt;- .f(...)
+
+    toc &lt;- Sys.time()
+
+    list(result = result,
+         running_time = toc - tic + .running_time)
+  }
+
+
+}</code></pre>
+<p><code>timeit()</code> is a function that takes a function (and its arguments as an input), and returns a new
+function. This function returns the result of the original function (<code>.f</code>) evaluated on its arguments
+(<code>...</code>) as well as the time it took to run as a list. You’ll notice as well that this function
+takes another argument, called <code>running_time</code> with a default value of 0. This will become useful
+below, for now, ignore it.</p>
+<pre class="r"><code>t_sqrt &lt;- timeit(sqrt)
+
+t_sqrt(10)</code></pre>
+<pre><code>## $result
+## [1] 3.162278
+## 
+## $running_time
+## Time difference of 8.34465e-06 secs</code></pre>
+<p>That’s great, but we can’t compose these functions. This fails:</p>
+<pre class="r"><code>t_log &lt;- timeit(log)
+
+10 |&gt;
+  t_sqrt() |&gt;
+  t_log()</code></pre>
+<pre class="r"><code>Error in .f(...) : non-numeric argument to mathematical function</code></pre>
+<p>because <code>t_log()</code> expects a number, not a list. The solution? Write another functions to help!
+Let’s call this function bind:</p>
+<pre class="r"><code>bind &lt;- function(.l, .f, ...){
+
+  .f(.l$result, ..., .running_time = .l$running_time)
+
+}</code></pre>
+<p><code>bind()</code> takes a list object returned by a timed function (<code>.l</code>, with elements <code>$result</code> and <code>$running_time</code>)
+and applies another timed function <code>.f()</code> to the <code>$result</code> element of <code>.l</code> as well as any further
+arguments <code>...</code> and finally sets the <code>running_time</code> argument of <code>.f</code> equal to <code>.l$running_time</code>.
+<code>.l$running_time</code> is the running time of the previous timed function call, so now this running time
+gets added to the running time of <code>.f</code> (see the definition of the list of <code>timeit()</code>).</p>
+<p>An example might help:</p>
+<pre class="r"><code>t_log &lt;- timeit(log)
+
+10 |&gt;
+  t_sqrt() |&gt;
+  bind(t_log)</code></pre>
+<pre><code>## $result
+## [1] 1.151293
+## 
+## $running_time
+## Time difference of 8.368492e-05 secs</code></pre>
+<p>What’s nice with this solution, is that it works with any function:</p>
+<pre class="r"><code>t_filter &lt;- timeit(filter)
+t_select &lt;- timeit(select)
+t_group_by &lt;- timeit(group_by)
+t_summarise &lt;- timeit(summarise)
+t_p_longer &lt;- timeit(tidyr::pivot_longer)
+
+starwars %&gt;%
+  t_filter(skin_color == &quot;light&quot;) %&gt;% # no need to use bind here
+  bind(t_select, species, sex, mass) %&gt;%
+  bind(t_group_by, sex, species) %&gt;%
+  bind(t_summarise,
+    total_individuals = n(),
+    min_mass = min(mass, na.rm = TRUE),
+    mean_mass = mean(mass, na.rm = TRUE),
+    sd_mass = sd(mass, na.rm = TRUE),
+    max_mass = max(mass, na.rm = TRUE)
+  ) %&gt;%
+  bind(t_select, -species) %&gt;%
+  bind(t_p_longer, -sex, names_to = &quot;statistic&quot;, values_to = &quot;value&quot;)</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;sex&#39;. You can override using the `.groups`
+## argument.</code></pre>
+<pre><code>## $result
+## # A tibble: 10 × 3
+## # Groups:   sex [2]
+##    sex    statistic         value
+##    &lt;chr&gt;  &lt;chr&gt;             &lt;dbl&gt;
+##  1 female total_individuals   6  
+##  2 female min_mass           45  
+##  3 female mean_mass          56.3
+##  4 female sd_mass            16.3
+##  5 female max_mass           75  
+##  6 male   total_individuals   5  
+##  7 male   min_mass           79  
+##  8 male   mean_mass          90.5
+##  9 male   sd_mass            19.8
+## 10 male   max_mass          120  
+## 
+## $running_time
+## Time difference of 0.09293914 secs</code></pre>
+<p>There is some overhead compared to the solution that simply calls <code>tic</code> at the beginning of
+all the <code>{dplyr}</code> calls and then <code>toc</code> at the end, but this overhead becomes negligible the longer
+the base operations run for. And now the advantage is that you don’t have to think about keeping
+track of running times. Re-running separate chunks will also not interfere with the running time
+of any other chunk.</p>
+</div>
+<div id="monads" class="section level2">
+<h2>Monads</h2>
+<p>So here we are, ready to learn what monads are, or rather, we’re done, because you already know
+what monads are. The solution described before is a monad:</p>
+<ul>
+<li>a function factory to create functions that return a special, wrapped value (here it simply was a list of elements <code>$result</code> and <code>$running_time</code>). This wrapped value is also called a monadic value.</li>
+<li>a function to compose, or chain, these special functions together.</li>
+</ul>
+<p>Some other pieces can be added to the list, and one would need to check so-called monadic laws to make
+extra sure we’re dealing with a monad, but that’s outside the scope of this blog post.</p>
+<p>There are many monads, for instance the so-called <code>Maybe</code> monad, available on R thanks to
+<a href="https://twitter.com/armcn_">Andrew McNeil</a> who implemented this monad as an R
+<a href="https://armcn.github.io/maybe/">package</a>. I have also developed a monad for logging (which
+also logs execution time), which I called <code>{chronicler}</code>, read more about it
+<a href="https://www.brodrigues.co/blog/2022-04-04-chron_post/">here</a>.</p>
+<p>To conclude, why did I title this post <em>why you should(n’t) care about Monads if you’re an R programmer</em>?
+The reason is that you can live without monads. However, certain things will be more complex if you
+don’t know about monads or if you don’t want to use them, just like functions. If for some reason
+you don’t use functions in your code, your life will be more complicated. So should you go ahead
+and start using monads in your code? Well, maybe (hehe) you should, especially if you’re doing the
+same thing over and over again, like timing your code. Maybe using a monad to time your code could
+be a nice solution, especially if you’ve been burned in the past by using the other, sub-optimal
+solutions?</p>
+</div>
+<div id="extra-reading" class="section level2">
+<h2>Extra reading</h2>
+<p>If this blog post was not enough to satiate your curiosity, here are some more nice resources:</p>
+<ul>
+<li><a href="https://twitter.com/kupac">Laszlo Kupcsik</a> great
+<a href="https://kupac.gitlab.io/biofunctor/2019/05/25/maybe-monad-in-r/">blog post</a> on the maybe monad,</li>
+<li><a href="https://twitter.com/armcn_">Andrew McNeil</a> implementation of the <code>Maybe</code> monad as a
+<a href="https://armcn.github.io/maybe/">package</a></li>
+<li>this nice <a href="https://www.youtube.com/watch?v=C2w45qRc3aU">video</a>
+by <a href="https://www.youtube.com/channel/UCUdkjbeIFea0qUSgwR1CUOg">Studying With Alex</a></li>
+<li>and of course, the GOAT, <a href="https://twitter.com/BartoszMilewski">Bartosz Milewski’s</a>
+Category Theory For Programmers on <a href="https://www.youtube.com/watch?v=I8LbkfSSR58&amp;list=PLbgaMIhjbmEnaH_LTkxLI7FMa2HsnawM_">YouTube</a> if you really want to go into the nitty-gritty theoretical details of functional programming.</li>
+<li>There’s also this very accessible and nice blog post,
+<a href="https://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html">Functors, applicatives and monads in pictures</a> which I highly recommend.</li>
+</ul>
+<p>Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my ebook on <a href="https://leanpub.com/modern_tidyverse">Leanpub</a>.
+You can also watch my videos on <a href="https://www.youtube.com/c/BrunoRodrigues1988/">youtube</a>.
+So much content for you to consoom!</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
+</div>
+
+			</div>
+		</article>
+	</main>
+<aside>
+	<div>
+		<div>
+			<h3>LATEST POSTS</h3>
+		</div>
+		<div>
+			<ul>
+				
+				<li><a href="/blog/2022-06-21-heavy_syntax/">Get packages that introduce unique syntax adopted less?</a></li>
+				
+				<li><a href="/blog/2022-05-18-cran_0_2_0/">chronicler is now available on CRAN</a></li>
+				
+				<li><a href="/blog/2022-05-15-self_doc_ggplot/">Self-documenting {ggplot}s thanks to the power of monads!</a></li>
+				
+				<li><a href="/blog/2022-04-11-monads/">Why you should(n&#39;t) care about Monads if you&#39;re an R programmer</a></li>
+				
+				<li><a href="/blog/2022-04-04-chron_post/">The {chronicler} package, an implementation of the logger monad in R</a></li>
+				
+			</ul>
+		</div>
+	</div>
+</aside>
+
+
+	<footer>
+  <div class="row">
+    <div class="col-lg-12">
+      <p>2022, content by Bruno Rodrigues, unless otherwise stated, every content of this blog is licensed under the <a href="http://www.wtfpl.net/txt/copying/" rel="nofollow">WTFPL</a>.</p>
+      <p>The theme this blog uses is a slight variation of the <a href="https://github.com/colorchestra/smol" rel="nofollow">Smol</a> theme.</p>
+      <p><a class="nav-link" href="/index.html">Back to main page.</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

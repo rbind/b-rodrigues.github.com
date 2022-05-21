@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<style type=text/css>body{font-family:monospace;}</style>
+	<title>Self-documenting {ggplot}s thanks to the power of monads!</title>
+	
+	
+	<link rel="stylesheet" href="/css/style.css">
+	
+	
+</head>
+<body>
+	<header>
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+<pre>
+<a class="nav-link" href="/index.html">Econometrics and Free Software</a> by <a class="nav-link" href="/about/about">Bruno Rodrigues</a>.
+<a href="https://www.brodrigues.co/blog/index.xml">RSS feed for blog post updates</a>.
+Follow me on <a href="https://twitter.com/brodriguesco" rel="nofollow">twitter</a>, or check out my <a href="https://github.com/b-rodrigues">Github</a>.
+Check out my package that adds logging to R functions, <a href="https://b-rodrigues.github.io/chronicler/">{chronicler}</a>.
+Or read my free ebook to learn some R, <a href="https://b-rodrigues.github.io/modern_R/">Modern R with the tidyverse</a>.
+Watch my <a href="https://www.youtube.com/user/cbrunos" rel="nofollow">youtube</a> channel.
+<a href="https://www.buymeacoffee.com/brodriguesco" rel="nofollow">Buy me a coffee</a>, my kids don't let me sleep.
+</pre>
+</header>
+
+	
+	<main>
+		<article>
+			<h1>Self-documenting {ggplot}s thanks to the power of monads!</h1>
+			<b><time>2022/05/15</time></b>
+		       
+		           <a href="/tags/r">R</a>
+        	       
+
+			<div>
+				<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<div style="text-align:center;">
+<p><a href="https://www.youtube.com/watch?v=I8LbkfSSR58&list=PLbgaMIhjbmEnaH_LTkxLI7FMa2HsnawM_">
+<img src="/img/monoids_endofunctors.jpg" title = "How it feels to implement your own monad"></a></p>
+</div>
+<p>Hey kid, fancy some self-documenting <code>{ggplots}</code> like this one:</p>
+<p><img src="/blog/2022-05-15-self_doc_ggplot_files/figure-html/unnamed-chunk-1-1.png" width="672" /></p>
+<p>Just read on!</p>
+<p>I’ve been working hard on a package that I’ve called <code>{chronicler}</code> (read my post on it
+<a href="https://www.brodrigues.co/blog/2022-04-04-chron_post/">here</a>) which allows you to
+attach a log to the objects you create, thus making it easy to know how some data (for example)
+has been created. Here’s a quick example and intro to the main features:</p>
+<pre class="r"><code>suppressPackageStartupMessages(
+  library(dplyr)
+)
+library(chronicler)
+
+# record() decorates functions so they provide enriched output
+r_group_by &lt;- record(group_by)
+r_select &lt;- record(select)
+r_summarise &lt;- record(summarise)
+r_filter &lt;- record(filter)
+
+output_pipe &lt;- starwars %&gt;%
+  r_select(height, mass, species, sex) %&gt;=% # &lt;- this is a special pipe operator to handle `chronicle` objects
+  r_group_by(species, sex) %&gt;=%
+  r_filter(sex != &quot;male&quot;) %&gt;=%
+  r_summarise(mass = mean(mass, na.rm = TRUE))</code></pre>
+<p><code>output_pipe</code> not only has the result of all the <code>{dplyr}</code> operations, but also carries a log
+with it. Let’s print the object:</p>
+<pre class="r"><code>output_pipe</code></pre>
+<pre><code>## OK! Value computed successfully:
+## ---------------
+## Just
+## # A tibble: 9 × 3
+## # Groups:   species [9]
+##   species    sex              mass
+##   &lt;chr&gt;      &lt;chr&gt;           &lt;dbl&gt;
+## 1 Clawdite   female           55  
+## 2 Droid      none             69.8
+## 3 Human      female           56.3
+## 4 Hutt       hermaphroditic 1358  
+## 5 Kaminoan   female          NaN  
+## 6 Mirialan   female           53.1
+## 7 Tholothian female           50  
+## 8 Togruta    female           57  
+## 9 Twi&#39;lek    female           55  
+## 
+## ---------------
+## This is an object of type `chronicle`.
+## Retrieve the value of this object with pick(.c, &quot;value&quot;).
+## To read the log of this object, call read_log(.c).</code></pre>
+<p>Accessing the value is possible with <code>pick("value")</code>:</p>
+<pre class="r"><code>pick(output_pipe, &quot;value&quot;)</code></pre>
+<pre><code>## # A tibble: 9 × 3
+## # Groups:   species [9]
+##   species    sex              mass
+##   &lt;chr&gt;      &lt;chr&gt;           &lt;dbl&gt;
+## 1 Clawdite   female           55  
+## 2 Droid      none             69.8
+## 3 Human      female           56.3
+## 4 Hutt       hermaphroditic 1358  
+## 5 Kaminoan   female          NaN  
+## 6 Mirialan   female           53.1
+## 7 Tholothian female           50  
+## 8 Togruta    female           57  
+## 9 Twi&#39;lek    female           55</code></pre>
+<p>and you can read the log with <code>read_log()</code>:</p>
+<pre class="r"><code>read_log(output_pipe)</code></pre>
+<pre><code>## [1] &quot;Complete log:&quot;                                                                  
+## [2] &quot;OK! select(height,mass,species,sex) ran successfully at 2022-05-15 17:10:43&quot;    
+## [3] &quot;OK! group_by(species,sex) ran successfully at 2022-05-15 17:10:43&quot;              
+## [4] &quot;OK! filter(sex != \&quot;male\&quot;) ran successfully at 2022-05-15 17:10:43&quot;            
+## [5] &quot;OK! summarise(mean(mass, na.rm = TRUE)) ran successfully at 2022-05-15 17:10:43&quot;
+## [6] &quot;Total running time: 0.0434844493865967 secs&quot;</code></pre>
+<p>If you want to understand how this works, I suggest you read the blog post I linked above but also
+<a href="https://www.brodrigues.co/blog/2022-04-11-monads/">this one</a>, where I explain the nitty gritty,
+theoretical details behind what <code>{chronicler}</code> does. To make a long story short, <code>{chronicler}</code>
+uses an advanced functional programming concept called a monad. And using the power of monads,
+I can now make self-documenting <code>{ggplot2}</code> graphs.</p>
+<p>The idea was to be able to build a plot in a way similar to how I built that dataset just above,
+and have a log of how it was created attached to it. The issue is that the function that
+<em>transforms</em> functions to <code>chronicler</code> functions, <code>record()</code>, does not work on <code>{ggplot2}</code> functions.</p>
+<p>This is because the way you create <code>{ggplot2}</code> graphs is by adding layers on top of each other:</p>
+<pre class="r"><code>library(ggplot2)
+
+ggplot(mtcars) +
+  geom_point(aes(mpg, hp))</code></pre>
+<p><img src="/blog/2022-05-15-self_doc_ggplot_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p>The <code>+</code> here acts as a way to “add” the <code>geom_point(mpg, hp)</code> layer on top of the <code>ggplot(mtcars)</code> layer.
+I remember reading some tweets, quite some time ago, from people asking why <code>%&gt;%</code> couldn’t work with
+<code>{ggplot2}</code> and if Hadley Wickham, the developer of <code>{ggplot2}</code>, was considering making something like this
+work:</p>
+<pre class="r"><code>ggplot(mtcars) %&gt;%
+  geom_point(aes(mpg, hp))</code></pre>
+<p>because people kept forgetting using <code>+</code> and kept using <code>%&gt;%</code>. The thing is, <code>%&gt;%</code> and <code>+</code> do very
+different things. <code>%&gt;%</code> takes its first argument and passes it as the first argument of its second
+argument, in other words this:</p>
+<pre class="r"><code>a %&gt;% f(b)</code></pre>
+<p>is exactly the same as:</p>
+<pre class="r"><code>f(a, b)</code></pre>
+<p>This is not what <code>{ggplot2}</code> functions do. When you call <code>+</code> on <code>{ggplot2}</code> objects, this is NOT what happens:</p>
+<pre class="r"><code>geom_point(ggplot(mtcars), aes(mpg, hp))</code></pre>
+<p>So that’s why <code>%&gt;%</code> cannot be used with <code>{ggplot2}</code> functions, and that’s also why the functions I developed
+in <code>{chronicle}</code> could not handle <code>{ggplot2}</code> functions either. So I had to provide new functions. The first
+function I developed is called <code>ggrecord()</code> and it decorates <code>{ggplot2}</code> functions:</p>
+<pre class="r"><code>r_ggplot &lt;- ggrecord(ggplot)
+r_geom_point &lt;- ggrecord(geom_point)
+r_labs &lt;- ggrecord(labs)</code></pre>
+<p>Now the output of these functions are not <code>ggplot</code> objects anymore, but chronicle objects. So to make
+layering them possible, I also needed to rewrite <code>+</code>. I called my rewritten <code>+</code> like this: <code>%&gt;+%</code>:</p>
+<pre class="r"><code>a &lt;- r_ggplot(mtcars) %&gt;+%
+  r_geom_point(aes(y = mpg, x = hp)) %&gt;+%
+  r_labs(title = &quot;Self-documenting ggplot!\nLook at the bottom right&quot;,
+         caption = &quot;This is an example caption&quot;)</code></pre>
+<p>Let’s first take a look at <code>a</code>:</p>
+<pre class="r"><code>a</code></pre>
+<pre><code>## OK! Ggplot computed successfully:
+## ---------------
+## Just</code></pre>
+<p><img src="/blog/2022-05-15-self_doc_ggplot_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+<pre><code>## 
+## ---------------
+## This is an object of type `chronicle`.
+## Retrieve the value of this object with pick(.c, &quot;value&quot;).
+## To read the log of this object, call read_log(.c).</code></pre>
+<p>As before expected, <code>a</code> is now an object of type <code>{chronicle}</code>, where its “value” is a <code>ggplot</code> object.
+But where is the self-documenting part?
+For this, you use the last piece of the puzzle, <code>document_gg()</code>:</p>
+<pre class="r"><code>document_gg(a)</code></pre>
+<pre><code>## OK! Ggplot computed successfully:
+## ---------------
+## Just</code></pre>
+<p><img src="/blog/2022-05-15-self_doc_ggplot_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
+<pre><code>## 
+## ---------------
+## This is an object of type `chronicle`.
+## Retrieve the value of this object with pick(.c, &quot;value&quot;).
+## To read the log of this object, call read_log(.c).</code></pre>
+<p>The caption now contains the log of the plot, making it easily reproducible!</p>
+<p>This is still in very early development, but if you want to try it out, you’ll need to try the <code>dev</code>
+branch of <a href="https://github.com/b-rodrigues/chronicler/tree/dev">the package</a>.</p>
+<p>Any feedback, comments, ideas, pull requests, more than welcome.</p>
+<p>Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my ebook on <a href="https://leanpub.com/modern_tidyverse">Leanpub</a>.
+You can also watch my videos on <a href="https://www.youtube.com/c/BrunoRodrigues1988/">youtube</a>.
+So much content for you to consoom!</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
+
+			</div>
+		</article>
+	</main>
+<aside>
+	<div>
+		<div>
+			<h3>LATEST POSTS</h3>
+		</div>
+		<div>
+			<ul>
+				
+				<li><a href="/blog/2022-06-21-heavy_syntax/">Get packages that introduce unique syntax adopted less?</a></li>
+				
+				<li><a href="/blog/2022-05-18-cran_0_2_0/">chronicler is now available on CRAN</a></li>
+				
+				<li><a href="/blog/2022-05-15-self_doc_ggplot/">Self-documenting {ggplot}s thanks to the power of monads!</a></li>
+				
+				<li><a href="/blog/2022-04-11-monads/">Why you should(n&#39;t) care about Monads if you&#39;re an R programmer</a></li>
+				
+				<li><a href="/blog/2022-04-04-chron_post/">The {chronicler} package, an implementation of the logger monad in R</a></li>
+				
+			</ul>
+		</div>
+	</div>
+</aside>
+
+
+	<footer>
+  <div class="row">
+    <div class="col-lg-12">
+      <p>2022, content by Bruno Rodrigues, unless otherwise stated, every content of this blog is licensed under the <a href="http://www.wtfpl.net/txt/copying/" rel="nofollow">WTFPL</a>.</p>
+      <p>The theme this blog uses is a slight variation of the <a href="https://github.com/colorchestra/smol" rel="nofollow">Smol</a> theme.</p>
+      <p><a class="nav-link" href="/index.html">Back to main page.</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

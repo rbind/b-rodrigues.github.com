@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<style type=text/css>body{font-family:monospace;}</style>
+	<title>Capture errors, warnings and messages</title>
+	
+	
+	<link rel="stylesheet" href="/css/style.css">
+	
+	
+</head>
+<body>
+	<header>
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+<pre>
+<a class="nav-link" href="/index.html">Econometrics and Free Software</a> by <a class="nav-link" href="/about/about">Bruno Rodrigues</a>.
+<a href="https://www.brodrigues.co/blog/index.xml">RSS feed for blog post updates</a>.
+Follow me on <a href="https://twitter.com/brodriguesco" rel="nofollow">twitter</a>, or check out my <a href="https://github.com/b-rodrigues">Github</a>.
+Check out my package that adds logging to R functions, <a href="https://b-rodrigues.github.io/chronicler/">{chronicler}</a>.
+Or read my free ebook to learn some R, <a href="https://b-rodrigues.github.io/modern_R/">Modern R with the tidyverse</a>.
+Watch my <a href="https://www.youtube.com/user/cbrunos" rel="nofollow">youtube</a> channel.
+<a href="https://www.buymeacoffee.com/brodriguesco" rel="nofollow">Buy me a coffee</a>, my kids don't let me sleep.
+</pre>
+</header>
+
+	
+	<main>
+		<article>
+			<h1>Capture errors, warnings and messages</h1>
+			<b><time>2022/03/12</time></b>
+		       
+		           <a href="/tags/r">R</a>
+        	       
+
+			<div>
+				<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<div style="text-align:center;">
+<p><a href="https://www.youtube.com/watch?v=vUvut7jOPgs">
+<img src="/img/pure.jpg" title = "Hell is side effects"></a></p>
+</div>
+<p>In my <a href="https://www.youtube.com/watch?v=vUvut7jOPgs">last video</a> I tried to add a feature to my
+{loud} package (more info <a href="https://b-rodrigues.github.io/loud/">here</a>) and I succeeded. But in
+succeeding in realised that I would need to write a bit more code than what I expected. To make
+a long story short: it is possible to capture errors using <code>purrr::safely()</code>:</p>
+<pre class="r"><code>library(purrr)
+safe_log &lt;- safely(log)
+
+a &lt;- safe_log(&quot;10&quot;)
+
+str(a)</code></pre>
+<pre><code>## List of 2
+##  $ result: NULL
+##  $ error :List of 2
+##   ..$ message: chr &quot;non-numeric argument to mathematical function&quot;
+##   ..$ call   : language .Primitive(&quot;log&quot;)(x, base)
+##   ..- attr(*, &quot;class&quot;)= chr [1:3] &quot;simpleError&quot; &quot;error&quot; &quot;condition&quot;</code></pre>
+<p><code>a</code> is now a list with elements <code>$result</code> and <code>$error</code>. If everything goes right, <code>$result</code> holds
+the result of the operation, and if everything goes wrong, <code>$result</code> is <code>NULL</code> but <code>$error</code> now
+contains the error message. This is especially useful in non-interactive contexts. There is
+another similar function in <code>{purrr}</code> called <code>quietly()</code>, which captures warnings and messages:</p>
+<pre class="r"><code>quiet_log &lt;- quietly(log)
+
+b &lt;- quiet_log(-10)
+
+str(b)</code></pre>
+<pre><code>## List of 4
+##  $ result  : num NaN
+##  $ output  : chr &quot;&quot;
+##  $ warnings: chr &quot;NaNs produced&quot;
+##  $ messages: chr(0)</code></pre>
+<p>as you can see, providing a negative number to <code>log()</code> does not cause an error, but simply a
+warning. A result of <code>NaN</code> is returned (you can try with <code>log(-10)</code> in your console). <code>quietly()</code>
+captures the warning message and returns a list of 4 elements, <code>$result</code>, <code>$output</code>, <code>$warnings</code>
+and <code>$messages</code>. The problem here, is that:</p>
+<pre class="r"><code>safe_log(-10)</code></pre>
+<pre><code>## Warning in .Primitive(&quot;log&quot;)(x, base): NaNs produced</code></pre>
+<pre><code>## $result
+## [1] NaN
+## 
+## $error
+## NULL</code></pre>
+<p>returns something useless: <code>$result</code> is <code>NaN</code> (because that’s what <code>log()</code> returns for negative
+numbers) but <code>$error</code> is <code>NULL</code> since no error was thrown, but only a warning! We have a similar
+problem with <code>quiet_log()</code>:</p>
+<pre class="r"><code>quiet_log(&quot;10&quot;)</code></pre>
+<pre><code>Error in .Primitive(&quot;log&quot;)(x, base) : 
+  non-numeric argument to mathematical function</code></pre>
+<p>here, the error message is thrown, but not captured, since <code>quietly()</code> does not capture error messages.</p>
+<p>So, are we back to square one? Not necessarily, since you could compose both functions:</p>
+<pre class="r"><code>pure_log &lt;- quietly(safely(log))
+
+a2 &lt;- pure_log(-10)
+
+str(a2)</code></pre>
+<pre><code>## List of 4
+##  $ result  :List of 2
+##   ..$ result: num NaN
+##   ..$ error : NULL
+##  $ output  : chr &quot;&quot;
+##  $ warnings: chr &quot;NaNs produced&quot;
+##  $ messages: chr(0)</code></pre>
+<pre class="r"><code>b2 &lt;- pure_log(&quot;10&quot;)
+
+str(b2)</code></pre>
+<pre><code>## List of 4
+##  $ result  :List of 2
+##   ..$ result: NULL
+##   ..$ error :List of 2
+##   .. ..$ message: chr &quot;non-numeric argument to mathematical function&quot;
+##   .. ..$ call   : language .Primitive(&quot;log&quot;)(x, base)
+##   .. ..- attr(*, &quot;class&quot;)= chr [1:3] &quot;simpleError&quot; &quot;error&quot; &quot;condition&quot;
+##  $ output  : chr &quot;&quot;
+##  $ warnings: chr(0) 
+##  $ messages: chr(0)</code></pre>
+<p>As you can see, in the case of <code>a2</code>, the warning was captured, and in the case of <code>b2</code> the error
+was captured. The problem, is that the resulting object is quite complex. It’s a list where
+<code>$result</code> is itself a list in case of a warning, or <code>$error</code> is a list in case of an error.</p>
+<p>I tried to write a function that would decorate a function (as do <code>safely()</code> and <code>quietly()</code>), which
+in turn would then return a simple list and capture, errors, warnings and messages. I came up with
+this code, after re-reading <em>Advanced R</em>, in particular this
+<a href="https://adv-r.hadley.nz/conditions.html">chapter</a>:</p>
+<pre class="r"><code>purely &lt;- function(.f){
+
+  function(..., .log = &quot;Log start...&quot;){
+
+    res &lt;- rlang::try_fetch(
+                    rlang::eval_bare(.f(...)),
+                    error = function(err) err,
+                    #rlang_error = function(rlerr) rlerr,
+                    warning = function(warn) warn,
+                    message = function(message) message,
+                    )
+
+    final_result &lt;- list(
+      result = NULL,
+      log = NULL
+    )
+
+    final_result$result &lt;- if(any(c(&quot;error&quot;, &quot;rlang_error&quot;, &quot;warning&quot;, &quot;message&quot;) %in% class(res))){
+                             NA
+                           } else {
+                             res
+                           }
+
+    final_result$log &lt;- if(any(c(&quot;error&quot;, &quot;rlang_error&quot;, &quot;warning&quot;, &quot;message&quot;) %in% class(res))){
+                          #res$message
+                          purrr::pluck(res, &quot;message&quot;, .default = &quot;undefined error&quot;)
+                        } else {
+                          NA
+                        }
+    final_result
+  }
+}</code></pre>
+<pre class="r"><code>f_m &lt;- function(x){
+  message(&quot;this is a message&quot;)
+  str(x)
+}
+
+f_w &lt;- function(x){
+  warning(&quot;this is a warning&quot;)
+  str(x)
+
+}
+
+f_e &lt;- function(){
+  stop(&quot;This is an error&quot;)
+
+}
+
+pure_fm &lt;- purely(f_m)
+pure_fw &lt;- purely(f_w)
+pure_fe &lt;- purely(f_e)</code></pre>
+<p>Messages get captured:</p>
+<pre class="r"><code>pure_fm(10) |&gt;
+  str()</code></pre>
+<pre><code>## List of 2
+##  $ result: logi NA
+##  $ log   : chr &quot;this is a message\n&quot;</code></pre>
+<p>as do warnings:</p>
+<pre class="r"><code>pure_fw(10) |&gt;
+  str()</code></pre>
+<pre><code>## List of 2
+##  $ result: logi NA
+##  $ log   : chr &quot;this is a warning&quot;</code></pre>
+<p>as do errors:</p>
+<pre class="r"><code>pure_fe() |&gt;
+  str()</code></pre>
+<pre><code>## List of 2
+##  $ result: logi NA
+##  $ log   : chr &quot;This is an error&quot;</code></pre>
+<p>The structure of the result is always <code>$result</code> and <code>$log</code>. In case everything goes well
+<code>$result</code> holds the result:</p>
+<pre class="r"><code>pure_log &lt;- purely(log)
+
+pure_log(c(1,10))</code></pre>
+<pre><code>## $result
+## [1] 0.000000 2.302585
+## 
+## $log
+## [1] NA</code></pre>
+<p>And another example, with a more complex call:</p>
+<pre class="r"><code>pure_mean &lt;- purely(mean)
+
+pure_mean(c(1,10, NA), na.rm = TRUE)</code></pre>
+<pre><code>## $result
+## [1] 5.5
+## 
+## $log
+## [1] NA</code></pre>
+<p>But in case something goes wrong, the error message will get captured.</p>
+<pre class="r"><code>suppressPackageStartupMessages(library(dplyr))</code></pre>
+<pre><code>## {paint} masked print.tbl_df</code></pre>
+<pre class="r"><code>pure_select &lt;- purely(select)</code></pre>
+<p>Let’s try here to select a column that does not exist:</p>
+<pre class="r"><code>clean_mtcars &lt;- mtcars %&gt;%
+  pure_select(hp, am, bm) #bm does not exist
+
+str(clean_mtcars)</code></pre>
+<pre><code>## List of 2
+##  $ result: logi NA
+##  $ log   : chr &quot;&quot;</code></pre>
+<p>Compare to what happens with <code>select()</code>:</p>
+<pre class="r"><code>clean_mtcars2 &lt;- mtcars %&gt;%
+  select(hp, am, bm) #bm does not exist</code></pre>
+<pre><code>Error in `select()`:
+! Can&#39;t subset columns that don&#39;t exist.
+✖ Column `bm` doesn&#39;t exist.
+Backtrace:
+  1. mtcars %&gt;% select(hp, am, bm)
+...
+...</code></pre>
+<div id="update-2022-03-13" class="section level2">
+<h2>Update 2022-03-13</h2>
+<p>After writing this post I realised that the error message of select does not get captured.
+This is the only example I’ve found where the error message does not get caught. This
+seems to be related to the fact that tidyverse function have their own class of error
+messages that inherit from <code>error</code>. For some reason, there are no issues with other
+functions, for example:</p>
+<pre class="r"><code>purely(group_by)(mtcars, bm)</code></pre>
+<pre><code>## $result
+## [1] NA
+## 
+## $log
+##                                             
+## &quot;Must group by variables found in `.data`.&quot;</code></pre>
+<p>I will need to solve this…</p>
+</div>
+<div id="post-continued" class="section level2">
+<h2>Post continued…</h2>
+<p>The code (and thus the pipeline) completely fails! I’ve added this function to my
+<a href="https://b-rodrigues.github.io/loud/">{loud}</a> package, but the biggest benefit of all this is that the
+main function of the package, <code>loudly()</code> now uses <code>purely()</code> under the hood to provide more useful
+log messages in case of failure:</p>
+<pre class="r"><code>suppressPackageStartupMessages(library(loud))
+
+loud_sqrt &lt;- loudly(sqrt)
+loud_mean &lt;- loudly(mean)
+loud_exp &lt;- loudly(exp)
+
+
+result_pipe &lt;- -1:-10 |&gt;
+  loud_mean() %&gt;=% # This results in a negative number...
+  loud_sqrt() %&gt;=% # which sqrt() does not know how to handle
+  loud_exp()</code></pre>
+<p>If we now inspect <code>result_pipe</code>, we find a complete log of what went wrong:</p>
+<pre class="r"><code>result_pipe</code></pre>
+<pre><code>## $result
+## NULL
+## 
+## $log
+## [1] &quot;Log start...&quot;                                                                                                                                                            
+## [2] &quot;✔ mean(-1:-10) started at 2022-03-13 14:17:30 and ended at 2022-03-13 14:17:30&quot;                                                                                          
+## [3] &quot;✖ CAUTION - ERROR: sqrt(.l$result) started at 2022-03-13 14:17:30 and failed at 2022-03-13 14:17:30 with following message: NaNs produced&quot;                               
+## [4] &quot;✖ CAUTION - ERROR: exp(.l$result) started at 2022-03-13 14:17:30 and failed at 2022-03-13 14:17:30 with following message: non-numeric argument to mathematical function&quot;</code></pre>
+<p>If you want to know more about <code>{loud}</code>, I suggest you read
+<a href="https://www.brodrigues.co/blog/2022-02-18-loudly/">my previous blog post</a> and if you need a more
+realistic example, take a look at
+<a href="https://b-rodrigues.github.io/loud/articles/real-world-example.html">this</a>.</p>
+<p>If you try it, please let me know!</p>
+<p>Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my ebook on <a href="https://leanpub.com/modern_tidyverse">Leanpub</a>.
+You can also watch my videos on <a href="https://www.youtube.com/c/BrunoRodrigues1988/">youtube</a>.
+So much content for you to consoom!</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
+</div>
+
+			</div>
+		</article>
+	</main>
+<aside>
+	<div>
+		<div>
+			<h3>LATEST POSTS</h3>
+		</div>
+		<div>
+			<ul>
+				
+				<li><a href="/blog/2022-06-21-heavy_syntax/">Get packages that introduce unique syntax adopted less?</a></li>
+				
+				<li><a href="/blog/2022-05-18-cran_0_2_0/">chronicler is now available on CRAN</a></li>
+				
+				<li><a href="/blog/2022-05-15-self_doc_ggplot/">Self-documenting {ggplot}s thanks to the power of monads!</a></li>
+				
+				<li><a href="/blog/2022-04-11-monads/">Why you should(n&#39;t) care about Monads if you&#39;re an R programmer</a></li>
+				
+				<li><a href="/blog/2022-04-04-chron_post/">The {chronicler} package, an implementation of the logger monad in R</a></li>
+				
+			</ul>
+		</div>
+	</div>
+</aside>
+
+
+	<footer>
+  <div class="row">
+    <div class="col-lg-12">
+      <p>2022, content by Bruno Rodrigues, unless otherwise stated, every content of this blog is licensed under the <a href="http://www.wtfpl.net/txt/copying/" rel="nofollow">WTFPL</a>.</p>
+      <p>The theme this blog uses is a slight variation of the <a href="https://github.com/colorchestra/smol" rel="nofollow">Smol</a> theme.</p>
+      <p><a class="nav-link" href="/index.html">Back to main page.</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

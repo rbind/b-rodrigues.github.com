@@ -6,10 +6,1854 @@
     <description>Recent content on Econometrics and Free Software</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sun, 05 Sep 2021 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Sat, 21 May 2022 00:00:00 +0000</lastBuildDate>
     
         <atom:link href="https://www.brodrigues.co/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Get packages that introduce unique syntax adopted less?</title>
+      <link>https://www.brodrigues.co/blog/2022-06-21-heavy_syntax/</link>
+      <pubDate>Sat, 21 May 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://www.brodrigues.co/blog/2022-06-21-heavy_syntax/</guid>
+      <description>&lt;script src=&#34;https://www.brodrigues.co/rmarkdown-libs/header-attrs/header-attrs.js&#34;&gt;&lt;/script&gt;
+
+
+&lt;div style=&#34;text-align:center;&#34;&gt;
+&lt;p&gt;
+&lt;a href=&#34;https://www.youtube.com/watch?v=I8LbkfSSR58&amp;list=PLbgaMIhjbmEnaH_LTkxLI7FMa2HsnawM_&#34;&gt;
+&lt;img src=&#34;https://www.brodrigues.co/img/monoids_endofunctors.jpg&#34; title = &#34;How it feels to implement your own monad&#34;&gt;&lt;/a&gt;
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;p&gt;I have this hypothesis that packages that introduce a unique syntax, or a workflow change,
+get adopted less by users, even if what these packages do is super useful.
+I’m going to discuss two examples of packages that I think are really, really useful, but sometimes
+I wonder how many R users use them, or would use them if they were aware these packages existed.
+I myself, only use one of them!&lt;/p&gt;
+&lt;p&gt;The first package is &lt;a href=&#34;https://github.com/moodymudskipper/typed&#34;&gt;&lt;code&gt;{typed}&lt;/code&gt;&lt;/a&gt; which introduces a type
+system for R. No more silent conversion to and from types without your knowing! If you don’t
+know what a type system is, consider the following:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;nchar(&amp;quot;100000000&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] 9&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;you get “9” back, no problem. But if you do:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;nchar(100000000)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] 5&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;You get 5 back… what in the Lord’s name happened here? What happened is that the number 100000000 could
+converted to a character implicitly. But because of all these 0’s, this is what happened:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;as.character(100000000)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;1e+08&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;It gets converted to a character alright, but scientific notation gets used! So yes,
+1e+08 is 5 characters long… Ideally &lt;code&gt;nchar()&lt;/code&gt; would at least warn you that
+this conversion is happening, or maybe even error. After all, it’s called &lt;code&gt;nchar()&lt;/code&gt; not &lt;code&gt;nnumeric()&lt;/code&gt; or
+whatever. (Thanks to
+&lt;a href=&#34;https://twitter.com/cararthompson/status/1525114767614087169?s=20&amp;amp;t=oEOD1Vf7q9l0ZpdVLyDeUw&#34;&gt;&lt;code&gt;@cararthompson&lt;/code&gt;&lt;/a&gt;
+for this!)&lt;/p&gt;
+&lt;p&gt;A solution could be to write a wrapper around it:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;nchar2 &amp;lt;- function(x, ...){
+  stopifnot(&amp;quot;x is not a character&amp;quot; = is.character(x))
+
+  nchar(x, ...)
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now this function is safe:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;nchar2(123456789)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;## [1] Error in nchar2(123456789) : x is not a character&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;code&gt;{typed}&lt;/code&gt; makes things like this easier. Using &lt;code&gt;{typed}&lt;/code&gt; you can write the wrapper like this:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(typed)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## 
+## Attaching package: &amp;#39;typed&amp;#39;&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## The following object is masked from &amp;#39;package:utils&amp;#39;:
+## 
+##     ?&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;strict_nchar &amp;lt;- ? function(x = ? Character(), ...){
+
+  nchar(x, ...)
+
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;code&gt;{typed}&lt;/code&gt; introduces &lt;code&gt;?&lt;/code&gt; (masking the &lt;code&gt;?&lt;/code&gt; command) allowing you to set the type the functions arguments
+(&lt;code&gt;x = ? Character()&lt;/code&gt;) and also we had to write &lt;code&gt;?&lt;/code&gt; in front of &lt;code&gt;function&lt;/code&gt;. It’s also possible to set
+the return type:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;strict_nchar &amp;lt;- Integer() ? function(x = ? Character(), ...){
+
+  nchar(x, ...)
+
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;strict_nchar(&amp;quot;10000000&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] 8&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;
+Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on &lt;a href=&#34;https://www.twitter.com/brodriguesco&#34;&gt;twitter&lt;/a&gt; for blog post updates and
+&lt;a href=&#34;https://www.buymeacoffee.com/brodriguesco&#34;&gt;buy me an espresso&lt;/a&gt; or &lt;a href=&#34;https://www.paypal.me/brodriguesco&#34;&gt;paypal.me&lt;/a&gt;, or buy my ebook on &lt;a href=&#34;https://leanpub.com/modern_tidyverse&#34;&gt;Leanpub&lt;/a&gt;.
+You can also watch my videos on &lt;a href=&#34;https://www.youtube.com/c/BrunoRodrigues1988/&#34;&gt;youtube&lt;/a&gt;.
+So much content for you to consoom!
+&lt;/p&gt;
+&lt;style&gt;.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:&#39;Cookie&#39;, cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}&lt;/style&gt;
+&lt;p&gt;
+&lt;link href=&#34;https://fonts.googleapis.com/css?family=Cookie&#34; rel=&#34;stylesheet&#34;&gt;&lt;a class=&#34;bmc-button&#34; target=&#34;_blank&#34; href=&#34;https://www.buymeacoffee.com/brodriguesco&#34;&gt;&lt;img src=&#34;https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg&#34; alt=&#34;Buy me an Espresso&#34;&gt;&lt;span style=&#34;margin-left:5px&#34;&gt;Buy me an Espresso&lt;/span&gt;&lt;/a&gt;
+&lt;/p&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>chronicler is now available on CRAN</title>
+      <link>https://www.brodrigues.co/blog/2022-05-18-cran_0_2_0/</link>
+      <pubDate>Wed, 18 May 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://www.brodrigues.co/blog/2022-05-18-cran_0_2_0/</guid>
+      <description>&lt;script src=&#34;https://www.brodrigues.co/rmarkdown-libs/header-attrs/header-attrs.js&#34;&gt;&lt;/script&gt;
+
+
+&lt;div style=&#34;text-align:center;&#34;&gt;
+&lt;p&gt;&lt;a href=&#34;https://b-rodrigues.github.io/chronicler/&#34;&gt;
+&lt;img src=&#34;https://b-rodrigues.github.io/chronicler/reference/figures/hex.png&#34; title = &#34;chronicler&#39;s hex logo&#34; height=&#34;400px&#34;&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;p&gt;I am very happy to annouce that the &lt;code&gt;{chronicler}&lt;/code&gt; package, which I’ve been working on for the past
+3 months has been released on CRAN. Install it with:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;install.packages(&amp;quot;chronicler&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;code&gt;{chronicler}&lt;/code&gt; allows you to create objects that carry a log
+with them. Here is an example of an object that has been created using &lt;code&gt;{chronicler}&lt;/code&gt;, and saved
+using &lt;code&gt;saveRDS()&lt;/code&gt; (which we now load back into our session using &lt;code&gt;readRDS()&lt;/code&gt;):&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(chronicler)
+
+my_df &amp;lt;- readRDS(&amp;quot;path/to/my_df.rds&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Printing &lt;code&gt;my_df&lt;/code&gt; shows the following output:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;my_df&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## OK! Value computed successfully:
+## ---------------
+## Just
+## # A tibble: 9 × 3
+## # Groups:   species [9]
+##   species    sex              mass
+##   &amp;lt;chr&amp;gt;      &amp;lt;chr&amp;gt;           &amp;lt;dbl&amp;gt;
+## 1 Clawdite   female           55  
+## 2 Droid      none             69.8
+## 3 Human      female           56.3
+## 4 Hutt       hermaphroditic 1358  
+## 5 Kaminoan   female          NaN  
+## 6 Mirialan   female           53.1
+## 7 Tholothian female           50  
+## 8 Togruta    female           57  
+## 9 Twi&amp;#39;lek    female           55  
+## 
+## ---------------
+## This is an object of type `chronicle`.
+## Retrieve the value of this object with pick(.c, &amp;quot;value&amp;quot;).
+## To read the log of this object, call read_log(.c).&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;code&gt;my_df&lt;/code&gt; is made up of two parts, one is a data set, and the other is the log. If you wish
+to know how this data set was created, you can call &lt;code&gt;read_log(my_df)&lt;/code&gt; (this function will
+be renamed to &lt;code&gt;read.log()&lt;/code&gt; in the next release, to avoid clashing with &lt;code&gt;readr::read_log()&lt;/code&gt;):&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;read_log(my_df)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;Complete log:&amp;quot;                                                                  
+## [2] &amp;quot;OK! select(height,mass,species,sex) ran successfully at 2022-05-18 10:56:52&amp;quot;    
+## [3] &amp;quot;OK! group_by(species,sex) ran successfully at 2022-05-18 10:56:52&amp;quot;              
+## [4] &amp;quot;OK! filter(sex != \&amp;quot;male\&amp;quot;) ran successfully at 2022-05-18 10:56:52&amp;quot;            
+## [5] &amp;quot;OK! summarise(mean(mass, na.rm = TRUE)) ran successfully at 2022-05-18 10:56:52&amp;quot;
+## [6] &amp;quot;Total running time: 0.185953617095947 secs&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;if you want to get the dataset out of the &lt;code&gt;{chronicler}&lt;/code&gt; “box”, you can do so with &lt;code&gt;pick(my_df, &#34;value&#34;)&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;pick(my_df, &amp;quot;value&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## # A tibble: 9 × 3
+## # Groups:   species [9]
+##   species    sex              mass
+##   &amp;lt;chr&amp;gt;      &amp;lt;chr&amp;gt;           &amp;lt;dbl&amp;gt;
+## 1 Clawdite   female           55  
+## 2 Droid      none             69.8
+## 3 Human      female           56.3
+## 4 Hutt       hermaphroditic 1358  
+## 5 Kaminoan   female          NaN  
+## 6 Mirialan   female           53.1
+## 7 Tholothian female           50  
+## 8 Togruta    female           57  
+## 9 Twi&amp;#39;lek    female           55&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;To know more about all the package has to offer, read the
+&lt;a href=&#34;https://b-rodrigues.github.io/chronicler/&#34;&gt;readme&lt;/a&gt; and the
+&lt;a href=&#34;https://b-rodrigues.github.io/chronicler/articles/&#34;&gt;vignettes&lt;/a&gt; on the package’s website. I’m
+already working on the next release, where I plan to add the following features:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Rename &lt;code&gt;read_log()&lt;/code&gt; to &lt;code&gt;read.log()&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Make &lt;code&gt;{chronicler}&lt;/code&gt; work with &lt;code&gt;{ggplot2}&lt;/code&gt; (as described &lt;a href=&#34;https://www.brodrigues.co/blog/2022-05-15-self_doc_ggplot/&#34;&gt;here&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;Introduce functions to save &lt;code&gt;{chronicler}&lt;/code&gt; objects as &lt;code&gt;.csv&lt;/code&gt; or &lt;code&gt;.xlsx&lt;/code&gt; files to disk (if the underlying value is a &lt;code&gt;data.frame&lt;/code&gt;, as in the example above)&lt;/li&gt;
+&lt;li&gt;Anything else I think of between now and then!&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;I’m really looking forward to see how people are going to use this package for their work,
+personally I’ve been mixing &lt;code&gt;{chronicler}&lt;/code&gt; with &lt;code&gt;{targets}&lt;/code&gt; to build very robust pipelines to build
+&lt;code&gt;chronicle&lt;/code&gt; objects!&lt;/p&gt;
+&lt;div id=&#34;thanks&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Thanks&lt;/h2&gt;
+&lt;p&gt;I’d like to thank &lt;a href=&#34;https://github.com/armcn&#34;&gt;armcn&lt;/a&gt;, &lt;a href=&#34;https://github.com/Kupac&#34;&gt;Kupac&lt;/a&gt; for their
+blog posts (&lt;a href=&#34;https://kupac.gitlab.io/biofunctor/2019/05/25/maybe-monad-in-r/&#34;&gt;here&lt;/a&gt;) and packages
+(&lt;a href=&#34;https://armcn.github.io/maybe/&#34;&gt;maybe&lt;/a&gt;) which inspired me to build this package. Thank you as
+well to
+&lt;a href=&#34;https://community.rstudio.com/t/help-with-writing-a-custom-pipe-and-environments/133447/2?u=brodriguesco&#34;&gt;TimTeaFan&lt;/a&gt;
+for his help with writing the &lt;code&gt;%&amp;gt;=%&lt;/code&gt; infix operator,
+&lt;a href=&#34;https://community.rstudio.com/t/best-way-to-catch-rlang-errors-consistently/131632/5?u=brodriguesco&#34;&gt;nigrahamuk&lt;/a&gt;
+for showing me a nice way to catch errors, and finally
+&lt;a href=&#34;https://community.rstudio.com/t/how-to-do-call-a-dplyr-function/131396/2?u=brodriguesco&#34;&gt;Mwavu&lt;/a&gt;
+for pointing me towards the right direction with an issue I’ve had as I started working on this
+package. Thanks to &lt;a href=&#34;https://twitter.com/putosaure&#34;&gt;Putosaure&lt;/a&gt; for designing the hex logo,
+and of course to every single person that makes free and open source software possible.&lt;/p&gt;
+&lt;p&gt;Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on &lt;a href=&#34;https://www.twitter.com/brodriguesco&#34;&gt;twitter&lt;/a&gt; for blog post updates and
+&lt;a href=&#34;https://www.buymeacoffee.com/brodriguesco&#34;&gt;buy me an espresso&lt;/a&gt; or &lt;a href=&#34;https://www.paypal.me/brodriguesco&#34;&gt;paypal.me&lt;/a&gt;, or buy my ebook on &lt;a href=&#34;https://leanpub.com/modern_tidyverse&#34;&gt;Leanpub&lt;/a&gt;.
+You can also watch my videos on &lt;a href=&#34;https://www.youtube.com/c/BrunoRodrigues1988/&#34;&gt;youtube&lt;/a&gt;.
+So much content for you to consoom!&lt;/p&gt;
+&lt;style&gt;.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:&#39;Cookie&#39;, cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}&lt;/style&gt;
+&lt;p&gt;&lt;link href=&#34;https://fonts.googleapis.com/css?family=Cookie&#34; rel=&#34;stylesheet&#34;&gt;&lt;a class=&#34;bmc-button&#34; target=&#34;_blank&#34; href=&#34;https://www.buymeacoffee.com/brodriguesco&#34;&gt;&lt;img src=&#34;https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg&#34; alt=&#34;Buy me an Espresso&#34;&gt;&lt;span style=&#34;margin-left:5px&#34;&gt;Buy me an Espresso&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Self-documenting {ggplot}s thanks to the power of monads!</title>
+      <link>https://www.brodrigues.co/blog/2022-05-15-self_doc_ggplot/</link>
+      <pubDate>Sun, 15 May 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://www.brodrigues.co/blog/2022-05-15-self_doc_ggplot/</guid>
+      <description>&lt;script src=&#34;https://www.brodrigues.co/rmarkdown-libs/header-attrs/header-attrs.js&#34;&gt;&lt;/script&gt;
+
+
+&lt;div style=&#34;text-align:center;&#34;&gt;
+&lt;p&gt;&lt;a href=&#34;https://www.youtube.com/watch?v=I8LbkfSSR58&amp;list=PLbgaMIhjbmEnaH_LTkxLI7FMa2HsnawM_&#34;&gt;
+&lt;img src=&#34;https://www.brodrigues.co/img/monoids_endofunctors.jpg&#34; title = &#34;How it feels to implement your own monad&#34;&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;p&gt;Hey kid, fancy some self-documenting &lt;code&gt;{ggplots}&lt;/code&gt; like this one:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://www.brodrigues.co/blog/2022-05-15-self_doc_ggplot_files/figure-html/unnamed-chunk-1-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;Just read on!&lt;/p&gt;
+&lt;p&gt;I’ve been working hard on a package that I’ve called &lt;code&gt;{chronicler}&lt;/code&gt; (read my post on it
+&lt;a href=&#34;https://www.brodrigues.co/blog/2022-04-04-chron_post/&#34;&gt;here&lt;/a&gt;) which allows you to
+attach a log to the objects you create, thus making it easy to know how some data (for example)
+has been created. Here’s a quick example and intro to the main features:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;suppressPackageStartupMessages(
+  library(dplyr)
+)
+library(chronicler)
+
+# record() decorates functions so they provide enriched output
+r_group_by &amp;lt;- record(group_by)
+r_select &amp;lt;- record(select)
+r_summarise &amp;lt;- record(summarise)
+r_filter &amp;lt;- record(filter)
+
+output_pipe &amp;lt;- starwars %&amp;gt;%
+  r_select(height, mass, species, sex) %&amp;gt;=% # &amp;lt;- this is a special pipe operator to handle `chronicle` objects
+  r_group_by(species, sex) %&amp;gt;=%
+  r_filter(sex != &amp;quot;male&amp;quot;) %&amp;gt;=%
+  r_summarise(mass = mean(mass, na.rm = TRUE))&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;code&gt;output_pipe&lt;/code&gt; not only has the result of all the &lt;code&gt;{dplyr}&lt;/code&gt; operations, but also carries a log
+with it. Let’s print the object:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;output_pipe&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## OK! Value computed successfully:
+## ---------------
+## Just
+## # A tibble: 9 × 3
+## # Groups:   species [9]
+##   species    sex              mass
+##   &amp;lt;chr&amp;gt;      &amp;lt;chr&amp;gt;           &amp;lt;dbl&amp;gt;
+## 1 Clawdite   female           55  
+## 2 Droid      none             69.8
+## 3 Human      female           56.3
+## 4 Hutt       hermaphroditic 1358  
+## 5 Kaminoan   female          NaN  
+## 6 Mirialan   female           53.1
+## 7 Tholothian female           50  
+## 8 Togruta    female           57  
+## 9 Twi&amp;#39;lek    female           55  
+## 
+## ---------------
+## This is an object of type `chronicle`.
+## Retrieve the value of this object with pick(.c, &amp;quot;value&amp;quot;).
+## To read the log of this object, call read_log(.c).&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Accessing the value is possible with &lt;code&gt;pick(&#34;value&#34;)&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;pick(output_pipe, &amp;quot;value&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## # A tibble: 9 × 3
+## # Groups:   species [9]
+##   species    sex              mass
+##   &amp;lt;chr&amp;gt;      &amp;lt;chr&amp;gt;           &amp;lt;dbl&amp;gt;
+## 1 Clawdite   female           55  
+## 2 Droid      none             69.8
+## 3 Human      female           56.3
+## 4 Hutt       hermaphroditic 1358  
+## 5 Kaminoan   female          NaN  
+## 6 Mirialan   female           53.1
+## 7 Tholothian female           50  
+## 8 Togruta    female           57  
+## 9 Twi&amp;#39;lek    female           55&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;and you can read the log with &lt;code&gt;read_log()&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;read_log(output_pipe)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;Complete log:&amp;quot;                                                                  
+## [2] &amp;quot;OK! select(height,mass,species,sex) ran successfully at 2022-05-15 17:10:43&amp;quot;    
+## [3] &amp;quot;OK! group_by(species,sex) ran successfully at 2022-05-15 17:10:43&amp;quot;              
+## [4] &amp;quot;OK! filter(sex != \&amp;quot;male\&amp;quot;) ran successfully at 2022-05-15 17:10:43&amp;quot;            
+## [5] &amp;quot;OK! summarise(mean(mass, na.rm = TRUE)) ran successfully at 2022-05-15 17:10:43&amp;quot;
+## [6] &amp;quot;Total running time: 0.0434844493865967 secs&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;If you want to understand how this works, I suggest you read the blog post I linked above but also
+&lt;a href=&#34;https://www.brodrigues.co/blog/2022-04-11-monads/&#34;&gt;this one&lt;/a&gt;, where I explain the nitty gritty,
+theoretical details behind what &lt;code&gt;{chronicler}&lt;/code&gt; does. To make a long story short, &lt;code&gt;{chronicler}&lt;/code&gt;
+uses an advanced functional programming concept called a monad. And using the power of monads,
+I can now make self-documenting &lt;code&gt;{ggplot2}&lt;/code&gt; graphs.&lt;/p&gt;
+&lt;p&gt;The idea was to be able to build a plot in a way similar to how I built that dataset just above,
+and have a log of how it was created attached to it. The issue is that the function that
+&lt;em&gt;transforms&lt;/em&gt; functions to &lt;code&gt;chronicler&lt;/code&gt; functions, &lt;code&gt;record()&lt;/code&gt;, does not work on &lt;code&gt;{ggplot2}&lt;/code&gt; functions.&lt;/p&gt;
+&lt;p&gt;This is because the way you create &lt;code&gt;{ggplot2}&lt;/code&gt; graphs is by adding layers on top of each other:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(ggplot2)
+
+ggplot(mtcars) +
+  geom_point(aes(mpg, hp))&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;https://www.brodrigues.co/blog/2022-05-15-self_doc_ggplot_files/figure-html/unnamed-chunk-6-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;The &lt;code&gt;+&lt;/code&gt; here acts as a way to “add” the &lt;code&gt;geom_point(mpg, hp)&lt;/code&gt; layer on top of the &lt;code&gt;ggplot(mtcars)&lt;/code&gt; layer.
+I remember reading some tweets, quite some time ago, from people asking why &lt;code&gt;%&amp;gt;%&lt;/code&gt; couldn’t work with
+&lt;code&gt;{ggplot2}&lt;/code&gt; and if Hadley Wickham, the developer of &lt;code&gt;{ggplot2}&lt;/code&gt;, was considering making something like this
+work:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;ggplot(mtcars) %&amp;gt;%
+  geom_point(aes(mpg, hp))&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;because people kept forgetting using &lt;code&gt;+&lt;/code&gt; and kept using &lt;code&gt;%&amp;gt;%&lt;/code&gt;. The thing is, &lt;code&gt;%&amp;gt;%&lt;/code&gt; and &lt;code&gt;+&lt;/code&gt; do very
+different things. &lt;code&gt;%&amp;gt;%&lt;/code&gt; takes its first argument and passes it as the first argument of its second
+argument, in other words this:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;a %&amp;gt;% f(b)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;is exactly the same as:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;f(a, b)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This is not what &lt;code&gt;{ggplot2}&lt;/code&gt; functions do. When you call &lt;code&gt;+&lt;/code&gt; on &lt;code&gt;{ggplot2}&lt;/code&gt; objects, this is NOT what happens:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;geom_point(ggplot(mtcars), aes(mpg, hp))&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;So that’s why &lt;code&gt;%&amp;gt;%&lt;/code&gt; cannot be used with &lt;code&gt;{ggplot2}&lt;/code&gt; functions, and that’s also why the functions I developed
+in &lt;code&gt;{chronicle}&lt;/code&gt; could not handle &lt;code&gt;{ggplot2}&lt;/code&gt; functions either. So I had to provide new functions. The first
+function I developed is called &lt;code&gt;ggrecord()&lt;/code&gt; and it decorates &lt;code&gt;{ggplot2}&lt;/code&gt; functions:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;r_ggplot &amp;lt;- ggrecord(ggplot)
+r_geom_point &amp;lt;- ggrecord(geom_point)
+r_labs &amp;lt;- ggrecord(labs)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now the output of these functions are not &lt;code&gt;ggplot&lt;/code&gt; objects anymore, but chronicle objects. So to make
+layering them possible, I also needed to rewrite &lt;code&gt;+&lt;/code&gt;. I called my rewritten &lt;code&gt;+&lt;/code&gt; like this: &lt;code&gt;%&amp;gt;+%&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;a &amp;lt;- r_ggplot(mtcars) %&amp;gt;+%
+  r_geom_point(aes(y = mpg, x = hp)) %&amp;gt;+%
+  r_labs(title = &amp;quot;Self-documenting ggplot!\nLook at the bottom right&amp;quot;,
+         caption = &amp;quot;This is an example caption&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Let’s first take a look at &lt;code&gt;a&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;a&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## OK! Ggplot computed successfully:
+## ---------------
+## Just&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;https://www.brodrigues.co/blog/2022-05-15-self_doc_ggplot_files/figure-html/unnamed-chunk-13-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;## 
+## ---------------
+## This is an object of type `chronicle`.
+## Retrieve the value of this object with pick(.c, &amp;quot;value&amp;quot;).
+## To read the log of this object, call read_log(.c).&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;As before expected, &lt;code&gt;a&lt;/code&gt; is now an object of type &lt;code&gt;{chronicle}&lt;/code&gt;, where its “value” is a &lt;code&gt;ggplot&lt;/code&gt; object.
+But where is the self-documenting part?
+For this, you use the last piece of the puzzle, &lt;code&gt;document_gg()&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;document_gg(a)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## OK! Ggplot computed successfully:
+## ---------------
+## Just&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;https://www.brodrigues.co/blog/2022-05-15-self_doc_ggplot_files/figure-html/unnamed-chunk-14-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;## 
+## ---------------
+## This is an object of type `chronicle`.
+## Retrieve the value of this object with pick(.c, &amp;quot;value&amp;quot;).
+## To read the log of this object, call read_log(.c).&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The caption now contains the log of the plot, making it easily reproducible!&lt;/p&gt;
+&lt;p&gt;This is still in very early development, but if you want to try it out, you’ll need to try the &lt;code&gt;dev&lt;/code&gt;
+branch of &lt;a href=&#34;https://github.com/b-rodrigues/chronicler/tree/dev&#34;&gt;the package&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Any feedback, comments, ideas, pull requests, more than welcome.&lt;/p&gt;
+&lt;p&gt;Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on &lt;a href=&#34;https://www.twitter.com/brodriguesco&#34;&gt;twitter&lt;/a&gt; for blog post updates and
+&lt;a href=&#34;https://www.buymeacoffee.com/brodriguesco&#34;&gt;buy me an espresso&lt;/a&gt; or &lt;a href=&#34;https://www.paypal.me/brodriguesco&#34;&gt;paypal.me&lt;/a&gt;, or buy my ebook on &lt;a href=&#34;https://leanpub.com/modern_tidyverse&#34;&gt;Leanpub&lt;/a&gt;.
+You can also watch my videos on &lt;a href=&#34;https://www.youtube.com/c/BrunoRodrigues1988/&#34;&gt;youtube&lt;/a&gt;.
+So much content for you to consoom!&lt;/p&gt;
+&lt;style&gt;.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:&#39;Cookie&#39;, cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}&lt;/style&gt;
+&lt;p&gt;&lt;link href=&#34;https://fonts.googleapis.com/css?family=Cookie&#34; rel=&#34;stylesheet&#34;&gt;&lt;a class=&#34;bmc-button&#34; target=&#34;_blank&#34; href=&#34;https://www.buymeacoffee.com/brodriguesco&#34;&gt;&lt;img src=&#34;https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg&#34; alt=&#34;Buy me an Espresso&#34;&gt;&lt;span style=&#34;margin-left:5px&#34;&gt;Buy me an Espresso&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Why you should(n&#39;t) care about Monads if you&#39;re an R programmer</title>
+      <link>https://www.brodrigues.co/blog/2022-04-11-monads/</link>
+      <pubDate>Mon, 11 Apr 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://www.brodrigues.co/blog/2022-04-11-monads/</guid>
+      <description>&lt;script src=&#34;https://www.brodrigues.co/rmarkdown-libs/header-attrs/header-attrs.js&#34;&gt;&lt;/script&gt;
+
+
+&lt;div style=&#34;text-align:center;&#34;&gt;
+&lt;p&gt;&lt;a href=&#34;https://www.youtube.com/watch?v=I8LbkfSSR58&amp;list=PLbgaMIhjbmEnaH_LTkxLI7FMa2HsnawM_&#34;&gt;
+&lt;img src=&#34;https://www.brodrigues.co/img/pondering.jpg&#34; title = &#34;How it feels to implement your own monad&#34;&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;p&gt;&lt;em&gt;Update: I also made a video out of this blog post; watch it on &lt;a href=&#34;https://www.youtube.com/watch?v=Hlypj6-n51c&#34;&gt;youtube&lt;/a&gt;.&lt;/em&gt;&lt;/p&gt;
+&lt;div id=&#34;introduction-functions&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Introduction: functions&lt;/h2&gt;
+&lt;p&gt;To understand Monads, I think it’s useful to first think about functions; why do we use functions?
+Why don’t we simply write scripts with the required operations one after the other? For instance,
+to compute the average height by species in a data set of individuals from
+the famous space opera “Star Wars”, we could very well write this code:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;suppressPackageStartupMessages(library(dplyr))
+
+data(starwars)
+
+sum_humans &amp;lt;- 0
+sum_others &amp;lt;- 0
+n_humans &amp;lt;- 0
+n_others &amp;lt;- 0
+
+for(i in seq_along(1:nrow(starwars))){
+
+  if(!is.na(unlist(starwars[i, &amp;quot;species&amp;quot;])) &amp;amp;
+     unlist(starwars[i, &amp;quot;species&amp;quot;]) == &amp;quot;Human&amp;quot;){
+    if(!is.na(unlist(starwars[i, &amp;quot;height&amp;quot;]))){
+      sum_humans &amp;lt;- sum_humans + unlist(starwars[i, &amp;quot;height&amp;quot;])
+      n_humans &amp;lt;- n_humans + 1
+    } else {
+
+      0
+
+    }
+
+  } else {
+    if(!is.na(unlist(starwars[i, &amp;quot;height&amp;quot;]))){
+      sum_others &amp;lt;- sum_others + unlist(starwars[i, &amp;quot;height&amp;quot;])
+      n_others &amp;lt;- n_others + 1
+    } else {
+      0
+    }
+  }
+}
+
+mean_height_humans &amp;lt;- sum_humans/n_humans
+mean_height_others &amp;lt;- sum_others/n_others&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Well, we &lt;em&gt;could&lt;/em&gt; do it like this, but we definitely shouldn’t:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;what this code does is not immediately obvious. If the code blocks aren’t commented, readers of this code will have to read line by line to understand what is going on;&lt;/li&gt;
+&lt;li&gt;this code is not reusable. If now I need the average height by species and sex, I need to copy and
+paste the code, and modify it, and in some cases modify it substantially;&lt;/li&gt;
+&lt;li&gt;this code handles missing values in a cumbersome way, with nested &lt;code&gt;if...else...&lt;/code&gt;s;&lt;/li&gt;
+&lt;li&gt;this code is not easy to test;&lt;/li&gt;
+&lt;li&gt;this code cannot be composed (meaning, chained) with other code without substantially altering it (to be precise, chaining and composing are two different things, strictly speaking, but for simplicity’s sake, let’s just assume it is the same. Whenever I’m talking about “composing” something, I mean “chaining” something.)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;But it’s not just shortcomings, this &lt;em&gt;imperative&lt;/em&gt; code has one advantage; it uses only some very fundamental
+building blocks: &lt;code&gt;if...else...&lt;/code&gt;, for loops and that’s almost it (it does use some functions provided
+by a base installation of R, namely &lt;code&gt;is.na()&lt;/code&gt;, &lt;code&gt;!()&lt;/code&gt;, &lt;code&gt;unlist()&lt;/code&gt; and &lt;code&gt;[()&lt;/code&gt;, so strictly speaking,
+the code above is not purely imperative, but maybe closer to being procedural?).&lt;/p&gt;
+&lt;p&gt;Using functions solves all the issues from imperative programming. Here is a base solution to the
+problem above, using a declarative, or functional, approach:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;aggregate(starwars$height,
+          by = list(starwars$species == &amp;quot;Human&amp;quot;),
+          FUN = \(x)(mean(x, na.rm = TRUE)))&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##   Group.1        x
+## 1   FALSE 172.4043
+## 2    TRUE 176.6452&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This code has many advantages:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;what this code does is obvious, but only if you know what &lt;code&gt;aggregate()&lt;/code&gt; does. But if you read its
+documentation you’ll know, and you’ll know every time you’ll see &lt;code&gt;aggregate()&lt;/code&gt; unlike a loop
+like the loop above where you’ll have to read it each time to understand;&lt;/li&gt;
+&lt;li&gt;this code is reusable. Replace the data frame by another, and that’s it;&lt;/li&gt;
+&lt;li&gt;Missing values are now ignored easily using the &lt;code&gt;na.rm&lt;/code&gt; argument of &lt;code&gt;mean()&lt;/code&gt;;&lt;/li&gt;
+&lt;li&gt;this code is easy to test (using unit tests);&lt;/li&gt;
+&lt;li&gt;this code can be composed, for instance like this:&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;aggregate(starwars$height,
+          by = list(starwars$species == &amp;quot;Human&amp;quot;),
+          FUN = \(x)(mean(x, na.rm = TRUE))) |&amp;gt;
+  setNames(c(&amp;quot;is_human&amp;quot;, &amp;quot;mean_height&amp;quot;))&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##   is_human mean_height
+## 1    FALSE    172.4043
+## 2     TRUE    176.6452&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The issue with the functional approach (at least that’s the issue that many people I spoke to about
+this raise) is that… in some way people that don’t like this approach feel like they “lose”
+control over what’s going on. You don’t know what happens inside these functions. I remember, while
+working my first job, that my boss required that I don’t use any functions nor packages, but
+instead write all the loops explicitely, because she wanted to understand what was going on (of
+course, I completely ignored this request and just did as I pleased). As discussed above, the
+imperative approach requires minimum knowledge of the language, and almost anyone with an ounce of
+programming experience can understand imperative code. That’s not the case with a functional
+approach. Readers will have to be familiar with the individual functions like &lt;code&gt;aggregate()&lt;/code&gt;, but
+also anonymous functions (I had to use &lt;code&gt;\(x)(mean(x, na.rm = TRUE))&lt;/code&gt; to set &lt;code&gt;na.rm = TRUE&lt;/code&gt;, which
+is &lt;code&gt;FALSE&lt;/code&gt; by default) and also &lt;code&gt;|&amp;gt;&lt;/code&gt; for composition/chaining.&lt;/p&gt;
+&lt;p&gt;It may same more complex, and maybe it is, but the advantages far outweigh the shortcoming.&lt;/p&gt;
+&lt;p&gt;For completeness, here is a &lt;code&gt;{dplyr}&lt;/code&gt; version:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;starwars %&amp;gt;%
+  group_by(is_human = species == &amp;quot;Human&amp;quot;) %&amp;gt;%
+  summarise(mean_height = mean(height, na.rm = TRUE))&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## # A tibble: 3 × 2
+##   is_human mean_height
+##   &amp;lt;lgl&amp;gt;          &amp;lt;dbl&amp;gt;
+## 1 FALSE           172.
+## 2 TRUE            177.
+## 3 NA              181.&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;code&gt;{dplyr}&lt;/code&gt; code is even more concise than base functional code. Here again, users will have to know
+about the individual functions and &lt;code&gt;%&amp;gt;%&lt;/code&gt;. But personally, I think that the only hurdle is
+understanding what &lt;code&gt;%&amp;gt;%&lt;/code&gt; does, and once you know this, &lt;code&gt;{dplyr}&lt;/code&gt; code can be understood quite easily,
+thanks to very explicit function names.&lt;/p&gt;
+&lt;p&gt;So functions are great. They’re easy to test, easy to document, easy to package, easy to reuse, and
+easy to compose. Composition is really important. For example, let’s go back to the imperative
+code, and put the result in a neat data frame object, like the functional solutions do:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;sum_humans &amp;lt;- 0
+sum_others &amp;lt;- 0
+n_humans &amp;lt;- 0
+n_others &amp;lt;- 0
+
+for(i in seq_along(1:nrow(starwars))){
+
+  if(!is.na(unlist(starwars[i, &amp;quot;species&amp;quot;])) &amp;amp;
+     unlist(starwars[i, &amp;quot;species&amp;quot;]) == &amp;quot;Human&amp;quot;){
+    if(!is.na(unlist(starwars[i, &amp;quot;height&amp;quot;]))){
+      sum_humans &amp;lt;- sum_humans + unlist(starwars[i, &amp;quot;height&amp;quot;])
+      n_humans &amp;lt;- n_humans + 1
+    } else {
+
+      0
+
+    }
+
+  } else {
+    if(!is.na(unlist(starwars[i, &amp;quot;height&amp;quot;]))){
+      sum_others &amp;lt;- sum_others + unlist(starwars[i, &amp;quot;height&amp;quot;])
+      n_others &amp;lt;- n_others + 1
+    } else {
+      0
+    }
+  }
+}
+
+mean_height_humans &amp;lt;- sum_humans/n_humans
+mean_height_others &amp;lt;- sum_others/n_others
+
+# These two lines are new
+data.frame(list(&amp;quot;is_human&amp;quot; = c(TRUE, FALSE),
+           &amp;quot;mean_height&amp;quot; = c(mean_height_others, mean_height_humans)))&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##   is_human mean_height
+## 1     TRUE    172.9400
+## 2    FALSE    176.6452&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;It’s just two lines (right at the end), but the implications are huge; because imperative code
+cannot be composed, I had to write separate code to put the result into a data frame. More code
+that I need to write, more opportunities for mistakes. I actually did a mistake, did you notice? This
+kind of mistake could go unnoticed for eons. But if you use functions, you don’t have this problem,
+and can focus on getting (even complex) things done:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;starwars %&amp;gt;%
+  filter(skin_color == &amp;quot;light&amp;quot;) %&amp;gt;%
+  select(species, sex, mass) %&amp;gt;%
+  group_by(sex, species) %&amp;gt;%
+  summarise(
+    total_individuals = n(),
+    min_mass = min(mass, na.rm = TRUE),
+    mean_mass = mean(mass, na.rm = TRUE),
+    sd_mass = sd(mass, na.rm = TRUE),
+    max_mass = max(mass, na.rm = TRUE)
+  ) %&amp;gt;%
+  select(-species) %&amp;gt;%
+  tidyr::pivot_longer(-sex, names_to = &amp;quot;statistic&amp;quot;, values_to = &amp;quot;value&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## `summarise()` has grouped output by &amp;#39;sex&amp;#39;. You can override using the `.groups`
+## argument.&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## # A tibble: 10 × 3
+## # Groups:   sex [2]
+##    sex    statistic         value
+##    &amp;lt;chr&amp;gt;  &amp;lt;chr&amp;gt;             &amp;lt;dbl&amp;gt;
+##  1 female total_individuals   6  
+##  2 female min_mass           45  
+##  3 female mean_mass          56.3
+##  4 female sd_mass            16.3
+##  5 female max_mass           75  
+##  6 male   total_individuals   5  
+##  7 male   min_mass           79  
+##  8 male   mean_mass          90.5
+##  9 male   sd_mass            19.8
+## 10 male   max_mass          120&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Needless to say, trying to write the above code using only for loops and &lt;code&gt;if...else...&lt;/code&gt; is not
+something I’d wish to do, especially passing the result of all the &lt;code&gt;{dplyr}&lt;/code&gt; calls to &lt;code&gt;pivot_longer()&lt;/code&gt;.
+Creating that last data frame by hand is error prone, and there would definitely be mistakes in there.&lt;/p&gt;
+&lt;p&gt;I hope I don’t need to convince you any more that functions are great, and that one of the great
+things they offer is their ability to be chained, or composed. But strictly speaking, you don’t need
+them. You &lt;em&gt;could&lt;/em&gt; write your code without any function whatsoever, and use the most basic building
+blocks there are (loops and &lt;code&gt;if...else...&lt;/code&gt; and little more). However, doing this would result in
+much messier code. It’s the same with monads. You can live without them. But there will be situations
+where not using them will result in messier code.&lt;/p&gt;
+&lt;p&gt;One more thing: as I was writing this blog post, I happened on this tweet:&lt;/p&gt;
+&lt;blockquote class=&#34;twitter-tweet&#34;&gt;&lt;p lang=&#34;en&#34; dir=&#34;ltr&#34;&gt;&lt;a href=&#34;https://twitter.com/hashtag/RStats?src=hash&amp;amp;ref_src=twsrc%5Etfw&#34;&gt;#RStats&lt;/a&gt; question: What wheel are they trying to re-invent? &lt;a href=&#34;https://t.co/tsoAfCHroK&#34;&gt;pic.twitter.com/tsoAfCHroK&lt;/a&gt;&lt;/p&gt;&amp;mdash; Tokhir Dadaev (@zx8754) &lt;a href=&#34;https://twitter.com/zx8754/status/1513080736785604611?ref_src=twsrc%5Etfw&#34;&gt;April 10, 2022&lt;/a&gt;&lt;/blockquote&gt;
+&lt;script async src=&#34;https://platform.twitter.com/widgets.js&#34; charset=&#34;utf-8&#34;&gt;&lt;/script&gt;
+
+&lt;p&gt;This is a fine example of all that I’ve been discussing until now. The person who wrote this code was
+very likely trying to get the diagonal elements of a matrix. That person was likely a beginner in
+R and used for loops to try to get the answer. We have all been there; what I’m trying to articulate
+is this: imperative programming can be useful, but it can get messy very quickly…&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;when-functions-are-not-enough&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;When functions are not enough&lt;/h2&gt;
+&lt;p&gt;Functions are awesome, but there are situations which functions simply can’t easily deal with.
+Situations in which you would like your functions to do a little extra more, and the only way
+forward you see is to rewrite them to do something totally unrelated. For example, suppose you
+would like to time your code. Most people would to something such as:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;tic &amp;lt;- Sys.time()
+starwars %&amp;gt;%
+  filter(skin_color == &amp;quot;light&amp;quot;) %&amp;gt;%
+  select(species, sex, mass) %&amp;gt;%
+  group_by(sex, species) %&amp;gt;%
+  summarise(
+    total_individuals = n(),
+    min_mass = min(mass, na.rm = TRUE),
+    mean_mass = mean(mass, na.rm = TRUE),
+    sd_mass = sd(mass, na.rm = TRUE),
+    max_mass = max(mass, na.rm = TRUE)
+  ) %&amp;gt;%
+  select(-species) %&amp;gt;%
+  tidyr::pivot_longer(-sex, names_to = &amp;quot;statistic&amp;quot;, values_to = &amp;quot;value&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## `summarise()` has grouped output by &amp;#39;sex&amp;#39;. You can override using the `.groups`
+## argument.&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## # A tibble: 10 × 3
+## # Groups:   sex [2]
+##    sex    statistic         value
+##    &amp;lt;chr&amp;gt;  &amp;lt;chr&amp;gt;             &amp;lt;dbl&amp;gt;
+##  1 female total_individuals   6  
+##  2 female min_mass           45  
+##  3 female mean_mass          56.3
+##  4 female sd_mass            16.3
+##  5 female max_mass           75  
+##  6 male   total_individuals   5  
+##  7 male   min_mass           79  
+##  8 male   mean_mass          90.5
+##  9 male   sd_mass            19.8
+## 10 male   max_mass          120&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;toc &amp;lt;- Sys.time()
+
+(running_time &amp;lt;- toc - tic)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## Time difference of 0.04228544 secs&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;You could totally do that. But now you’re back to square one. You have to deal with this tic-toc
+nonsense separately, have to keep track it, overburdening you mentally and polluting your code.
+To keep track of it, you’ll want to add the running times in a separate data frame, in which
+you could have all the running times of all your operations you need to run:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;data.frame(list(&amp;quot;operations&amp;quot; = seq(1:3),
+                &amp;quot;running_time&amp;quot; = c(running_time, running_time * 2, running_time * 3)))&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##   operations    running_time
+## 1          1 0.04228544 secs
+## 2          2 0.08457088 secs
+## 3          3 0.12685633 secs&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This data frame is the consequence of this tic-toc nonsense not being composable and now you have
+to deal with it, but you don’t want to. So what now? You might be tempted to do something like
+this:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;tic_filter &amp;lt;- function(...){
+
+  tic &amp;lt;- Sys.time()
+
+  result &amp;lt;- filter(...)
+
+  toc &amp;lt;- Sys.time()
+
+  message(&amp;quot;Running time: &amp;quot;, toc - tic)
+
+  return(result)
+
+}
+
+starwars %&amp;gt;%
+  tic_filter(species == &amp;quot;Human&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## Running time: 0.00481176376342773&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## # A tibble: 35 × 14
+##    name     height  mass hair_color skin_color eye_color birth_year sex   gender
+##    &amp;lt;chr&amp;gt;     &amp;lt;int&amp;gt; &amp;lt;dbl&amp;gt; &amp;lt;chr&amp;gt;      &amp;lt;chr&amp;gt;      &amp;lt;chr&amp;gt;          &amp;lt;dbl&amp;gt; &amp;lt;chr&amp;gt; &amp;lt;chr&amp;gt; 
+##  1 Luke Sk…    172    77 blond      fair       blue            19   male  mascu…
+##  2 Darth V…    202   136 none       white      yellow          41.9 male  mascu…
+##  3 Leia Or…    150    49 brown      light      brown           19   fema… femin…
+##  4 Owen La…    178   120 brown, gr… light      blue            52   male  mascu…
+##  5 Beru Wh…    165    75 brown      light      blue            47   fema… femin…
+##  6 Biggs D…    183    84 black      light      brown           24   male  mascu…
+##  7 Obi-Wan…    182    77 auburn, w… fair       blue-gray       57   male  mascu…
+##  8 Anakin …    188    84 blond      fair       blue            41.9 male  mascu…
+##  9 Wilhuff…    180    NA auburn, g… fair       blue            64   male  mascu…
+## 10 Han Solo    180    80 brown      fair       brown           29   male  mascu…
+## # … with 25 more rows, and 5 more variables: homeworld &amp;lt;chr&amp;gt;, species &amp;lt;chr&amp;gt;,
+## #   films &amp;lt;list&amp;gt;, vehicles &amp;lt;list&amp;gt;, starships &amp;lt;list&amp;gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;But that’s actually worse: not only do you have to change all the functions you need, and wrap them
+around tic-toc, but the running time is only shown as a message, so you can’t reuse it.
+You could then try to rewrite the function like this:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;tic_filter &amp;lt;- function(...){
+
+  tic &amp;lt;- Sys.time()
+
+  result &amp;lt;- filter(...)
+
+  toc &amp;lt;- Sys.time()
+
+  running_time &amp;lt;- toc - tic
+
+  list(&amp;quot;result&amp;quot; = result,
+       &amp;quot;running_time&amp;quot; = running_time)
+
+}
+
+starwars %&amp;gt;%
+  tic_filter(species == &amp;quot;Human&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## $result
+## # A tibble: 35 × 14
+##    name     height  mass hair_color skin_color eye_color birth_year sex   gender
+##    &amp;lt;chr&amp;gt;     &amp;lt;int&amp;gt; &amp;lt;dbl&amp;gt; &amp;lt;chr&amp;gt;      &amp;lt;chr&amp;gt;      &amp;lt;chr&amp;gt;          &amp;lt;dbl&amp;gt; &amp;lt;chr&amp;gt; &amp;lt;chr&amp;gt; 
+##  1 Luke Sk…    172    77 blond      fair       blue            19   male  mascu…
+##  2 Darth V…    202   136 none       white      yellow          41.9 male  mascu…
+##  3 Leia Or…    150    49 brown      light      brown           19   fema… femin…
+##  4 Owen La…    178   120 brown, gr… light      blue            52   male  mascu…
+##  5 Beru Wh…    165    75 brown      light      blue            47   fema… femin…
+##  6 Biggs D…    183    84 black      light      brown           24   male  mascu…
+##  7 Obi-Wan…    182    77 auburn, w… fair       blue-gray       57   male  mascu…
+##  8 Anakin …    188    84 blond      fair       blue            41.9 male  mascu…
+##  9 Wilhuff…    180    NA auburn, g… fair       blue            64   male  mascu…
+## 10 Han Solo    180    80 brown      fair       brown           29   male  mascu…
+## # … with 25 more rows, and 5 more variables: homeworld &amp;lt;chr&amp;gt;, species &amp;lt;chr&amp;gt;,
+## #   films &amp;lt;list&amp;gt;, vehicles &amp;lt;list&amp;gt;, starships &amp;lt;list&amp;gt;
+## 
+## $running_time
+## Time difference of 0.004878759 secs&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;At least now you save the running time along with the object. But the problem of rewriting many
+functions remains, and these rewritten &lt;code&gt;{dplyr}&lt;/code&gt; functions now return a list, and not a data frame
+anymore so something like this:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;starwars %&amp;gt;%
+  tic_filter(species == &amp;quot;Human&amp;quot;) %&amp;gt;%
+  tic_select(species, sex)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;wouldn’t work, because &lt;code&gt;tic_select()&lt;/code&gt; expects a data frame, not a list where the first element
+is a data frame and the second a double.&lt;/p&gt;
+&lt;p&gt;So what else can be done? Perhaps you’d be tempted to use a global variable for this:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;tic_filter &amp;lt;- function(..., running_time = 0){
+
+  tic &amp;lt;- Sys.time()
+
+  result &amp;lt;- filter(...)
+
+  toc &amp;lt;- Sys.time()
+
+  running_time &amp;lt;&amp;lt;- toc - tic + running_time
+
+  result
+
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Functions written like this would save the running time in a global variable called &lt;code&gt;running_time&lt;/code&gt;
+and each of them would take turns overwriting it:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;running_time &amp;lt;- 0
+
+one &amp;lt;- starwars %&amp;gt;%
+  tic_filter(species == &amp;quot;Human&amp;quot;, running_time = running_time)
+
+running_time&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## Time difference of 0.00490284 secs&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;two &amp;lt;- one %&amp;gt;%
+  tic_select(species, sex, running_time = running_time)
+
+running_time&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## Time difference of 0.007258415 secs&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;(I defined &lt;code&gt;tic_select()&lt;/code&gt; but am not showing it here.)&lt;/p&gt;
+&lt;p&gt;This has the advantage that the wrapped functions now return data frames as well, and can thus
+be composed/chained. But these functions are not pure functions, because they change something
+(the global variable &lt;code&gt;running_time&lt;/code&gt;) outside their scope. Impure functions can be tricky; for instance
+here, because the code keeps overwriting the same variable, if you run the whole script and then
+separate chunks to try some things, &lt;code&gt;running_time&lt;/code&gt; will keep getting incremented. Once again, you
+have to be extra careful and keep track of it, once again overburdening you mentally.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;the-solution&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;The solution&lt;/h2&gt;
+&lt;p&gt;The solution to this problem looks like one of the previous things we tried, namely:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;tic_filter &amp;lt;- function(...){
+
+  tic &amp;lt;- Sys.time()
+
+  result &amp;lt;- filter(...)
+
+  toc &amp;lt;- Sys.time()
+
+  running_time &amp;lt;- toc - tic
+
+  list(&amp;quot;result&amp;quot; = result,
+       &amp;quot;running_time&amp;quot; = running_time)
+
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;While it is true that it returns a list, this function has the yuge advantage of being pure. But
+still, we need to solve two problems:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;how to avoid having to rewrite every function;&lt;/li&gt;
+&lt;li&gt;how to compose these functions so that the output of one function can be ingested as the input of the next.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Solving the first problem consists in writing a new function that builds functions, what Hadley Wickham
+calls &lt;a href=&#34;https://adv-r.hadley.nz/function-factories.html&#34;&gt;function factories&lt;/a&gt;. Let’s try:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;timeit &amp;lt;- function(.f, ..., running_time = 0){
+
+  function(..., .running_time = running_time){
+
+    tic &amp;lt;- Sys.time()
+
+    result &amp;lt;- .f(...)
+
+    toc &amp;lt;- Sys.time()
+
+    list(result = result,
+         running_time = toc - tic + .running_time)
+  }
+
+
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;code&gt;timeit()&lt;/code&gt; is a function that takes a function (and its arguments as an input), and returns a new
+function. This function returns the result of the original function (&lt;code&gt;.f&lt;/code&gt;) evaluated on its arguments
+(&lt;code&gt;...&lt;/code&gt;) as well as the time it took to run as a list. You’ll notice as well that this function
+takes another argument, called &lt;code&gt;running_time&lt;/code&gt; with a default value of 0. This will become useful
+below, for now, ignore it.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;t_sqrt &amp;lt;- timeit(sqrt)
+
+t_sqrt(10)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## $result
+## [1] 3.162278
+## 
+## $running_time
+## Time difference of 8.34465e-06 secs&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;That’s great, but we can’t compose these functions. This fails:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;t_log &amp;lt;- timeit(log)
+
+10 |&amp;gt;
+  t_sqrt() |&amp;gt;
+  t_log()&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;Error in .f(...) : non-numeric argument to mathematical function&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;because &lt;code&gt;t_log()&lt;/code&gt; expects a number, not a list. The solution? Write another functions to help!
+Let’s call this function bind:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;bind &amp;lt;- function(.l, .f, ...){
+
+  .f(.l$result, ..., .running_time = .l$running_time)
+
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;code&gt;bind()&lt;/code&gt; takes a list object returned by a timed function (&lt;code&gt;.l&lt;/code&gt;, with elements &lt;code&gt;$result&lt;/code&gt; and &lt;code&gt;$running_time&lt;/code&gt;)
+and applies another timed function &lt;code&gt;.f()&lt;/code&gt; to the &lt;code&gt;$result&lt;/code&gt; element of &lt;code&gt;.l&lt;/code&gt; as well as any further
+arguments &lt;code&gt;...&lt;/code&gt; and finally sets the &lt;code&gt;running_time&lt;/code&gt; argument of &lt;code&gt;.f&lt;/code&gt; equal to &lt;code&gt;.l$running_time&lt;/code&gt;.
+&lt;code&gt;.l$running_time&lt;/code&gt; is the running time of the previous timed function call, so now this running time
+gets added to the running time of &lt;code&gt;.f&lt;/code&gt; (see the definition of the list of &lt;code&gt;timeit()&lt;/code&gt;).&lt;/p&gt;
+&lt;p&gt;An example might help:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;t_log &amp;lt;- timeit(log)
+
+10 |&amp;gt;
+  t_sqrt() |&amp;gt;
+  bind(t_log)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## $result
+## [1] 1.151293
+## 
+## $running_time
+## Time difference of 8.368492e-05 secs&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;What’s nice with this solution, is that it works with any function:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;t_filter &amp;lt;- timeit(filter)
+t_select &amp;lt;- timeit(select)
+t_group_by &amp;lt;- timeit(group_by)
+t_summarise &amp;lt;- timeit(summarise)
+t_p_longer &amp;lt;- timeit(tidyr::pivot_longer)
+
+starwars %&amp;gt;%
+  t_filter(skin_color == &amp;quot;light&amp;quot;) %&amp;gt;% # no need to use bind here
+  bind(t_select, species, sex, mass) %&amp;gt;%
+  bind(t_group_by, sex, species) %&amp;gt;%
+  bind(t_summarise,
+    total_individuals = n(),
+    min_mass = min(mass, na.rm = TRUE),
+    mean_mass = mean(mass, na.rm = TRUE),
+    sd_mass = sd(mass, na.rm = TRUE),
+    max_mass = max(mass, na.rm = TRUE)
+  ) %&amp;gt;%
+  bind(t_select, -species) %&amp;gt;%
+  bind(t_p_longer, -sex, names_to = &amp;quot;statistic&amp;quot;, values_to = &amp;quot;value&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## `summarise()` has grouped output by &amp;#39;sex&amp;#39;. You can override using the `.groups`
+## argument.&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## $result
+## # A tibble: 10 × 3
+## # Groups:   sex [2]
+##    sex    statistic         value
+##    &amp;lt;chr&amp;gt;  &amp;lt;chr&amp;gt;             &amp;lt;dbl&amp;gt;
+##  1 female total_individuals   6  
+##  2 female min_mass           45  
+##  3 female mean_mass          56.3
+##  4 female sd_mass            16.3
+##  5 female max_mass           75  
+##  6 male   total_individuals   5  
+##  7 male   min_mass           79  
+##  8 male   mean_mass          90.5
+##  9 male   sd_mass            19.8
+## 10 male   max_mass          120  
+## 
+## $running_time
+## Time difference of 0.09293914 secs&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;There is some overhead compared to the solution that simply calls &lt;code&gt;tic&lt;/code&gt; at the beginning of
+all the &lt;code&gt;{dplyr}&lt;/code&gt; calls and then &lt;code&gt;toc&lt;/code&gt; at the end, but this overhead becomes negligible the longer
+the base operations run for. And now the advantage is that you don’t have to think about keeping
+track of running times. Re-running separate chunks will also not interfere with the running time
+of any other chunk.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;monads&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Monads&lt;/h2&gt;
+&lt;p&gt;So here we are, ready to learn what monads are, or rather, we’re done, because you already know
+what monads are. The solution described before is a monad:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;a function factory to create functions that return a special, wrapped value (here it simply was a list of elements &lt;code&gt;$result&lt;/code&gt; and &lt;code&gt;$running_time&lt;/code&gt;). This wrapped value is also called a monadic value.&lt;/li&gt;
+&lt;li&gt;a function to compose, or chain, these special functions together.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Some other pieces can be added to the list, and one would need to check so-called monadic laws to make
+extra sure we’re dealing with a monad, but that’s outside the scope of this blog post.&lt;/p&gt;
+&lt;p&gt;There are many monads, for instance the so-called &lt;code&gt;Maybe&lt;/code&gt; monad, available on R thanks to
+&lt;a href=&#34;https://twitter.com/armcn_&#34;&gt;Andrew McNeil&lt;/a&gt; who implemented this monad as an R
+&lt;a href=&#34;https://armcn.github.io/maybe/&#34;&gt;package&lt;/a&gt;. I have also developed a monad for logging (which
+also logs execution time), which I called &lt;code&gt;{chronicler}&lt;/code&gt;, read more about it
+&lt;a href=&#34;https://www.brodrigues.co/blog/2022-04-04-chron_post/&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;To conclude, why did I title this post &lt;em&gt;why you should(n’t) care about Monads if you’re an R programmer&lt;/em&gt;?
+The reason is that you can live without monads. However, certain things will be more complex if you
+don’t know about monads or if you don’t want to use them, just like functions. If for some reason
+you don’t use functions in your code, your life will be more complicated. So should you go ahead
+and start using monads in your code? Well, maybe (hehe) you should, especially if you’re doing the
+same thing over and over again, like timing your code. Maybe using a monad to time your code could
+be a nice solution, especially if you’ve been burned in the past by using the other, sub-optimal
+solutions?&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;extra-reading&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Extra reading&lt;/h2&gt;
+&lt;p&gt;If this blog post was not enough to satiate your curiosity, here are some more nice resources:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://twitter.com/kupac&#34;&gt;Laszlo Kupcsik&lt;/a&gt; great
+&lt;a href=&#34;https://kupac.gitlab.io/biofunctor/2019/05/25/maybe-monad-in-r/&#34;&gt;blog post&lt;/a&gt; on the maybe monad,&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://twitter.com/armcn_&#34;&gt;Andrew McNeil&lt;/a&gt; implementation of the &lt;code&gt;Maybe&lt;/code&gt; monad as a
+&lt;a href=&#34;https://armcn.github.io/maybe/&#34;&gt;package&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;this nice &lt;a href=&#34;https://www.youtube.com/watch?v=C2w45qRc3aU&#34;&gt;video&lt;/a&gt;
+by &lt;a href=&#34;https://www.youtube.com/channel/UCUdkjbeIFea0qUSgwR1CUOg&#34;&gt;Studying With Alex&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;and of course, the GOAT, &lt;a href=&#34;https://twitter.com/BartoszMilewski&#34;&gt;Bartosz Milewski’s&lt;/a&gt;
+Category Theory For Programmers on &lt;a href=&#34;https://www.youtube.com/watch?v=I8LbkfSSR58&amp;amp;list=PLbgaMIhjbmEnaH_LTkxLI7FMa2HsnawM_&#34;&gt;YouTube&lt;/a&gt; if you really want to go into the nitty-gritty theoretical details of functional programming.&lt;/li&gt;
+&lt;li&gt;There’s also this very accessible and nice blog post,
+&lt;a href=&#34;https://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html&#34;&gt;Functors, applicatives and monads in pictures&lt;/a&gt; which I highly recommend.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on &lt;a href=&#34;https://www.twitter.com/brodriguesco&#34;&gt;twitter&lt;/a&gt; for blog post updates and
+&lt;a href=&#34;https://www.buymeacoffee.com/brodriguesco&#34;&gt;buy me an espresso&lt;/a&gt; or &lt;a href=&#34;https://www.paypal.me/brodriguesco&#34;&gt;paypal.me&lt;/a&gt;, or buy my ebook on &lt;a href=&#34;https://leanpub.com/modern_tidyverse&#34;&gt;Leanpub&lt;/a&gt;.
+You can also watch my videos on &lt;a href=&#34;https://www.youtube.com/c/BrunoRodrigues1988/&#34;&gt;youtube&lt;/a&gt;.
+So much content for you to consoom!&lt;/p&gt;
+&lt;style&gt;.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:&#39;Cookie&#39;, cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}&lt;/style&gt;
+&lt;p&gt;&lt;link href=&#34;https://fonts.googleapis.com/css?family=Cookie&#34; rel=&#34;stylesheet&#34;&gt;&lt;a class=&#34;bmc-button&#34; target=&#34;_blank&#34; href=&#34;https://www.buymeacoffee.com/brodriguesco&#34;&gt;&lt;img src=&#34;https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg&#34; alt=&#34;Buy me an Espresso&#34;&gt;&lt;span style=&#34;margin-left:5px&#34;&gt;Buy me an Espresso&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>The {chronicler} package, an implementation of the logger monad in R</title>
+      <link>https://www.brodrigues.co/blog/2022-04-04-chron_post/</link>
+      <pubDate>Fri, 01 Apr 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://www.brodrigues.co/blog/2022-04-04-chron_post/</guid>
+      <description>&lt;script src=&#34;https://www.brodrigues.co/rmarkdown-libs/header-attrs/header-attrs.js&#34;&gt;&lt;/script&gt;
+
+
+&lt;div style=&#34;text-align:center;&#34;&gt;
+&lt;p&gt;&lt;a href=&#34;https://wiki.haskell.org/Monad_laws&#34;&gt;
+&lt;img src=&#34;https://www.brodrigues.co/img/monads.jpg&#34; title = &#34;Believe me, the reward is not so great without the struggle. - Wilma Rudolph&#34;&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;p&gt;&lt;a href=&#34;https://www.brodrigues.co/blog/2022-02-18-loudly/&#34;&gt;Back in February&lt;/a&gt; I discussed a package I was working on
+which allowed users to add logging to function calls. I named the package &lt;code&gt;{loudly}&lt;/code&gt; but decided
+to rename it to &lt;a href=&#34;https://github.com/b-rodrigues/chronicler&#34;&gt;&lt;code&gt;{chronicler}&lt;/code&gt;&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;I have been working on it for the past few weeks, and I think that a CRAN release could happen soon.&lt;/p&gt;
+&lt;div id=&#34;introduction&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;So what does &lt;code&gt;{chronicler}&lt;/code&gt; do? &lt;code&gt;{chronicler}&lt;/code&gt; allows you do decorate functions, so that they
+provide enhanced output:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(chronicler)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## Loading required package: rlang&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;r_sqrt &amp;lt;- record(sqrt)
+
+a &amp;lt;- r_sqrt(1:5)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Object &lt;code&gt;a&lt;/code&gt; is now an object of class &lt;code&gt;chronicle&lt;/code&gt;. Let’s print &lt;code&gt;a&lt;/code&gt; to the terminal:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;a&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## ✔ Value computed successfully:
+## ---------------
+## [1] 1.000000 1.414214 1.732051 2.000000 2.236068
+## 
+## ---------------
+## This is an object of type `chronicle`.
+## Retrieve the value of this object with pick(.c, &amp;quot;value&amp;quot;).
+## To read the log of this object, call read_log().&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;as the output says, &lt;code&gt;a&lt;/code&gt; is an object of type &lt;code&gt;chronicle&lt;/code&gt;. Let’s use &lt;code&gt;read_log()&lt;/code&gt; as suggested:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;read_log(a)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;Complete log:&amp;quot;                                      
+## [2] &amp;quot;✔ sqrt(1:5) ran successfully at 2022-04-01 21:14:28&amp;quot;
+## [3] &amp;quot;Total running time: 0.000240325927734375 secs&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The log tells us how &lt;code&gt;a&lt;/code&gt; was built, and it’s especially useful for objects that are the result
+of many function calls:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;r_sqrt &amp;lt;- record(sqrt)
+r_exp &amp;lt;- record(exp)
+r_mean &amp;lt;- record(mean)
+
+b &amp;lt;- 1:10 |&amp;gt;
+  r_sqrt() |&amp;gt;
+  bind_record(r_exp) |&amp;gt;
+  bind_record(r_mean)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The log gives all the details:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;read_log(b)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;Complete log:&amp;quot;                                           
+## [2] &amp;quot;✔ sqrt(1:10) ran successfully at 2022-04-01 21:14:28&amp;quot;    
+## [3] &amp;quot;✔ exp(.c$value) ran successfully at 2022-04-01 21:14:28&amp;quot; 
+## [4] &amp;quot;✔ mean(.c$value) ran successfully at 2022-04-01 21:14:28&amp;quot;
+## [5] &amp;quot;Total running time: 0.00820255279541016 secs&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The end result, or what is called &lt;code&gt;value&lt;/code&gt; can be obtained using &lt;code&gt;pick()&lt;/code&gt; (you could also use &lt;code&gt;a$value&lt;/code&gt;):&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;pick(a, &amp;quot;value&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] 1.000000 1.414214 1.732051 2.000000 2.236068&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;pick(b, &amp;quot;value&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] 11.55345&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id=&#34;composing-decorated-functions&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Composing decorated functions&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;bind_record()&lt;/code&gt; is used to pass the output from one decorated function to the next:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;suppressPackageStartupMessages(
+  library(dplyr)
+)
+
+r_group_by &amp;lt;- record(group_by)
+r_select &amp;lt;- record(select)
+r_summarise &amp;lt;- record(summarise)
+r_filter &amp;lt;- record(filter)
+
+output &amp;lt;- starwars %&amp;gt;%
+  r_select(height, mass, species, sex) %&amp;gt;%
+  bind_record(r_group_by, species, sex) %&amp;gt;%
+  bind_record(r_filter, sex != &amp;quot;male&amp;quot;) %&amp;gt;%
+  bind_record(r_summarise,
+              mass = mean(mass, na.rm = TRUE)
+              )&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;read_log(output)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;Complete log:&amp;quot;                                                                         
+## [2] &amp;quot;✔ select(.,height,mass,species,sex) ran successfully at 2022-04-01 21:14:28&amp;quot;           
+## [3] &amp;quot;✔ group_by(.c$value,species,sex) ran successfully at 2022-04-01 21:14:28&amp;quot;              
+## [4] &amp;quot;✔ filter(.c$value,sex != \&amp;quot;male\&amp;quot;) ran successfully at 2022-04-01 21:14:28&amp;quot;            
+## [5] &amp;quot;✔ summarise(.c$value,mean(mass, na.rm = TRUE)) ran successfully at 2022-04-01 21:14:28&amp;quot;
+## [6] &amp;quot;Total running time: 0.11384654045105 secs&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The value can then be saved in a new variable:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;(my_df &amp;lt;- pick(output, &amp;quot;value&amp;quot;))&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## # A tibble: 9 × 3
+## # Groups:   species [9]
+##   species    sex              mass
+##   &amp;lt;chr&amp;gt;      &amp;lt;chr&amp;gt;           &amp;lt;dbl&amp;gt;
+## 1 Clawdite   female           55  
+## 2 Droid      none             69.8
+## 3 Human      female           56.3
+## 4 Hutt       hermaphroditic 1358  
+## 5 Kaminoan   female          NaN  
+## 6 Mirialan   female           53.1
+## 7 Tholothian female           50  
+## 8 Togruta    female           57  
+## 9 Twi&amp;#39;lek    female           55&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;You can save the &lt;code&gt;output&lt;/code&gt; object with &lt;code&gt;saveRDS()&lt;/code&gt; and share it; your colleague can then read the log
+to learn how the object was created.&lt;/p&gt;
+&lt;p&gt;This package also ships with a dedicated pipe, &lt;code&gt;%&amp;gt;=%&lt;/code&gt; which you can use instead of &lt;code&gt;bind_record()&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;output_pipe &amp;lt;- starwars %&amp;gt;%
+  r_select(height, mass, species, sex) %&amp;gt;=%
+  r_group_by(species, sex) %&amp;gt;=%
+  r_filter(sex != &amp;quot;male&amp;quot;) %&amp;gt;=%
+  r_summarise(mass = mean(mass, na.rm = TRUE))&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;pick(output_pipe, &amp;quot;value&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## # A tibble: 9 × 3
+## # Groups:   species [9]
+##   species    sex              mass
+##   &amp;lt;chr&amp;gt;      &amp;lt;chr&amp;gt;           &amp;lt;dbl&amp;gt;
+## 1 Clawdite   female           55  
+## 2 Droid      none             69.8
+## 3 Human      female           56.3
+## 4 Hutt       hermaphroditic 1358  
+## 5 Kaminoan   female          NaN  
+## 6 Mirialan   female           53.1
+## 7 Tholothian female           50  
+## 8 Togruta    female           57  
+## 9 Twi&amp;#39;lek    female           55&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id=&#34;condition-handling&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Condition handling&lt;/h2&gt;
+&lt;p&gt;By default, errors and warnings get caught and composed in the log:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;errord_output &amp;lt;- starwars %&amp;gt;%
+  r_select(height, mass, species, sex) %&amp;gt;=%
+  r_group_by(species, sx) %&amp;gt;=% # typo, &amp;quot;sx&amp;quot; instead of &amp;quot;sex&amp;quot;
+  r_filter(sex != &amp;quot;male&amp;quot;) %&amp;gt;=%
+  r_summarise(mass = mean(mass, na.rm = TRUE))&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;errord_output&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## ✖ Value computed unsuccessfully:
+## ---------------
+## [1] NA
+## 
+## ---------------
+## This is an object of type `chronicle`.
+## Retrieve the value of this object with pick(.c, &amp;quot;value&amp;quot;).
+## To read the log of this object, call read_log().&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Reading the log tells you which function failed, and with which error message:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;read_log(errord_output)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;Complete log:&amp;quot;                                                                                                                                                                                    
+## [2] &amp;quot;✔ select(.,height,mass,species,sex) ran successfully at 2022-04-01 21:14:28&amp;quot;                                                                                                                      
+## [3] &amp;quot;✖ group_by(.c$value,species,sx) ran unsuccessfully with following exception: Must group by variables found in `.data`.\n✖ Column `sx` is not found. at 2022-04-01 21:14:28&amp;quot;                       
+## [4] &amp;quot;✖ filter(.c$value,sex != \&amp;quot;male\&amp;quot;) ran unsuccessfully with following exception: no applicable method for &amp;#39;filter&amp;#39; applied to an object of class \&amp;quot;logical\&amp;quot; at 2022-04-01 21:14:28&amp;quot;               
+## [5] &amp;quot;✖ summarise(.c$value,mean(mass, na.rm = TRUE)) ran unsuccessfully with following exception: no applicable method for &amp;#39;summarise&amp;#39; applied to an object of class \&amp;quot;logical\&amp;quot; at 2022-04-01 21:14:28&amp;quot;
+## [6] &amp;quot;Total running time: 0.163575887680054 secs&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;It is also possible to only capture errors, or catpure errors, warnings and messages using
+the &lt;code&gt;strict&lt;/code&gt; parameter of &lt;code&gt;record()&lt;/code&gt;&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;# Only errors:
+
+r_sqrt &amp;lt;- record(sqrt, strict = 1)
+
+# Nothing will be captured here, since sqrt(-10) returns a NA and a warning
+r_sqrt(-10) |&amp;gt;
+  read_log()&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## Warning in .f(...): NaNs produced&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;Complete log:&amp;quot;                                                                     
+## [2] &amp;quot;✖ sqrt(-10) ran unsuccessfully with following exception: NA at 2022-04-01 21:14:28&amp;quot;
+## [3] &amp;quot;Total running time: 0.000255584716796875 secs&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;# Errors and warnings:
+
+r_sqrt &amp;lt;- record(sqrt, strict = 2)
+
+# The warning gets captured
+r_sqrt(-10) |&amp;gt;
+  read_log()&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;Complete log:&amp;quot;                                                                                
+## [2] &amp;quot;✖ sqrt(-10) ran unsuccessfully with following exception: NaNs produced at 2022-04-01 21:14:28&amp;quot;
+## [3] &amp;quot;Total running time: 0.00019383430480957 secs&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;# Errors, warnings and messages
+
+my_f &amp;lt;- function(x){
+  message(&amp;quot;this is a message&amp;quot;)
+  10
+}
+
+record(my_f, strict = 3)(10) |&amp;gt;
+                         read_log()&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;Complete log:&amp;quot;                                                                                     
+## [2] &amp;quot;✖ my_f(10) ran unsuccessfully with following exception: this is a message\n at 2022-04-01 21:14:28&amp;quot;
+## [3] &amp;quot;Total running time: 0.000336408615112305 secs&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id=&#34;advanced-logging&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Advanced logging&lt;/h2&gt;
+&lt;p&gt;You can provide a function to &lt;code&gt;record()&lt;/code&gt;, which will be evaluated on the output. This makes it possible
+to, for example, monitor the size of a data frame throughout the pipeline. In the example below I
+provide &lt;code&gt;dim()&lt;/code&gt;, which will return the dimensions of the data frame, as an argument to &lt;code&gt;record()&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;r_group_by &amp;lt;- record(group_by)
+r_select &amp;lt;- record(select, .g = dim)
+r_summarise &amp;lt;- record(summarise, .g = dim)
+r_filter &amp;lt;- record(filter, .g = dim)
+
+output_pipe &amp;lt;- starwars %&amp;gt;%
+  r_select(height, mass, species, sex) %&amp;gt;=%
+  r_group_by(species, sex) %&amp;gt;=%
+  r_filter(sex != &amp;quot;male&amp;quot;) %&amp;gt;=%
+  r_summarise(mass = mean(mass, na.rm = TRUE))&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The &lt;code&gt;$log_df&lt;/code&gt; element of a &lt;code&gt;chronicle&lt;/code&gt; object contains detailed information. In most cases you
+don’t need to worry about it:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;pick(output_pipe, &amp;quot;log_df&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## # A tibble: 4 × 8
+##   outcome   `function` arguments message start_time          end_time           
+##   &amp;lt;chr&amp;gt;     &amp;lt;chr&amp;gt;      &amp;lt;chr&amp;gt;     &amp;lt;chr&amp;gt;   &amp;lt;dttm&amp;gt;              &amp;lt;dttm&amp;gt;             
+## 1 ✔ Success select     &amp;quot;.,heigh… NA      2022-04-01 21:14:28 2022-04-01 21:14:28
+## 2 ✔ Success group_by   &amp;quot;.c$valu… NA      2022-04-01 21:14:28 2022-04-01 21:14:28
+## 3 ✔ Success filter     &amp;quot;.c$valu… NA      2022-04-01 21:14:28 2022-04-01 21:14:29
+## 4 ✔ Success summarise  &amp;quot;.c$valu… NA      2022-04-01 21:14:28 2022-04-01 21:14:29
+## # … with 2 more variables: run_time &amp;lt;drtn&amp;gt;, g &amp;lt;list&amp;gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;but if you want to look at the output of &lt;code&gt;.g&lt;/code&gt;, then you have to grab it and see:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;# I coerce it to a data.frame just for the output here on my blog, to make the column `g` readable
+as.data.frame(output_pipe$log_df[, c(&amp;quot;function&amp;quot;, &amp;quot;g&amp;quot;)])&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##    function     g
+## 1    select 87, 4
+## 2  group_by    NA
+## 3    filter 23, 4
+## 4 summarise  9, 3&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We can see that the dimension of the dataframe was (87, 4) after the call to &lt;code&gt;select()&lt;/code&gt;, (23, 4)
+after the call to &lt;code&gt;filter()&lt;/code&gt; and finally (9, 3) after the call to &lt;code&gt;summarise()&lt;/code&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;monads&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Monads&lt;/h2&gt;
+&lt;p&gt;This package implements a logger monad. I might talk about monads in the future, but probably in a
+video; if you don’t know what monads are, don’t worry, no one really knows. Legend has it that to
+truly understand what monads are you have to have a PhD in computer science and have been born in
+the former Soviet Union. But to make things simple, you can think of a monad as a way to:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;embelish functions to provide additional output without having to touch the function’s core behaviour&lt;/li&gt;
+&lt;li&gt;a way to compose these functions and work with the embelished outputs (also called monadic values)&lt;/li&gt;
+&lt;li&gt;monadic values are basically containers that contain the actual value of the function evaluated on its inputs and something else (here, a log)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Monads are quite useful in some programming languanges, like Haskell. Not so much in R, but I think
+that the logger monad I propose here can be quite useful. So let me know if you find it useful or if
+you have suggestions!&lt;/p&gt;
+&lt;p&gt;You can install &lt;code&gt;{chronicler}&lt;/code&gt; from its &lt;a href=&#34;https://github.com/b-rodrigues/chronicler&#34;&gt;github repo&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on &lt;a href=&#34;https://www.twitter.com/brodriguesco&#34;&gt;twitter&lt;/a&gt; for blog post updates and
+&lt;a href=&#34;https://www.buymeacoffee.com/brodriguesco&#34;&gt;buy me an espresso&lt;/a&gt; or &lt;a href=&#34;https://www.paypal.me/brodriguesco&#34;&gt;paypal.me&lt;/a&gt;, or buy my ebook on &lt;a href=&#34;https://leanpub.com/modern_tidyverse&#34;&gt;Leanpub&lt;/a&gt;.
+You can also watch my videos on &lt;a href=&#34;https://www.youtube.com/c/BrunoRodrigues1988/&#34;&gt;youtube&lt;/a&gt;.
+So much content for you to consoom!&lt;/p&gt;
+&lt;style&gt;.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:&#39;Cookie&#39;, cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}&lt;/style&gt;
+&lt;p&gt;&lt;link href=&#34;https://fonts.googleapis.com/css?family=Cookie&#34; rel=&#34;stylesheet&#34;&gt;&lt;a class=&#34;bmc-button&#34; target=&#34;_blank&#34; href=&#34;https://www.buymeacoffee.com/brodriguesco&#34;&gt;&lt;img src=&#34;https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg&#34; alt=&#34;Buy me an Espresso&#34;&gt;&lt;span style=&#34;margin-left:5px&#34;&gt;Buy me an Espresso&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Capture errors, warnings and messages</title>
+      <link>https://www.brodrigues.co/blog/2022-03-12-purely/</link>
+      <pubDate>Sat, 12 Mar 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://www.brodrigues.co/blog/2022-03-12-purely/</guid>
+      <description>&lt;script src=&#34;https://www.brodrigues.co/rmarkdown-libs/header-attrs/header-attrs.js&#34;&gt;&lt;/script&gt;
+
+
+&lt;div style=&#34;text-align:center;&#34;&gt;
+&lt;p&gt;&lt;a href=&#34;https://www.youtube.com/watch?v=vUvut7jOPgs&#34;&gt;
+&lt;img src=&#34;https://www.brodrigues.co/img/pure.jpg&#34; title = &#34;Hell is side effects&#34;&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;p&gt;In my &lt;a href=&#34;https://www.youtube.com/watch?v=vUvut7jOPgs&#34;&gt;last video&lt;/a&gt; I tried to add a feature to my
+{loud} package (more info &lt;a href=&#34;https://b-rodrigues.github.io/loud/&#34;&gt;here&lt;/a&gt;) and I succeeded. But in
+succeeding in realised that I would need to write a bit more code than what I expected. To make
+a long story short: it is possible to capture errors using &lt;code&gt;purrr::safely()&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(purrr)
+safe_log &amp;lt;- safely(log)
+
+a &amp;lt;- safe_log(&amp;quot;10&amp;quot;)
+
+str(a)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## List of 2
+##  $ result: NULL
+##  $ error :List of 2
+##   ..$ message: chr &amp;quot;non-numeric argument to mathematical function&amp;quot;
+##   ..$ call   : language .Primitive(&amp;quot;log&amp;quot;)(x, base)
+##   ..- attr(*, &amp;quot;class&amp;quot;)= chr [1:3] &amp;quot;simpleError&amp;quot; &amp;quot;error&amp;quot; &amp;quot;condition&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;code&gt;a&lt;/code&gt; is now a list with elements &lt;code&gt;$result&lt;/code&gt; and &lt;code&gt;$error&lt;/code&gt;. If everything goes right, &lt;code&gt;$result&lt;/code&gt; holds
+the result of the operation, and if everything goes wrong, &lt;code&gt;$result&lt;/code&gt; is &lt;code&gt;NULL&lt;/code&gt; but &lt;code&gt;$error&lt;/code&gt; now
+contains the error message. This is especially useful in non-interactive contexts. There is
+another similar function in &lt;code&gt;{purrr}&lt;/code&gt; called &lt;code&gt;quietly()&lt;/code&gt;, which captures warnings and messages:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;quiet_log &amp;lt;- quietly(log)
+
+b &amp;lt;- quiet_log(-10)
+
+str(b)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## List of 4
+##  $ result  : num NaN
+##  $ output  : chr &amp;quot;&amp;quot;
+##  $ warnings: chr &amp;quot;NaNs produced&amp;quot;
+##  $ messages: chr(0)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;as you can see, providing a negative number to &lt;code&gt;log()&lt;/code&gt; does not cause an error, but simply a
+warning. A result of &lt;code&gt;NaN&lt;/code&gt; is returned (you can try with &lt;code&gt;log(-10)&lt;/code&gt; in your console). &lt;code&gt;quietly()&lt;/code&gt;
+captures the warning message and returns a list of 4 elements, &lt;code&gt;$result&lt;/code&gt;, &lt;code&gt;$output&lt;/code&gt;, &lt;code&gt;$warnings&lt;/code&gt;
+and &lt;code&gt;$messages&lt;/code&gt;. The problem here, is that:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;safe_log(-10)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## Warning in .Primitive(&amp;quot;log&amp;quot;)(x, base): NaNs produced&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## $result
+## [1] NaN
+## 
+## $error
+## NULL&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;returns something useless: &lt;code&gt;$result&lt;/code&gt; is &lt;code&gt;NaN&lt;/code&gt; (because that’s what &lt;code&gt;log()&lt;/code&gt; returns for negative
+numbers) but &lt;code&gt;$error&lt;/code&gt; is &lt;code&gt;NULL&lt;/code&gt; since no error was thrown, but only a warning! We have a similar
+problem with &lt;code&gt;quiet_log()&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;quiet_log(&amp;quot;10&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;Error in .Primitive(&amp;quot;log&amp;quot;)(x, base) : 
+  non-numeric argument to mathematical function&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;here, the error message is thrown, but not captured, since &lt;code&gt;quietly()&lt;/code&gt; does not capture error messages.&lt;/p&gt;
+&lt;p&gt;So, are we back to square one? Not necessarily, since you could compose both functions:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;pure_log &amp;lt;- quietly(safely(log))
+
+a2 &amp;lt;- pure_log(-10)
+
+str(a2)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## List of 4
+##  $ result  :List of 2
+##   ..$ result: num NaN
+##   ..$ error : NULL
+##  $ output  : chr &amp;quot;&amp;quot;
+##  $ warnings: chr &amp;quot;NaNs produced&amp;quot;
+##  $ messages: chr(0)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;b2 &amp;lt;- pure_log(&amp;quot;10&amp;quot;)
+
+str(b2)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## List of 4
+##  $ result  :List of 2
+##   ..$ result: NULL
+##   ..$ error :List of 2
+##   .. ..$ message: chr &amp;quot;non-numeric argument to mathematical function&amp;quot;
+##   .. ..$ call   : language .Primitive(&amp;quot;log&amp;quot;)(x, base)
+##   .. ..- attr(*, &amp;quot;class&amp;quot;)= chr [1:3] &amp;quot;simpleError&amp;quot; &amp;quot;error&amp;quot; &amp;quot;condition&amp;quot;
+##  $ output  : chr &amp;quot;&amp;quot;
+##  $ warnings: chr(0) 
+##  $ messages: chr(0)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;As you can see, in the case of &lt;code&gt;a2&lt;/code&gt;, the warning was captured, and in the case of &lt;code&gt;b2&lt;/code&gt; the error
+was captured. The problem, is that the resulting object is quite complex. It’s a list where
+&lt;code&gt;$result&lt;/code&gt; is itself a list in case of a warning, or &lt;code&gt;$error&lt;/code&gt; is a list in case of an error.&lt;/p&gt;
+&lt;p&gt;I tried to write a function that would decorate a function (as do &lt;code&gt;safely()&lt;/code&gt; and &lt;code&gt;quietly()&lt;/code&gt;), which
+in turn would then return a simple list and capture, errors, warnings and messages. I came up with
+this code, after re-reading &lt;em&gt;Advanced R&lt;/em&gt;, in particular this
+&lt;a href=&#34;https://adv-r.hadley.nz/conditions.html&#34;&gt;chapter&lt;/a&gt;:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;purely &amp;lt;- function(.f){
+
+  function(..., .log = &amp;quot;Log start...&amp;quot;){
+
+    res &amp;lt;- rlang::try_fetch(
+                    rlang::eval_bare(.f(...)),
+                    error = function(err) err,
+                    #rlang_error = function(rlerr) rlerr,
+                    warning = function(warn) warn,
+                    message = function(message) message,
+                    )
+
+    final_result &amp;lt;- list(
+      result = NULL,
+      log = NULL
+    )
+
+    final_result$result &amp;lt;- if(any(c(&amp;quot;error&amp;quot;, &amp;quot;rlang_error&amp;quot;, &amp;quot;warning&amp;quot;, &amp;quot;message&amp;quot;) %in% class(res))){
+                             NA
+                           } else {
+                             res
+                           }
+
+    final_result$log &amp;lt;- if(any(c(&amp;quot;error&amp;quot;, &amp;quot;rlang_error&amp;quot;, &amp;quot;warning&amp;quot;, &amp;quot;message&amp;quot;) %in% class(res))){
+                          #res$message
+                          purrr::pluck(res, &amp;quot;message&amp;quot;, .default = &amp;quot;undefined error&amp;quot;)
+                        } else {
+                          NA
+                        }
+    final_result
+  }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;f_m &amp;lt;- function(x){
+  message(&amp;quot;this is a message&amp;quot;)
+  str(x)
+}
+
+f_w &amp;lt;- function(x){
+  warning(&amp;quot;this is a warning&amp;quot;)
+  str(x)
+
+}
+
+f_e &amp;lt;- function(){
+  stop(&amp;quot;This is an error&amp;quot;)
+
+}
+
+pure_fm &amp;lt;- purely(f_m)
+pure_fw &amp;lt;- purely(f_w)
+pure_fe &amp;lt;- purely(f_e)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Messages get captured:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;pure_fm(10) |&amp;gt;
+  str()&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## List of 2
+##  $ result: logi NA
+##  $ log   : chr &amp;quot;this is a message\n&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;as do warnings:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;pure_fw(10) |&amp;gt;
+  str()&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## List of 2
+##  $ result: logi NA
+##  $ log   : chr &amp;quot;this is a warning&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;as do errors:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;pure_fe() |&amp;gt;
+  str()&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## List of 2
+##  $ result: logi NA
+##  $ log   : chr &amp;quot;This is an error&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The structure of the result is always &lt;code&gt;$result&lt;/code&gt; and &lt;code&gt;$log&lt;/code&gt;. In case everything goes well
+&lt;code&gt;$result&lt;/code&gt; holds the result:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;pure_log &amp;lt;- purely(log)
+
+pure_log(c(1,10))&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## $result
+## [1] 0.000000 2.302585
+## 
+## $log
+## [1] NA&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;And another example, with a more complex call:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;pure_mean &amp;lt;- purely(mean)
+
+pure_mean(c(1,10, NA), na.rm = TRUE)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## $result
+## [1] 5.5
+## 
+## $log
+## [1] NA&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;But in case something goes wrong, the error message will get captured.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;suppressPackageStartupMessages(library(dplyr))&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## {paint} masked print.tbl_df&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;pure_select &amp;lt;- purely(select)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Let’s try here to select a column that does not exist:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;clean_mtcars &amp;lt;- mtcars %&amp;gt;%
+  pure_select(hp, am, bm) #bm does not exist
+
+str(clean_mtcars)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## List of 2
+##  $ result: logi NA
+##  $ log   : chr &amp;quot;&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Compare to what happens with &lt;code&gt;select()&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;clean_mtcars2 &amp;lt;- mtcars %&amp;gt;%
+  select(hp, am, bm) #bm does not exist&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;Error in `select()`:
+! Can&amp;#39;t subset columns that don&amp;#39;t exist.
+✖ Column `bm` doesn&amp;#39;t exist.
+Backtrace:
+  1. mtcars %&amp;gt;% select(hp, am, bm)
+...
+...&lt;/code&gt;&lt;/pre&gt;
+&lt;div id=&#34;update-2022-03-13&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Update 2022-03-13&lt;/h2&gt;
+&lt;p&gt;After writing this post I realised that the error message of select does not get captured.
+This is the only example I’ve found where the error message does not get caught. This
+seems to be related to the fact that tidyverse function have their own class of error
+messages that inherit from &lt;code&gt;error&lt;/code&gt;. For some reason, there are no issues with other
+functions, for example:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;purely(group_by)(mtcars, bm)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## $result
+## [1] NA
+## 
+## $log
+##                                             
+## &amp;quot;Must group by variables found in `.data`.&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;I will need to solve this…&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;post-continued&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Post continued…&lt;/h2&gt;
+&lt;p&gt;The code (and thus the pipeline) completely fails! I’ve added this function to my
+&lt;a href=&#34;https://b-rodrigues.github.io/loud/&#34;&gt;{loud}&lt;/a&gt; package, but the biggest benefit of all this is that the
+main function of the package, &lt;code&gt;loudly()&lt;/code&gt; now uses &lt;code&gt;purely()&lt;/code&gt; under the hood to provide more useful
+log messages in case of failure:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;suppressPackageStartupMessages(library(loud))
+
+loud_sqrt &amp;lt;- loudly(sqrt)
+loud_mean &amp;lt;- loudly(mean)
+loud_exp &amp;lt;- loudly(exp)
+
+
+result_pipe &amp;lt;- -1:-10 |&amp;gt;
+  loud_mean() %&amp;gt;=% # This results in a negative number...
+  loud_sqrt() %&amp;gt;=% # which sqrt() does not know how to handle
+  loud_exp()&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;If we now inspect &lt;code&gt;result_pipe&lt;/code&gt;, we find a complete log of what went wrong:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;result_pipe&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## $result
+## NULL
+## 
+## $log
+## [1] &amp;quot;Log start...&amp;quot;                                                                                                                                                            
+## [2] &amp;quot;✔ mean(-1:-10) started at 2022-03-13 14:17:30 and ended at 2022-03-13 14:17:30&amp;quot;                                                                                          
+## [3] &amp;quot;✖ CAUTION - ERROR: sqrt(.l$result) started at 2022-03-13 14:17:30 and failed at 2022-03-13 14:17:30 with following message: NaNs produced&amp;quot;                               
+## [4] &amp;quot;✖ CAUTION - ERROR: exp(.l$result) started at 2022-03-13 14:17:30 and failed at 2022-03-13 14:17:30 with following message: non-numeric argument to mathematical function&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;If you want to know more about &lt;code&gt;{loud}&lt;/code&gt;, I suggest you read
+&lt;a href=&#34;https://www.brodrigues.co/blog/2022-02-18-loudly/&#34;&gt;my previous blog post&lt;/a&gt; and if you need a more
+realistic example, take a look at
+&lt;a href=&#34;https://b-rodrigues.github.io/loud/articles/real-world-example.html&#34;&gt;this&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;If you try it, please let me know!&lt;/p&gt;
+&lt;p&gt;Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on &lt;a href=&#34;https://www.twitter.com/brodriguesco&#34;&gt;twitter&lt;/a&gt; for blog post updates and
+&lt;a href=&#34;https://www.buymeacoffee.com/brodriguesco&#34;&gt;buy me an espresso&lt;/a&gt; or &lt;a href=&#34;https://www.paypal.me/brodriguesco&#34;&gt;paypal.me&lt;/a&gt;, or buy my ebook on &lt;a href=&#34;https://leanpub.com/modern_tidyverse&#34;&gt;Leanpub&lt;/a&gt;.
+You can also watch my videos on &lt;a href=&#34;https://www.youtube.com/c/BrunoRodrigues1988/&#34;&gt;youtube&lt;/a&gt;.
+So much content for you to consoom!&lt;/p&gt;
+&lt;style&gt;.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:&#39;Cookie&#39;, cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}&lt;/style&gt;
+&lt;p&gt;&lt;link href=&#34;https://fonts.googleapis.com/css?family=Cookie&#34; rel=&#34;stylesheet&#34;&gt;&lt;a class=&#34;bmc-button&#34; target=&#34;_blank&#34; href=&#34;https://www.buymeacoffee.com/brodriguesco&#34;&gt;&lt;img src=&#34;https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg&#34; alt=&#34;Buy me an Espresso&#34;&gt;&lt;span style=&#34;margin-left:5px&#34;&gt;Buy me an Espresso&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Add logging to your functions using my newest package `{loud}`</title>
+      <link>https://www.brodrigues.co/blog/2022-02-18-loudly/</link>
+      <pubDate>Fri, 18 Feb 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://www.brodrigues.co/blog/2022-02-18-loudly/</guid>
+      <description>&lt;script src=&#34;https://www.brodrigues.co/rmarkdown-libs/header-attrs/header-attrs.js&#34;&gt;&lt;/script&gt;
+
+
+&lt;div style=&#34;text-align:center;&#34;&gt;
+&lt;p&gt;&lt;a href=&#34;https://www.youtube.com/channel/UCTZXht1RTL2Duc3eU8MYGzQ&#34;&gt;
+&lt;img src=&#34;https://www.brodrigues.co/img/tuba.jpg&#34; title = &#34;I have nothing to add&#34;&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;update-loud-has-been-superseded-by-chronicle-read-about-it-here&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;UPDATE: {loud} has been superseded by {chronicle}, read about it &lt;a href=&#34;https://www.brodrigues.co/blog/2022-04-04-chron_post/&#34;&gt;here&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;This is a short blog post to announce the early alpha, hyper unstable, use at your own peril,
+package I’ve been working on for the past 6 hours or so
+(actually longer if I add all the research/study time).
+This package provides the function &lt;code&gt;loudly()&lt;/code&gt; which allows you to do cool stuff like:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;# First two lines install the package
+# install.packages(&amp;quot;devtools&amp;quot;)
+# devtools::install_github(&amp;quot;b-rodrigues/loud&amp;quot;)
+library(loud)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## Loading required package: rlang&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;loud_sqrt &amp;lt;- loudly(sqrt)
+
+loud_sqrt(1:10)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## $result
+##  [1] 1.000000 1.414214 1.732051 2.000000 2.236068 2.449490 2.645751 2.828427
+##  [9] 3.000000 3.162278
+## 
+## $log
+## [1] &amp;quot;Log start...&amp;quot;                                                                
+## [2] &amp;quot;✔ sqrt(1:10) started at 2022-04-01 21:20:00 and ended at 2022-04-01 21:20:00&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;As you can see, I start by applying &lt;code&gt;loudly()&lt;/code&gt; to a function, and then I can use this function
+as usual. Not only do I get the result, but also a logging message telling me which function and
+which arguments got used, and when the computation started and ended.&lt;/p&gt;
+&lt;p&gt;It is also possible to chain operations:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;loud_sqrt &amp;lt;- loudly(sqrt)
+loud_exp &amp;lt;- loudly(exp)
+loud_mean &amp;lt;- loudly(mean)
+
+1:10 |&amp;gt;
+  loud_sqrt() |&amp;gt;
+  bind_loudly(loud_exp) |&amp;gt;
+  bind_loudly(loud_mean)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## $result
+## [1] 11.55345
+## 
+## $log
+## [1] &amp;quot;Log start...&amp;quot;                                                                     
+## [2] &amp;quot;✔ sqrt(1:10) started at 2022-04-01 21:20:00 and ended at 2022-04-01 21:20:00&amp;quot;     
+## [3] &amp;quot;✔ exp(.l$result) started at 2022-04-01 21:20:00 and ended at 2022-04-01 21:20:00&amp;quot; 
+## [4] &amp;quot;✔ mean(.l$result) started at 2022-04-01 21:20:00 and ended at 2022-04-01 21:20:00&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;You’ll notice that here I have to use another function called &lt;code&gt;bind_loudly()&lt;/code&gt;. The reason is because
+&lt;em&gt;loud&lt;/em&gt; functions return a list. The first element of that list is the result of the function
+applied to the inputs, and the second element is the log message. So &lt;code&gt;bind_loudly()&lt;/code&gt; passes the
+first element of the output of &lt;code&gt;loud_sqrt()&lt;/code&gt; to the actual function &lt;code&gt;exp()&lt;/code&gt; and also passes the
+second element, this time the log message, to the part of the function that concatenates the log
+messages.&lt;/p&gt;
+&lt;p&gt;This works with any function:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(dplyr)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;loud_group_by &amp;lt;- loudly(group_by)
+loud_select &amp;lt;- loudly(select)
+loud_summarise &amp;lt;- loudly(summarise)
+loud_filter &amp;lt;- loudly(filter)
+
+starwars %&amp;gt;%
+  loud_select(height, mass, species, sex) %&amp;gt;%
+  bind_loudly(loud_group_by, species, sex) %&amp;gt;%
+  bind_loudly(loud_filter, sex != &amp;quot;male&amp;quot;) %&amp;gt;%
+  bind_loudly(loud_summarise,
+              mass = mean(mass, na.rm = TRUE)
+              )&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## $result
+## # A tibble: 9 × 3
+## # Groups:   species [9]
+##   species    sex              mass
+##   &amp;lt;chr&amp;gt;      &amp;lt;chr&amp;gt;           &amp;lt;dbl&amp;gt;
+## 1 Clawdite   female           55  
+## 2 Droid      none             69.8
+## 3 Human      female           56.3
+## 4 Hutt       hermaphroditic 1358  
+## 5 Kaminoan   female          NaN  
+## 6 Mirialan   female           53.1
+## 7 Tholothian female           50  
+## 8 Togruta    female           57  
+## 9 Twi&amp;#39;lek    female           55  
+## 
+## $log
+## [1] &amp;quot;Log start...&amp;quot;                                                                                                   
+## [2] &amp;quot;✔ select(.,height,mass,species,sex) started at 2022-04-01 21:20:00 and ended at 2022-04-01 21:20:00&amp;quot;            
+## [3] &amp;quot;✔ group_by(.l$result,species,sex) started at 2022-04-01 21:20:00 and ended at 2022-04-01 21:20:00&amp;quot;              
+## [4] &amp;quot;✔ filter(.l$result,sex != \&amp;quot;male\&amp;quot;) started at 2022-04-01 21:20:00 and ended at 2022-04-01 21:20:00&amp;quot;            
+## [5] &amp;quot;✔ summarise(.l$result,mean(mass, na.rm = TRUE)) started at 2022-04-01 21:20:00 and ended at 2022-04-01 21:20:00&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This is not perfect however. You’ll notice that the last log message states:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;summarise(.l$result,mean(mass, na.rm = TRUE)) ....&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;ideally I would like for it to say:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;summarise(.l$result,mass = mean(mass, na.rm = TRUE)) ....&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Also, I’ve added a pipe operator so you don’t need to use &lt;code&gt;bind_loudly()&lt;/code&gt; if you don’t
+want to:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;1:10 |&amp;gt;
+  loud_sqrt() %&amp;gt;=%
+  loud_exp() %&amp;gt;=%
+  loud_mean()&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## $result
+## [1] 11.55345
+## 
+## $log
+## [1] &amp;quot;Log start...&amp;quot;                                                                     
+## [2] &amp;quot;✔ sqrt(1:10) started at 2022-04-01 21:20:00 and ended at 2022-04-01 21:20:00&amp;quot;     
+## [3] &amp;quot;✔ exp(.l$result) started at 2022-04-01 21:20:00 and ended at 2022-04-01 21:20:00&amp;quot; 
+## [4] &amp;quot;✔ mean(.l$result) started at 2022-04-01 21:20:00 and ended at 2022-04-01 21:20:00&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;However, this operator does not work well with &lt;code&gt;{dplyr}&lt;/code&gt; functions. See here:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;starwars %&amp;gt;%
+  loud_select(height, mass, species, sex) %&amp;gt;=%
+  loud_group_by(species, sex) %&amp;gt;=%
+  loud_filter(sex != &amp;quot;male&amp;quot;) %&amp;gt;=%
+  loud_summarise(mass = mean(mass, na.rm = TRUE))&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## $result
+## # A tibble: 9 × 3
+## # Groups:   species [9]
+##   species    sex              mass
+##   &amp;lt;chr&amp;gt;      &amp;lt;chr&amp;gt;           &amp;lt;dbl&amp;gt;
+## 1 Clawdite   female           55  
+## 2 Droid      none             69.8
+## 3 Human      female           56.3
+## 4 Hutt       hermaphroditic 1358  
+## 5 Kaminoan   female          NaN  
+## 6 Mirialan   female           53.1
+## 7 Tholothian female           50  
+## 8 Togruta    female           57  
+## 9 Twi&amp;#39;lek    female           55  
+## 
+## $log
+## [1] &amp;quot;Log start...&amp;quot;                                                                                                   
+## [2] &amp;quot;✔ select(.,height,mass,species,sex) started at 2022-04-01 21:20:00 and ended at 2022-04-01 21:20:00&amp;quot;            
+## [3] &amp;quot;✔ group_by(.l$result,species,sex) started at 2022-04-01 21:20:00 and ended at 2022-04-01 21:20:00&amp;quot;              
+## [4] &amp;quot;✔ filter(.l$result,sex != \&amp;quot;male\&amp;quot;) started at 2022-04-01 21:20:00 and ended at 2022-04-01 21:20:00&amp;quot;            
+## [5] &amp;quot;✔ summarise(.l$result,mean(mass, na.rm = TRUE)) started at 2022-04-01 21:20:00 and ended at 2022-04-01 21:20:00&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;If you look at the result, you’ll see that it is not equal to the obtained with &lt;code&gt;bind_loudly()&lt;/code&gt;,
+and if you look at the last logging message you’ll see why. Instead of&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;summarise(.l$result,mean(mass, na.rm = TRUE)) ....&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;the message states:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;summarise(.l$result,mass,TRUE) started at&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;I know where the problem is (it’s due to some regex fuckery) so I think that I should be able
+to correct this in the coming days. Ideally, in the future, I would also like for the users to
+provide their own log messages.&lt;/p&gt;
+&lt;p&gt;The package has a website with a vignette that shows another interesting example
+&lt;a href=&#34;https://b-rodrigues.github.io/loud/articles/real-world-example.html&#34;&gt;here&lt;/a&gt;.
+Source code can be found &lt;a href=&#34;https://github.com/b-rodrigues/loud&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;It is almost certain that function names will change, maybe even the package name itself.
+Contributions, bug reports, suggestions, etc, welcome of course.&lt;/p&gt;
+&lt;p&gt;A final word: this is the result of me exploring more advanced functional programming
+concepts and discussing with really nice people like
+&lt;a href=&#34;https://twitter.com/ShinyD3js&#34;&gt;Andrew R Mcneil&lt;/a&gt;,
+&lt;a href=&#34;https://twitter.com/kupac&#34;&gt;Laszlo Kupcsik&lt;/a&gt;. Andrew wrote a cool package called
+&lt;a href=&#34;https://armcn.github.io/maybe/&#34;&gt;maybe&lt;/a&gt; and Laszlo a super cool blog post
+explaining what monads are &lt;a href=&#34;https://kupac.gitlab.io/biofunctor/2019/05/25/maybe-monad-in-r/&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;I’ll be writing a blog post on monads, in particular the maybe monad soonish.&lt;/p&gt;
+&lt;p&gt;Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on &lt;a href=&#34;https://www.twitter.com/brodriguesco&#34;&gt;twitter&lt;/a&gt; for blog post updates and
+&lt;a href=&#34;https://www.buymeacoffee.com/brodriguesco&#34;&gt;buy me an espresso&lt;/a&gt; or &lt;a href=&#34;https://www.paypal.me/brodriguesco&#34;&gt;paypal.me&lt;/a&gt;, or buy my ebook on &lt;a href=&#34;https://leanpub.com/modern_tidyverse&#34;&gt;Leanpub&lt;/a&gt;.
+You can also watch my videos on &lt;a href=&#34;https://www.youtube.com/c/BrunoRodrigues1988/&#34;&gt;youtube&lt;/a&gt;.
+So much content for you to consoom!&lt;/p&gt;
+&lt;style&gt;.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:&#39;Cookie&#39;, cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}&lt;/style&gt;
+&lt;p&gt;&lt;link href=&#34;https://fonts.googleapis.com/css?family=Cookie&#34; rel=&#34;stylesheet&#34;&gt;&lt;a class=&#34;bmc-button&#34; target=&#34;_blank&#34; href=&#34;https://www.buymeacoffee.com/brodriguesco&#34;&gt;&lt;img src=&#34;https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg&#34; alt=&#34;Buy me an Espresso&#34;&gt;&lt;span style=&#34;margin-left:5px&#34;&gt;Buy me an Espresso&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>How to write code that returns (Rmarkdown) code</title>
+      <link>https://www.brodrigues.co/blog/2021-12-17-expand_knitr/</link>
+      <pubDate>Fri, 17 Dec 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://www.brodrigues.co/blog/2021-12-17-expand_knitr/</guid>
+      <description>&lt;script src=&#34;https://www.brodrigues.co/rmarkdown-libs/header-attrs/header-attrs.js&#34;&gt;&lt;/script&gt;
+
+
+&lt;div style=&#34;text-align:center;&#34;&gt;
+&lt;p&gt;&lt;a href=&#34;https://en.wikipedia.org/wiki/Fractal&#34;&gt;
+&lt;img src=&#34;https://www.brodrigues.co/img/fractal_doge.gif&#34; title = &#34;Nature is fractal&#34;&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;p&gt;One of the most useful aspects of using a programming language instead of… well, not using a programming language,
+is that you can write code in a way that minimizes, and ideally, eliminates the need to repeat yourself.&lt;/p&gt;
+&lt;p&gt;For instance, you can write a function to show you a frequency table, like so:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;suppressMessages(library(dplyr))
+
+create_table &amp;lt;- function(dataset, var){
+
+  var &amp;lt;- enquo(var)
+
+  dataset %&amp;gt;%
+    count(!!var) %&amp;gt;%
+    knitr::kable()
+
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;And can now get some fancy looking tables by simply writing:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;create_table(mtcars, cyl)&lt;/code&gt;&lt;/pre&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr class=&#34;header&#34;&gt;
+&lt;th align=&#34;right&#34;&gt;cyl&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;n&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;4&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;11&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;6&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;7&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;8&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;14&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;If I want such tables for hundreds of columns, I can use this function and loop over the columns and
+not have to write the code inside the body of the function over and over again. You’ll notice that
+the function &lt;code&gt;create_table()&lt;/code&gt; makes use of some advanced programming techniques I have discussed
+&lt;a href=&#34;https://www.brodrigues.co/blog/2016-07-18-data-frame-columns-as-arguments-to-dplyr-functions/&#34;&gt;here&lt;/a&gt;.
+There’s also an alternative way of programming with &lt;code&gt;{dplyr}&lt;/code&gt;, using the &lt;code&gt;{{}}&lt;/code&gt; construct I
+discussed &lt;a href=&#34;https://www.brodrigues.co/blog/2019-06-20-tidy_eval_saga/&#34;&gt;here&lt;/a&gt;, but I couldn’t get
+what I’m going to show you here to work with &lt;code&gt;{{}}&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Recently, I had to create a Rmarkdown document with many sections, where each section title was
+a question from a survey and the content was a frequency table. I wanted to write a fuction that
+would create a section with the right question title, and then show the table, and I wanted to
+then call this function over all the questions from the survey and have my document automatically
+generated.&lt;/p&gt;
+&lt;p&gt;The result should look like &lt;a href=&#34;https://dazzling-thompson-964d5b.netlify.app/&#34;&gt;this&lt;/a&gt;,
+but it would be a PDF instead of HTML.&lt;/p&gt;
+&lt;p&gt;Let’s first load the data and see how it looks like:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(dplyr)
+library(purrr)
+library(readr)
+
+suppressMessages(
+  survey_data &amp;lt;- read_csv(
+    &amp;quot;https://gist.githubusercontent.com/b-rodrigues/0c2249dec5a9c9477e0d1ad9964a1340/raw/873bcc7532b8bad613235f029884df1d0b947c90/survey_example.csv&amp;quot;
+  )
+)
+
+glimpse(survey_data)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## Rows: 100
+## Columns: 4
+## $ `Random question?`                         &amp;lt;chr&amp;gt; &amp;quot;no&amp;quot;, &amp;quot;yes&amp;quot;, &amp;quot;yes&amp;quot;, &amp;quot;yes&amp;quot;, …
+## $ `Copy of Random question?`                 &amp;lt;chr&amp;gt; &amp;quot;yes&amp;quot;, &amp;quot;yes&amp;quot;, &amp;quot;no&amp;quot;, &amp;quot;yes&amp;quot;, …
+## $ `Copy of Copy of Random question?`         &amp;lt;chr&amp;gt; &amp;quot;yes&amp;quot;, &amp;quot;no&amp;quot;, &amp;quot;no&amp;quot;, &amp;quot;yes&amp;quot;, &amp;quot;…
+## $ `Copy of Copy of Copy of Random question?` &amp;lt;chr&amp;gt; &amp;quot;yes&amp;quot;, &amp;quot;yes&amp;quot;, &amp;quot;no&amp;quot;, &amp;quot;yes&amp;quot;, …&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Each column name is the question, and each row is one answer to the survey question.
+To create the document I showed above, you’d probably write something like this:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;
+## Random question?
+
+` ``{r}
+
+create_table(survey_data, `Random question?`)
+
+` ``
+
+## Copy of Random question?
+
+` ``{r}
+
+create_table(survey_data, `Copy of Random question?`)
+
+` ``
+
+## Copy of Copy of Random question?
+
+` ``{r}
+
+create_table(survey_data, `Copy of Copy of Random question?`)
+
+` ``
+
+## Copy of Copy of Copy of Random question?
+
+` ``{r}
+
+create_table(survey_data, `Copy of Copy of Copy of Random question?`)
+
+` ``
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;As you can see, this gets tedious very quickly, especially if you have 100’s of variables. So
+how to not repeat yourself? The solution has two steps; first you should try to automate what you
+have as much as possible. Ideally, you don’t want to have to write the complete question every
+time. So first, let’s replace the questions by simpler variable names:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;questions &amp;lt;- colnames(survey_data)
+
+codes &amp;lt;- paste0(&amp;quot;var_&amp;quot;, seq(1, length(questions)))
+
+lookup &amp;lt;- bind_cols(&amp;quot;codes&amp;quot; = codes, &amp;quot;questions&amp;quot; = questions)
+
+colnames(survey_data) &amp;lt;- codes&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;code&gt;lookup&lt;/code&gt; is a data frame with the questions and their respective codes:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;lookup&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## tibble [4, 2] 
+## codes     chr var_1 var_2 var_3 var_4
+## questions chr Random question? Copy of Random question? Cop~&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;and our data now has simpler variable names:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;glimpse(survey_data)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## Rows: 100
+## Columns: 4
+## $ var_1 &amp;lt;chr&amp;gt; &amp;quot;no&amp;quot;, &amp;quot;yes&amp;quot;, &amp;quot;yes&amp;quot;, &amp;quot;yes&amp;quot;, &amp;quot;no&amp;quot;, NA, &amp;quot;no&amp;quot;, NA, &amp;quot;no&amp;quot;, &amp;quot;no&amp;quot;, &amp;quot;no&amp;quot;,…
+## $ var_2 &amp;lt;chr&amp;gt; &amp;quot;yes&amp;quot;, &amp;quot;yes&amp;quot;, &amp;quot;no&amp;quot;, &amp;quot;yes&amp;quot;, &amp;quot;no&amp;quot;, &amp;quot;yes&amp;quot;, &amp;quot;yes&amp;quot;, NA, &amp;quot;yes&amp;quot;, NA, &amp;quot;n…
+## $ var_3 &amp;lt;chr&amp;gt; &amp;quot;yes&amp;quot;, &amp;quot;no&amp;quot;, &amp;quot;no&amp;quot;, &amp;quot;yes&amp;quot;, &amp;quot;yes&amp;quot;, &amp;quot;no&amp;quot;, &amp;quot;no&amp;quot;, &amp;quot;yes&amp;quot;, &amp;quot;no&amp;quot;, &amp;quot;yes&amp;quot;,…
+## $ var_4 &amp;lt;chr&amp;gt; &amp;quot;yes&amp;quot;, &amp;quot;yes&amp;quot;, &amp;quot;no&amp;quot;, &amp;quot;yes&amp;quot;, &amp;quot;yes&amp;quot;, &amp;quot;no&amp;quot;, &amp;quot;no&amp;quot;, &amp;quot;yes&amp;quot;, &amp;quot;no&amp;quot;, &amp;quot;no&amp;quot;,…&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Doing this allows us to replace the source code of our Rmarkdown like so:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;## `r lookup$questions[grepl(&amp;quot;var_1&amp;quot;, lookup$codes)]`
+
+` ``{r}
+create_table(survey_data, var_1)
+` ``&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This already makes things easier, as now you only have to change &lt;code&gt;var_1&lt;/code&gt; to &lt;code&gt;var_2&lt;/code&gt; to &lt;code&gt;var_3&lt;/code&gt;…
+the inline code gets executed and the right title (the question text) appears. But how to go
+further? I don’t want to have to copy and paste this and change &lt;code&gt;var_1&lt;/code&gt; to &lt;code&gt;var_2&lt;/code&gt; etc… So the
+second step of the two-step solution is to use a function called &lt;code&gt;knitr_expand()&lt;/code&gt; described
+&lt;a href=&#34;https://bookdown.org/yihui/rmarkdown-cookbook/knit-expand.html&#34;&gt;here&lt;/a&gt;. The idea of
+&lt;code&gt;knitr::knitr_expand()&lt;/code&gt; is that it uses some Rmd source as a template, and also allows the user to define
+some variables that will be replaced at compile time. Simple examples are available
+&lt;a href=&#34;https://cran.r-project.org/web/packages/knitr/vignettes/knit_expand.html&#34;&gt;here&lt;/a&gt;. I want to build
+upon that, because I need to pass my variable (in this case &lt;code&gt;var_1&lt;/code&gt; for instance) to my function
+&lt;code&gt;create_table()&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;The solution is to write another function that uses &lt;code&gt;knitr::knitr_expand()&lt;/code&gt;. This is how
+it could look like:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;create_table &amp;lt;- function(dataset, var){
+
+  dataset %&amp;gt;%
+    count(!!var) %&amp;gt;%
+    knitr::kable()
+
+}
+
+
+return_section &amp;lt;- function(var){
+
+  a &amp;lt;- knitr::knit_expand(text = c(&amp;quot;## {{question}}&amp;quot;,   create_table(survey_data, var)),
+                          question =  lookup$questions[grepl(quo_name(var), lookup$codes)])
+
+  cat(a, sep = &amp;quot;\n&amp;quot;)
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;I needed to edit &lt;code&gt;create_table()&lt;/code&gt; a little bit, and remove the line &lt;code&gt;var &amp;lt;- enquo(var)&lt;/code&gt;. This
+is because now, I won’t be passing a variable down to the function, but a quosure, and there is
+a very good reason for it, you’ll see. &lt;code&gt;return_section()&lt;/code&gt; makes use of &lt;code&gt;knitr_expand()&lt;/code&gt;,
+and the &lt;code&gt;text =&lt;/code&gt; argument is the template that will get expanded. &lt;code&gt;{{question}}&lt;/code&gt; will get
+replaced by the variable I defined which is the code I wrote above to automatically get the
+question text. Finally, &lt;code&gt;var&lt;/code&gt; will get replaced by the variable I pass to the function.&lt;/p&gt;
+&lt;p&gt;First, let’s get it running on one single variable:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;return_section(quo(var_1))&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## ## Random question?
+## |var_1 |  n|
+## |:-----|--:|
+## |no    | 40|
+## |yes   | 44|
+## |NA    | 16|&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;As you see, I had to use &lt;code&gt;quo(var_1)&lt;/code&gt; and not only &lt;code&gt;var_1&lt;/code&gt;. But apart from this, the function seems
+to work well. Putting this in an Rmarkdown document would create a section with the question as
+the text of the section and a frequency table as the body. I could now copy and paste this and
+only have to change &lt;code&gt;var_1&lt;/code&gt;. But I don’t want to have to copy and paste! So the idea would be
+to loop the function over a list of variables.&lt;/p&gt;
+&lt;p&gt;I have such a list already:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;codes&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;var_1&amp;quot; &amp;quot;var_2&amp;quot; &amp;quot;var_3&amp;quot; &amp;quot;var_4&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;But it’s not a list of quosures, but a list of strings, and this is not going to work (it will
+return an error):&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;walk(codes, return_section)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;(I’m using &lt;code&gt;walk()&lt;/code&gt; instead of &lt;code&gt;map()&lt;/code&gt; because &lt;code&gt;return_section()&lt;/code&gt; doesn’t return an object, but only
+shows something on screen. This is called a side effect, and &lt;code&gt;walk()&lt;/code&gt; allows you to loop properly
+over functions that only return side effects).&lt;/p&gt;
+&lt;p&gt;The problem I have now is to convert strings to quosures. This is possible using &lt;code&gt;rlang::sym()&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;sym_codes &amp;lt;- map(codes, sym)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;And now I’m done:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;walk(sym_codes, return_section)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## ## Random question?
+## |var_1 |  n|
+## |:-----|--:|
+## |no    | 40|
+## |yes   | 44|
+## |NA    | 16|
+## ## Copy of Random question?
+## |var_2 |  n|
+## |:-----|--:|
+## |no    | 52|
+## |yes   | 32|
+## |NA    | 16|
+## ## Copy of Copy of Random question?
+## |var_3 |  n|
+## |:-----|--:|
+## |no    | 46|
+## |yes   | 47|
+## |NA    |  7|
+## ## Copy of Copy of Copy of Random question?
+## |var_4 |  n|
+## |:-----|--:|
+## |no    | 48|
+## |yes   | 42|
+## |NA    | 10|&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Putting this in an Rmarkdown source create a PDF (or Word, or HTML) document with one section per
+question, and without have to do copy-pasting which is quite error-prone. Here is the final
+Rmarkdown &lt;a href=&#34;https://gist.github.com/b-rodrigues/843011bb863f27a8fe7f299e13eb4491&#34;&gt;file&lt;/a&gt;. You’ll
+notice that the last chunk has the option &lt;code&gt;results = &#39;asis&#39;&lt;/code&gt;, which is needed for this trick
+to work.&lt;/p&gt;
+&lt;p&gt;Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on &lt;a href=&#34;https://www.twitter.com/brodriguesco&#34;&gt;twitter&lt;/a&gt; for blog post updates and
+&lt;a href=&#34;https://www.buymeacoffee.com/brodriguesco&#34;&gt;buy me an espresso&lt;/a&gt; or &lt;a href=&#34;https://www.paypal.me/brodriguesco&#34;&gt;paypal.me&lt;/a&gt;, or buy my ebook on &lt;a href=&#34;https://leanpub.com/modern_tidyverse&#34;&gt;Leanpub&lt;/a&gt;.
+You can also watch my videos on &lt;a href=&#34;https://www.youtube.com/c/BrunoRodrigues1988/&#34;&gt;youtube&lt;/a&gt;.
+So much content for you to consoom!&lt;/p&gt;
+&lt;style&gt;.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:&#39;Cookie&#39;, cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}&lt;/style&gt;
+&lt;p&gt;&lt;link href=&#34;https://fonts.googleapis.com/css?family=Cookie&#34; rel=&#34;stylesheet&#34;&gt;&lt;a class=&#34;bmc-button&#34; target=&#34;_blank&#34; href=&#34;https://www.buymeacoffee.com/brodriguesco&#34;&gt;&lt;img src=&#34;https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg&#34; alt=&#34;Buy me an Espresso&#34;&gt;&lt;span style=&#34;margin-left:5px&#34;&gt;Buy me an Espresso&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>Speedrunning row-oriented workflows</title>
@@ -202,6 +2046,7 @@ So much content for you to consoom!&lt;/p&gt;
 &lt;p&gt;&lt;a href=&#34;https://www.youtube.com/watch?v=erlWsquoHlM&#34;&gt;
 &lt;img src=&#34;https://www.brodrigues.co/img/bell_curve_tidyverse.png&#34; title = &#34;Like and subscribe&#34;&gt;&lt;/a&gt;&lt;/p&gt;
 &lt;/div&gt;
+&lt;p&gt;&lt;em&gt;Part 2 of this blog post is available &lt;a href=&#34;https://www.brodrigues.co/blog/2021-09-05-speedrunning_rows/&#34;&gt;here&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
 &lt;p&gt;The past few weeks I have been exploring the speed of R. It started with &lt;a href=&#34;https://www.youtube.com/watch?v=erlWsquoHlM&#34;&gt;this video&lt;/a&gt;
 in which I explained that R is not necessarily slower than any other interpreted language, as long
 as you’re using the built-in, optimized functions. However should you write your own implementation
@@ -261,18 +2106,18 @@ generates a random dataset whith as many columns as the objective function has a
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;dataset &amp;lt;- init_pop(my_function) %&amp;gt;%
   as.data.frame()&lt;/code&gt;&lt;/pre&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;head(dataset)&lt;/code&gt;&lt;/pre&gt;
-&lt;pre&gt;&lt;code&gt;##           x1         x2         x3         x4        x5        x6
-## 1 0.01240753 0.52216369 0.03258892 0.09722631 0.7485749 0.9275532
-## 2 0.35423196 0.13766202 0.32204460 0.05759782 0.2143725 0.2391541
-## 3 0.10378066 0.07571073 0.28378176 0.51448928 0.9616971 0.2702277
-## 4 0.52591063 0.46718618 0.99404463 0.86059204 0.7264650 0.8083685
-## 5 0.46208664 0.56516052 0.46177016 0.15401250 0.9280011 0.9152156
-## 6 0.98528077 0.24898464 0.28815249 0.37093507 0.9020534 0.4355511&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##          x1        x2          x3        x4         x5        x6
+## 1 0.3045714 0.1436057 0.003754794 0.9144551 0.53070392 0.6127125
+## 2 0.3155244 0.8890011 0.556325257 0.5688512 0.02928638 0.5626903
+## 3 0.8363487 0.6361570 0.667718047 0.4704217 0.10547741 0.5278469
+## 4 0.8207208 0.1286540 0.189744816 0.3309174 0.76311349 0.7019268
+## 5 0.7244419 0.1284358 0.235967085 0.8444759 0.38697023 0.9818212
+## 6 0.2882561 0.9702481 0.983408531 0.1510577 0.84844059 0.7678110&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;Now, on the actual problem: I need to add another column, with the value of &lt;code&gt;my_function()&lt;/code&gt;,
 evaluated on a per row basis. As an example, for the first row, this would be the result of:&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;my_function(dataset[1, ])&lt;/code&gt;&lt;/pre&gt;
 &lt;pre&gt;&lt;code&gt;##          x1
-## 1 -302.8056&lt;/code&gt;&lt;/pre&gt;
+## 1 -299.2624&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;Many people would probably solve this using a for loop, so let’s write a function to do just that
 (benchmarking will make it easier if the code is inside a function):&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;run_loop &amp;lt;- function(dataset, my_function = my_function){
@@ -291,13 +2136,13 @@ evaluated on a per row basis. As an example, for the first row, this would be th
 
 run_loop(dataset, my_function = my_function) %&amp;gt;%
   head&lt;/code&gt;&lt;/pre&gt;
-&lt;pre&gt;&lt;code&gt;##           x1         x2         x3         x4        x5        x6     score
-## 1 0.01240753 0.52216369 0.03258892 0.09722631 0.7485749 0.9275532 -302.8056
-## 2 0.35423196 0.13766202 0.32204460 0.05759782 0.2143725 0.2391541  -323.473
-## 3 0.10378066 0.07571073 0.28378176 0.51448928 0.9616971 0.2702277 -311.6355
-## 4 0.52591063 0.46718618 0.99404463 0.86059204 0.7264650 0.8083685 -259.7646
-## 5 0.46208664 0.56516052 0.46177016 0.15401250 0.9280011 0.9152156 -286.0531
-## 6 0.98528077 0.24898464 0.28815249 0.37093507 0.9020534 0.4355511 -278.4643&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##          x1        x2          x3        x4         x5        x6     score
+## 1 0.3045714 0.1436057 0.003754794 0.9144551 0.53070392 0.6127125 -299.2624
+## 2 0.3155244 0.8890011 0.556325257 0.5688512 0.02928638 0.5626903 -284.4934
+## 3 0.8363487 0.6361570 0.667718047 0.4704217 0.10547741 0.5278469  -275.027
+## 4 0.8207208 0.1286540 0.189744816 0.3309174 0.76311349 0.7019268 -288.6529
+## 5 0.7244419 0.1284358 0.235967085 0.8444759 0.38697023 0.9818212 -281.0109
+## 6 0.2882561 0.9702481 0.983408531 0.1510577 0.84844059 0.7678110 -261.1376&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;The advantage of loops is that you don’t need to really know a lot about R to get it done; if you’ve
 learned some programming language some time during your studies, you learned about for loops.
 But they’re generally slower than other methods and error-prone (typos for example, or if you’re
@@ -308,21 +2153,21 @@ but often, it can get quite confusing to understand what is going on.&lt;/p&gt;
 universal solution like a for-loop), and which avoids using a loop?
 &lt;code&gt;apply()&lt;/code&gt; would here be the best candidate:&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;apply(dataset, MARGIN = 1, FUN = my_function)&lt;/code&gt;&lt;/pre&gt;
-&lt;pre&gt;&lt;code&gt;##   [1] -302.8056 -323.4730 -311.6355 -259.7646 -286.0531 -278.4643 -294.4777
-##   [8] -298.5700 -291.3642 -308.0560 -305.0222 -275.0652 -284.7013 -273.9297
-##  [15] -268.5652 -278.1445 -288.9499 -302.2236 -293.8893 -280.6697 -324.6310
-##  [22] -301.8986 -283.3776 -263.1386 -279.0203 -274.6004 -242.8429 -316.1679
-##  [29] -274.2564 -258.7995 -254.5350 -313.4797 -262.1684 -290.9866 -302.7581
-##  [36] -306.8771 -279.7645 -288.2144 -290.5971 -256.1781 -279.2323 -292.5604
-##  [43] -295.9565 -271.1590 -305.5433 -282.4037 -292.0525 -285.0635 -303.1871
-##  [50] -264.1534 -253.6944 -299.2543 -252.5947 -263.6670 -257.2571 -297.9045
-##  [57] -309.2746 -305.7162 -288.1244 -264.2176 -295.2711 -316.3825 -268.1744
-##  [64] -286.3890 -313.4759 -309.1958 -291.4537 -305.1202 -269.3924 -305.3369
-##  [71] -292.2627 -280.4522 -271.2382 -291.9913 -283.5446 -274.8310 -268.6854
-##  [78] -289.4784 -278.0444 -280.8523 -264.4792 -283.4950 -287.7354 -268.5446
-##  [85] -298.2402 -280.7423 -302.1886 -280.4117 -270.9505 -306.2466 -293.8185
-##  [92] -249.7290 -270.2272 -282.2159 -278.4562 -270.2936 -288.2470 -245.2684
-##  [99] -283.6952 -288.1078&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##   [1] -299.2624 -284.4934 -275.0270 -288.6529 -281.0109 -261.1376 -293.7069
+##   [8] -264.7833 -270.6977 -258.5214 -299.6117 -275.8491 -306.8555 -284.7410
+##  [15] -298.6167 -299.2872 -294.9865 -264.5808 -272.8924 -289.5542 -306.3602
+##  [22] -293.4290 -305.9189 -276.9193 -286.1938 -291.7530 -289.3610 -290.8470
+##  [29] -303.5995 -261.4664 -280.6596 -287.2716 -282.6859 -293.5323 -304.2287
+##  [36] -286.9913 -258.3523 -275.9231 -304.3919 -250.9952 -286.7151 -255.0904
+##  [43] -312.2109 -254.5034 -255.9284 -287.8201 -285.9853 -290.8199 -309.0086
+##  [50] -311.4288 -271.1889 -299.3821 -290.1711 -281.0423 -294.1406 -275.8203
+##  [57] -274.1912 -257.7994 -308.3508 -271.5294 -293.3045 -296.9122 -277.8800
+##  [64] -296.9870 -314.1470 -270.0065 -288.3262 -252.3774 -263.9164 -286.9263
+##  [71] -302.5980 -281.0731 -269.0754 -301.6335 -294.3153 -268.4932 -263.6926
+##  [78] -306.9723 -271.8796 -292.6175 -294.0995 -303.4289 -280.5853 -277.6487
+##  [85] -262.2476 -310.0217 -281.7774 -292.7697 -295.8509 -269.0880 -253.2403
+##  [92] -279.8632 -293.0479 -258.1470 -303.6226 -306.4314 -293.4026 -275.8508
+##  [99] -269.6470 -285.0784&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;Appending this to a dataframe can be done within a &lt;code&gt;mutate()&lt;/code&gt; call (here again I’m encapsulating
 this inside a function, for benchmarking purposes):&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;run_apply &amp;lt;- function(dataset, my_function = my_function){
@@ -334,13 +2179,13 @@ this inside a function, for benchmarking purposes):&lt;/p&gt;
 
 run_apply(dataset, my_function = my_function) %&amp;gt;%
   head()&lt;/code&gt;&lt;/pre&gt;
-&lt;pre&gt;&lt;code&gt;##           x1         x2         x3         x4        x5        x6     score
-## 1 0.01240753 0.52216369 0.03258892 0.09722631 0.7485749 0.9275532 -302.8056
-## 2 0.35423196 0.13766202 0.32204460 0.05759782 0.2143725 0.2391541 -323.4730
-## 3 0.10378066 0.07571073 0.28378176 0.51448928 0.9616971 0.2702277 -311.6355
-## 4 0.52591063 0.46718618 0.99404463 0.86059204 0.7264650 0.8083685 -259.7646
-## 5 0.46208664 0.56516052 0.46177016 0.15401250 0.9280011 0.9152156 -286.0531
-## 6 0.98528077 0.24898464 0.28815249 0.37093507 0.9020534 0.4355511 -278.4643&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##          x1        x2          x3        x4         x5        x6     score
+## 1 0.3045714 0.1436057 0.003754794 0.9144551 0.53070392 0.6127125 -299.2624
+## 2 0.3155244 0.8890011 0.556325257 0.5688512 0.02928638 0.5626903 -284.4934
+## 3 0.8363487 0.6361570 0.667718047 0.4704217 0.10547741 0.5278469 -275.0270
+## 4 0.8207208 0.1286540 0.189744816 0.3309174 0.76311349 0.7019268 -288.6529
+## 5 0.7244419 0.1284358 0.235967085 0.8444759 0.38697023 0.9818212 -281.0109
+## 6 0.2882561 0.9702481 0.983408531 0.1510577 0.84844059 0.7678110 -261.1376&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;&lt;code&gt;MARGIN = 1&lt;/code&gt; means that the function is applied on the rows, whereas &lt;code&gt;MARGIN = 2&lt;/code&gt; would apply the
 function over columns.&lt;/p&gt;
 &lt;p&gt;In terms of readability, I think that this is maybe a bit less readable than the for-loop, just
@@ -369,14 +2214,14 @@ which leverages &lt;code&gt;rowwise()&lt;/code&gt;, looks like:&lt;/p&gt;
 run_rowwise(dataset, my_function = my_function) %&amp;gt;%
   head()&lt;/code&gt;&lt;/pre&gt;
 &lt;pre&gt;&lt;code&gt;## # A tibble: 6 × 7
-##       x1     x2     x3     x4    x5    x6 score
-##    &amp;lt;dbl&amp;gt;  &amp;lt;dbl&amp;gt;  &amp;lt;dbl&amp;gt;  &amp;lt;dbl&amp;gt; &amp;lt;dbl&amp;gt; &amp;lt;dbl&amp;gt; &amp;lt;dbl&amp;gt;
-## 1 0.0124 0.522  0.0326 0.0972 0.749 0.928 -303.
-## 2 0.354  0.138  0.322  0.0576 0.214 0.239 -323.
-## 3 0.104  0.0757 0.284  0.514  0.962 0.270 -312.
-## 4 0.526  0.467  0.994  0.861  0.726 0.808 -260.
-## 5 0.462  0.565  0.462  0.154  0.928 0.915 -286.
-## 6 0.985  0.249  0.288  0.371  0.902 0.436 -278.&lt;/code&gt;&lt;/pre&gt;
+##      x1    x2      x3    x4     x5    x6 score
+##   &amp;lt;dbl&amp;gt; &amp;lt;dbl&amp;gt;   &amp;lt;dbl&amp;gt; &amp;lt;dbl&amp;gt;  &amp;lt;dbl&amp;gt; &amp;lt;dbl&amp;gt; &amp;lt;dbl&amp;gt;
+## 1 0.305 0.144 0.00375 0.914 0.531  0.613 -299.
+## 2 0.316 0.889 0.556   0.569 0.0293 0.563 -284.
+## 3 0.836 0.636 0.668   0.470 0.105  0.528 -275.
+## 4 0.821 0.129 0.190   0.331 0.763  0.702 -289.
+## 5 0.724 0.128 0.236   0.844 0.387  0.982 -281.
+## 6 0.288 0.970 0.983   0.151 0.848  0.768 -261.&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;This runs, but much, much, more slower than with &lt;code&gt;apply()&lt;/code&gt; (but faster than a for-loop, as we
 shall see) . Plus, it does look much, much
 more complicated than the simple &lt;code&gt;apply()&lt;/code&gt; version! So why do it like this? You even need several
@@ -508,13 +2353,13 @@ over its rows:&lt;/p&gt;
 
 run_map(dataset, my_function = my_function) %&amp;gt;%
   head()&lt;/code&gt;&lt;/pre&gt;
-&lt;pre&gt;&lt;code&gt;##           x1         x2         x3         x4        x5        x6     score
-## 1 0.01240753 0.52216369 0.03258892 0.09722631 0.7485749 0.9275532 -302.8056
-## 2 0.35423196 0.13766202 0.32204460 0.05759782 0.2143725 0.2391541 -323.4730
-## 3 0.10378066 0.07571073 0.28378176 0.51448928 0.9616971 0.2702277 -311.6355
-## 4 0.52591063 0.46718618 0.99404463 0.86059204 0.7264650 0.8083685 -259.7646
-## 5 0.46208664 0.56516052 0.46177016 0.15401250 0.9280011 0.9152156 -286.0531
-## 6 0.98528077 0.24898464 0.28815249 0.37093507 0.9020534 0.4355511 -278.4643&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##          x1        x2          x3        x4         x5        x6     score
+## 1 0.3045714 0.1436057 0.003754794 0.9144551 0.53070392 0.6127125 -299.2624
+## 2 0.3155244 0.8890011 0.556325257 0.5688512 0.02928638 0.5626903 -284.4934
+## 3 0.8363487 0.6361570 0.667718047 0.4704217 0.10547741 0.5278469 -275.0270
+## 4 0.8207208 0.1286540 0.189744816 0.3309174 0.76311349 0.7019268 -288.6529
+## 5 0.7244419 0.1284358 0.235967085 0.8444759 0.38697023 0.9818212 -281.0109
+## 6 0.2882561 0.9702481 0.983408531 0.1510577 0.84844059 0.7678110 -261.1376&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;So we now have 4 approaches to solve the issue:&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;code&gt;run_loop()&lt;/code&gt;: uses a for-loop&lt;/li&gt;
@@ -594,6 +2439,7 @@ but only on a subset of columns, &lt;code&gt;rowwise()&lt;/code&gt;, even though
 &lt;p&gt;I wonder if there is a way to use &lt;code&gt;c_across()&lt;/code&gt; with the &lt;code&gt;map()&lt;/code&gt; approach, and potentially have
 the benefits of &lt;code&gt;map()&lt;/code&gt; (as fast as &lt;code&gt;apply()&lt;/code&gt;) and &lt;code&gt;rowwise()&lt;/code&gt; (computing only over certain
 columns…). Another subject to explore later.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;Part 2 of this blog post is available &lt;a href=&#34;https://www.brodrigues.co/blog/2021-09-05-speedrunning_rows/&#34;&gt;here&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
 &lt;p&gt;Hope you enjoyed! If you found this blog post useful, you might want to follow
 me on &lt;a href=&#34;https://www.twitter.com/brodriguesco&#34;&gt;twitter&lt;/a&gt; for blog post updates and
 &lt;a href=&#34;https://www.buymeacoffee.com/brodriguesco&#34;&gt;buy me an espresso&lt;/a&gt; or &lt;a href=&#34;https://www.paypal.me/brodriguesco&#34;&gt;paypal.me&lt;/a&gt;, or buy my ebook on &lt;a href=&#34;https://leanpub.com/modern_tidyverse&#34;&gt;Leanpub&lt;/a&gt;.
