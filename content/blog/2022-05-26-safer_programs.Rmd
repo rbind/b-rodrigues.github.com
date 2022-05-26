@@ -1,0 +1,349 @@
+---
+date: 2022-05-26
+title: Some learnings from functional programming you can use to write safer programs
+tags: [R]
+menu:
+main:
+  parent: Blog
+  identifier: /blog/safer_programs
+  weight: 1
+---
+
+
+<div style="text-align:center;">
+<video width="320" height="240" controls>
+  <source src="/img/american_psycho.mp4" type="video/mp4">
+</video>
+</div>
+
+
+## Learning number 1: make functions fail early
+
+When writing your own functions, avoid conversion of types without warning.
+For example, this function only works on characters:
+
+```{r}
+my_nchar <- function(x, result = 0){
+
+  if(x == ""){
+    result
+  } else {
+    result <- result + 1
+    split_x <- strsplit(x, split = "")[[1]]
+    my_nchar(paste0(split_x[-1],
+                    collapse = ""), result)
+  }
+
+}
+
+```
+
+```{r}
+my_nchar("100000000")
+```
+
+```{r, eval = FALSE}
+my_nchar(100000000)
+```
+
+```
+Error in strsplit(x, split = "") : non-character argument
+```
+
+It may tempting to write functions that accept a lot of different types of inputs, because it
+seems convenient and you're a lazy ding-dong:
+
+```{r}
+my_nchar2 <- function(x, result = 0){
+
+  # What could go wrong?
+  x <- as.character(x)
+
+  if(x == ""){
+    result
+  } else {
+    result <- result + 1
+    split_x <- strsplit(x, split = "")[[1]]
+    my_nchar2(paste0(split_x[-1],
+                    collapse = ""), result)
+  }
+
+}
+
+```
+
+You should avoid doing this, because this can have unforseen consequences:
+
+```{r}
+my_nchar2(10000000)
+```
+
+If you think that this example is far-fetched, you’d be surprised to learn that this is exactly
+what `nchar()`, the built-in function to count characters, does:
+
+```{r}
+nchar("10000000")
+```
+
+to this:
+
+```{r}
+nchar(10000000)
+```
+
+(thanks to [@cararthompson](https://twitter.com/cararthompson/status/1525114767614087169?s=20&t=tP8Wh8Iy25bWUC1y3Qk5oQ) for pointing this out on twitter)
+
+You can also add guards to be extra safe:
+
+```{r}
+my_nchar2 <- function(x, result = 0){
+
+  if(!isTRUE(is.character(x))){
+    stop(paste0("x should be of type 'character', but is of type '",
+                typeof(x), "' instead."))
+  } else if(x == ""){
+    result
+  } else {
+    result <- result + 1
+    split_x <- strsplit(x, split = "")[[1]]
+    my_nchar2(paste0(split_x[-1],
+                     collapse = ""), result)
+  }
+}
+
+
+```
+
+```{r}
+my_nchar2("10000000")
+```
+
+compare to this:
+
+```{r, eval = FALSE}
+my_nchar2(10000000)
+```
+
+```
+Error in my_nchar2(1000):
+x should be of type 'character', but is of type 'double' instead.
+```
+
+Now this doesn't really help here, because our function is already safe (it only handles
+characters, since `strsplit()` only handles characters), but in other situations this could
+be helpful (and at least we customized the error message). Since it can be quite tedious
+to write all these `if...else...` statements, you might want to take a look at 
+`purrr::safely()` (and `purrr::possibly()`), 
+the [{maybe}](https://armcn.github.io/maybe/) package, or the 
+[{typed}](https://github.com/moodymudskipper/typed) package, or even 
+[my package](https://b-rodrigues.github.io/chronicler/) for that matter.
+
+## Learning number 2: Make your functions referentially transparent (and as pure as possible)
+
+Any variable used by a function should be one of its parameters. Don't do this:
+
+```{r}
+f <- function(x){
+  x + y
+}
+```
+
+This function has only one parameter, `x`, and so depends on `y` outside of this scope.
+This function is unpredictable, because the result it provides depends on the value of `y`.
+
+See what happens:
+
+```{r, include = FALSE}
+y <- 10
+```
+
+```{r}
+f(10)
+```
+
+```{r, include = FALSE}
+y <- 0
+```
+
+```{r}
+f(10)
+```
+
+I called `f` twice with `10` and got two results (because I changed the value of `y`
+without showing you). In very long scripts, having functions like this depending on
+values in the global environment is a recipe for disaster. It's better to make this 
+function referentially transparent; some very complicated words to describe a very
+simple concept:
+
+```{r}
+f <- function(x, y){
+  x + y
+}
+```
+
+Just give `f` a second parameter, and you're good to go.
+
+Something else your functions shouldn't do is changing stuff outside of its scope:
+
+```{r}
+f <- function(x, y){
+  result <<- x + y
+}
+```
+
+Let's take a look at variables in global environment before calling `f`:
+
+```{r}
+ls()
+```
+
+Now let's call it:
+
+```{r}
+f(1, 2)
+```
+
+And let's have a good look at the global environment again:
+
+```{r}
+ls()
+```
+
+We now see that `result` has been defined in the global environment:
+
+```{r}
+result
+```
+
+Just like before, if your functions change stuff outside their scope, this is 
+a recipe for disaster. You have to be very careful and know exactly what you're doing
+if you want to use `<<-`.
+
+So it's better to write your function like this, and call it like this:
+
+```{r}
+f <- function(x, y){
+  x + y
+}
+
+result <- f(1, 2)
+```
+
+## Learning number 3: make your functions do one thing
+
+Try to write small functions that do just one thing. This make them easier to
+document, test and simply wrap your head around. You can then pipe your function
+one after the other to get stuff done:
+
+```{r, eval = FALSE}
+a |>
+  f() |>
+  g() |>
+  h()
+```
+
+You have of course to make sure that the output of `f()` is of the correct type, 
+so that `g()` then knows how to handle it. In some cases, you really need a function
+to do several things to get the output you want. In that case, still write small
+functions to handle every aspect of the whole algorithm, and then write a function
+that calls each function. And if needed, you can even provide functions as arguments
+to other functions:
+
+```{r, eval = FALSE}
+h <- function(x, y, f, g){
+  f(x) + g(y)
+}
+```
+
+This makes `h()` a higher-order function.
+
+## Learning number 4: use higher-order functions to abstract loops away
+
+Loops are hard to write. Higher order function are really cool though:
+
+```{r}
+Reduce(`+`, seq(1:100))
+```
+
+`Reduce()` is a higher-order function that takes a function (here `+`) and a list
+of inputs compatible with the function. So `Reduce()` performs this operation:
+
+```{r, eval = FALSE}
+Reduce(`+`, seq(1:100))
+
+100 + Reduce(`+`, seq(2:100))
+100 + 99 + Reduce(`+`, seq(3:100))
+100 + 99 + 98 + Reduce(`+`, seq(4:100))
+```
+
+This avoids having to write a loop, which can go wrong for many reasons (typos,
+checking input types, depending on variables outside the global environment...
+basically anything I mentioned already).
+
+There's also `purrr::reduce()` if you prefer the `tidyverse` ecosystem. Higher-order
+functions are super flexible; all that matters is that the function you give to `reduce()`
+knows what the do with the elements in the list. 
+
+Another higher-order function you should know about is `purrr::map()` (or `lapply()` if
+your prefer `base` functions):
+
+```{r}
+purrr::map(list(mtcars, iris), nrow)
+```
+
+This loops a function (here `nrow()`) over a list of whatevers (here data frames). Super 
+flexible once again.
+
+## (Optional) Learning number 5: use recursion to avoid loops further
+
+The following function calls itself and reverses a string:
+
+```{r}
+rev_char <- function(x){
+
+  try({
+    if(x == ""){
+      ""
+    } else {
+      split_x <- strsplit(x, split = "")[[1]]
+
+      len_x <- length(split_x)
+
+      paste0(split_x[len_x],
+             rev_char(paste0(split_x[1:len_x-1],
+                             collapse = "")))
+    }
+  }, stop(paste0("x should be of type 'character', but is of type '",
+                 typeof(x), "' instead.")))
+
+}
+
+rev_char("abc")
+```
+
+I say that this is optional, because while it might sometimes be easier to 
+use recursion to define a functions, this is not always the case, and (in the case of R)
+runs slower than using a loop. If you're interested in learning more about `map()` 
+and `reduce()`, I wrote
+several blog posts on it [here](https://www.brodrigues.co/blog/2018-01-03-lists_all_the_way/),
+[here](https://www.brodrigues.co/blog/2018-01-05-lists_all_the_way2/) and [here](https://www.brodrigues.co/blog/2018-01-19-mapping_functions_with_any_cols/)
+and some youtube videos as well:
+
+- https://www.youtube.com/watch?v=3xIKZbZKCWQ
+- https://www.youtube.com/watch?v=WjtXc4OXZuk
+- https://www.youtube.com/watch?v=vxaKamox_CQ
+- https://www.youtube.com/watch?v=H3ao7LzcvW8
+- https://www.youtube.com/watch?v=vtxb1j0aqJM
+- https://www.youtube.com/watch?v=F2U-l3IcCtc
+- https://www.youtube.com/watch?v=gVW9KfkJIrQ
+- https://www.youtube.com/watch?v=FanU60pjmt0
+- https://www.youtube.com/watch?v=DERMZi3Ck20
+
+<p>Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my ebook on <a href="https://leanpub.com/modern_tidyverse">Leanpub</a>.
+You can also watch my videos on <a href="https://www.youtube.com/c/BrunoRodrigues1988/">youtube</a>.
+So much content for you to consoom!</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
+</div>

@@ -1,0 +1,249 @@
+---
+date: 2022-05-26
+title: Some learnings from functional programming you can use to write safer programs
+tags: [R]
+menu:
+main:
+  parent: Blog
+  identifier: /blog/safer_programs
+  weight: 1
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<div style="text-align:center;">
+<video width="320" height="240" controls>
+<source src="/img/american_psycho.mp4" type="video/mp4">
+</video>
+</div>
+<div id="learning-number-1-make-functions-fail-early" class="section level2">
+<h2>Learning number 1: make functions fail early</h2>
+<p>When writing your own functions, avoid conversion of types without warning.
+For example, this function only works on characters:</p>
+<pre class="r"><code>my_nchar &lt;- function(x, result = 0){
+
+  if(x == &quot;&quot;){
+    result
+  } else {
+    result &lt;- result + 1
+    split_x &lt;- strsplit(x, split = &quot;&quot;)[[1]]
+    my_nchar(paste0(split_x[-1],
+                    collapse = &quot;&quot;), result)
+  }
+
+}</code></pre>
+<pre class="r"><code>my_nchar(&quot;100000000&quot;)</code></pre>
+<pre><code>## [1] 9</code></pre>
+<pre class="r"><code>my_nchar(100000000)</code></pre>
+<pre><code>Error in strsplit(x, split = &quot;&quot;) : non-character argument</code></pre>
+<p>It may tempting to write functions that accept a lot of different types of inputs, because it
+seems convenient and you’re a lazy ding-dong:</p>
+<pre class="r"><code>my_nchar2 &lt;- function(x, result = 0){
+
+  # What could go wrong?
+  x &lt;- as.character(x)
+
+  if(x == &quot;&quot;){
+    result
+  } else {
+    result &lt;- result + 1
+    split_x &lt;- strsplit(x, split = &quot;&quot;)[[1]]
+    my_nchar2(paste0(split_x[-1],
+                    collapse = &quot;&quot;), result)
+  }
+
+}</code></pre>
+<p>You should avoid doing this, because this can have unforseen consequences:</p>
+<pre class="r"><code>my_nchar2(10000000)</code></pre>
+<pre><code>## [1] 5</code></pre>
+<p>If you think that this example is far-fetched, you’d be surprised to learn that this is exactly
+what <code>nchar()</code>, the built-in function to count characters, does:</p>
+<pre class="r"><code>nchar(&quot;10000000&quot;)</code></pre>
+<pre><code>## [1] 8</code></pre>
+<p>to this:</p>
+<pre class="r"><code>nchar(10000000)</code></pre>
+<pre><code>## [1] 5</code></pre>
+<p>(thanks to <a href="https://twitter.com/cararthompson/status/1525114767614087169?s=20&amp;t=tP8Wh8Iy25bWUC1y3Qk5oQ"><span class="citation">@cararthompson</span></a> for pointing this out on twitter)</p>
+<p>You can also add guards to be extra safe:</p>
+<pre class="r"><code>my_nchar2 &lt;- function(x, result = 0){
+
+  if(!isTRUE(is.character(x))){
+    stop(paste0(&quot;x should be of type &#39;character&#39;, but is of type &#39;&quot;,
+                typeof(x), &quot;&#39; instead.&quot;))
+  } else if(x == &quot;&quot;){
+    result
+  } else {
+    result &lt;- result + 1
+    split_x &lt;- strsplit(x, split = &quot;&quot;)[[1]]
+    my_nchar2(paste0(split_x[-1],
+                     collapse = &quot;&quot;), result)
+  }
+}</code></pre>
+<pre class="r"><code>my_nchar2(&quot;10000000&quot;)</code></pre>
+<pre><code>## [1] 8</code></pre>
+<p>compare to this:</p>
+<pre class="r"><code>my_nchar2(10000000)</code></pre>
+<pre><code>Error in my_nchar2(1000):
+x should be of type &#39;character&#39;, but is of type &#39;double&#39; instead.</code></pre>
+<p>Now this doesn’t really help here, because our function is already safe (it only handles
+characters, since <code>strsplit()</code> only handles characters), but in other situations this could
+be helpful (and at least we customized the error message). Since it can be quite tedious
+to write all these <code>if...else...</code> statements, you might want to take a look at
+<code>purrr::safely()</code> (and <code>purrr::possibly()</code>),
+the <a href="https://armcn.github.io/maybe/">{maybe}</a> package, or the
+<a href="https://github.com/moodymudskipper/typed">{typed}</a> package, or even
+<a href="https://b-rodrigues.github.io/chronicler/">my package</a> for that matter.</p>
+</div>
+<div id="learning-number-2-make-your-functions-referentially-transparent-and-as-pure-as-possible" class="section level2">
+<h2>Learning number 2: Make your functions referentially transparent (and as pure as possible)</h2>
+<p>Any variable used by a function should be one of its parameters. Don’t do this:</p>
+<pre class="r"><code>f &lt;- function(x){
+  x + y
+}</code></pre>
+<p>This function has only one parameter, <code>x</code>, and so depends on <code>y</code> outside of this scope.
+This function is unpredictable, because the result it provides depends on the value of <code>y</code>.</p>
+<p>See what happens:</p>
+<pre class="r"><code>f(10)</code></pre>
+<pre><code>## [1] 20</code></pre>
+<pre class="r"><code>f(10)</code></pre>
+<pre><code>## [1] 10</code></pre>
+<p>I called <code>f</code> twice with <code>10</code> and got two results (because I changed the value of <code>y</code>
+without showing you). In very long scripts, having functions like this depending on
+values in the global environment is a recipe for disaster. It’s better to make this
+function referentially transparent; some very complicated words to describe a very
+simple concept:</p>
+<pre class="r"><code>f &lt;- function(x, y){
+  x + y
+}</code></pre>
+<p>Just give <code>f</code> a second parameter, and you’re good to go.</p>
+<p>Something else your functions shouldn’t do is changing stuff outside of its scope:</p>
+<pre class="r"><code>f &lt;- function(x, y){
+  result &lt;&lt;- x + y
+}</code></pre>
+<p>Let’s take a look at variables in global environment before calling <code>f</code>:</p>
+<pre class="r"><code>ls()</code></pre>
+<pre><code>## [1] &quot;f&quot;         &quot;my_nchar&quot;  &quot;my_nchar2&quot; &quot;view&quot;      &quot;view_xl&quot;   &quot;y&quot;</code></pre>
+<p>Now let’s call it:</p>
+<pre class="r"><code>f(1, 2)</code></pre>
+<p>And let’s have a good look at the global environment again:</p>
+<pre class="r"><code>ls()</code></pre>
+<pre><code>## [1] &quot;f&quot;         &quot;my_nchar&quot;  &quot;my_nchar2&quot; &quot;result&quot;    &quot;view&quot;      &quot;view_xl&quot;  
+## [7] &quot;y&quot;</code></pre>
+<p>We now see that <code>result</code> has been defined in the global environment:</p>
+<pre class="r"><code>result</code></pre>
+<pre><code>## [1] 3</code></pre>
+<p>Just like before, if your functions change stuff outside their scope, this is
+a recipe for disaster. You have to be very careful and know exactly what you’re doing
+if you want to use <code>&lt;&lt;-</code>.</p>
+<p>So it’s better to write your function like this, and call it like this:</p>
+<pre class="r"><code>f &lt;- function(x, y){
+  x + y
+}
+
+result &lt;- f(1, 2)</code></pre>
+</div>
+<div id="learning-number-3-make-your-functions-do-one-thing" class="section level2">
+<h2>Learning number 3: make your functions do one thing</h2>
+<p>Try to write small functions that do just one thing. This make them easier to
+document, test and simply wrap your head around. You can then pipe your function
+one after the other to get stuff done:</p>
+<pre class="r"><code>a |&gt;
+  f() |&gt;
+  g() |&gt;
+  h()</code></pre>
+<p>You have of course to make sure that the output of <code>f()</code> is of the correct type,
+so that <code>g()</code> then knows how to handle it. In some cases, you really need a function
+to do several things to get the output you want. In that case, still write small
+functions to handle every aspect of the whole algorithm, and then write a function
+that calls each function. And if needed, you can even provide functions as arguments
+to other functions:</p>
+<pre class="r"><code>h &lt;- function(x, y, f, g){
+  f(x) + g(y)
+}</code></pre>
+<p>This makes <code>h()</code> a higher-order function.</p>
+</div>
+<div id="learning-number-4-use-higher-order-functions-to-abstract-loops-away" class="section level2">
+<h2>Learning number 4: use higher-order functions to abstract loops away</h2>
+<p>Loops are hard to write. Higher order function are really cool though:</p>
+<pre class="r"><code>Reduce(`+`, seq(1:100))</code></pre>
+<pre><code>## [1] 5050</code></pre>
+<p><code>Reduce()</code> is a higher-order function that takes a function (here <code>+</code>) and a list
+of inputs compatible with the function. So <code>Reduce()</code> performs this operation:</p>
+<pre class="r"><code>Reduce(`+`, seq(1:100))
+
+100 + Reduce(`+`, seq(2:100))
+100 + 99 + Reduce(`+`, seq(3:100))
+100 + 99 + 98 + Reduce(`+`, seq(4:100))</code></pre>
+<p>This avoids having to write a loop, which can go wrong for many reasons (typos,
+checking input types, depending on variables outside the global environment…
+basically anything I mentioned already).</p>
+<p>There’s also <code>purrr::reduce()</code> if you prefer the <code>tidyverse</code> ecosystem. Higher-order
+functions are super flexible; all that matters is that the function you give to <code>reduce()</code>
+knows what the do with the elements in the list.</p>
+<p>Another higher-order function you should know about is <code>purrr::map()</code> (or <code>lapply()</code> if
+your prefer <code>base</code> functions):</p>
+<pre class="r"><code>purrr::map(list(mtcars, iris), nrow)</code></pre>
+<pre><code>## [[1]]
+## [1] 32
+## 
+## [[2]]
+## [1] 150</code></pre>
+<p>This loops a function (here <code>nrow()</code>) over a list of whatevers (here data frames). Super
+flexible once again.</p>
+</div>
+<div id="optional-learning-number-5-use-recursion-to-avoid-loops-further" class="section level2">
+<h2>(Optional) Learning number 5: use recursion to avoid loops further</h2>
+<p>The following function calls itself and reverses a string:</p>
+<pre class="r"><code>rev_char &lt;- function(x){
+
+  try({
+    if(x == &quot;&quot;){
+      &quot;&quot;
+    } else {
+      split_x &lt;- strsplit(x, split = &quot;&quot;)[[1]]
+
+      len_x &lt;- length(split_x)
+
+      paste0(split_x[len_x],
+             rev_char(paste0(split_x[1:len_x-1],
+                             collapse = &quot;&quot;)))
+    }
+  }, stop(paste0(&quot;x should be of type &#39;character&#39;, but is of type &#39;&quot;,
+                 typeof(x), &quot;&#39; instead.&quot;)))
+
+}
+
+rev_char(&quot;abc&quot;)</code></pre>
+<pre><code>## [1] &quot;cba&quot;</code></pre>
+<p>I say that this is optional, because while it might sometimes be easier to
+use recursion to define a functions, this is not always the case, and (in the case of R)
+runs slower than using a loop. If you’re interested in learning more about <code>map()</code>
+and <code>reduce()</code>, I wrote
+several blog posts on it <a href="https://www.brodrigues.co/blog/2018-01-03-lists_all_the_way/">here</a>,
+<a href="https://www.brodrigues.co/blog/2018-01-05-lists_all_the_way2/">here</a> and <a href="https://www.brodrigues.co/blog/2018-01-19-mapping_functions_with_any_cols/">here</a>
+and some youtube videos as well:</p>
+<ul>
+<li><a href="https://www.youtube.com/watch?v=3xIKZbZKCWQ" class="uri">https://www.youtube.com/watch?v=3xIKZbZKCWQ</a></li>
+<li><a href="https://www.youtube.com/watch?v=WjtXc4OXZuk" class="uri">https://www.youtube.com/watch?v=WjtXc4OXZuk</a></li>
+<li><a href="https://www.youtube.com/watch?v=vxaKamox_CQ" class="uri">https://www.youtube.com/watch?v=vxaKamox_CQ</a></li>
+<li><a href="https://www.youtube.com/watch?v=H3ao7LzcvW8" class="uri">https://www.youtube.com/watch?v=H3ao7LzcvW8</a></li>
+<li><a href="https://www.youtube.com/watch?v=vtxb1j0aqJM" class="uri">https://www.youtube.com/watch?v=vtxb1j0aqJM</a></li>
+<li><a href="https://www.youtube.com/watch?v=F2U-l3IcCtc" class="uri">https://www.youtube.com/watch?v=F2U-l3IcCtc</a></li>
+<li><a href="https://www.youtube.com/watch?v=gVW9KfkJIrQ" class="uri">https://www.youtube.com/watch?v=gVW9KfkJIrQ</a></li>
+<li><a href="https://www.youtube.com/watch?v=FanU60pjmt0" class="uri">https://www.youtube.com/watch?v=FanU60pjmt0</a></li>
+<li><a href="https://www.youtube.com/watch?v=DERMZi3Ck20" class="uri">https://www.youtube.com/watch?v=DERMZi3Ck20</a></li>
+</ul>
+<p>
+Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my ebook on <a href="https://leanpub.com/modern_tidyverse">Leanpub</a>.
+You can also watch my videos on <a href="https://www.youtube.com/c/BrunoRodrigues1988/">youtube</a>.
+So much content for you to consoom!
+</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p>
+<link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a>
+</p>
+</div>
+</div>
