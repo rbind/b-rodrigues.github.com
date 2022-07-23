@@ -197,7 +197,7 @@ microbenchmark::microbenchmark(
 
 There you have it folks! The winner is `grepl()` with `perl = TRUE`, and then it's 
 pretty much tied between `stringi()`, `stringr()` and `re2()` (maybe there's a slight edge
-for `re2()`) and `grepl()` with `perl = TRUE` is last. But don't forget that this is running
+for `re2()`) and `grepl()` without `perl = TRUE` is last. But don't forget that this is running
 on my machine with Linux installed on it; maybe you'll get different results on different
 hardware and OSs! So if you rely a lot on `grepl()` and other such string manipulation
 function, maybe run a benchmark on your hardware first. How come switching from `grepl()`
