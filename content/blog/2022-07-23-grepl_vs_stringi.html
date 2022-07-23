@@ -203,14 +203,14 @@ function 500 times using <code>{microbenchmark}</code>:</p>
 )</code></pre>
 <pre><code>## Unit: milliseconds
 ##              expr      min       lq     mean   median       uq      max neval
-##       run_grepl() 24.25701 24.45337 25.44482 24.71753 25.33725  44.3886   500
-##  run_grepl_perl() 18.96129 19.12343 20.33399 19.28973 19.81606 102.1047   500
-##     run_stringi() 22.66833 22.89935 24.04012 23.08470 23.61650 103.8997   500
-##     run_stringr() 22.62584 22.88531 24.25474 23.08486 23.62437 106.2045   500
-##         run_re2() 22.10223 22.27998 23.56669 22.52328 23.02084 103.4675   500</code></pre>
+##       run_grepl() 24.37832 24.89573 26.64820 25.50033 27.05967 115.0769   500
+##  run_grepl_perl() 19.03446 19.41323 20.91045 19.89093 21.16683 104.3917   500
+##     run_stringi() 23.01141 23.40151 25.00304 23.82441 24.83598 104.8065   500
+##     run_stringr() 22.98317 23.44332 25.32851 23.92721 25.18168 145.5861   500
+##         run_re2() 22.22656 22.60817 24.07254 23.05895 24.22048 108.6825   500</code></pre>
 <p>There you have it folks! The winner is <code>grepl()</code> with <code>perl = TRUE</code>, and then it’s
 pretty much tied between <code>stringi()</code>, <code>stringr()</code> and <code>re2()</code> (maybe there’s a slight edge
-for <code>re2()</code>) and <code>grepl()</code> with <code>perl = TRUE</code> is last. But don’t forget that this is running
+for <code>re2()</code>) and <code>grepl()</code> without <code>perl = TRUE</code> is last. But don’t forget that this is running
 on my machine with Linux installed on it; maybe you’ll get different results on different
 hardware and OSs! So if you rely a lot on <code>grepl()</code> and other such string manipulation
 function, maybe run a benchmark on your hardware first. How come switching from <code>grepl()</code>

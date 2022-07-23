@@ -203,7 +203,7 @@ hardware and OSs! So if you rely a lot on `grepl()` and other such string manipu
 function, maybe run a benchmark on your hardware first. How come switching from `grepl()`
 (without `perl = TRUE` though) to `stri_detect()` made my pipeline at work run 4 times
 faster I don't know. Maybe it has also to do with the size of the data, and the complexity
-of the regular expression used to detect the problematic strings?
+of the regular expression used to detect the problematic strings? 
 
 <p>Hope you enjoyed! If you found this blog post useful, you might want to follow
 me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
