@@ -165,6 +165,18 @@ specify one, this value is simply the first element of <code>colnames(mtcars)</c
 whole box (or move the <code>selectInput()</code> outside the boxes, but that was not an acceptable solution
 in my case).</p>
 <p>So there we have it, we’re done with the problem statement. Now on to the solution.</p>
+<div id="update" class="section level3">
+<h3><strong>UPDATE</strong></h3>
+<p>It turns out that it’s not needed to use JS for this special use case! <code>{bs4Dash}</code> comes
+with a function, called <code>updateBox()</code> which updates a targeted box. You can read about
+it <a href="https://rinterface.github.io/bs4Dash/reference/box.html">here</a>. Thanks to
+<code>{bs4Dash}</code>’s author,
+<a href="https://twitter.com/divadnojnarg/status/1576210017497550849?s=20&amp;t=wz3NfqHB4SWtcVAUH_KPRA">David Granjon</a>
+for the heads-up!</p>
+<p>Well, even though my specific use case does not actually need Javascript, you can continue
+reading, because in case your use case does not have an happy ending like mine, the blog
+post is still relevant!</p>
+</div>
 </div>
 <div id="javascript-to-the-rescue" class="section level2">
 <h2>Javascript to the rescue</h2>

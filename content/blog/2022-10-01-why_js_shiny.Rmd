@@ -187,6 +187,19 @@ in my case).
 
 So there we have it, we're done with the problem statement. Now on to the solution.
 
+### **UPDATE**
+
+It turns out that it's not needed to use JS for this special use case! `{bs4Dash}` comes
+with a function, called `updateBox()` which updates a targeted box. You can read about
+it [here](https://rinterface.github.io/bs4Dash/reference/box.html). Thanks to 
+`{bs4Dash}`'s author, 
+[David Granjon](https://twitter.com/divadnojnarg/status/1576210017497550849?s=20&t=wz3NfqHB4SWtcVAUH_KPRA)
+for the heads-up! 
+
+Well, even though my specific use case does not actually need Javascript, you can continue
+reading, because in case your use case does not have an happy ending like mine, the blog
+post is still relevant!
+
 ## Javascript to the rescue
 
 Let me be very clear: I know almost nothing about Javascript. I just knew a couple of things:
