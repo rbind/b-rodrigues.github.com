@@ -1,0 +1,108 @@
+---
+date: 2022-10-23
+title: R, its license and my take on it
+tags: [R]
+menu:
+main:
+  parent: Blog
+  identifier: /blog/licenses.Rmd
+  weight: 1
+---
+
+<div style="text-align:center;">
+<img src="/img/free_software.png" width="100%">
+</div>
+
+Foreword: This is not a tutorial nor anything like that. I'm going to talk about free software,
+open source, and their licenses. I'm going to give my (non-)expert opinion on it. You may 
+find, after having finished reading this post, that I wasted your time. So only read if by some
+miracle the first sentence of the foreword excited you. If not, close this tab and go back now.
+It's not too late.
+
+## Free software ain't free
+
+Let me first re-iterate that free software and open source are not the same thing. Free software
+is open source, but not every piece of open source software is free. Open source means that
+the source code of a piece of software is available and can be consulted without much hurdles. It also
+means, usually, that you can take these pieces of software, modify them, and redistribute them
+without much hurdles either.
+
+Free software is like open source software, but it's much more restrictive. That may seem surprising,
+because there's the word *free* in there, so how could it be more restrictive than open source software?
+Consider the following: I can take a piece of open source software (typically licensed
+under something like the [MIT licenses](https://en.wikipedia.org/wiki/MIT_License) or the 
+[BSD licenses](https://en.wikipedia.org/wiki/BSD_licenses)) and re-release it with a proprietary license and
+sell it. I don't actually even need to change anything substantial to the source code. I take that piece
+of software (which I may or may not modify), repackage it under a new name and sell it.
+Free software allows all of this as well (I literally could sell the Linux kernel on this website if I found
+people willing to pay me for it), but what it does not allow is only this: I cannot distribute (by selling or for
+free) the program without its source code. So if I sold the Linux kernel on here, I would need to also
+give out a copy of the source code with it, and this obviously would also still be necessary if I actually changed something
+to the source code of the Linux kernel.
+
+R is licensed under a Free Software license, the [GPL v2](https://en.wikipedia.org/wiki/GNU_General_Public_License#Version_2),
+which means that it's illegal for anyone to rebrand it, package it and sell it without providing the source code
+of their (modified) version of R. Thanks to something like the GPL, it is impossible for companies to employ 
+what is called [Embrace, Extend and Extinguish](https://en.wikipedia.org/wiki/Embrace,_extend,_and_extinguish),
+which is a strategy that Microsoft used in the past. It consists in embracing a piece of software, extending it
+with proprietary bits of code and technology, use their dominant position on the desktop to impose their new
+version that relies on proprietary bits (or which is 100% proprietary) and then *extinguish* the open source version 
+(in the sense that no one will use it anymore because it virtually became incompatible with the newly imposed
+Microsoft version).
+
+Now some of you may now be thinking that I'm stuck in the 90's, after all, Microsoft have been the good guys 
+for a decade now. They contribute to open source software (not free software), have bought Github and have not
+ruined it (yet) and they even included the possibility to run Linux inside Windows using WSL. So what am I afraid of?
+Why don't I trust them?
+
+## All licenses have their place
+
+The thing is, I shouldn't have to trust anyone not to fuck up a piece of free software. Maybe the current management
+of Microsoft is not hostile to free software, but maybe that'll change in the future. That's not really the point.
+The point is that I don't need to have to trust them, and I'm happy that a *fundamental* piece of software like R
+uses something like the GPL. But that doesn't mean that everything should be licensed under the GPL. For example,
+as far as I know, every package of the `{tidyverse}` uses an MIT license. So just because R is licensed under the GPL
+doesn't mean that its packages all have to be GPL. But I must also admit that while I see why a company like Posit
+releases their packages under the GPL, I don't see why a single developer would do that. I absolutely do not 
+see what independent developers gain from releasing the code of their packages under anything else than the GPL.
+But, to be fair, I have a grand total of two (2) packages on CRAN that likely get less than 10 downloads a year, so 
+what do I know. One of the arguments I've heard is that the GPL is not really free, because it restricts users from
+taking the code and releasing it under a proprietary license, so *akshually* the MIT/BSD licenses are really the
+free ones, and if I like freedom so much I should be using FreeBSD instead of a Linux distro and release my packages
+under a MIT/BSD license. I want to ask people that make this argument if they would allow the Nazi party to make a come
+back in their countries legislature, then.
+
+That being said, I do release stuff with permissive licenses. For example the content of this blog or for the courses
+I teach are under the [WTFPL](http://www.wtfpl.net/txt/copying/), which is, I would say, the only acceptable 
+permissive license for independent developers. If the name of the license was not explicit enough, the comic below illustrates
+what the WPTFL is all about:
+
+```{r, echo = F}
+
+knitr::include_graphics("http://www.wtfpl.net/wp-content/uploads/2012/12/wtfpl-strip.jpg")
+
+```
+
+## Can R be used to write proprietary code
+
+Yes, you can write proprietary code using R. Microsoft has done so, for example their `{RevoUtilsMath}` package is,
+as far as I know, proprietary, and I'm sure that it includes some R code. I'm pretty sure it would also be possible
+to even build a proprietary program that would require the R interpreter to be bundled to run. As long as the developers
+of this tool would:
+
+- Release their modified version of R with it (if they modified it);
+- Tell their users that their program runs with R, and thus also distribute R and its license;
+
+But I'm not that certain on this last point, so any comments welcome 
+(on [here](https://github.com/rbind/b-rodrigues.github.com/issues/4)).
+
+That's it, that's the blog post. Thank GNU for the GPL.
+
+<p>Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my ebook on <a href="https://leanpub.com/modern_tidyverse">Leanpub</a>.
+You can also watch my videos on <a href="https://www.youtube.com/c/BrunoRodrigues1988/">youtube</a>.
+So much content for you to consoom!</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
+</div>
