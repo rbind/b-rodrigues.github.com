@@ -77,11 +77,9 @@ I teach are under the [WTFPL](http://www.wtfpl.net/txt/copying/), which is, I wo
 permissive license for independent developers. If the name of the license was not explicit enough, the comic below illustrates
 what the WPTFL is all about:
 
-```{r, echo = F}
-
-knitr::include_graphics("http://www.wtfpl.net/wp-content/uploads/2012/12/wtfpl-strip.jpg")
-
-```
+<div style="text-align:center;">
+<img src="http://www.wtfpl.net/wp-content/uploads/2012/12/wtfpl-strip.jpg" width="100%">
+</div>
 
 ## Can R be used to write proprietary code
 
