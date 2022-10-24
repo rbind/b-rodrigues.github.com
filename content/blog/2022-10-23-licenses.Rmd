@@ -19,7 +19,8 @@ after having finished reading this post, that I wasted your time. So only read i
 the first sentence of the foreword excited you. If not, close this tab and go back now. It's not
 too late.
 
-Foreword 2: I've updated the post on October 24th with an additional meme and clarifications.
+Foreword 2: I've updated the post on October 24th with an additional meme, clarifications and a link
+to an interesting stackexchange discussion.
 
 ## Free software ain't free
 
@@ -107,10 +108,14 @@ require the R interpreter to be bundled to run. As long as the developers of thi
 
 R could likely be downloaded at install time in cases like this, again, as long as the users
 get notified that it's needed. I doubt that the rest of the program would need to be licensed
-under the GPL, since no code of R itself has been modified.
+under the GPL, since no code of R itself has been modified. 
 
 But I'm not that certain on this last point, so any comments welcome 
 (on [here](https://github.com/rbind/b-rodrigues.github.com/issues/4)).
+
+EDIT: There's this interesting discussion on stackexchange [here](https://opensource.stackexchange.com/questions/7078/is-it-legal-to-use-gpl-code-in-a-proprietary-closed-source-program-by-putting-i)
+and it would seem that the answer is not clearcut, but, it depends. Hence why companies
+prefer working using permissive licenses, to avoid these types of discussions.
 
 That's it, that's the blog post. Thank GNU for the GPL.
 
