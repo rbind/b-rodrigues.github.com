@@ -10,8 +10,9 @@ menu:
 My name is Bruno Rodrigues and hold a PhD in Economics from the 
 [University of Strasbourg](http://www.unistra.fr).
 
-<div style="float: left;margin: 0px 80px 50px 0px">
-    <img src="/img/profile.webp" width="400" height="400"/>
+
+<div style="text-align:center;">
+    <img src="/img/profile.jpg"/>
 </div>
 
 
