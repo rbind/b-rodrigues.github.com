@@ -1,0 +1,335 @@
+---
+date: 2022-10-31
+title: How to deal with annoying medium sized data inside a Shiny app
+tags: [R]
+menu:
+main:
+  parent: Blog
+  identifier: /blog/optim_shiny.Rmd
+  weight: 1
+---
+
+<div style="text-align:center;">
+  <video width="640" height="480" controls>
+    <source src="/img/deja_vu.mp4" type="video/mp4">
+  </video>
+</div>
+
+*This blog post is taken from a chapter of my ebook on building reproducible analytical pipelines, which you can
+read [here](https://rap4mads.eu)*
+
+
+If you want to follow along, you can start by downloading the data I use
+[here](https://mega.nz/file/l1IxHYIT#mZkeQOVpMc9XymMNtDY687sHEZHoIvDcUOm-4AwK6OI).
+This is a smaller dataset made from the one you can get 
+[here](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/HG7NV7).
+
+Uncompressed it'll be a 2.4GB file. Not big data in any sense, but big enough to be annoying to
+handle without the use of some optimization strategies (I've seen such data described as medium
+sized data before.).
+
+One such strategy is only letting the computations run once the user gives the green light by
+clicking on an action button. The next obvious strategy is to use packages that are optimized for
+speed. It turns out that the functions we have seen until now (note from the author: *the functions
+we have seen until now* if you're on of my students that's sitting in the course where I teach
+this), from packages like `{dplyr}` and the like, are not the fastest. Their ease of use and
+expressiveness come at a speed cost. So we will need to switch to something faster. We will do the
+same to read in the data.
+
+This faster solution is the `{arrow}` package, which is an interface to the 
+[Arrow software developed by Apache](https://arrow.apache.org/faq/).
+
+The final strategy is to enable caching in the app.
+
+So first, install the `{arrow}` package by running `install.packages("arrow")`. This will compile
+`libarrow` from source on Linux and might take some time, so perhaps go grab a coffee. One other
+operating systems, I guess that a binary version gets installed.
+
+Before building the app, let me perform a very simple benchmark. The script below reads in the data,
+then performs some aggregations. This is done using standard `{tidyverse}` functions, but also
+using `{arrow}`:
+
+```{r, eval = F}
+start_tidy <- Sys.time()
+  # {vroom} is able to read in larger files than {readr}
+  # I could not get this file into R using readr::read_csv
+  # my RAM would get maxed out
+  air <- vroom::vroom("data/combined")
+
+  mean_dep_delay <- air |>
+    dplyr::group_by(Year, Month, DayofMonth) |>
+    dplyr::summarise(mean_delay = mean(DepDelay, na.rm = TRUE))
+end_tidy <- Sys.time()
+
+time_tidy <- end_tidy - start_tidy
+
+
+start_arrow <- Sys.time()
+  air <- arrow::open_dataset("data/combined", format = "csv")
+
+  mean_dep_delay <- air |>
+    dplyr::group_by(Year, Month, DayofMonth) |>
+    dplyr::summarise(mean_delay = mean(DepDelay, na.rm = TRUE))
+end_arrow <- Sys.time()
+
+end_tidy - start_tidy
+end_arrow - start_arrow
+```
+
+The "tidy" approach took 17 seconds, while the arrow approach took 6 seconds. This is an impressive
+improvement, but put yourself in the shoes of a user who has to wait 6 seconds for each query. That
+would get very annoying, very quickly. So the other strategy that we will use is to provide some visual 
+cue that computations are running, and then we will go one step further and use caching of results 
+in the Shiny app.
+
+But before we continue, you may be confused by the code above. After all, I told you before that
+functions from `{dplyr}` and the like were not the fastest, and yet, I am using them in the arrow
+approach as well, and they now run almost 3 times as fast. What's going on? What's happening here,
+is that the `air` object that we read using `arrow::open_dataset` is not a dataframe, but an `arrow`
+dataset. These are special, and work in a different way. But that's not what's important: what's important
+is that the `{dplyr}` api can be used to work with these `arrow` datasets. This means that functions
+from `{dplyr}` change the way they work depending on the type of the object their dealing with.
+If it's a good old regular data frame, some C++ code gets called to perform the computations. If it's 
+an `arrow` dataset, `libarrow` and its black magic get called instead to perform the computations.
+If you're familiar with the concept of
+[polymorphism](https://en.wikipedia.org/wiki/Polymorphism_(computer_science)) this is it
+(think of `+` in Python: `1+1` returns `2`, `"a"+"b"` returns `"a+b"`. A different computation
+gets performed depending on the type of the function's inputs).
+
+Let's now build a basic version of the app, only
+using `{arrow}` functions for speed. This is the global file:
+
+```{r, eval = F}
+library(arrow)
+library(dplyr)
+library(rlang)
+library(DT)
+
+air <- arrow::open_dataset("data/combined", format = "csv")
+```
+
+The ui will be quite simple:
+
+```{r, eval = F}
+ui <- function(request){
+  fluidPage(
+
+    titlePanel("Air On Time data"),
+
+    sidebarLayout(
+
+      sidebarPanel(
+        selectizeInput("group_by_selected", "Variables to group by:",
+                       choices = c("Year", "Month", "DayofMonth", "Origin", "Dest"),
+                       multiple = TRUE,
+                       selected = c("Year", "Month"),
+                       options = list(
+                         plugins = list("remove_button"),
+                         create = TRUE,
+                         persist = FALSE # keep created choices in dropdown
+                       )
+                       ),
+        hr(),
+        selectizeInput("var_to_average", "Select variable to average by groups:",
+                       choices = c("ArrDelay", "DepDelay", "Distance"),
+                       multiple = FALSE,
+                       selected = "DepDelay",
+                       ),
+        hr(),
+        actionButton(inputId = "run_aggregation",
+                     label = "Click here to run aggregation"),
+        hr(),
+        bookmarkButton()
+      ),
+
+      mainPanel(
+        DTOutput("result")
+      )
+    )
+  )
+
+}
+
+```
+
+And finally the server:
+
+```{r, eval = F}
+server <- function(session, input, output) {
+
+  # Numbers get crunched only when the user clicks on the action button
+  grouped_data <- eventReactive(input$run_aggregation, {
+    air %>%
+      group_by(!!!syms(input$group_by_selected)) %>%
+      summarise(result = mean(!!sym(input$var_to_average),
+                              na.rm = TRUE)) %>%
+      as.data.frame()
+  })
+
+  output$result <- renderDT({
+    grouped_data()
+  })
+
+}
+```
+
+Because `group_by()` and `mean()` expect bare variable names, I convert them from strings to 
+symbols using `rlang::syms()` and `rlang::sym()`. The difference between the two is that 
+`rlang::syms()` is required when a list of strings gets passed down to the function (remember 
+that the user must select several variables to group by), and this is also why `!!!` are needed
+(to unquote the list of symbols). Finally, the computed data must be converted back to a 
+data frame using `as.data.frame()`. This is actually when the computations happen. `{arrow}` collects
+all the aggregations but does not perform anything until absolutely required. Let's see the app 
+in action:
+
+<div style="text-align:center;">
+<video width="640" height="480" controls>
+  <source src="/img/shiny_3.mp4" type="video/mp4">
+</video>
+</div>
+
+As you can see, in terms of User Experience (UX) this is quite poor. When the user clicks on the button
+nothing seems to be going on for several seconds, until the table appears. Then, when the user
+changes some options and clicks again on the action button, it looks like the app is crashing.
+
+Let's add some visual cues to indicate to the user that something is happening when the button gets 
+clicked. For this, we are going to use the `{shinycssloaders}` package:
+
+```{r, eval = F}
+install.packages("shinycssloaders")
+```
+
+and simply change the ui to this (and don't forget to load `{shinycssloaders}` in the global script!):
+
+```{r, eval = F}
+ui <- function(request){
+  fluidPage(
+
+    titlePanel("Air On Time data"),
+
+    sidebarLayout(
+
+      sidebarPanel(
+        selectizeInput("group_by_selected", "Variables to group by:",
+                       choices = c("Year", "Month", "DayofMonth", "Origin", "Dest"),
+                       multiple = TRUE,
+                       selected = c("Year", "Month"),
+                       options = list(
+                         plugins = list("remove_button"),
+                         create = TRUE,
+                         persist = FALSE # keep created choices in dropdown
+                       )
+                       ),
+        hr(),
+        selectizeInput("var_to_average", "Select variable to average by groups:",
+                       choices = c("ArrDelay", "DepDelay", "Distance"),
+                       multiple = FALSE,
+                       selected = "DepDelay",
+                       ),
+        hr(),
+        actionButton(inputId = "run_aggregation",
+                     label = "Click here to run aggregation"),
+        hr(),
+        bookmarkButton()
+      ),
+
+      mainPanel(
+        # We add a tabsetPanel with two tabs. The first tab show the plot made using ggplot
+        # the second tab shows the plot using g2r
+        DTOutput("result") |>
+          withSpinner()
+      )
+    )
+  )
+
+}
+
+```
+
+The only difference with before is that now the `DTOutput()` right at the end gets passed down
+to `withSpinner()`. There are several spinners that you can choose, but let's simply use the 
+default one. This is how the app looks now:
+
+<div style="text-align:center;">
+<video width="640" height="480" controls>
+  <source src="/img/shiny_4.mp4" type="video/mp4">
+</video>
+</div>
+
+
+Now the user gets a visual cue that something is happening. This makes waiting more bearable,
+but even better than waiting with a spinner is no waiting at all. For this, we are going to enable caching
+of results. There are several ways that you can cache results inside your app. You can enable
+the cache on a per-user and per-session basis, or only on a per-user basis. But I think that 
+in our case here, the ideal caching strategy is to keep the cache persistent, and available
+across sessions. This means that each computation done by any user will get cached and available
+to any other user. In order to achieve this, you simply have to install the `{cachem}` packages
+add the following lines to the global script:
+
+```{r, eval = F}
+shinyOptions(cache = cachem::cache_disk("./app-cache",
+                                        max_age = Inf))
+```
+
+By setting the `max_age` argument to `Inf`, the cache will never get pruned. The maximum size
+of the cache, by default is 1GB. You can of course increase it.
+
+Now, you must also edit the server file like so:
+
+
+```{r, eval = F}
+server <- function(session, input, output) {
+
+  # Numbers get crunched only when the user clicks on the action button
+  grouped_data <- reactive({
+    air %>%
+      group_by(!!!syms(input$group_by_selected)) %>%
+      summarise(result = mean(!!sym(input$var_to_average),
+                              na.rm = TRUE)) %>%
+      as.data.frame()
+  }) %>%
+    bindCache(input$group_by_selected,
+              input$var_to_average) %>%
+    bindEvent(input$run_aggregation)
+
+  output$result <- renderDT({
+    grouped_data()
+  })
+
+}
+```
+
+We've had to change `eventReactive()` to `reactive()`, just like in the app where we don't use an
+action button to run computations (note of the author: in the ebook, there is an example of an app
+with this action button. This is what I'm referring to here). Then, we pass the reactive object to
+`bindCache()`. `bindCache()` also takes the `inputs` as arguments. These are used to generate cache
+keys to retrieve the correct objects from cache. Finally, we pass all this to `bindEvent()`. This
+function takes the input referencing the action button. This is how we can now bind the
+computations to the button once again. Let's test our app now. You will notice that the first time
+we choose certain options, the computations will take time, as before. But if we perform the same
+computations again, then the results will be shown instantly:
+
+<div style="text-align:center;">
+<video width="640" height="480" controls>
+  <source src="/img/shiny_5.mp4" type="video/mp4">
+</video>
+</div>
+
+As you can see, once I go back to a computation that was done in the past, the table appears
+instantly. At the end of the video I open a terminal and navigate to the directory of the app,
+and show you the cache. There are several `.Rds` objects, these are the final data frames that
+get computed by the app. If the user wants to rerun a previous computation, the correct data frame
+gets retrieved, making it look like the computation happened instantly, and with another added
+benefit: as discussed above, the cache is persistent between sessions, so even if the user
+closes the browser and comes back later, the cache is still there, and other users will also
+benefit from the cache.
+
+
+<p>Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://fosstodon.org/@brodriguesco">Mastodon</a> or <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my ebook on <a href="https://leanpub.com/modern_tidyverse">Leanpub</a>.
+You can also watch my videos on <a href="https://www.youtube.com/c/BrunoRodrigues1988/">youtube</a>.
+So much content for you to consoom!</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
+</div>
