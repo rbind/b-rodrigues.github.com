@@ -1,0 +1,199 @@
+---
+date: 2022-05-21
+title: Get packages that introduce unique syntax adopted less?
+tags: [R]
+menu:
+main:
+  parent: Blog
+  identifier: /blog/heavy_syntax
+  weight: 1
+---
+
+
+<div style="text-align:center;">
+<p><a href="https://cran.r-project.org/src/contrib/Archive/">
+<img src="/img/packages.jpg" title = "The CRAN archive will always be there, at least"></a></p>
+</div>
+
+I have this hypothesis that packages that introduce a unique syntax, or a workflow change,
+get adopted less by users, even if what these packages do is super useful.
+I'm going to discuss two examples of packages that I think are really, really useful, but sometimes
+I wonder how many R users use them, or would use them if they were aware these packages existed.
+I myself, only use one of them!
+
+The first package is [`{typed}`](https://github.com/moodymudskipper/typed) which introduces a type 
+system for R. No more silent conversion to and from types without your knowing! If you don't
+know what a type system is, consider the following:
+
+```{r}
+nchar("100000000")
+```
+
+you get "9" back, no problem. But if you do:
+
+```{r}
+nchar(100000000)
+```
+
+You get 5 back... what in the Lord's name happened here? What happened is that the number 100000000 was
+converted to a character implicitly. But because of all these 0's, this is what happened:
+
+```{r}
+as.character(100000000)
+```
+
+It gets converted to a character alright, but scientific notation gets used! So yes, 
+`r as.character(100000000)` is 5 characters long... Ideally `nchar()` would at least warn you that
+this conversion is happening, or maybe even error. After all, it’s called `nchar()` not `nnumeric()` or
+whatever. (Thanks to
+[`@cararthompson`](https://twitter.com/cararthompson/status/1525114767614087169?s=20&t=oEOD1Vf7q9l0ZpdVLyDeUw)
+for this!)
+
+A solution could be to write a wrapper around it:
+
+```{r}
+nchar2 <- function(x, ...){
+  stopifnot("x is not a character" = is.character(x))
+
+  nchar(x, ...)
+}
+```
+
+Now this function is safe:
+
+```{r, eval = FALSE}
+nchar2(123456789)
+```
+
+```{r, eval = FALSE}
+## [1] Error in nchar2(123456789) : x is not a character
+```
+
+`{typed}` makes writing safe functions like this easier.
+Using `{typed}` you can write the wrapper like this:
+
+```{r}
+library(typed, warn.conflicts = FALSE) 
+
+strict_nchar <- ? function(x = ? Character(), ...){
+
+  nchar(x, ...)
+
+}
+```
+
+`{typed}` introduces `?` (masking the base `?` function to read a function's docs) allowing you
+to set the type the function's arguments. It's also possible to set the return type of the function:
+
+```{r}
+strict_nchar <- Integer() ? function(x = ? Character(), ...){
+
+  nchar(x, ...)
+
+}
+
+```
+
+```{r}
+strict_nchar("10000000")
+```
+
+This is very useful if you want to write safe functions in a very concise and clean way.
+
+The second kind of package I was thinking about are packages like `{targets}`, which force users to
+structure their projects in a very specific way. I really like `{targets}` and have been using it for quite
+some time. `{targets}` takes inspiration from build automation tools from the software development world
+and introduces the concept of build automation in R. If you’re a linux user, you’ve probably dealt with
+`Makefile`s (especially if you’ve been using linux for more than 10 years), and `{targets}` works in
+a similar way; by writing a script in which you define *targets*, these get built in a reproducible way.
+If you’d like to see it in action, take a look at [this video](https://www.youtube.com/watch?v=FvJ4xRGiEgw)
+of mine. As useful as it is, I can imagine that some potential users will end up not adopting it, because
+`{targets}` really does things in a very unique and different way. Most people do not know what build
+automation tools are, and the cost of adopting `{targets}` seems disproportionally higher to its benefits 
+(but believe me, it is well worth the cost!).
+
+Now here’s the meat of the post: I think that packages like these, even though they’re very useful,
+get adopted less by users than other packages, that either:
+
+- do not introduce a unique way of doing things;
+- for which alternatives are available.
+
+The reason, I believe, is that users do not feel comfortable adopting a unique syntax and way of doing
+things that impact their code so much, because if these libraries get abandoned, users will need 
+to completely rewrite their scripts. And this is especially true when the two conditions above are not 
+verified.
+
+Take `{dplyr}`: one could argue that it introduces both a unique syntax, and a very specific
+workflow/way of doing things:
+
+```{r}
+library(dplyr)
+
+mtcars %>%
+ filter(am == 0) %>%
+ group_by(cyl) %>%
+ summarise(mean_hp = mean(hp))
+
+```
+
+But there are alternatives to it (a lot of `{dplyr}` functionality is covered by `base` functions already,
+and there's also `{data.table}`), so IF `{dplyr}` would get abandoned by Rstudio (which will never
+happen, but let's assume for the sake of argument), users *could* switch to `{data.table}`. Not so with
+more niche packages like the ones discussed above.
+Also, even `{dplyr}`'s unique syntax making heavy use of `%>%` is not so unique anymore, since
+the release of R 4.1. A base approach to the above snippet would be:
+
+```{r}
+mtcars |>
+  subset(am == 0) |>
+  with(aggregate(hp, by = list(cyl), mean))
+
+```
+
+Before R 4.1, looking at `{dplyr}` chains felt like looking at a completely different language than
+base R, but now with the introduction of `|>` not so anymore. The other thing packages like `{dplyr}`
+have going for them, even when they introduce a completely new syntax, and do not have any alternative 
+like `{ggplot2}` (I don't consider `base` plotting an alternative to `{ggplot2}`, because it works
+in a completely different way) is that they have big teams and/or companies behind them, like Rstudio.
+So users feel much more confident adopting such packages, than if they're written by a very small
+team (sometimes even just one person). 
+
+The reason I'm thinking about all this, is because I 
+[recently released a package](https://www.brodrigues.co/blog/2022-05-18-cran_0_2_0/) that raises
+all of the above red flags:
+
+- new syntax (makes heavy use of a new pipe `%>=%`);
+- forces a new workflow on users;
+- developed by a single dude in his free time who isn't even a programmer (me).
+
+If I was a potential interested user, I honestly don't know if I'd adopt this package for anything
+critical. I might play around with it a bit, but using that in production? What if the author (me)
+gets sick of it after a few months/years? Even I, as the author, cannot guarantee today that this
+package will still be maintained in 2 years. So users that might have important stuff running which uses my
+package are now screwed. I think that the only way for such packages to succeed, is if a sizeable
+community gathers around it and if the team of developers expands, and ideally, if it gets backed
+by a company (like Rstudio with all their packages, or rOpenSci [does for
+`{targets}`](https://docs.ropensci.org/targets/).
+
+To be clear, I am NOT complaining about free and open source software: these problems also exist
+with proprietary software. If a company builds something and they decide to abandon it, that's it,
+it's over. If there are no alternatives to it, users are screwed just as well. And companies can also
+go bankrupt or *change focus on other more profitable projects*.
+At least with free and open source software, if the author of a package has had enough
+and decides to not maintain anymore, there is still the possibility of someone else taking it over,
+and this someone else might be a user! There is also the possibility of running old R version with
+older versions of packages, even if they're abandoned, using Docker. So maybe it's not so bad.
+
+What do you think? I'd be curious to hear your thoughts. Tell me what you think on 
+[this github issue I opened](https://github.com/b-rodrigues/fp_in_R_discussion/issues/2).
+
+Oh and by the way, IF you're using `{chronicler}` after reading this, really, thank you.
+
+<p>Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my ebook on <a href="https://leanpub.com/modern_tidyverse">Leanpub</a>.
+You can also watch my videos on <a href="https://www.youtube.com/c/BrunoRodrigues1988/">youtube</a>.
+So much content for you to consoom!</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
+</div>

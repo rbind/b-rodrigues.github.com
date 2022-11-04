@@ -3,7 +3,42 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
-    <loc>https://www.brodrigues.co/blog/2022-06-21-heavy_syntax/</loc>
+    <loc>https://www.brodrigues.co/blog/2022-10-31-optim_shiny/</loc>
+    <lastmod>2022-10-31T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://www.brodrigues.co/blog/2022-10-29-mkusb_minp/</loc>
+    <lastmod>2022-10-29T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://www.brodrigues.co/blog/2022-10-23-licenses/</loc>
+    <lastmod>2022-10-23T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://www.brodrigues.co/blog/2022-10-01-why_js_shiny/</loc>
+    <lastmod>2022-10-01T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://www.brodrigues.co/blog/2022-07-23-grepl_vs_stringi/</loc>
+    <lastmod>2022-07-23T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://www.brodrigues.co/blog/2022-06-02-arcane/</loc>
+    <lastmod>2022-06-02T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://www.brodrigues.co/blog/2022-05-26-safer_programs/</loc>
+    <lastmod>2022-05-26T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://www.brodrigues.co/blog/2022-05-21-heavy_syntax/</loc>
     <lastmod>2022-05-21T00:00:00+00:00</lastmod>
   </url>
   
@@ -639,7 +674,7 @@
   
   <url>
     <loc>https://www.brodrigues.co/blog/</loc>
-    <lastmod>2022-05-21T00:00:00+00:00</lastmod>
+    <lastmod>2022-10-31T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -650,19 +685,19 @@
   
   <url>
     <loc>https://www.brodrigues.co/</loc>
-    <lastmod>2022-05-21T00:00:00+00:00</lastmod>
+    <lastmod>2022-10-31T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://www.brodrigues.co/tags/r/</loc>
-    <lastmod>2022-05-21T00:00:00+00:00</lastmod>
+    <lastmod>2022-10-31T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://www.brodrigues.co/tags/</loc>
-    <lastmod>2022-05-21T00:00:00+00:00</lastmod>
+    <lastmod>2022-10-31T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   

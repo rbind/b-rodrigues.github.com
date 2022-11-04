@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<style type=text/css>body{font-family:monospace;}</style>
+	<title>How to deal with annoying medium sized data inside a Shiny app</title>
+	
+	
+	<link rel="stylesheet" href="/css/style.css">
+	
+	
+</head>
+<body>
+	<header>
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+<pre>
+<a class="nav-link" href="/index.html">Econometrics and Free Software</a> by <a class="nav-link" href="/about/about">Bruno Rodrigues</a>.
+<a href="https://www.brodrigues.co/blog/index.xml">RSS feed for blog post updates</a>.
+Follow me on <a rel="me" href="https://fosstodon.org/@brodriguesco">Mastodon</a>, <a href="https://twitter.com/brodriguesco" rel="nofollow">twitter</a>, or check out my <a href="https://github.com/b-rodrigues">Github</a>.
+Check out my package that adds logging to R functions, <a href="https://b-rodrigues.github.io/chronicler/">{chronicler}</a>.
+Or read my free ebook to learn some R, <a href="https://b-rodrigues.github.io/modern_R/">Modern R with the tidyverse</a>,
+and if you're interested in setting up reproducible analytical pipelines,
+read <a href = "https://rap4mads.eu">my other ebook</a>.
+You can also watch my <a href="https://www.youtube.com/user/cbrunos" rel="nofollow">youtube</a> channel.
+<a href="https://www.buymeacoffee.com/brodriguesco" rel="nofollow">Buy me a coffee</a>, my kids don't let me sleep.
+</pre>
+</header>
+
+	
+	<main>
+		<article>
+			<h1>How to deal with annoying medium sized data inside a Shiny app</h1>
+			<b><time>2022/10/31</time></b>
+		       
+		           <a href="/tags/r">R</a>
+        	       
+
+			<div>
+				<div style="text-align:center;">
+<p><video width="640" height="480" controls>
+<source src="/img/deja_vu.mp4" type="video/mp4">
+</video></p>
+</div>
+<p><em>This blog post is taken from a chapter of my ebook on building reproducible analytical pipelines, which you can
+read <a href="https://rap4mads.eu">here</a></em></p>
+<p>If you want to follow along, you can start by downloading the data I use
+<a href="https://mega.nz/file/l1IxHYIT#mZkeQOVpMc9XymMNtDY687sHEZHoIvDcUOm-4AwK6OI">here</a>.
+This is a smaller dataset made from the one you can get
+<a href="https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/HG7NV7">here</a>.</p>
+<p>Uncompressed it’ll be a 2.4GB file. Not big data in any sense, but big enough to be annoying to
+handle without the use of some optimization strategies (I’ve seen such data described as medium
+sized data before.).</p>
+<p>One such strategy is only letting the computations run once the user gives the green light by
+clicking on an action button. The next obvious strategy is to use packages that are optimized for
+speed. It turns out that the functions we have seen until now (note from the author: <em>the functions
+we have seen until now</em> if you’re on of my students that’s sitting in the course where I teach
+this), from packages like <code>{dplyr}</code> and the like, are not the fastest. Their ease of use and
+expressiveness come at a speed cost. So we will need to switch to something faster. We will do the
+same to read in the data.</p>
+<p>This faster solution is the <code>{arrow}</code> package, which is an interface to the
+<a href="https://arrow.apache.org/faq/">Arrow software developed by Apache</a>.</p>
+<p>The final strategy is to enable caching in the app.</p>
+<p>So first, install the <code>{arrow}</code> package by running <code>install.packages("arrow")</code>. This will compile
+<code>libarrow</code> from source on Linux and might take some time, so perhaps go grab a coffee. One other
+operating systems, I guess that a binary version gets installed.</p>
+<p>Before building the app, let me perform a very simple benchmark. The script below reads in the data,
+then performs some aggregations. This is done using standard <code>{tidyverse}</code> functions, but also
+using <code>{arrow}</code>:</p>
+<pre class="r"><code>start_tidy &lt;- Sys.time()
+  # {vroom} is able to read in larger files than {readr}
+  # I could not get this file into R using readr::read_csv
+  # my RAM would get maxed out
+  air &lt;- vroom::vroom(&quot;data/combined&quot;)
+
+  mean_dep_delay &lt;- air |&gt;
+    dplyr::group_by(Year, Month, DayofMonth) |&gt;
+    dplyr::summarise(mean_delay = mean(DepDelay, na.rm = TRUE))
+end_tidy &lt;- Sys.time()
+
+time_tidy &lt;- end_tidy - start_tidy
+
+
+start_arrow &lt;- Sys.time()
+  air &lt;- arrow::open_dataset(&quot;data/combined&quot;, format = &quot;csv&quot;)
+
+  mean_dep_delay &lt;- air |&gt;
+    dplyr::group_by(Year, Month, DayofMonth) |&gt;
+    dplyr::summarise(mean_delay = mean(DepDelay, na.rm = TRUE))
+end_arrow &lt;- Sys.time()
+
+end_tidy - start_tidy
+end_arrow - start_arrow</code></pre>
+<p>The “tidy” approach took 17 seconds, while the arrow approach took 6 seconds. This is an impressive
+improvement, but put yourself in the shoes of a user who has to wait 6 seconds for each query. That
+would get very annoying, very quickly. So the other strategy that we will use is to provide some visual
+cue that computations are running, and then we will go one step further and use caching of results
+in the Shiny app.</p>
+<p>But before we continue, you may be confused by the code above. After all, I told you before that
+functions from <code>{dplyr}</code> and the like were not the fastest, and yet, I am using them in the arrow
+approach as well, and they now run almost 3 times as fast. What’s going on? What’s happening here,
+is that the <code>air</code> object that we read using <code>arrow::open_dataset</code> is not a dataframe, but an <code>arrow</code>
+dataset. These are special, and work in a different way. But that’s not what’s important: what’s important
+is that the <code>{dplyr}</code> api can be used to work with these <code>arrow</code> datasets. This means that functions
+from <code>{dplyr}</code> change the way they work depending on the type of the object their dealing with.
+If it’s a good old regular data frame, some C++ code gets called to perform the computations. If it’s
+an <code>arrow</code> dataset, <code>libarrow</code> and its black magic get called instead to perform the computations.
+If you’re familiar with the concept of
+<a href="https://en.wikipedia.org/wiki/Polymorphism_(computer_science)">polymorphism</a> this is it
+(think of <code>+</code> in Python: <code>1+1</code> returns <code>2</code>, <code>"a"+"b"</code> returns <code>"a+b"</code>. A different computation
+gets performed depending on the type of the function’s inputs).</p>
+<p>Let’s now build a basic version of the app, only
+using <code>{arrow}</code> functions for speed. This is the global file:</p>
+<pre class="r"><code>library(arrow)
+library(dplyr)
+library(rlang)
+library(DT)
+
+air &lt;- arrow::open_dataset(&quot;data/combined&quot;, format = &quot;csv&quot;)</code></pre>
+<p>The ui will be quite simple:</p>
+<pre class="r"><code>ui &lt;- function(request){
+  fluidPage(
+
+    titlePanel(&quot;Air On Time data&quot;),
+
+    sidebarLayout(
+
+      sidebarPanel(
+        selectizeInput(&quot;group_by_selected&quot;, &quot;Variables to group by:&quot;,
+                       choices = c(&quot;Year&quot;, &quot;Month&quot;, &quot;DayofMonth&quot;, &quot;Origin&quot;, &quot;Dest&quot;),
+                       multiple = TRUE,
+                       selected = c(&quot;Year&quot;, &quot;Month&quot;),
+                       options = list(
+                         plugins = list(&quot;remove_button&quot;),
+                         create = TRUE,
+                         persist = FALSE # keep created choices in dropdown
+                       )
+                       ),
+        hr(),
+        selectizeInput(&quot;var_to_average&quot;, &quot;Select variable to average by groups:&quot;,
+                       choices = c(&quot;ArrDelay&quot;, &quot;DepDelay&quot;, &quot;Distance&quot;),
+                       multiple = FALSE,
+                       selected = &quot;DepDelay&quot;,
+                       ),
+        hr(),
+        actionButton(inputId = &quot;run_aggregation&quot;,
+                     label = &quot;Click here to run aggregation&quot;),
+        hr(),
+        bookmarkButton()
+      ),
+
+      mainPanel(
+        DTOutput(&quot;result&quot;)
+      )
+    )
+  )
+
+}</code></pre>
+<p>And finally the server:</p>
+<pre class="r"><code>server &lt;- function(session, input, output) {
+
+  # Numbers get crunched only when the user clicks on the action button
+  grouped_data &lt;- eventReactive(input$run_aggregation, {
+    air %&gt;%
+      group_by(!!!syms(input$group_by_selected)) %&gt;%
+      summarise(result = mean(!!sym(input$var_to_average),
+                              na.rm = TRUE)) %&gt;%
+      as.data.frame()
+  })
+
+  output$result &lt;- renderDT({
+    grouped_data()
+  })
+
+}</code></pre>
+<p>Because <code>group_by()</code> and <code>mean()</code> expect bare variable names, I convert them from strings to
+symbols using <code>rlang::syms()</code> and <code>rlang::sym()</code>. The difference between the two is that
+<code>rlang::syms()</code> is required when a list of strings gets passed down to the function (remember
+that the user must select several variables to group by), and this is also why <code>!!!</code> are needed
+(to unquote the list of symbols). Finally, the computed data must be converted back to a
+data frame using <code>as.data.frame()</code>. This is actually when the computations happen. <code>{arrow}</code> collects
+all the aggregations but does not perform anything until absolutely required. Let’s see the app
+in action:</p>
+<div style="text-align:center;">
+<video width="640" height="480" controls>
+<source src="/img/shiny_3.mp4" type="video/mp4">
+</video>
+</div>
+<p>As you can see, in terms of User Experience (UX) this is quite poor. When the user clicks on the button
+nothing seems to be going on for several seconds, until the table appears. Then, when the user
+changes some options and clicks again on the action button, it looks like the app is crashing.</p>
+<p>Let’s add some visual cues to indicate to the user that something is happening when the button gets
+clicked. For this, we are going to use the <code>{shinycssloaders}</code> package:</p>
+<pre class="r"><code>install.packages(&quot;shinycssloaders&quot;)</code></pre>
+<p>and simply change the ui to this (and don’t forget to load <code>{shinycssloaders}</code> in the global script!):</p>
+<pre class="r"><code>ui &lt;- function(request){
+  fluidPage(
+
+    titlePanel(&quot;Air On Time data&quot;),
+
+    sidebarLayout(
+
+      sidebarPanel(
+        selectizeInput(&quot;group_by_selected&quot;, &quot;Variables to group by:&quot;,
+                       choices = c(&quot;Year&quot;, &quot;Month&quot;, &quot;DayofMonth&quot;, &quot;Origin&quot;, &quot;Dest&quot;),
+                       multiple = TRUE,
+                       selected = c(&quot;Year&quot;, &quot;Month&quot;),
+                       options = list(
+                         plugins = list(&quot;remove_button&quot;),
+                         create = TRUE,
+                         persist = FALSE # keep created choices in dropdown
+                       )
+                       ),
+        hr(),
+        selectizeInput(&quot;var_to_average&quot;, &quot;Select variable to average by groups:&quot;,
+                       choices = c(&quot;ArrDelay&quot;, &quot;DepDelay&quot;, &quot;Distance&quot;),
+                       multiple = FALSE,
+                       selected = &quot;DepDelay&quot;,
+                       ),
+        hr(),
+        actionButton(inputId = &quot;run_aggregation&quot;,
+                     label = &quot;Click here to run aggregation&quot;),
+        hr(),
+        bookmarkButton()
+      ),
+
+      mainPanel(
+        # We add a tabsetPanel with two tabs. The first tab show the plot made using ggplot
+        # the second tab shows the plot using g2r
+        DTOutput(&quot;result&quot;) |&gt;
+          withSpinner()
+      )
+    )
+  )
+
+}</code></pre>
+<p>The only difference with before is that now the <code>DTOutput()</code> right at the end gets passed down
+to <code>withSpinner()</code>. There are several spinners that you can choose, but let’s simply use the
+default one. This is how the app looks now:</p>
+<div style="text-align:center;">
+<video width="640" height="480" controls>
+<source src="/img/shiny_4.mp4" type="video/mp4">
+</video>
+</div>
+<p>Now the user gets a visual cue that something is happening. This makes waiting more bearable,
+but even better than waiting with a spinner is no waiting at all. For this, we are going to enable caching
+of results. There are several ways that you can cache results inside your app. You can enable
+the cache on a per-user and per-session basis, or only on a per-user basis. But I think that
+in our case here, the ideal caching strategy is to keep the cache persistent, and available
+across sessions. This means that each computation done by any user will get cached and available
+to any other user. In order to achieve this, you simply have to install the <code>{cachem}</code> packages
+add the following lines to the global script:</p>
+<pre class="r"><code>shinyOptions(cache = cachem::cache_disk(&quot;./app-cache&quot;,
+                                        max_age = Inf))</code></pre>
+<p>By setting the <code>max_age</code> argument to <code>Inf</code>, the cache will never get pruned. The maximum size
+of the cache, by default is 1GB. You can of course increase it.</p>
+<p>Now, you must also edit the server file like so:</p>
+<pre class="r"><code>server &lt;- function(session, input, output) {
+
+  # Numbers get crunched only when the user clicks on the action button
+  grouped_data &lt;- reactive({
+    air %&gt;%
+      group_by(!!!syms(input$group_by_selected)) %&gt;%
+      summarise(result = mean(!!sym(input$var_to_average),
+                              na.rm = TRUE)) %&gt;%
+      as.data.frame()
+  }) %&gt;%
+    bindCache(input$group_by_selected,
+              input$var_to_average) %&gt;%
+    bindEvent(input$run_aggregation)
+
+  output$result &lt;- renderDT({
+    grouped_data()
+  })
+
+}</code></pre>
+<p>We’ve had to change <code>eventReactive()</code> to <code>reactive()</code>, just like in the app where we don’t use an
+action button to run computations (note of the author: in the ebook, there is an example of an app
+with this action button. This is what I’m referring to here). Then, we pass the reactive object to
+<code>bindCache()</code>. <code>bindCache()</code> also takes the <code>inputs</code> as arguments. These are used to generate cache
+keys to retrieve the correct objects from cache. Finally, we pass all this to <code>bindEvent()</code>. This
+function takes the input referencing the action button. This is how we can now bind the
+computations to the button once again. Let’s test our app now. You will notice that the first time
+we choose certain options, the computations will take time, as before. But if we perform the same
+computations again, then the results will be shown instantly:</p>
+<div style="text-align:center;">
+<video width="640" height="480" controls>
+<source src="/img/shiny_5.mp4" type="video/mp4">
+</video>
+</div>
+<p>As you can see, once I go back to a computation that was done in the past, the table appears
+instantly. At the end of the video I open a terminal and navigate to the directory of the app,
+and show you the cache. There are several <code>.Rds</code> objects, these are the final data frames that
+get computed by the app. If the user wants to rerun a previous computation, the correct data frame
+gets retrieved, making it look like the computation happened instantly, and with another added
+benefit: as discussed above, the cache is persistent between sessions, so even if the user
+closes the browser and comes back later, the cache is still there, and other users will also
+benefit from the cache.</p>
+<p>
+Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://fosstodon.org/@brodriguesco">Mastodon</a> or <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my ebook on <a href="https://leanpub.com/modern_tidyverse">Leanpub</a>.
+You can also watch my videos on <a href="https://www.youtube.com/c/BrunoRodrigues1988/">youtube</a>.
+So much content for you to consoom!
+</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p>
+<link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a>
+</p>
+</div>
+
+			</div>
+		</article>
+	</main>
+<aside>
+	<div>
+		<div>
+			<h3>LATEST POSTS</h3>
+		</div>
+		<div>
+			<ul>
+				
+				<li><a href="/blog/2022-10-31-optim_shiny/">How to deal with annoying medium sized data inside a Shiny app</a></li>
+				
+				<li><a href="/blog/2022-10-29-mkusb_minp/">A Linux Live USB as a statistical programming dev environment</a></li>
+				
+				<li><a href="/blog/2022-10-23-licenses/">R, its license and my take on it</a></li>
+				
+				<li><a href="/blog/2022-10-01-why_js_shiny/">Why and how to use JS in your Shiny app</a></li>
+				
+				<li><a href="/blog/2022-07-23-grepl_vs_stringi/">What&#39;s the fastest way to search and replace strings in a data frame?</a></li>
+				
+			</ul>
+		</div>
+	</div>
+</aside>
+
+
+	<footer>
+  <div class="row">
+    <div class="col-lg-12">
+      <p>2022, content by Bruno Rodrigues, unless otherwise stated, every content of this blog is licensed under the <a href="http://www.wtfpl.net/txt/copying/" rel="nofollow">WTFPL</a>.</p>
+      <p>The theme this blog uses is a slight variation of the <a href="https://github.com/colorchestra/smol" rel="nofollow">Smol</a> theme.</p>
+      <p><a class="nav-link" href="/index.html">Back to main page.</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<style type=text/css>body{font-family:monospace;}</style>
+	<title>Why and how to use JS in your Shiny app</title>
+	
+	
+	<link rel="stylesheet" href="/css/style.css">
+	
+	
+</head>
+<body>
+	<header>
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+<pre>
+<a class="nav-link" href="/index.html">Econometrics and Free Software</a> by <a class="nav-link" href="/about/about">Bruno Rodrigues</a>.
+<a href="https://www.brodrigues.co/blog/index.xml">RSS feed for blog post updates</a>.
+Follow me on <a rel="me" href="https://fosstodon.org/@brodriguesco">Mastodon</a>, <a href="https://twitter.com/brodriguesco" rel="nofollow">twitter</a>, or check out my <a href="https://github.com/b-rodrigues">Github</a>.
+Check out my package that adds logging to R functions, <a href="https://b-rodrigues.github.io/chronicler/">{chronicler}</a>.
+Or read my free ebook to learn some R, <a href="https://b-rodrigues.github.io/modern_R/">Modern R with the tidyverse</a>,
+and if you're interested in setting up reproducible analytical pipelines,
+read <a href = "https://rap4mads.eu">my other ebook</a>.
+You can also watch my <a href="https://www.youtube.com/user/cbrunos" rel="nofollow">youtube</a> channel.
+<a href="https://www.buymeacoffee.com/brodriguesco" rel="nofollow">Buy me a coffee</a>, my kids don't let me sleep.
+</pre>
+</header>
+
+	
+	<main>
+		<article>
+			<h1>Why and how to use JS in your Shiny app</h1>
+			<b><time>2022/10/01</time></b>
+		       
+		           <a href="/tags/r">R</a>
+        	       
+
+			<div>
+				<div style="text-align:center;">
+<p><img src="/img/pointing_tags_script.png" title = "The gist of this blog post" width="70%"></p>
+</div>
+<div id="the-snake-biting-its-own-tail" class="section level2">
+<h2>The snake biting its own tail</h2>
+<p><em>Disclaimer: I’m a beginner at JS, so don’t ask me about the many intricacies of JS.</em></p>
+<p>I’ve been working on a Shiny app for work these past few weeks, and had to use
+Javascript to solve a very specific issue I encountered. Something for which, as far as I know,
+there is no other solution than using Javascript. The problem had to do with dynamically changing
+the UI of an app. The way to usually achieve this is using <code>renderUI()/uiOutput()</code>. For example,
+consider the following little app (if you don’t want to run it, watch the video below):</p>
+<pre class="r"><code>library(shiny)
+library(ggplot2)
+
+data(mtcars)
+
+ui &lt;- fluidPage(
+  selectInput(&quot;var&quot;, &quot;Select variable:&quot;, choices = colnames(mtcars)),
+  uiOutput(&quot;welcome&quot;),
+  plotOutput(&quot;my_plot&quot;)
+)
+
+server &lt;- function(input, output) {
+
+  output$welcome &lt;- renderUI({
+      tags$div(paste0(&quot;Welcome to my award-winning app! Currently showing variable: &quot;, input$var))
+  })
+
+  output$my_plot &lt;- renderPlot({
+        ggplot(data = mtcars) +
+          geom_bar(aes_string(y = input$var))
+      })
+}
+
+shinyApp(ui, server)</code></pre>
+<div style="text-align:center;">
+<video width="320" height="240" controls>
+<source src="/img/why_js_shiny_1.mp4" type="video/mp4">
+</video>
+</div>
+<p>As you can see, when the user chooses a new variable, the plot gets updated of course, but the
+welcome message changes as well. Normally, the UI of a Shiny app gets rendered once, at startup,
+and stays fixed. But thanks to <code>renderUI()/uiOutput()</code>, it is possible to change UI elements on the
+fly, and anything can go inside of <code>renderUI()/uiOutput()</code>, it can be something much more
+complex than a simple message like in my example above.</p>
+<p>So, why did I need to use Javascript to basically achieve the same thing? The reason is that
+I am currently using <a href="https://rinterface.github.io/bs4Dash/index.html"><code>{bs4Dash}</code></a>,
+an amazing package to build Shiny dashboard using Bootstrap 4. <code>{bs4Dash}</code> comes with many
+neat features, one of them being improved <code>box()</code>es (improved when compared to the <code>box()</code>es
+from <code>{shinydashboard}</code>). These improved boxes allow you to do something like this
+(if you don’t want to run it, watch the video below):</p>
+<pre class="r"><code>library(shiny)
+library(ggplot2)
+library(bs4Dash)
+
+data(mtcars)
+
+shinyApp(
+  ui = dashboardPage(
+    header = dashboardHeader(
+      title = dashboardBrand(
+        title = &quot;Welcome to my award-winning dashboard!&quot;,
+        color = &quot;primary&quot;
+      )
+    ),
+    sidebar = dashboardSidebar(),
+    body = dashboardBody(
+      box(
+        plotOutput(&quot;my_plot&quot;),
+        title = &quot;This is where I will put the title, but bear with me.&quot;,
+        width = 12,
+        sidebar = boxSidebar(
+          id = &quot;sidebarid&quot;,
+          startOpen = TRUE,
+          selectInput(&quot;var&quot;, &quot;Select variable:&quot;, choices = colnames(mtcars))
+          ))
+    ),
+    controlbar = dashboardControlbar(),
+    title = &quot;DashboardPage&quot;
+  ),
+  server = function(input, output, session) {
+
+    output$my_plot &lt;- renderPlot({
+      ggplot(data = mtcars) +
+        geom_bar(aes_string(y = input$var))
+    })
+
+  }
+)</code></pre>
+<div style="text-align:center;">
+<video width="320" height="240" controls>
+<source src="/img/why_js_shiny_2.mp4" type="video/mp4">
+</video>
+</div>
+<p>Each box can have a side bar, and these side bars can contain toggles specific to the graph. If you
+click outside the side bar, the side bar closes; to show the side bar, click on the little gears in
+the top right corner of the side bar. Ok we’re almost done with the setup: see how the box can have
+a title? Let’s make it change like before; for this, because the title is part of the <code>box()</code>
+function, I need to re-render the whole box (if you don’t want to run it, watch the video below):</p>
+<pre class="r"><code>library(shiny)
+library(ggplot2)
+library(bs4Dash)
+
+data(mtcars)
+
+shinyApp(
+  ui = dashboardPage(
+    header = dashboardHeader(
+      title = dashboardBrand(
+        title = &quot;Welcome to my award-winning dashboard!&quot;,
+        color = &quot;primary&quot;
+      )
+    ),
+    sidebar = dashboardSidebar(),
+    body = dashboardBody(
+      uiOutput(&quot;my_dynamic_box&quot;)
+    ),
+    controlbar = dashboardControlbar(),
+    title = &quot;DashboardPage&quot;
+  ),
+  server = function(input, output, session) {
+
+    output$my_plot &lt;- renderPlot({
+      ggplot(data = mtcars) +
+        geom_bar(aes_string(y = input$var))
+    })
+
+    output$my_dynamic_box &lt;- renderUI({
+      box(
+        plotOutput(&quot;my_plot&quot;),
+        title = paste0(&quot;Currently showing variable:&quot;, input$var),
+        width = 12,
+        sidebar = boxSidebar(
+          id = &quot;sidebarid&quot;,
+          startOpen = TRUE,
+          selectInput(&quot;var&quot;, &quot;Select variable:&quot;, choices = colnames(mtcars))
+        ))
+    })
+  }
+)</code></pre>
+<div style="text-align:center;">
+<video width="320" height="240" controls>
+<source src="/img/why_js_shiny_3.mp4" type="video/mp4">
+</video>
+</div>
+<p>Now try changing variables and see what happens… as soon as you change the value in the
+<code>selectInput()</code>, it goes back to selecting <code>mpg</code>! The reason is because the whole box gets
+re-rendered, including the <code>selectInput()</code>, and its starting, default, value (even if we did not
+specify one, this value is simply the first element of <code>colnames(mtcars)</code> which happens to be
+<code>mpg</code>). So now you see the problem; I have to re-render part of the UI, but doing so puts the
+<code>selectInput()</code> on its default value… so I need to be able to only to re-render the title, not the
+whole box (or move the <code>selectInput()</code> outside the boxes, but that was not an acceptable solution
+in my case).</p>
+<p>So there we have it, we’re done with the problem statement. Now on to the solution.</p>
+<div id="update" class="section level3">
+<h3><strong>UPDATE</strong></h3>
+<p>It turns out that it’s not needed to use JS for this special use case! <code>{bs4Dash}</code> comes
+with a function, called <code>updateBox()</code> which updates a targeted box. You can read about
+it <a href="https://rinterface.github.io/bs4Dash/reference/box.html">here</a>. Thanks to
+<code>{bs4Dash}</code>’s author,
+<a href="https://twitter.com/divadnojnarg/status/1576210017497550849?s=20&amp;t=wz3NfqHB4SWtcVAUH_KPRA">David Granjon</a>
+for the heads-up!</p>
+<p>Well, even though my specific use case does not actually need Javascript, you can continue
+reading, because in case your use case does not have an happy ending like mine, the blog
+post is still relevant!</p>
+</div>
+</div>
+<div id="javascript-to-the-rescue" class="section level2">
+<h2>Javascript to the rescue</h2>
+<p>Let me be very clear: I know almost nothing about Javascript. I just knew a couple of things:
+Javascript can be used for exactly what I needed to do (change part of the UI), and it does so by
+making use of the DOM (which I also knew a little bit about). The DOM is a tree-like representation
+of a webpage. So you have your webpage’s header, body, footer, and inside of the body, for example,
+in my case here, we have a box with a title. That title has an address, if you will, represented by
+one of the branches of the DOM. At least, that’s the way I understand it.</p>
+<p>In any case, it is possible to integrate JS scripts inside any Shiny app. So here’s what I thought
+I would do: I would create the title of my box as a reactive value inside the server part of my
+app, and would then pass this title to a JS script which would then, using the DOM, knock at the
+door of the box and give it its new title. Easier written in plain English than in R/JS though. But
+surprisingly enough, it didn’t turn out to be that complicated, and even someone (me) with only a very,
+very, shallow knowledge of JS could do it in less than an hour. First thing’s first, we need to
+read this documentation:
+<a href="https://shiny.rstudio.com/articles/communicating-with-js.html">Communicating with Shiny via JavaScript</a>,
+especially the second part, <em>From R to JavaScript</em>.</p>
+<p>Because we won’t re-render the whole box, let’s simply reuse the app from before, in which the
+box is static. The script is below, but first read the following lines, then take
+a look at the script:</p>
+<ul>
+<li>I have defined a JS script outside the app, called <code>box_title_js</code>;</li>
+<li>Read the title of the box;</li>
+<li>In the server, there is now an <code>observeEvent()</code>,</li>
+<li>In the UI you’ll see the following line (inside the box’s definition): <code>tags$script(box_title_js)</code>, which executes the JS script <code>box_title_js</code>.</li>
+</ul>
+<p>The script knows which element to change thanks to <code>$("#box_plot h3")</code>. That’s a bit
+of jQuery, which comes bundled with Shiny. jQuery allows you to query elements of the
+DOM. If you know nothing about it, like me, you should read
+<a href="https://book.javascript-for-r.com/shiny-tips.html#shiny-tips-jQuery">this</a>. This should
+give you the basic knowledge such that you’ll eventually somehow manage to select
+the element you actually want to change.</p>
+<pre class="r"><code>library(shiny)
+library(ggplot2)
+library(bs4Dash)
+
+# This is the bit of JS that will update the title
+# From what I could gather, $(bla bla) references the object,
+# here the title, and `.html()` is a getter/setter.
+# So $(&quot;#box_plot h3&quot;).html() means &quot;take whatever is called #box_plot h3
+# (h3 is the class of the title, meaning, it’s a header3 bit of text)
+# and set its html to whatever string is inside `html()`&quot;
+box_title_js &lt;- &#39;
+  Shiny.addCustomMessageHandler(&quot;box_title&quot;, function(title) {
+    $(&quot;#box_plot h3&quot;).html(title)
+  });
+&#39;
+
+data(mtcars)
+
+shinyApp(
+  ui = dashboardPage(
+    header = dashboardHeader(
+      title = dashboardBrand(
+        title = &quot;Welcome to my award-winning dashboard!&quot;,
+        color = &quot;primary&quot;
+      )
+    ),
+    sidebar = dashboardSidebar(),
+    body = dashboardBody(
+      box(id = &quot;box_plot&quot;, #We need to give the box an ID now, to help query it
+        plotOutput(&quot;my_plot&quot;),
+        tags$script(box_title_js), #Integration of the JS script into the app
+        title = &quot;This title will change dynamically. You won’t even see this sentence!&quot;,
+        width = 12,
+        sidebar = boxSidebar(
+          id = &quot;sidebarid&quot;,
+          startOpen = TRUE,
+          selectInput(&quot;var&quot;, &quot;Select variable:&quot;, choices = colnames(mtcars))
+        ))
+    ),
+    controlbar = dashboardControlbar(),
+    title = &quot;DashboardPage&quot;
+  ),
+  server = function(input, output, session) {
+
+    # The following lines put the title together, and send them to the JS script
+    observe({
+      session$sendCustomMessage(
+                &quot;box_title&quot;,
+                paste0(&quot;Currently showing variable:&quot;, input$var)
+              )
+    })
+
+    output$my_plot &lt;- renderPlot({
+      ggplot(data = mtcars) +
+        geom_bar(aes_string(y = input$var))
+    })
+
+  }
+)</code></pre>
+<p>The video below shows how the app works:</p>
+<div style="text-align:center;">
+<video width="320" height="240" controls>
+<source src="/img/why_js_shiny_4.mp4" type="video/mp4">
+</video>
+</div>
+<p>The idea is as follows: a bit of code puts the title together in the server part of your app.
+This title gets sent to a JS script that you define somewhere where the UI and the server
+part know about it (for example, in your <code>global.R</code> file). In the UI you can now integrate
+the JS script using <code>tags$script()</code>. And you’re done!</p>
+<p>Just for fun, let’s have a more complex example; I’ll change the background color of the box
+using JS as well, but depending on the selected column, the color will be different.
+For this, I only need to change the JS script. Using a simple if-then-else statement, I
+set the background color of the box to red if the selected column is <code>mpg</code>, else I set
+it to blue. The way I do this, is by using jQuery again to target the element I want to change,
+in this case, the object with the id “box_plot” and of class “.card-body”. Take a look
+at the script:</p>
+<pre class="r"><code>library(shiny)
+library(ggplot2)
+library(bs4Dash)
+
+# This is the bit of JS that will update the title
+# From what I could gather, $(bla bla) references the object,
+# here the title, and `.html()` is a getter/setter.
+# So $(&quot;#box_plot h3&quot;).html() means &quot;take whatever is called #box_plot h3
+# (h3 is the class of the title, meaning, it’s a header3 bit of text)
+# and set its html to whatever string is inside `html()`&quot;
+box_title_js &lt;- &#39;
+  Shiny.addCustomMessageHandler(&quot;box_title&quot;, function(title) {
+  if(title.includes(&quot;mpg&quot;)){
+    colour = &quot;red&quot;
+  } else {
+    colour = &quot;blue&quot;
+  }
+    $(&quot;#box_plot h3&quot;).html(title)
+    $(&quot;#box_plot .card-body&quot;).css(&quot;background-color&quot;, colour)
+  });
+&#39;
+
+data(mtcars)
+
+shinyApp(
+  ui = dashboardPage(
+    header = dashboardHeader(
+      title = dashboardBrand(
+        title = &quot;Welcome to my award-winning dashboard!&quot;,
+        color = &quot;primary&quot;
+      )
+    ),
+    sidebar = dashboardSidebar(),
+    body = dashboardBody(
+      box(id = &quot;box_plot&quot;, #We need to give the box an ID now, to help query it
+        plotOutput(&quot;my_plot&quot;),
+        tags$script(box_title_js), #Integration of the JS script into the app
+        title = &quot;This title will change dynamically. You won’t even see this sentence!&quot;,
+        width = 12,
+        sidebar = boxSidebar(
+          id = &quot;sidebarid&quot;,
+          startOpen = TRUE,
+          selectInput(&quot;var&quot;, &quot;Select variable:&quot;, choices = colnames(mtcars))
+        ))
+    ),
+    controlbar = dashboardControlbar(),
+    title = &quot;DashboardPage&quot;
+  ),
+  server = function(input, output, session) {
+
+    # The following lines put the title together, and send them to the JS script
+    observe({
+      session$sendCustomMessage(
+                &quot;box_title&quot;,
+                paste0(&quot;Currently showing variable:&quot;, input$var)
+              )
+    })
+
+    output$my_plot &lt;- renderPlot({
+      ggplot(data = mtcars) +
+        geom_bar(aes_string(y = input$var))
+    })
+
+  }
+)</code></pre>
+<div style="text-align:center;">
+<video width="320" height="240" controls>
+<source src="/img/why_js_shiny_5.mp4" type="video/mp4">
+</video>
+</div>
+<p>How did I know that I needed to target <code>card-body</code>? To find out, go to your browser, right
+click on the box and select <code>Inspect</code> (sometimes <code>inspect element</code>).
+Navigating through the source of your app in this way
+allows you to find the classes and ids of things you need to target, which you then can use
+as a query. You can even try changing stuff in real time, as the video below shows:</p>
+<div style="text-align:center;">
+<video width="320" height="240" controls>
+<source src="/img/why_js_shiny_6.mp4" type="video/mp4">
+</video>
+</div>
+<p>It’s actually scary what you can achieve with only some cursory knowledge of JS. I’m sure nothing
+bad ever happens because clueless beginners like me start playing around with JS.</p>
+<p>
+Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my ebook on <a href="https://leanpub.com/modern_tidyverse">Leanpub</a>.
+You can also watch my videos on <a href="https://www.youtube.com/c/BrunoRodrigues1988/">youtube</a>.
+So much content for you to consoom!
+</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p>
+<link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a>
+</p>
+</div>
+</div>
+
+			</div>
+		</article>
+	</main>
+<aside>
+	<div>
+		<div>
+			<h3>LATEST POSTS</h3>
+		</div>
+		<div>
+			<ul>
+				
+				<li><a href="/blog/2022-10-31-optim_shiny/">How to deal with annoying medium sized data inside a Shiny app</a></li>
+				
+				<li><a href="/blog/2022-10-29-mkusb_minp/">A Linux Live USB as a statistical programming dev environment</a></li>
+				
+				<li><a href="/blog/2022-10-23-licenses/">R, its license and my take on it</a></li>
+				
+				<li><a href="/blog/2022-10-01-why_js_shiny/">Why and how to use JS in your Shiny app</a></li>
+				
+				<li><a href="/blog/2022-07-23-grepl_vs_stringi/">What&#39;s the fastest way to search and replace strings in a data frame?</a></li>
+				
+			</ul>
+		</div>
+	</div>
+</aside>
+
+
+	<footer>
+  <div class="row">
+    <div class="col-lg-12">
+      <p>2022, content by Bruno Rodrigues, unless otherwise stated, every content of this blog is licensed under the <a href="http://www.wtfpl.net/txt/copying/" rel="nofollow">WTFPL</a>.</p>
+      <p>The theme this blog uses is a slight variation of the <a href="https://github.com/colorchestra/smol" rel="nofollow">Smol</a> theme.</p>
+      <p><a class="nav-link" href="/index.html">Back to main page.</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -6,24 +6,1554 @@
     <description>Recent content on Econometrics and Free Software</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sat, 21 May 2022 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 31 Oct 2022 00:00:00 +0000</lastBuildDate>
     
         <atom:link href="https://www.brodrigues.co/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
-      <title>Get packages that introduce unique syntax adopted less?</title>
-      <link>https://www.brodrigues.co/blog/2022-06-21-heavy_syntax/</link>
-      <pubDate>Sat, 21 May 2022 00:00:00 +0000</pubDate>
+      <title>How to deal with annoying medium sized data inside a Shiny app</title>
+      <link>https://www.brodrigues.co/blog/2022-10-31-optim_shiny/</link>
+      <pubDate>Mon, 31 Oct 2022 00:00:00 +0000</pubDate>
       
-      <guid>https://www.brodrigues.co/blog/2022-06-21-heavy_syntax/</guid>
+      <guid>https://www.brodrigues.co/blog/2022-10-31-optim_shiny/</guid>
+      <description>&lt;div style=&#34;text-align:center;&#34;&gt;
+&lt;p&gt;&lt;video width=&#34;640&#34; height=&#34;480&#34; controls&gt;
+&lt;source src=&#34;https://www.brodrigues.co/img/deja_vu.mp4&#34; type=&#34;video/mp4&#34;&gt;
+&lt;/video&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;p&gt;&lt;em&gt;This blog post is taken from a chapter of my ebook on building reproducible analytical pipelines, which you can
+read &lt;a href=&#34;https://rap4mads.eu&#34;&gt;here&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;If you want to follow along, you can start by downloading the data I use
+&lt;a href=&#34;https://mega.nz/file/l1IxHYIT#mZkeQOVpMc9XymMNtDY687sHEZHoIvDcUOm-4AwK6OI&#34;&gt;here&lt;/a&gt;.
+This is a smaller dataset made from the one you can get
+&lt;a href=&#34;https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/HG7NV7&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Uncompressed it’ll be a 2.4GB file. Not big data in any sense, but big enough to be annoying to
+handle without the use of some optimization strategies (I’ve seen such data described as medium
+sized data before.).&lt;/p&gt;
+&lt;p&gt;One such strategy is only letting the computations run once the user gives the green light by
+clicking on an action button. The next obvious strategy is to use packages that are optimized for
+speed. It turns out that the functions we have seen until now (note from the author: &lt;em&gt;the functions
+we have seen until now&lt;/em&gt; if you’re on of my students that’s sitting in the course where I teach
+this), from packages like &lt;code&gt;{dplyr}&lt;/code&gt; and the like, are not the fastest. Their ease of use and
+expressiveness come at a speed cost. So we will need to switch to something faster. We will do the
+same to read in the data.&lt;/p&gt;
+&lt;p&gt;This faster solution is the &lt;code&gt;{arrow}&lt;/code&gt; package, which is an interface to the
+&lt;a href=&#34;https://arrow.apache.org/faq/&#34;&gt;Arrow software developed by Apache&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;The final strategy is to enable caching in the app.&lt;/p&gt;
+&lt;p&gt;So first, install the &lt;code&gt;{arrow}&lt;/code&gt; package by running &lt;code&gt;install.packages(&#34;arrow&#34;)&lt;/code&gt;. This will compile
+&lt;code&gt;libarrow&lt;/code&gt; from source on Linux and might take some time, so perhaps go grab a coffee. One other
+operating systems, I guess that a binary version gets installed.&lt;/p&gt;
+&lt;p&gt;Before building the app, let me perform a very simple benchmark. The script below reads in the data,
+then performs some aggregations. This is done using standard &lt;code&gt;{tidyverse}&lt;/code&gt; functions, but also
+using &lt;code&gt;{arrow}&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;start_tidy &amp;lt;- Sys.time()
+  # {vroom} is able to read in larger files than {readr}
+  # I could not get this file into R using readr::read_csv
+  # my RAM would get maxed out
+  air &amp;lt;- vroom::vroom(&amp;quot;data/combined&amp;quot;)
+
+  mean_dep_delay &amp;lt;- air |&amp;gt;
+    dplyr::group_by(Year, Month, DayofMonth) |&amp;gt;
+    dplyr::summarise(mean_delay = mean(DepDelay, na.rm = TRUE))
+end_tidy &amp;lt;- Sys.time()
+
+time_tidy &amp;lt;- end_tidy - start_tidy
+
+
+start_arrow &amp;lt;- Sys.time()
+  air &amp;lt;- arrow::open_dataset(&amp;quot;data/combined&amp;quot;, format = &amp;quot;csv&amp;quot;)
+
+  mean_dep_delay &amp;lt;- air |&amp;gt;
+    dplyr::group_by(Year, Month, DayofMonth) |&amp;gt;
+    dplyr::summarise(mean_delay = mean(DepDelay, na.rm = TRUE))
+end_arrow &amp;lt;- Sys.time()
+
+end_tidy - start_tidy
+end_arrow - start_arrow&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The “tidy” approach took 17 seconds, while the arrow approach took 6 seconds. This is an impressive
+improvement, but put yourself in the shoes of a user who has to wait 6 seconds for each query. That
+would get very annoying, very quickly. So the other strategy that we will use is to provide some visual
+cue that computations are running, and then we will go one step further and use caching of results
+in the Shiny app.&lt;/p&gt;
+&lt;p&gt;But before we continue, you may be confused by the code above. After all, I told you before that
+functions from &lt;code&gt;{dplyr}&lt;/code&gt; and the like were not the fastest, and yet, I am using them in the arrow
+approach as well, and they now run almost 3 times as fast. What’s going on? What’s happening here,
+is that the &lt;code&gt;air&lt;/code&gt; object that we read using &lt;code&gt;arrow::open_dataset&lt;/code&gt; is not a dataframe, but an &lt;code&gt;arrow&lt;/code&gt;
+dataset. These are special, and work in a different way. But that’s not what’s important: what’s important
+is that the &lt;code&gt;{dplyr}&lt;/code&gt; api can be used to work with these &lt;code&gt;arrow&lt;/code&gt; datasets. This means that functions
+from &lt;code&gt;{dplyr}&lt;/code&gt; change the way they work depending on the type of the object their dealing with.
+If it’s a good old regular data frame, some C++ code gets called to perform the computations. If it’s
+an &lt;code&gt;arrow&lt;/code&gt; dataset, &lt;code&gt;libarrow&lt;/code&gt; and its black magic get called instead to perform the computations.
+If you’re familiar with the concept of
+&lt;a href=&#34;https://en.wikipedia.org/wiki/Polymorphism_(computer_science)&#34;&gt;polymorphism&lt;/a&gt; this is it
+(think of &lt;code&gt;+&lt;/code&gt; in Python: &lt;code&gt;1+1&lt;/code&gt; returns &lt;code&gt;2&lt;/code&gt;, &lt;code&gt;&#34;a&#34;+&#34;b&#34;&lt;/code&gt; returns &lt;code&gt;&#34;a+b&#34;&lt;/code&gt;. A different computation
+gets performed depending on the type of the function’s inputs).&lt;/p&gt;
+&lt;p&gt;Let’s now build a basic version of the app, only
+using &lt;code&gt;{arrow}&lt;/code&gt; functions for speed. This is the global file:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(arrow)
+library(dplyr)
+library(rlang)
+library(DT)
+
+air &amp;lt;- arrow::open_dataset(&amp;quot;data/combined&amp;quot;, format = &amp;quot;csv&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The ui will be quite simple:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;ui &amp;lt;- function(request){
+  fluidPage(
+
+    titlePanel(&amp;quot;Air On Time data&amp;quot;),
+
+    sidebarLayout(
+
+      sidebarPanel(
+        selectizeInput(&amp;quot;group_by_selected&amp;quot;, &amp;quot;Variables to group by:&amp;quot;,
+                       choices = c(&amp;quot;Year&amp;quot;, &amp;quot;Month&amp;quot;, &amp;quot;DayofMonth&amp;quot;, &amp;quot;Origin&amp;quot;, &amp;quot;Dest&amp;quot;),
+                       multiple = TRUE,
+                       selected = c(&amp;quot;Year&amp;quot;, &amp;quot;Month&amp;quot;),
+                       options = list(
+                         plugins = list(&amp;quot;remove_button&amp;quot;),
+                         create = TRUE,
+                         persist = FALSE # keep created choices in dropdown
+                       )
+                       ),
+        hr(),
+        selectizeInput(&amp;quot;var_to_average&amp;quot;, &amp;quot;Select variable to average by groups:&amp;quot;,
+                       choices = c(&amp;quot;ArrDelay&amp;quot;, &amp;quot;DepDelay&amp;quot;, &amp;quot;Distance&amp;quot;),
+                       multiple = FALSE,
+                       selected = &amp;quot;DepDelay&amp;quot;,
+                       ),
+        hr(),
+        actionButton(inputId = &amp;quot;run_aggregation&amp;quot;,
+                     label = &amp;quot;Click here to run aggregation&amp;quot;),
+        hr(),
+        bookmarkButton()
+      ),
+
+      mainPanel(
+        DTOutput(&amp;quot;result&amp;quot;)
+      )
+    )
+  )
+
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;And finally the server:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;server &amp;lt;- function(session, input, output) {
+
+  # Numbers get crunched only when the user clicks on the action button
+  grouped_data &amp;lt;- eventReactive(input$run_aggregation, {
+    air %&amp;gt;%
+      group_by(!!!syms(input$group_by_selected)) %&amp;gt;%
+      summarise(result = mean(!!sym(input$var_to_average),
+                              na.rm = TRUE)) %&amp;gt;%
+      as.data.frame()
+  })
+
+  output$result &amp;lt;- renderDT({
+    grouped_data()
+  })
+
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Because &lt;code&gt;group_by()&lt;/code&gt; and &lt;code&gt;mean()&lt;/code&gt; expect bare variable names, I convert them from strings to
+symbols using &lt;code&gt;rlang::syms()&lt;/code&gt; and &lt;code&gt;rlang::sym()&lt;/code&gt;. The difference between the two is that
+&lt;code&gt;rlang::syms()&lt;/code&gt; is required when a list of strings gets passed down to the function (remember
+that the user must select several variables to group by), and this is also why &lt;code&gt;!!!&lt;/code&gt; are needed
+(to unquote the list of symbols). Finally, the computed data must be converted back to a
+data frame using &lt;code&gt;as.data.frame()&lt;/code&gt;. This is actually when the computations happen. &lt;code&gt;{arrow}&lt;/code&gt; collects
+all the aggregations but does not perform anything until absolutely required. Let’s see the app
+in action:&lt;/p&gt;
+&lt;div style=&#34;text-align:center;&#34;&gt;
+&lt;video width=&#34;640&#34; height=&#34;480&#34; controls&gt;
+&lt;source src=&#34;https://www.brodrigues.co/img/shiny_3.mp4&#34; type=&#34;video/mp4&#34;&gt;
+&lt;/video&gt;
+&lt;/div&gt;
+&lt;p&gt;As you can see, in terms of User Experience (UX) this is quite poor. When the user clicks on the button
+nothing seems to be going on for several seconds, until the table appears. Then, when the user
+changes some options and clicks again on the action button, it looks like the app is crashing.&lt;/p&gt;
+&lt;p&gt;Let’s add some visual cues to indicate to the user that something is happening when the button gets
+clicked. For this, we are going to use the &lt;code&gt;{shinycssloaders}&lt;/code&gt; package:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;install.packages(&amp;quot;shinycssloaders&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;and simply change the ui to this (and don’t forget to load &lt;code&gt;{shinycssloaders}&lt;/code&gt; in the global script!):&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;ui &amp;lt;- function(request){
+  fluidPage(
+
+    titlePanel(&amp;quot;Air On Time data&amp;quot;),
+
+    sidebarLayout(
+
+      sidebarPanel(
+        selectizeInput(&amp;quot;group_by_selected&amp;quot;, &amp;quot;Variables to group by:&amp;quot;,
+                       choices = c(&amp;quot;Year&amp;quot;, &amp;quot;Month&amp;quot;, &amp;quot;DayofMonth&amp;quot;, &amp;quot;Origin&amp;quot;, &amp;quot;Dest&amp;quot;),
+                       multiple = TRUE,
+                       selected = c(&amp;quot;Year&amp;quot;, &amp;quot;Month&amp;quot;),
+                       options = list(
+                         plugins = list(&amp;quot;remove_button&amp;quot;),
+                         create = TRUE,
+                         persist = FALSE # keep created choices in dropdown
+                       )
+                       ),
+        hr(),
+        selectizeInput(&amp;quot;var_to_average&amp;quot;, &amp;quot;Select variable to average by groups:&amp;quot;,
+                       choices = c(&amp;quot;ArrDelay&amp;quot;, &amp;quot;DepDelay&amp;quot;, &amp;quot;Distance&amp;quot;),
+                       multiple = FALSE,
+                       selected = &amp;quot;DepDelay&amp;quot;,
+                       ),
+        hr(),
+        actionButton(inputId = &amp;quot;run_aggregation&amp;quot;,
+                     label = &amp;quot;Click here to run aggregation&amp;quot;),
+        hr(),
+        bookmarkButton()
+      ),
+
+      mainPanel(
+        # We add a tabsetPanel with two tabs. The first tab show the plot made using ggplot
+        # the second tab shows the plot using g2r
+        DTOutput(&amp;quot;result&amp;quot;) |&amp;gt;
+          withSpinner()
+      )
+    )
+  )
+
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The only difference with before is that now the &lt;code&gt;DTOutput()&lt;/code&gt; right at the end gets passed down
+to &lt;code&gt;withSpinner()&lt;/code&gt;. There are several spinners that you can choose, but let’s simply use the
+default one. This is how the app looks now:&lt;/p&gt;
+&lt;div style=&#34;text-align:center;&#34;&gt;
+&lt;video width=&#34;640&#34; height=&#34;480&#34; controls&gt;
+&lt;source src=&#34;https://www.brodrigues.co/img/shiny_4.mp4&#34; type=&#34;video/mp4&#34;&gt;
+&lt;/video&gt;
+&lt;/div&gt;
+&lt;p&gt;Now the user gets a visual cue that something is happening. This makes waiting more bearable,
+but even better than waiting with a spinner is no waiting at all. For this, we are going to enable caching
+of results. There are several ways that you can cache results inside your app. You can enable
+the cache on a per-user and per-session basis, or only on a per-user basis. But I think that
+in our case here, the ideal caching strategy is to keep the cache persistent, and available
+across sessions. This means that each computation done by any user will get cached and available
+to any other user. In order to achieve this, you simply have to install the &lt;code&gt;{cachem}&lt;/code&gt; packages
+add the following lines to the global script:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;shinyOptions(cache = cachem::cache_disk(&amp;quot;./app-cache&amp;quot;,
+                                        max_age = Inf))&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;By setting the &lt;code&gt;max_age&lt;/code&gt; argument to &lt;code&gt;Inf&lt;/code&gt;, the cache will never get pruned. The maximum size
+of the cache, by default is 1GB. You can of course increase it.&lt;/p&gt;
+&lt;p&gt;Now, you must also edit the server file like so:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;server &amp;lt;- function(session, input, output) {
+
+  # Numbers get crunched only when the user clicks on the action button
+  grouped_data &amp;lt;- reactive({
+    air %&amp;gt;%
+      group_by(!!!syms(input$group_by_selected)) %&amp;gt;%
+      summarise(result = mean(!!sym(input$var_to_average),
+                              na.rm = TRUE)) %&amp;gt;%
+      as.data.frame()
+  }) %&amp;gt;%
+    bindCache(input$group_by_selected,
+              input$var_to_average) %&amp;gt;%
+    bindEvent(input$run_aggregation)
+
+  output$result &amp;lt;- renderDT({
+    grouped_data()
+  })
+
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We’ve had to change &lt;code&gt;eventReactive()&lt;/code&gt; to &lt;code&gt;reactive()&lt;/code&gt;, just like in the app where we don’t use an
+action button to run computations (note of the author: in the ebook, there is an example of an app
+with this action button. This is what I’m referring to here). Then, we pass the reactive object to
+&lt;code&gt;bindCache()&lt;/code&gt;. &lt;code&gt;bindCache()&lt;/code&gt; also takes the &lt;code&gt;inputs&lt;/code&gt; as arguments. These are used to generate cache
+keys to retrieve the correct objects from cache. Finally, we pass all this to &lt;code&gt;bindEvent()&lt;/code&gt;. This
+function takes the input referencing the action button. This is how we can now bind the
+computations to the button once again. Let’s test our app now. You will notice that the first time
+we choose certain options, the computations will take time, as before. But if we perform the same
+computations again, then the results will be shown instantly:&lt;/p&gt;
+&lt;div style=&#34;text-align:center;&#34;&gt;
+&lt;video width=&#34;640&#34; height=&#34;480&#34; controls&gt;
+&lt;source src=&#34;https://www.brodrigues.co/img/shiny_5.mp4&#34; type=&#34;video/mp4&#34;&gt;
+&lt;/video&gt;
+&lt;/div&gt;
+&lt;p&gt;As you can see, once I go back to a computation that was done in the past, the table appears
+instantly. At the end of the video I open a terminal and navigate to the directory of the app,
+and show you the cache. There are several &lt;code&gt;.Rds&lt;/code&gt; objects, these are the final data frames that
+get computed by the app. If the user wants to rerun a previous computation, the correct data frame
+gets retrieved, making it look like the computation happened instantly, and with another added
+benefit: as discussed above, the cache is persistent between sessions, so even if the user
+closes the browser and comes back later, the cache is still there, and other users will also
+benefit from the cache.&lt;/p&gt;
+&lt;p&gt;
+Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on &lt;a href=&#34;https://fosstodon.org/@brodriguesco&#34;&gt;Mastodon&lt;/a&gt; or &lt;a href=&#34;https://www.twitter.com/brodriguesco&#34;&gt;twitter&lt;/a&gt; for blog post updates and
+&lt;a href=&#34;https://www.buymeacoffee.com/brodriguesco&#34;&gt;buy me an espresso&lt;/a&gt; or &lt;a href=&#34;https://www.paypal.me/brodriguesco&#34;&gt;paypal.me&lt;/a&gt;, or buy my ebook on &lt;a href=&#34;https://leanpub.com/modern_tidyverse&#34;&gt;Leanpub&lt;/a&gt;.
+You can also watch my videos on &lt;a href=&#34;https://www.youtube.com/c/BrunoRodrigues1988/&#34;&gt;youtube&lt;/a&gt;.
+So much content for you to consoom!
+&lt;/p&gt;
+&lt;style&gt;.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:&#39;Cookie&#39;, cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}&lt;/style&gt;
+&lt;p&gt;
+&lt;link href=&#34;https://fonts.googleapis.com/css?family=Cookie&#34; rel=&#34;stylesheet&#34;&gt;&lt;a class=&#34;bmc-button&#34; target=&#34;_blank&#34; href=&#34;https://www.buymeacoffee.com/brodriguesco&#34;&gt;&lt;img src=&#34;https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg&#34; alt=&#34;Buy me an Espresso&#34;&gt;&lt;span style=&#34;margin-left:5px&#34;&gt;Buy me an Espresso&lt;/span&gt;&lt;/a&gt;
+&lt;/p&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>A Linux Live USB as a statistical programming dev environment</title>
+      <link>https://www.brodrigues.co/blog/2022-10-29-mkusb_minp/</link>
+      <pubDate>Sat, 29 Oct 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://www.brodrigues.co/blog/2022-10-29-mkusb_minp/</guid>
+      <description>&lt;div style=&#34;text-align:center;&#34;&gt;
+&lt;p&gt;&lt;video width=&#34;640&#34; height=&#34;480&#34; controls&gt;
+&lt;source src=&#34;https://www.brodrigues.co/img/tux_usb_ubuntu_startup.mp4&#34; type=&#34;video/mp4&#34;&gt;
+&lt;/video&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;p&gt;This blog post is divided in two parts: in the first part I’ll show you how
+to create a Linux Live USB with persistent storage that can be used as
+development environment, and in the second part I’ll show you the easiest
+way to set up RStudio and R in Ubuntu.&lt;/p&gt;
+&lt;div id=&#34;making-your-own-portable-development-environment-based-on-ubuntu-or-debian&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Making your own, portable, development environment based on Ubuntu or Debian&lt;/h2&gt;
+&lt;p&gt;I’m currently teaching a course at the University of Luxembourg, which
+focuses on setting up reproducible analytical pipelines (if you’re
+interested, you can find the course notes &lt;a href=&#34;https://rap4mads.eu/&#34;&gt;here&lt;/a&gt;).&lt;/p&gt;
+&lt;p&gt;The problem is that my work laptop runs Windows, and I didn’t want to teach
+on Windows since I make heavy use of the command line. Plus I don’t have
+admin rights on this machine, so installing what I needed would have been a pain.
+I also don’t have a personal laptop, so I use my wife’s laptop. However, the
+laptop is completely full of pictures of our kids, so I couldn’t install what I needed…
+This is when I thought about making a persistent live USB with Kubuntu on it
+(Kubuntu is a variant of Ubuntu with KDE as the desktop manager instead of Gnome)
+with all the software I needed (R, Quarto, RStudio basically). It works quite well, and
+was also quite easy to do. But what is a live USB anyways?
+A live USB is a full Linux installation on a USB stick, that you can use to test
+different Linux distributions or even to install said distribution on computers.&lt;/p&gt;
+&lt;p&gt;The first step is to get a USB stick. Those are quite cheap nowadays, but you’ll
+need at least one with 8GB of space, and ideally USB 3 (you probably can’t find
+any USB 2 these days anyways). I’ve bought a 32GB one for 10€.&lt;/p&gt;
+&lt;p&gt;Then, we need to install Ubuntu on it. I’ll be using Kubuntu 22.04, which is an LTS
+release. I would always recommend an LTS release for something like crafting
+a development environment. So if you’re reading this in the future, and there’s a new
+LTS (could be 24.04, 26.04, etc), you’d need to get that one.&lt;/p&gt;
+&lt;p&gt;Creating a live USB is quite simple, but the issue if you create a live USB using the standard
+methods is that whatever you do on it once you’re logged in while get erased after rebooting. A
+persistent live USB, I’m sure you’ve guessed it, keeps your changes even after rebooting, which
+means that you basically end up with a portable development environment. Note however that only
+Ubuntu (and variants) or Debian can be used to create persistent live USBs.&lt;/p&gt;
+&lt;p&gt;You can create persistent live USB from another Linux distro, Windows or macOS.&lt;/p&gt;
+&lt;p&gt;If you’re already running Ubuntu on your pc, you might want to take a look at &lt;a href=&#34;https://help.ubuntu.com/community/mkusb#Persistent_live_systems&#34;&gt;this
+page&lt;/a&gt;. You’ll need to install a
+tool called &lt;code&gt;mkusb&lt;/code&gt;. If you’re not running Ubuntu, but find this tool in your distribution’s
+package manager, I guess you’re good to go as well. In my case, I’m running opensuse tumbleweed,
+and could not find this program in the opensuse’s repositories. So I’ve used this
+&lt;a href=&#34;https://help.ubuntu.com/community/mkusb/minp&#34;&gt;guide&lt;/a&gt; that shows how to achieve the same thing
+using a very simple to use shell script which you can get
+&lt;a href=&#34;https://help.ubuntu.com/community/mkusb/minp?action=AttachFile&amp;amp;do=view&amp;amp;target=mkusb-minp&#34;&gt;here&lt;/a&gt;
+called &lt;code&gt;mkusb-minp&lt;/code&gt;. So in my case, I simply
+had to stick the USB stick in my computer, find out where it was mounted by running &lt;code&gt;df&lt;/code&gt; in bash
+(in my case it was in &lt;code&gt;/dev/sdd&lt;/code&gt;), download Kubuntu’s iso image and run the following in my
+terminal:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;sudo ./mkusb-minp -p kubuntu-22.04.1-desktop-amd64.iso /dev/sdX&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;(&lt;code&gt;/dev/sdX&lt;/code&gt;: replace the X by the right letter, for me it was &lt;code&gt;/dev/sdd&lt;/code&gt;)&lt;/p&gt;
+&lt;p&gt;If you’re using Windows, you can install &lt;a href=&#34;https://rufus.ie/en/#&#34;&gt;Rufus&lt;/a&gt; to create
+a persistent live USB.&lt;/p&gt;
+&lt;p&gt;It would seem that for macOS the process is a bit more involved, but I’ve found this
+&lt;a href=&#34;https://sebay.github.io/posts/create-live-persistent-ubuntu-usb-on-mac/&#34;&gt;blog post&lt;/a&gt;
+that explains the process.&lt;/p&gt;
+&lt;p&gt;Once the process is finished, you can boot into your live USB key. For this, you might
+need to press &lt;code&gt;delete&lt;/code&gt; or &lt;code&gt;F2&lt;/code&gt; when your computer starts booting to access the
+&lt;a href=&#34;https://www.computerhope.com/jargon/b/boot_menu.htm&#34;&gt;boot menu&lt;/a&gt;.
+You can then choose to boot from your USB device.&lt;/p&gt;
+&lt;p&gt;Wait a bit and at some point you should see a prompt asking you if you want to
+try or install Ubuntu. Choose &lt;code&gt;Try Ubuntu&lt;/code&gt;:&lt;/p&gt;
+&lt;div style=&#34;text-align:center;&#34;&gt;
+&lt;p&gt;&lt;img src=&#34;https://www.brodrigues.co/img/try_ubuntu.png&#34;&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;p&gt;And then wait some minutes. Yes booting takes some time because you’re loading an entire
+operating system from a USB stick (hence why it’s a good idea to go with a USB 3 stick).
+After some time you should see a new window:&lt;/p&gt;
+&lt;div style=&#34;text-align:center;&#34;&gt;
+&lt;p&gt;&lt;img src=&#34;https://www.brodrigues.co/img/try_ubuntu2.png&#34;&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;p&gt;Once again, try Ubuntu, wait a bit, and that’s it you’re inside your dev environment!&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;setting-up-r-and-rstudio&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Setting up R and RStudio&lt;/h2&gt;
+&lt;p&gt;Now that you’re inside your dev environment, you actually need to start adding some
+tools. Let’s start by adding R. The easiest way that I found is to use the
+&lt;a href=&#34;https://eddelbuettel.github.io/r2u/&#34;&gt;r2u project&lt;/a&gt; by
+&lt;a href=&#34;https://github.com/eddelbuettel&#34;&gt;Dirk Eddelbuettel&lt;/a&gt;. If you’re on Ubuntu 22.04,
+run &lt;a href=&#34;https://github.com/eddelbuettel/r2u/blob/master/inst/scripts/add_cranapt_jammy.sh&#34;&gt;this script&lt;/a&gt;,
+as explained in the tutorial. This will add the required repositories that will install
+binary versions of R packages in mere seconds. The script will also
+add a repository to install the most recent version of R, so once the script is done running,
+install R and the &lt;code&gt;{tidyverse}&lt;/code&gt; (or any other package) with the following command:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;sudo apt install --no-install-recommends r-base r-cran-tidyverse&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;You can then install other packages from R using &lt;code&gt;install.packages(&#34;package_name&#34;)&lt;/code&gt; as usual,
+and this will also make use of the &lt;code&gt;r2u&lt;/code&gt; repositories.&lt;/p&gt;
+&lt;p&gt;All that’s missing now is RStudio (if you use RStudio). Surprisingly, when I set up my live USB
+two weeks ago, the current version of RStudio for Ubuntu would not install. This is apparently
+fixed with the daily versions which you can get &lt;a href=&#34;https://dailies.rstudio.com/&#34;&gt;here&lt;/a&gt;. But
+before that, do try to install the stable version. If you’re reading this sometime in the future,
+maybe the issue I encountered has been fixed. Download RStudio from
+&lt;a href=&#34;https://www.rstudio.com/products/rstudio/download/#download&#34;&gt;here&lt;/a&gt;, and then double click on the
+downloaded &lt;code&gt;.deb&lt;/code&gt; package. If you see this message:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;The following packages have unmet dependencies:
+ rstudio : Depends: libssl1.0.0 but it is not installable or
+                    libssl1.0.2 but it is not installable or
+                    libssl1.1 but it is not installable
+           Recommends: r-base (&amp;gt;= 3.0.1) but it is not going to be installed
+E: Unable to correct problems, you have held broken packages.&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;then this means that the problem has not been fixed. In that case, run the following line to
+repair everything:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;sudo apt-get update --fix-missing&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This should put you back into a clean state. So to continue, install a daily build from the link above.
+Simply click on the Ubuntu 22 button to download the daily. Unfortunately daily builds can be unstable
+and are usually used for testing purposes. So hopefully Posit will fix this soon.&lt;/p&gt;
+&lt;p&gt;Of course, if you’re using the
+&lt;a href=&#34;https://www.brodrigues.co/blog/2019-05-19-spacemacs/&#34;&gt;greatest IDE ever made&lt;/a&gt; instead of RStudio,
+you won’t have this issue.&lt;/p&gt;
+&lt;p&gt;You can now keep installing things, for example &lt;a href=&#34;https://quarto.org/docs/get-started/&#34;&gt;Quarto&lt;/a&gt;, or
+Python, or, or, or… there are no limits, and performance, as you would have noticed is great, because
+the operating system has access to all the resources from your machine. A persistent live USB is a
+great solution if you need a portable dev environment and don’t want/can’t use Docker for example.&lt;/p&gt;
+&lt;p&gt;
+Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on &lt;a href=&#34;https://fosstodon.org/@brodriguesco&#34;&gt;Mastodon&lt;/a&gt; or &lt;a href=&#34;https://www.twitter.com/brodriguesco&#34;&gt;twitter&lt;/a&gt; for blog post updates and
+&lt;a href=&#34;https://www.buymeacoffee.com/brodriguesco&#34;&gt;buy me an espresso&lt;/a&gt; or &lt;a href=&#34;https://www.paypal.me/brodriguesco&#34;&gt;paypal.me&lt;/a&gt;, or buy my ebook on &lt;a href=&#34;https://leanpub.com/modern_tidyverse&#34;&gt;Leanpub&lt;/a&gt;.
+You can also watch my videos on &lt;a href=&#34;https://www.youtube.com/c/BrunoRodrigues1988/&#34;&gt;youtube&lt;/a&gt;.
+So much content for you to consoom!
+&lt;/p&gt;
+&lt;style&gt;.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:&#39;Cookie&#39;, cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}&lt;/style&gt;
+&lt;p&gt;
+&lt;link href=&#34;https://fonts.googleapis.com/css?family=Cookie&#34; rel=&#34;stylesheet&#34;&gt;&lt;a class=&#34;bmc-button&#34; target=&#34;_blank&#34; href=&#34;https://www.buymeacoffee.com/brodriguesco&#34;&gt;&lt;img src=&#34;https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg&#34; alt=&#34;Buy me an Espresso&#34;&gt;&lt;span style=&#34;margin-left:5px&#34;&gt;Buy me an Espresso&lt;/span&gt;&lt;/a&gt;
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>R, its license and my take on it</title>
+      <link>https://www.brodrigues.co/blog/2022-10-23-licenses/</link>
+      <pubDate>Sun, 23 Oct 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://www.brodrigues.co/blog/2022-10-23-licenses/</guid>
+      <description>&lt;div style=&#34;text-align:center;&#34;&gt;
+&lt;p&gt;&lt;img src=&#34;https://www.brodrigues.co/img/free_software.png&#34; width=&#34;100%&#34;&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;p&gt;Foreword: This is not a tutorial nor anything like that. I’m going to talk about free software,
+open source, and their licenses. I’m going to give my (non-)expert opinion on it. You may find,
+after having finished reading this post, that I wasted your time. So only read if by some miracle
+the first sentence of the foreword excited you. If not, close this tab and go back now. It’s not
+too late.&lt;/p&gt;
+&lt;p&gt;Foreword 2: I’ve updated the post on October 24th with an additional meme, clarifications and a link
+to an interesting stackexchange discussion.&lt;/p&gt;
+&lt;div id=&#34;free-software-aint-free&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Free software ain’t free&lt;/h2&gt;
+&lt;p&gt;Let me first re-iterate that free software and open source are not the same thing. Free software is
+open source, but not every piece of open source software is free. Open source means that the source
+code of a piece of software is available and can be consulted without much hurdles. It also means,
+usually, that you can take these pieces of software, modify them, and redistribute them without
+much hurdles either.&lt;/p&gt;
+&lt;p&gt;Free software is like open source software, but it’s much more restrictive. That may seem
+surprising, because there’s the word &lt;em&gt;free&lt;/em&gt; in there, so how could it be more restrictive than open
+source software? Consider the following: I can take a piece of open source software (typically
+licensed under something like the &lt;a href=&#34;https://en.wikipedia.org/wiki/MIT_License&#34;&gt;MIT licenses&lt;/a&gt; or the
+&lt;a href=&#34;https://en.wikipedia.org/wiki/BSD_licenses&#34;&gt;BSD licenses&lt;/a&gt;) and re-release it with a proprietary
+license and sell it. I don’t actually even need to change anything substantial to the source code.
+I take that piece of software (which I may or may not modify), repackage it under a new name and
+sell it. Free software allows all of this as well (I literally could sell the Linux kernel on this
+website if I found people willing to pay me for it), but what it does not allow is only this: I
+cannot distribute (by selling or for free) the program without its source code. So if I sold the
+Linux kernel on here, I would need to also give out a copy of the source code with it, and this
+obviously would also still be necessary if I actually changed something to the source code of the
+Linux kernel.&lt;/p&gt;
+&lt;p&gt;R is licensed under a Free Software license, the &lt;a href=&#34;https://en.wikipedia.org/wiki/GNU_General_Public_License#Version_2&#34;&gt;GPL
+v2&lt;/a&gt;, which means that it’s
+illegal for anyone to rebrand it, package it and sell it without providing the source code of their
+(modified) version of R. Thanks to something like the GPL, it is impossible for companies to employ
+what is called
+&lt;a href=&#34;https://en.wikipedia.org/wiki/Embrace,_extend,_and_extinguish&#34;&gt;Embrace, Extend and Extinguish&lt;/a&gt;, which is a strategy
+that Microsoft used in the past. It consists in embracing a piece of software, extending it with
+proprietary bits of code and technology, use their dominant position on the desktop to impose their
+new version that relies on proprietary bits (or which is 100% proprietary) and then &lt;em&gt;extinguish&lt;/em&gt;
+the open source version (in the sense that no one will use it anymore because it virtually became
+incompatible with the newly imposed Microsoft version).&lt;/p&gt;
+&lt;p&gt;Now some of you may now be thinking that I’m stuck in the 90’s, after all, Microsoft have been the
+good guys for a decade now. They contribute to open source software (not free software), have
+bought Github and have not ruined it (yet) and they even included the possibility to run Linux
+inside Windows using WSL. So what am I afraid of? Why don’t I trust them?&lt;/p&gt;
+&lt;div style=&#34;text-align:center;&#34;&gt;
+&lt;p&gt;&lt;img src=&#34;https://www.brodrigues.co/img/multimillion.jpg&#34; width=&#34;100%&#34;&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&#34;all-licenses-have-their-place-but&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;All licenses have their place, but…&lt;/h2&gt;
+&lt;p&gt;The thing is, I shouldn’t have to trust anyone not to fuck up a piece of free software. Maybe the
+current management of Microsoft is not hostile to free software, but maybe that’ll change in the
+future. That’s not really the point. The point is that I don’t need to have to trust them, and I’m
+happy that a &lt;em&gt;fundamental, crucial&lt;/em&gt; piece of software like R uses something like the GPL. But that
+doesn’t mean that everything should be licensed under the GPL. For example, as far as I know, every
+package of the &lt;code&gt;{tidyverse}&lt;/code&gt; uses an MIT license. So just because R is licensed under the GPL
+doesn’t mean that its packages all have to be GPL. But I must also admit that while I see why a
+company like Posit releases their packages under a permissive license, I don’t see why an
+independent developer would do that. I absolutely do not see what independent developers gain from
+releasing the code of their packages under anything else than the GPL. (As an aside, go read
+&lt;a href=&#34;https://www.cs.vu.nl/~ast/intel/&#34;&gt;this&lt;/a&gt;… code under a permissive license taken from an
+independent developer? check. Nothing was given back to the community? check. The code in question
+was used for nefarious purposes? check. Original developer on massive amounts of copium? check).
+But, to be fair, I have a grand total of two (2) packages on CRAN that likely get less than 10
+downloads a year, so what do I know. One of the arguments I’ve heard is that the GPL is not really
+free, because it restricts users from taking the code and releasing it under a proprietary license,
+so &lt;em&gt;akshually&lt;/em&gt; the MIT/BSD licenses are really the free ones, and if I like freedom so much I
+should be using FreeBSD instead of a Linux distro and release my packages under a MIT/BSD license.
+I want to ask people that make this argument if they would allow the Nazi party to make a come back
+in their countries legislature, then.&lt;/p&gt;
+&lt;p&gt;That being said, I do release stuff with permissive licenses. For example the content of this blog
+or for the courses I teach are under the &lt;a href=&#34;http://www.wtfpl.net/txt/copying/&#34;&gt;WTFPL&lt;/a&gt;, which is, I
+would say, the only acceptable permissive license for independent developers. If the name of the
+license was not explicit enough, the comic below illustrates what the WPTFL is all about:&lt;/p&gt;
+&lt;div style=&#34;text-align:center;&#34;&gt;
+&lt;img src=&#34;https://www.brodrigues.co/img/wtfpl-strip.jpg&#34; width=&#34;100%&#34;&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&#34;can-r-be-used-to-write-proprietary-code&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Can R be used to write proprietary code&lt;/h2&gt;
+&lt;p&gt;Yes, you can write proprietary code using R. Microsoft has done so, for example their
+&lt;code&gt;{RevoUtilsMath}&lt;/code&gt; package is, as far as I know, proprietary, and I’m sure that it includes some R
+code. I’m pretty sure it would also be possible to even build a proprietary program that would
+require the R interpreter to be bundled to run. As long as the developers of this tool would:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Release their modified version of R with it (if they modified it);&lt;/li&gt;
+&lt;li&gt;Tell their users that their program runs with R, and thus also distribute R and its license;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;R could likely be downloaded at install time in cases like this, again, as long as the users
+get notified that it’s needed. I doubt that the rest of the program would need to be licensed
+under the GPL, since no code of R itself has been modified.&lt;/p&gt;
+&lt;p&gt;But I’m not that certain on this last point, so any comments welcome
+(on &lt;a href=&#34;https://github.com/rbind/b-rodrigues.github.com/issues/4&#34;&gt;here&lt;/a&gt;).&lt;/p&gt;
+&lt;p&gt;EDIT: There’s this interesting discussion on stackexchange &lt;a href=&#34;https://opensource.stackexchange.com/questions/7078/is-it-legal-to-use-gpl-code-in-a-proprietary-closed-source-program-by-putting-i&#34;&gt;here&lt;/a&gt;
+and it would seem that the answer is not clearcut, but, it depends. Hence why companies
+prefer working using permissive licenses, to avoid these types of discussions.&lt;/p&gt;
+&lt;p&gt;That’s it, that’s the blog post. Thank GNU for the GPL.&lt;/p&gt;
+&lt;p&gt;
+Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on &lt;a href=&#34;https://www.twitter.com/brodriguesco&#34;&gt;twitter&lt;/a&gt; for blog post updates and
+&lt;a href=&#34;https://www.buymeacoffee.com/brodriguesco&#34;&gt;buy me an espresso&lt;/a&gt; or &lt;a href=&#34;https://www.paypal.me/brodriguesco&#34;&gt;paypal.me&lt;/a&gt;, or buy my ebook on &lt;a href=&#34;https://leanpub.com/modern_tidyverse&#34;&gt;Leanpub&lt;/a&gt;.
+You can also watch my videos on &lt;a href=&#34;https://www.youtube.com/c/BrunoRodrigues1988/&#34;&gt;youtube&lt;/a&gt;.
+So much content for you to consoom!
+&lt;/p&gt;
+&lt;style&gt;.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:&#39;Cookie&#39;, cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}&lt;/style&gt;
+&lt;p&gt;
+&lt;link href=&#34;https://fonts.googleapis.com/css?family=Cookie&#34; rel=&#34;stylesheet&#34;&gt;&lt;a class=&#34;bmc-button&#34; target=&#34;_blank&#34; href=&#34;https://www.buymeacoffee.com/brodriguesco&#34;&gt;&lt;img src=&#34;https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg&#34; alt=&#34;Buy me an Espresso&#34;&gt;&lt;span style=&#34;margin-left:5px&#34;&gt;Buy me an Espresso&lt;/span&gt;&lt;/a&gt;
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Why and how to use JS in your Shiny app</title>
+      <link>https://www.brodrigues.co/blog/2022-10-01-why_js_shiny/</link>
+      <pubDate>Sat, 01 Oct 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://www.brodrigues.co/blog/2022-10-01-why_js_shiny/</guid>
+      <description>&lt;div style=&#34;text-align:center;&#34;&gt;
+&lt;p&gt;&lt;img src=&#34;https://www.brodrigues.co/img/pointing_tags_script.png&#34; title = &#34;The gist of this blog post&#34; width=&#34;70%&#34;&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;the-snake-biting-its-own-tail&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;The snake biting its own tail&lt;/h2&gt;
+&lt;p&gt;&lt;em&gt;Disclaimer: I’m a beginner at JS, so don’t ask me about the many intricacies of JS.&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;I’ve been working on a Shiny app for work these past few weeks, and had to use
+Javascript to solve a very specific issue I encountered. Something for which, as far as I know,
+there is no other solution than using Javascript. The problem had to do with dynamically changing
+the UI of an app. The way to usually achieve this is using &lt;code&gt;renderUI()/uiOutput()&lt;/code&gt;. For example,
+consider the following little app (if you don’t want to run it, watch the video below):&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(shiny)
+library(ggplot2)
+
+data(mtcars)
+
+ui &amp;lt;- fluidPage(
+  selectInput(&amp;quot;var&amp;quot;, &amp;quot;Select variable:&amp;quot;, choices = colnames(mtcars)),
+  uiOutput(&amp;quot;welcome&amp;quot;),
+  plotOutput(&amp;quot;my_plot&amp;quot;)
+)
+
+server &amp;lt;- function(input, output) {
+
+  output$welcome &amp;lt;- renderUI({
+      tags$div(paste0(&amp;quot;Welcome to my award-winning app! Currently showing variable: &amp;quot;, input$var))
+  })
+
+  output$my_plot &amp;lt;- renderPlot({
+        ggplot(data = mtcars) +
+          geom_bar(aes_string(y = input$var))
+      })
+}
+
+shinyApp(ui, server)&lt;/code&gt;&lt;/pre&gt;
+&lt;div style=&#34;text-align:center;&#34;&gt;
+&lt;video width=&#34;320&#34; height=&#34;240&#34; controls&gt;
+&lt;source src=&#34;https://www.brodrigues.co/img/why_js_shiny_1.mp4&#34; type=&#34;video/mp4&#34;&gt;
+&lt;/video&gt;
+&lt;/div&gt;
+&lt;p&gt;As you can see, when the user chooses a new variable, the plot gets updated of course, but the
+welcome message changes as well. Normally, the UI of a Shiny app gets rendered once, at startup,
+and stays fixed. But thanks to &lt;code&gt;renderUI()/uiOutput()&lt;/code&gt;, it is possible to change UI elements on the
+fly, and anything can go inside of &lt;code&gt;renderUI()/uiOutput()&lt;/code&gt;, it can be something much more
+complex than a simple message like in my example above.&lt;/p&gt;
+&lt;p&gt;So, why did I need to use Javascript to basically achieve the same thing? The reason is that
+I am currently using &lt;a href=&#34;https://rinterface.github.io/bs4Dash/index.html&#34;&gt;&lt;code&gt;{bs4Dash}&lt;/code&gt;&lt;/a&gt;,
+an amazing package to build Shiny dashboard using Bootstrap 4. &lt;code&gt;{bs4Dash}&lt;/code&gt; comes with many
+neat features, one of them being improved &lt;code&gt;box()&lt;/code&gt;es (improved when compared to the &lt;code&gt;box()&lt;/code&gt;es
+from &lt;code&gt;{shinydashboard}&lt;/code&gt;). These improved boxes allow you to do something like this
+(if you don’t want to run it, watch the video below):&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(shiny)
+library(ggplot2)
+library(bs4Dash)
+
+data(mtcars)
+
+shinyApp(
+  ui = dashboardPage(
+    header = dashboardHeader(
+      title = dashboardBrand(
+        title = &amp;quot;Welcome to my award-winning dashboard!&amp;quot;,
+        color = &amp;quot;primary&amp;quot;
+      )
+    ),
+    sidebar = dashboardSidebar(),
+    body = dashboardBody(
+      box(
+        plotOutput(&amp;quot;my_plot&amp;quot;),
+        title = &amp;quot;This is where I will put the title, but bear with me.&amp;quot;,
+        width = 12,
+        sidebar = boxSidebar(
+          id = &amp;quot;sidebarid&amp;quot;,
+          startOpen = TRUE,
+          selectInput(&amp;quot;var&amp;quot;, &amp;quot;Select variable:&amp;quot;, choices = colnames(mtcars))
+          ))
+    ),
+    controlbar = dashboardControlbar(),
+    title = &amp;quot;DashboardPage&amp;quot;
+  ),
+  server = function(input, output, session) {
+
+    output$my_plot &amp;lt;- renderPlot({
+      ggplot(data = mtcars) +
+        geom_bar(aes_string(y = input$var))
+    })
+
+  }
+)&lt;/code&gt;&lt;/pre&gt;
+&lt;div style=&#34;text-align:center;&#34;&gt;
+&lt;video width=&#34;320&#34; height=&#34;240&#34; controls&gt;
+&lt;source src=&#34;https://www.brodrigues.co/img/why_js_shiny_2.mp4&#34; type=&#34;video/mp4&#34;&gt;
+&lt;/video&gt;
+&lt;/div&gt;
+&lt;p&gt;Each box can have a side bar, and these side bars can contain toggles specific to the graph. If you
+click outside the side bar, the side bar closes; to show the side bar, click on the little gears in
+the top right corner of the side bar. Ok we’re almost done with the setup: see how the box can have
+a title? Let’s make it change like before; for this, because the title is part of the &lt;code&gt;box()&lt;/code&gt;
+function, I need to re-render the whole box (if you don’t want to run it, watch the video below):&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(shiny)
+library(ggplot2)
+library(bs4Dash)
+
+data(mtcars)
+
+shinyApp(
+  ui = dashboardPage(
+    header = dashboardHeader(
+      title = dashboardBrand(
+        title = &amp;quot;Welcome to my award-winning dashboard!&amp;quot;,
+        color = &amp;quot;primary&amp;quot;
+      )
+    ),
+    sidebar = dashboardSidebar(),
+    body = dashboardBody(
+      uiOutput(&amp;quot;my_dynamic_box&amp;quot;)
+    ),
+    controlbar = dashboardControlbar(),
+    title = &amp;quot;DashboardPage&amp;quot;
+  ),
+  server = function(input, output, session) {
+
+    output$my_plot &amp;lt;- renderPlot({
+      ggplot(data = mtcars) +
+        geom_bar(aes_string(y = input$var))
+    })
+
+    output$my_dynamic_box &amp;lt;- renderUI({
+      box(
+        plotOutput(&amp;quot;my_plot&amp;quot;),
+        title = paste0(&amp;quot;Currently showing variable:&amp;quot;, input$var),
+        width = 12,
+        sidebar = boxSidebar(
+          id = &amp;quot;sidebarid&amp;quot;,
+          startOpen = TRUE,
+          selectInput(&amp;quot;var&amp;quot;, &amp;quot;Select variable:&amp;quot;, choices = colnames(mtcars))
+        ))
+    })
+  }
+)&lt;/code&gt;&lt;/pre&gt;
+&lt;div style=&#34;text-align:center;&#34;&gt;
+&lt;video width=&#34;320&#34; height=&#34;240&#34; controls&gt;
+&lt;source src=&#34;https://www.brodrigues.co/img/why_js_shiny_3.mp4&#34; type=&#34;video/mp4&#34;&gt;
+&lt;/video&gt;
+&lt;/div&gt;
+&lt;p&gt;Now try changing variables and see what happens… as soon as you change the value in the
+&lt;code&gt;selectInput()&lt;/code&gt;, it goes back to selecting &lt;code&gt;mpg&lt;/code&gt;! The reason is because the whole box gets
+re-rendered, including the &lt;code&gt;selectInput()&lt;/code&gt;, and its starting, default, value (even if we did not
+specify one, this value is simply the first element of &lt;code&gt;colnames(mtcars)&lt;/code&gt; which happens to be
+&lt;code&gt;mpg&lt;/code&gt;). So now you see the problem; I have to re-render part of the UI, but doing so puts the
+&lt;code&gt;selectInput()&lt;/code&gt; on its default value… so I need to be able to only to re-render the title, not the
+whole box (or move the &lt;code&gt;selectInput()&lt;/code&gt; outside the boxes, but that was not an acceptable solution
+in my case).&lt;/p&gt;
+&lt;p&gt;So there we have it, we’re done with the problem statement. Now on to the solution.&lt;/p&gt;
+&lt;div id=&#34;update&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;&lt;strong&gt;UPDATE&lt;/strong&gt;&lt;/h3&gt;
+&lt;p&gt;It turns out that it’s not needed to use JS for this special use case! &lt;code&gt;{bs4Dash}&lt;/code&gt; comes
+with a function, called &lt;code&gt;updateBox()&lt;/code&gt; which updates a targeted box. You can read about
+it &lt;a href=&#34;https://rinterface.github.io/bs4Dash/reference/box.html&#34;&gt;here&lt;/a&gt;. Thanks to
+&lt;code&gt;{bs4Dash}&lt;/code&gt;’s author,
+&lt;a href=&#34;https://twitter.com/divadnojnarg/status/1576210017497550849?s=20&amp;amp;t=wz3NfqHB4SWtcVAUH_KPRA&#34;&gt;David Granjon&lt;/a&gt;
+for the heads-up!&lt;/p&gt;
+&lt;p&gt;Well, even though my specific use case does not actually need Javascript, you can continue
+reading, because in case your use case does not have an happy ending like mine, the blog
+post is still relevant!&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&#34;javascript-to-the-rescue&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Javascript to the rescue&lt;/h2&gt;
+&lt;p&gt;Let me be very clear: I know almost nothing about Javascript. I just knew a couple of things:
+Javascript can be used for exactly what I needed to do (change part of the UI), and it does so by
+making use of the DOM (which I also knew a little bit about). The DOM is a tree-like representation
+of a webpage. So you have your webpage’s header, body, footer, and inside of the body, for example,
+in my case here, we have a box with a title. That title has an address, if you will, represented by
+one of the branches of the DOM. At least, that’s the way I understand it.&lt;/p&gt;
+&lt;p&gt;In any case, it is possible to integrate JS scripts inside any Shiny app. So here’s what I thought
+I would do: I would create the title of my box as a reactive value inside the server part of my
+app, and would then pass this title to a JS script which would then, using the DOM, knock at the
+door of the box and give it its new title. Easier written in plain English than in R/JS though. But
+surprisingly enough, it didn’t turn out to be that complicated, and even someone (me) with only a very,
+very, shallow knowledge of JS could do it in less than an hour. First thing’s first, we need to
+read this documentation:
+&lt;a href=&#34;https://shiny.rstudio.com/articles/communicating-with-js.html&#34;&gt;Communicating with Shiny via JavaScript&lt;/a&gt;,
+especially the second part, &lt;em&gt;From R to JavaScript&lt;/em&gt;.&lt;/p&gt;
+&lt;p&gt;Because we won’t re-render the whole box, let’s simply reuse the app from before, in which the
+box is static. The script is below, but first read the following lines, then take
+a look at the script:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;I have defined a JS script outside the app, called &lt;code&gt;box_title_js&lt;/code&gt;;&lt;/li&gt;
+&lt;li&gt;Read the title of the box;&lt;/li&gt;
+&lt;li&gt;In the server, there is now an &lt;code&gt;observeEvent()&lt;/code&gt;,&lt;/li&gt;
+&lt;li&gt;In the UI you’ll see the following line (inside the box’s definition): &lt;code&gt;tags$script(box_title_js)&lt;/code&gt;, which executes the JS script &lt;code&gt;box_title_js&lt;/code&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The script knows which element to change thanks to &lt;code&gt;$(&#34;#box_plot h3&#34;)&lt;/code&gt;. That’s a bit
+of jQuery, which comes bundled with Shiny. jQuery allows you to query elements of the
+DOM. If you know nothing about it, like me, you should read
+&lt;a href=&#34;https://book.javascript-for-r.com/shiny-tips.html#shiny-tips-jQuery&#34;&gt;this&lt;/a&gt;. This should
+give you the basic knowledge such that you’ll eventually somehow manage to select
+the element you actually want to change.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(shiny)
+library(ggplot2)
+library(bs4Dash)
+
+# This is the bit of JS that will update the title
+# From what I could gather, $(bla bla) references the object,
+# here the title, and `.html()` is a getter/setter.
+# So $(&amp;quot;#box_plot h3&amp;quot;).html() means &amp;quot;take whatever is called #box_plot h3
+# (h3 is the class of the title, meaning, it’s a header3 bit of text)
+# and set its html to whatever string is inside `html()`&amp;quot;
+box_title_js &amp;lt;- &amp;#39;
+  Shiny.addCustomMessageHandler(&amp;quot;box_title&amp;quot;, function(title) {
+    $(&amp;quot;#box_plot h3&amp;quot;).html(title)
+  });
+&amp;#39;
+
+data(mtcars)
+
+shinyApp(
+  ui = dashboardPage(
+    header = dashboardHeader(
+      title = dashboardBrand(
+        title = &amp;quot;Welcome to my award-winning dashboard!&amp;quot;,
+        color = &amp;quot;primary&amp;quot;
+      )
+    ),
+    sidebar = dashboardSidebar(),
+    body = dashboardBody(
+      box(id = &amp;quot;box_plot&amp;quot;, #We need to give the box an ID now, to help query it
+        plotOutput(&amp;quot;my_plot&amp;quot;),
+        tags$script(box_title_js), #Integration of the JS script into the app
+        title = &amp;quot;This title will change dynamically. You won’t even see this sentence!&amp;quot;,
+        width = 12,
+        sidebar = boxSidebar(
+          id = &amp;quot;sidebarid&amp;quot;,
+          startOpen = TRUE,
+          selectInput(&amp;quot;var&amp;quot;, &amp;quot;Select variable:&amp;quot;, choices = colnames(mtcars))
+        ))
+    ),
+    controlbar = dashboardControlbar(),
+    title = &amp;quot;DashboardPage&amp;quot;
+  ),
+  server = function(input, output, session) {
+
+    # The following lines put the title together, and send them to the JS script
+    observe({
+      session$sendCustomMessage(
+                &amp;quot;box_title&amp;quot;,
+                paste0(&amp;quot;Currently showing variable:&amp;quot;, input$var)
+              )
+    })
+
+    output$my_plot &amp;lt;- renderPlot({
+      ggplot(data = mtcars) +
+        geom_bar(aes_string(y = input$var))
+    })
+
+  }
+)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The video below shows how the app works:&lt;/p&gt;
+&lt;div style=&#34;text-align:center;&#34;&gt;
+&lt;video width=&#34;320&#34; height=&#34;240&#34; controls&gt;
+&lt;source src=&#34;https://www.brodrigues.co/img/why_js_shiny_4.mp4&#34; type=&#34;video/mp4&#34;&gt;
+&lt;/video&gt;
+&lt;/div&gt;
+&lt;p&gt;The idea is as follows: a bit of code puts the title together in the server part of your app.
+This title gets sent to a JS script that you define somewhere where the UI and the server
+part know about it (for example, in your &lt;code&gt;global.R&lt;/code&gt; file). In the UI you can now integrate
+the JS script using &lt;code&gt;tags$script()&lt;/code&gt;. And you’re done!&lt;/p&gt;
+&lt;p&gt;Just for fun, let’s have a more complex example; I’ll change the background color of the box
+using JS as well, but depending on the selected column, the color will be different.
+For this, I only need to change the JS script. Using a simple if-then-else statement, I
+set the background color of the box to red if the selected column is &lt;code&gt;mpg&lt;/code&gt;, else I set
+it to blue. The way I do this, is by using jQuery again to target the element I want to change,
+in this case, the object with the id “box_plot” and of class “.card-body”. Take a look
+at the script:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(shiny)
+library(ggplot2)
+library(bs4Dash)
+
+# This is the bit of JS that will update the title
+# From what I could gather, $(bla bla) references the object,
+# here the title, and `.html()` is a getter/setter.
+# So $(&amp;quot;#box_plot h3&amp;quot;).html() means &amp;quot;take whatever is called #box_plot h3
+# (h3 is the class of the title, meaning, it’s a header3 bit of text)
+# and set its html to whatever string is inside `html()`&amp;quot;
+box_title_js &amp;lt;- &amp;#39;
+  Shiny.addCustomMessageHandler(&amp;quot;box_title&amp;quot;, function(title) {
+  if(title.includes(&amp;quot;mpg&amp;quot;)){
+    colour = &amp;quot;red&amp;quot;
+  } else {
+    colour = &amp;quot;blue&amp;quot;
+  }
+    $(&amp;quot;#box_plot h3&amp;quot;).html(title)
+    $(&amp;quot;#box_plot .card-body&amp;quot;).css(&amp;quot;background-color&amp;quot;, colour)
+  });
+&amp;#39;
+
+data(mtcars)
+
+shinyApp(
+  ui = dashboardPage(
+    header = dashboardHeader(
+      title = dashboardBrand(
+        title = &amp;quot;Welcome to my award-winning dashboard!&amp;quot;,
+        color = &amp;quot;primary&amp;quot;
+      )
+    ),
+    sidebar = dashboardSidebar(),
+    body = dashboardBody(
+      box(id = &amp;quot;box_plot&amp;quot;, #We need to give the box an ID now, to help query it
+        plotOutput(&amp;quot;my_plot&amp;quot;),
+        tags$script(box_title_js), #Integration of the JS script into the app
+        title = &amp;quot;This title will change dynamically. You won’t even see this sentence!&amp;quot;,
+        width = 12,
+        sidebar = boxSidebar(
+          id = &amp;quot;sidebarid&amp;quot;,
+          startOpen = TRUE,
+          selectInput(&amp;quot;var&amp;quot;, &amp;quot;Select variable:&amp;quot;, choices = colnames(mtcars))
+        ))
+    ),
+    controlbar = dashboardControlbar(),
+    title = &amp;quot;DashboardPage&amp;quot;
+  ),
+  server = function(input, output, session) {
+
+    # The following lines put the title together, and send them to the JS script
+    observe({
+      session$sendCustomMessage(
+                &amp;quot;box_title&amp;quot;,
+                paste0(&amp;quot;Currently showing variable:&amp;quot;, input$var)
+              )
+    })
+
+    output$my_plot &amp;lt;- renderPlot({
+      ggplot(data = mtcars) +
+        geom_bar(aes_string(y = input$var))
+    })
+
+  }
+)&lt;/code&gt;&lt;/pre&gt;
+&lt;div style=&#34;text-align:center;&#34;&gt;
+&lt;video width=&#34;320&#34; height=&#34;240&#34; controls&gt;
+&lt;source src=&#34;https://www.brodrigues.co/img/why_js_shiny_5.mp4&#34; type=&#34;video/mp4&#34;&gt;
+&lt;/video&gt;
+&lt;/div&gt;
+&lt;p&gt;How did I know that I needed to target &lt;code&gt;card-body&lt;/code&gt;? To find out, go to your browser, right
+click on the box and select &lt;code&gt;Inspect&lt;/code&gt; (sometimes &lt;code&gt;inspect element&lt;/code&gt;).
+Navigating through the source of your app in this way
+allows you to find the classes and ids of things you need to target, which you then can use
+as a query. You can even try changing stuff in real time, as the video below shows:&lt;/p&gt;
+&lt;div style=&#34;text-align:center;&#34;&gt;
+&lt;video width=&#34;320&#34; height=&#34;240&#34; controls&gt;
+&lt;source src=&#34;https://www.brodrigues.co/img/why_js_shiny_6.mp4&#34; type=&#34;video/mp4&#34;&gt;
+&lt;/video&gt;
+&lt;/div&gt;
+&lt;p&gt;It’s actually scary what you can achieve with only some cursory knowledge of JS. I’m sure nothing
+bad ever happens because clueless beginners like me start playing around with JS.&lt;/p&gt;
+&lt;p&gt;
+Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on &lt;a href=&#34;https://www.twitter.com/brodriguesco&#34;&gt;twitter&lt;/a&gt; for blog post updates and
+&lt;a href=&#34;https://www.buymeacoffee.com/brodriguesco&#34;&gt;buy me an espresso&lt;/a&gt; or &lt;a href=&#34;https://www.paypal.me/brodriguesco&#34;&gt;paypal.me&lt;/a&gt;, or buy my ebook on &lt;a href=&#34;https://leanpub.com/modern_tidyverse&#34;&gt;Leanpub&lt;/a&gt;.
+You can also watch my videos on &lt;a href=&#34;https://www.youtube.com/c/BrunoRodrigues1988/&#34;&gt;youtube&lt;/a&gt;.
+So much content for you to consoom!
+&lt;/p&gt;
+&lt;style&gt;.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:&#39;Cookie&#39;, cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}&lt;/style&gt;
+&lt;p&gt;
+&lt;link href=&#34;https://fonts.googleapis.com/css?family=Cookie&#34; rel=&#34;stylesheet&#34;&gt;&lt;a class=&#34;bmc-button&#34; target=&#34;_blank&#34; href=&#34;https://www.buymeacoffee.com/brodriguesco&#34;&gt;&lt;img src=&#34;https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg&#34; alt=&#34;Buy me an Espresso&#34;&gt;&lt;span style=&#34;margin-left:5px&#34;&gt;Buy me an Espresso&lt;/span&gt;&lt;/a&gt;
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>What&#39;s the fastest way to search and replace strings in a data frame?</title>
+      <link>https://www.brodrigues.co/blog/2022-07-23-grepl_vs_stringi/</link>
+      <pubDate>Sat, 23 Jul 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://www.brodrigues.co/blog/2022-07-23-grepl_vs_stringi/</guid>
+      <description>&lt;div style=&#34;text-align:center;&#34;&gt;
+&lt;p&gt;
+&lt;a href=&#34;https://www.craiyon.com/&#34;&gt;
+&lt;img src=&#34;https://www.brodrigues.co/img/wojak_violin.jpg&#34; title = &#34;Made by DALL-E mini&#34;&gt;&lt;/a&gt;
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;p&gt;I’ve tweeted this:&lt;/p&gt;
+&lt;blockquote class=&#34;twitter-tweet&#34;&gt;
+&lt;p lang=&#34;en&#34; dir=&#34;ltr&#34;&gt;
+Just changed like 100 grepl calls to stringi::stri_detect and my pipeline now runs 4 times faster &lt;a href=&#34;https://twitter.com/hashtag/RStats?src=hash&amp;amp;ref_src=twsrc%5Etfw&#34;&gt;#RStats&lt;/a&gt;
+&lt;/p&gt;
+— Bruno Rodrigues (&lt;span class=&#34;citation&#34;&gt;@brodriguesco&lt;/span&gt;) &lt;a href=&#34;https://twitter.com/brodriguesco/status/1549659454483857409?ref_src=twsrc%5Etfw&#34;&gt;July 20, 2022&lt;/a&gt;
+&lt;/blockquote&gt;
+&lt;script async src=&#34;https://platform.twitter.com/widgets.js&#34; charset=&#34;utf-8&#34;&gt;&lt;/script&gt;
+&lt;p&gt;much discussed ensued. Some people were surprised, because in their experience, &lt;code&gt;grepl()&lt;/code&gt;
+was faster than alternatives, especially if you set the &lt;code&gt;perl&lt;/code&gt; parameter in &lt;code&gt;grepl()&lt;/code&gt; to &lt;code&gt;TRUE&lt;/code&gt;.
+My use case was quite simple; I have a relatively large data set (half a million lines) with
+one column with several misspelling of city names. So I painstakingly wrote some code
+to correct the spelling of the major cities (those that came up often enough to matter. Minor
+cities were set to “Other”. Sorry, &lt;a href=&#34;https://en.wikipedia.org/wiki/Wiltz&#34;&gt;Wiltz&lt;/a&gt;!)&lt;/p&gt;
+&lt;p&gt;So in this short blog post, I benchmark some code to see if what I did the other day was a fluke.
+Maybe something weird with my R installation on my work laptop running Windows 10 somehow
+made &lt;code&gt;stri_detect()&lt;/code&gt; run faster than &lt;code&gt;grepl()&lt;/code&gt;? I don’t even know if something like that is
+possible. I’m writing these lines on my Linux machine, unlike the code I run at work.
+So maybe if I find some differences, they could be due to the different OS running.
+I don’t want to have to deal with Windows on my days off (for my blood pressure’s sake),
+so I’m not running this benchmark on my work laptop. So that part we’ll never know.&lt;/p&gt;
+&lt;p&gt;Anyways, let’s start by getting some data. I’m not commenting the code below, because that’s not
+the point of this post.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(dplyr)
+library(stringi)
+library(stringr)
+library(re2)
+
+adult &amp;lt;- vroom::vroom(
+  &amp;quot;https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.data&amp;quot;
+)
+
+adult_colnames &amp;lt;- readLines(
+  &amp;quot;https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.names&amp;quot;
+)
+
+adult_colnames &amp;lt;- adult_colnames[97:110] %&amp;gt;%
+  str_extract(&amp;quot;.*(?=:)&amp;quot;) %&amp;gt;%
+  str_replace_all(&amp;quot;-&amp;quot;, &amp;quot;_&amp;quot;)
+
+adult_colnames &amp;lt;- c(adult_colnames, &amp;quot;wage&amp;quot;)
+
+colnames(adult) &amp;lt;- adult_colnames
+
+adult&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## # A tibble: 32,560 × 15
+##      age workclass    fnlwgt educa…¹ educa…² marit…³ occup…⁴ relat…⁵ race  sex  
+##    &amp;lt;dbl&amp;gt; &amp;lt;chr&amp;gt;         &amp;lt;dbl&amp;gt; &amp;lt;chr&amp;gt;     &amp;lt;dbl&amp;gt; &amp;lt;chr&amp;gt;   &amp;lt;chr&amp;gt;   &amp;lt;chr&amp;gt;   &amp;lt;chr&amp;gt; &amp;lt;chr&amp;gt;
+##  1    50 Self-emp-no…  83311 Bachel…      13 Marrie… Exec-m… Husband White Male 
+##  2    38 Private      215646 HS-grad       9 Divorc… Handle… Not-in… White Male 
+##  3    53 Private      234721 11th          7 Marrie… Handle… Husband Black Male 
+##  4    28 Private      338409 Bachel…      13 Marrie… Prof-s… Wife    Black Fema…
+##  5    37 Private      284582 Masters      14 Marrie… Exec-m… Wife    White Fema…
+##  6    49 Private      160187 9th           5 Marrie… Other-… Not-in… Black Fema…
+##  7    52 Self-emp-no… 209642 HS-grad       9 Marrie… Exec-m… Husband White Male 
+##  8    31 Private       45781 Masters      14 Never-… Prof-s… Not-in… White Fema…
+##  9    42 Private      159449 Bachel…      13 Marrie… Exec-m… Husband White Male 
+## 10    37 Private      280464 Some-c…      10 Marrie… Exec-m… Husband Black Male 
+## # … with 32,550 more rows, 5 more variables: capital_gain &amp;lt;dbl&amp;gt;,
+## #   capital_loss &amp;lt;dbl&amp;gt;, hours_per_week &amp;lt;dbl&amp;gt;, native_country &amp;lt;chr&amp;gt;, wage &amp;lt;chr&amp;gt;,
+## #   and abbreviated variable names ¹​education, ²​education_num, ³​marital_status,
+## #   ⁴​occupation, ⁵​relationship
+## # ℹ Use `print(n = ...)` to see more rows, and `colnames()` to see all variable names&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Let’s now write the functions used for benchmarking. There will be 5 of them:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;One using &lt;code&gt;grepl()&lt;/code&gt; without any fancy options;&lt;/li&gt;
+&lt;li&gt;One using &lt;code&gt;grepl()&lt;/code&gt; where &lt;code&gt;perl&lt;/code&gt; is set to &lt;code&gt;TRUE&lt;/code&gt;;&lt;/li&gt;
+&lt;li&gt;One that uses &lt;code&gt;stringi::stri_detect()&lt;/code&gt;;&lt;/li&gt;
+&lt;li&gt;One that uses &lt;code&gt;stringr::str_detect()&lt;/code&gt;;&lt;/li&gt;
+&lt;li&gt;One that uses &lt;code&gt;re2::re2_detect()&lt;/code&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Below you can read the functions. They’re all pretty much the same, only the function
+looking for the string changes. These functions look for a string in the &lt;code&gt;marital_status&lt;/code&gt;
+variable and create a new variable with a corresponding integer.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;with_grepl &amp;lt;- function(dataset){
+  dataset |&amp;gt;
+    mutate(married = case_when(
+             grepl(&amp;quot;Married&amp;quot;, marital_status) ~ 1,
+             grepl(&amp;quot;married&amp;quot;, marital_status) ~ 2,
+             TRUE ~ 3)
+           )
+}
+
+with_grepl_perl &amp;lt;- function(dataset){
+  dataset |&amp;gt;
+    mutate(married = case_when(
+             grepl(&amp;quot;Married&amp;quot;, marital_status, perl = TRUE) ~ 1,
+             grepl(&amp;quot;married&amp;quot;, marital_status, perl = TRUE) ~ 2,
+             TRUE ~ 3)
+           )
+}
+
+with_stringi &amp;lt;- function(dataset){
+  dataset |&amp;gt;
+    mutate(married = case_when(
+             stri_detect(marital_status, regex = &amp;quot;Married&amp;quot;) ~ 1,
+             stri_detect(marital_status, regex = &amp;quot;married&amp;quot;) ~ 2,
+             TRUE ~ 3)
+           )
+}
+
+with_stringr &amp;lt;- function(dataset){
+  dataset |&amp;gt;
+    mutate(married = case_when(
+             str_detect(marital_status, &amp;quot;Married&amp;quot;) ~ 1,
+             str_detect(marital_status, &amp;quot;married&amp;quot;) ~ 2,
+             TRUE ~ 3)
+           )
+}
+
+with_re2 &amp;lt;- function(dataset){
+  dataset |&amp;gt;
+    mutate(married = case_when(
+             re2_detect(marital_status, &amp;quot;Married&amp;quot;) ~ 1,
+             re2_detect(marital_status, &amp;quot;married&amp;quot;) ~ 2,
+             TRUE ~ 3)
+           )
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now I make extra sure these functions actually return the exact same thing. So for this
+I’m running them once on the data and use &lt;code&gt;testthat::expect_equal()&lt;/code&gt;. It’s a bit
+unwieldy, so if you have a better way of doing this, please let me know.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;run_grepl &amp;lt;- function(){
+  with_grepl(adult) %&amp;gt;%
+    count(married, marital_status)
+}
+
+one &amp;lt;- run_grepl()
+
+run_grepl_perl &amp;lt;- function(){
+  with_grepl_perl(adult) %&amp;gt;%
+    count(married, marital_status)
+}
+
+two &amp;lt;- run_grepl_perl()
+
+run_stringi &amp;lt;- function(){
+  with_stringi(adult) %&amp;gt;%
+    count(married, marital_status)
+}
+
+three &amp;lt;- run_stringi()
+
+run_stringr &amp;lt;- function(){
+  with_stringr(adult) %&amp;gt;%
+    count(married, marital_status)
+}
+
+four &amp;lt;- run_stringr()
+
+run_re2 &amp;lt;- function(){
+  with_re2(adult) %&amp;gt;%
+    count(married, marital_status)
+}
+
+five &amp;lt;- run_re2()
+
+one_eq_two &amp;lt;- testthat::expect_equal(one, two)
+one_eq_three &amp;lt;- testthat::expect_equal(one, three)
+three_eq_four &amp;lt;- testthat::expect_equal(three, four)
+
+testthat::expect_equal(
+            one_eq_two,
+            one_eq_three
+          )
+
+testthat::expect_equal(
+            one_eq_three,
+            three_eq_four
+          )
+
+testthat::expect_equal(
+            one,
+            five)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;code&gt;testthat::expect_equal()&lt;/code&gt; does not complain, so I’m pretty sure my functions, while different,
+return the exact same thing. Now, we’re ready for the benchmark itself. Let’s run these
+function 500 times using &lt;code&gt;{microbenchmark}&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;microbenchmark::microbenchmark(
+     run_grepl(),
+     run_grepl_perl(),
+     run_stringi(),
+     run_stringr(),
+     run_re2(),
+     times = 500
+)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## Unit: milliseconds
+##              expr      min       lq     mean   median       uq      max neval
+##       run_grepl() 24.37832 24.89573 26.64820 25.50033 27.05967 115.0769   500
+##  run_grepl_perl() 19.03446 19.41323 20.91045 19.89093 21.16683 104.3917   500
+##     run_stringi() 23.01141 23.40151 25.00304 23.82441 24.83598 104.8065   500
+##     run_stringr() 22.98317 23.44332 25.32851 23.92721 25.18168 145.5861   500
+##         run_re2() 22.22656 22.60817 24.07254 23.05895 24.22048 108.6825   500&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;There you have it folks! The winner is &lt;code&gt;grepl()&lt;/code&gt; with &lt;code&gt;perl = TRUE&lt;/code&gt;, and then it’s
+pretty much tied between &lt;code&gt;stringi()&lt;/code&gt;, &lt;code&gt;stringr()&lt;/code&gt; and &lt;code&gt;re2()&lt;/code&gt; (maybe there’s a slight edge
+for &lt;code&gt;re2()&lt;/code&gt;) and &lt;code&gt;grepl()&lt;/code&gt; without &lt;code&gt;perl = TRUE&lt;/code&gt; is last. But don’t forget that this is running
+on my machine with Linux installed on it; maybe you’ll get different results on different
+hardware and OSs! So if you rely a lot on &lt;code&gt;grepl()&lt;/code&gt; and other such string manipulation
+function, maybe run a benchmark on your hardware first. How come switching from &lt;code&gt;grepl()&lt;/code&gt;
+(without &lt;code&gt;perl = TRUE&lt;/code&gt; though) to &lt;code&gt;stri_detect()&lt;/code&gt; made my pipeline at work run 4 times
+faster I don’t know. Maybe it has also to do with the size of the data, and the complexity
+of the regular expression used to detect the problematic strings?&lt;/p&gt;
+&lt;p&gt;
+Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on &lt;a href=&#34;https://www.twitter.com/brodriguesco&#34;&gt;twitter&lt;/a&gt; for blog post updates and
+&lt;a href=&#34;https://www.buymeacoffee.com/brodriguesco&#34;&gt;buy me an espresso&lt;/a&gt; or &lt;a href=&#34;https://www.paypal.me/brodriguesco&#34;&gt;paypal.me&lt;/a&gt;, or buy my ebook on &lt;a href=&#34;https://leanpub.com/modern_tidyverse&#34;&gt;Leanpub&lt;/a&gt;.
+You can also watch my videos on &lt;a href=&#34;https://www.youtube.com/c/BrunoRodrigues1988/&#34;&gt;youtube&lt;/a&gt;.
+So much content for you to consoom!
+&lt;/p&gt;
+&lt;style&gt;.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:&#39;Cookie&#39;, cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}&lt;/style&gt;
+&lt;p&gt;
+&lt;link href=&#34;https://fonts.googleapis.com/css?family=Cookie&#34; rel=&#34;stylesheet&#34;&gt;&lt;a class=&#34;bmc-button&#34; target=&#34;_blank&#34; href=&#34;https://www.buymeacoffee.com/brodriguesco&#34;&gt;&lt;img src=&#34;https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg&#34; alt=&#34;Buy me an Espresso&#34;&gt;&lt;span style=&#34;margin-left:5px&#34;&gt;Buy me an Espresso&lt;/span&gt;&lt;/a&gt;
+&lt;/p&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>R will always be arcane to those who do not make a serious effort to learn it...</title>
+      <link>https://www.brodrigues.co/blog/2022-06-02-arcane/</link>
+      <pubDate>Thu, 02 Jun 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://www.brodrigues.co/blog/2022-06-02-arcane/</guid>
       <description>&lt;script src=&#34;https://www.brodrigues.co/rmarkdown-libs/header-attrs/header-attrs.js&#34;&gt;&lt;/script&gt;
 
 
 &lt;div style=&#34;text-align:center;&#34;&gt;
 &lt;p&gt;
-&lt;a href=&#34;https://www.youtube.com/watch?v=I8LbkfSSR58&amp;list=PLbgaMIhjbmEnaH_LTkxLI7FMa2HsnawM_&#34;&gt;
-&lt;img src=&#34;https://www.brodrigues.co/img/monoids_endofunctors.jpg&#34; title = &#34;How it feels to implement your own monad&#34;&gt;&lt;/a&gt;
+&lt;a href=&#34;https://adv-r.hadley.nz/&#34;&gt;
+&lt;img src=&#34;https://www.brodrigues.co/img/third_impact.png&#34; title = &#34;You need to put in the effort&#34;&gt;&lt;/a&gt;
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;blockquote&gt;
+&lt;p&gt;R will always be arcane to those who do not make a serious effort to learn it.
+It is &lt;strong&gt;not&lt;/strong&gt; meant to be intuitive and easy for casual users to just plunge into.
+It is far too complex and powerful for that.
+But the rewards are great for serious data analysts who put in the effort.&lt;/p&gt;
+&lt;footer&gt;
+— Berton Gunter R-help August 2007
+&lt;/footer&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;I’ve posted this quote on twitter the other day and it sparked some discussion. Personally I agree
+with this quote, and I’ll explain why.&lt;/p&gt;
+&lt;p&gt;Just like any tool aimed at professionals, R requires people to spend time to actually master it.
+There is no ifs or buts. Just like I don’t want a casual carpenter doing my carpentry, or a casual
+electrician doing the wiring in my house, I don’t think anyone should want to be a casual R user.
+Now of course, depending on your needs, you might not need to learn everything the language has to
+offer. I certainly don’t know everything R has to offer, far from it. But whatever task you need to
+fulfill, take the time to learn the required syntax and packages. As Berton Gunter said in 2007,
+&lt;em&gt;the rewards are great&lt;/em&gt; if you put in the effort. You need to create top notch plots? Master
+&lt;code&gt;{ggplot2}&lt;/code&gt;. Need to create top notch web apps? &lt;code&gt;{shiny}&lt;/code&gt;, and so on and so forth… you get the
+idea. But as a shiny expert, you might not need to know, nor care, about R’s object oriented
+capabilities for example.&lt;/p&gt;
+&lt;p&gt;That’s fine.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Evelyn Hall: I would like to know how (if) I can extract some of the information from the summary of my nlme.&lt;/p&gt;
+&lt;p&gt;Simon Blomberg: This is R. There is no if. Only how.&lt;/p&gt;
+&lt;footer&gt;
+— Evely Hall and Simon ’Yoda’ Blomberg, R-help April 2005
+&lt;/footer&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;I remember being extremely frustrated when I started to learn R, not because the language was
+overly complex, (even if that was the case in the beginning, but honestly, that’s true for any
+language, even for supposedly piss-easy languages &lt;a href=&#34;https://twitter.com/Aella_Girl/status/1522633160483385345&#34;&gt;like
+Python&lt;/a&gt;) but because my professors kept
+saying “no need to learn the language in great detail, we’re economists after all, not
+programmers”. That didn’t seem right, and now that I’ve been working with R for years (and with
+economists for some time as well), it certainly is important, even for economists, to be quite
+fluent in at least one programming language like R. How fluent should you be? Well, enough that you
+can test new ideas, or explore new data without much googling nor friction. Your creativity and
+curiosity cannot be limited by your lack of knowledge of the tools you need to use.&lt;/p&gt;
+&lt;p&gt;Some people posit that the &lt;code&gt;{tidyverse}&lt;/code&gt; (and Rstudio, the GUI interface) made R more accessible.
+I’d say yes and no. On one hand, the tidyverse has following nice things going for it:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Consistent api across packages. That definitely makes R easier to learn!&lt;/li&gt;
+&lt;li&gt;Made the &lt;code&gt;%&amp;gt;%&lt;/code&gt; operator famous, which improves readability.&lt;/li&gt;
+&lt;li&gt;Top notch documentation, and also many packages come with books that you can read online for free! That certainly makes R easier to learn.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;(and Rstudio was the first, really good, GUI for R).&lt;/p&gt;
+&lt;p&gt;But while this is all true, on the other hand, the &lt;code&gt;{tidyverse}&lt;/code&gt; also makes it possible to write
+code like this (I’ll be using the &lt;code&gt;package::function()&lt;/code&gt; to make the origin of the functions clear):&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(dplyr)
+library(purrr)
+library(ggfortify) # Not part of the tidyverse, but needed to make ggplot2::autoplot work on lm
+library(ggplot2)
+library(broom) # Not part of the tidyverse, but adheres to the *tidy* principles
+
+result &amp;lt;- mtcars %&amp;gt;%
+  dplyr::group_nest(am) %&amp;gt;%
+  dplyr::mutate(models = purrr::map(data, ~lm(hp ~ mpg + cyl, data = .))) %&amp;gt;%
+  dplyr::mutate(diag_plots = purrr::map(models, ggplot2::autoplot)) %&amp;gt;%
+  dplyr::mutate(model_summary = purrr::map(models, broom::tidy))&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;code&gt;result&lt;/code&gt; is now a data frame with several columns:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;result&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## # A tibble: 2 × 5
+##      am                data models diag_plots model_summary   
+##   &amp;lt;dbl&amp;gt; &amp;lt;list&amp;lt;tibble[,10]&amp;gt;&amp;gt; &amp;lt;list&amp;gt; &amp;lt;list&amp;gt;     &amp;lt;list&amp;gt;          
+## 1     0           [19 × 10] &amp;lt;lm&amp;gt;   &amp;lt;ggmltplt&amp;gt; &amp;lt;tibble [3 × 5]&amp;gt;
+## 2     1           [13 × 10] &amp;lt;lm&amp;gt;   &amp;lt;ggmltplt&amp;gt; &amp;lt;tibble [3 × 5]&amp;gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;code&gt;am&lt;/code&gt; defines the groups, and then &lt;code&gt;data&lt;/code&gt;, &lt;code&gt;models&lt;/code&gt; and &lt;code&gt;model_summary&lt;/code&gt; are list-columns containing
+complex objects (data frames, models, and plots, respectively). And don’t get me wrong here,
+this is not code that I made look complicated on purpose. This type of workflow is &lt;em&gt;canon&lt;/em&gt;
+in the tidyverse lore. This is how you can avoid for loops and keep every result together neatly
+in a single object.&lt;/p&gt;
+&lt;p&gt;Let’s look at another esoteric example: imagine I want to publish a paper and am only interested in
+the coefficients of the model where the p-value is less than .05 (lol):&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;mtcars %&amp;gt;%
+  dplyr::group_nest(am) %&amp;gt;%
+  dplyr::mutate(models = purrr::map(data, ~lm(hp ~ mpg + cyl, data = .))) %&amp;gt;%
+  dplyr::mutate(model_summary = purrr::map(models, broom::tidy)) %&amp;gt;%
+  dplyr::mutate(model_summary = purrr::map(model_summary, \(x)(filter(x, p.value &amp;lt; .05))))&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## # A tibble: 2 × 4
+##      am                data models model_summary   
+##   &amp;lt;dbl&amp;gt; &amp;lt;list&amp;lt;tibble[,10]&amp;gt;&amp;gt; &amp;lt;list&amp;gt; &amp;lt;list&amp;gt;          
+## 1     0           [19 × 10] &amp;lt;lm&amp;gt;   &amp;lt;tibble [2 × 5]&amp;gt;
+## 2     1           [13 × 10] &amp;lt;lm&amp;gt;   &amp;lt;tibble [1 × 5]&amp;gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;I’ve mapped an anomymous function to the model summary, to filter out p-values greater than .05.
+Do you think this looks comprehensible to the beginner? I don’t think so. But I also don’t think that
+the beginners must stay beginners, and this is what matters.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Actually, I see it as part of my job to inflict R on people who are perfectly happy to have never heard of it.
+Happiness doesn’t equal proficient and efficient.
+In some cases the proficiency of a person serves a greater good than their momentary happiness.&lt;/p&gt;
+&lt;footer&gt;
+— Patrick Burns, R-help April 2005
+&lt;/footer&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;I’d argue that R, as arcane as it is (or not), is very likely one of the easiest languages to
+learn, and this is because there are a lot, and I mean a lot, of resources online:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Free books (just take a look at the &lt;a href=&#34;https://www.bigbookofr.com/&#34;&gt;big book of R&lt;/a&gt; to find everything you need)&lt;/li&gt;
+&lt;li&gt;Youtube channels dedicated to R (I’m shamelessly plugging &lt;a href=&#34;https://www.youtube.com/channel/UCTZXht1RTL2Duc3eU8MYGzQ&#34;&gt;mine&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;Packages with great documentation (take a look at the &lt;a href=&#34;https://easystats.github.io/easystats/&#34;&gt;easystats&lt;/a&gt; suite for an example,
+or &lt;a href=&#34;https://vincentarelbundock.github.io/modelsummary/index.html&#34;&gt;modelsummary&lt;/a&gt; and &lt;a href=&#34;https://vincentarelbundock.github.io/marginaleffects/&#34;&gt;marginaleffects&lt;/a&gt;, both by Vincent Arel Bundock, and I’m not citing many, many others here)&lt;/li&gt;
+&lt;li&gt;Slack channels where you can get help&lt;/li&gt;
+&lt;li&gt;The community of R users on twitter (check out the &lt;a href=&#34;https://twitter.com/hashtag/rstats&#34;&gt;#RStats&lt;/a&gt; hashtag)&lt;/li&gt;
+&lt;li&gt;The &lt;a href=&#34;https://community.rstudio.com/#&#34;&gt;RStudio Community forums&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;And of course, the good old &lt;a href=&#34;https://stat.ethz.ch/mailman/listinfo/r-help&#34;&gt;R-help mailing list&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;And that’s only the free stuff. If you can afford it, there’s plenty of courses available as well.
+But no amount of free or paid content will be enough if you don’t invest enough time to learn the language,
+and this is true of &lt;em&gt;anything&lt;/em&gt;. There are no secret recipes.&lt;/p&gt;
+&lt;p&gt;P.S.: I got all these quotes from the &lt;code&gt;{fortunes}&lt;/code&gt; &lt;a href=&#34;https://cran.r-project.org/web/packages/fortunes/index.html&#34;&gt;package&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;
+Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on &lt;a href=&#34;https://www.twitter.com/brodriguesco&#34;&gt;twitter&lt;/a&gt; for blog post updates and
+&lt;a href=&#34;https://www.buymeacoffee.com/brodriguesco&#34;&gt;buy me an espresso&lt;/a&gt; or &lt;a href=&#34;https://www.paypal.me/brodriguesco&#34;&gt;paypal.me&lt;/a&gt;, or buy my ebook on &lt;a href=&#34;https://leanpub.com/modern_tidyverse&#34;&gt;Leanpub&lt;/a&gt;.
+You can also watch my videos on &lt;a href=&#34;https://www.youtube.com/c/BrunoRodrigues1988/&#34;&gt;youtube&lt;/a&gt;.
+So much content for you to consoom!
+&lt;/p&gt;
+&lt;style&gt;.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:&#39;Cookie&#39;, cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}&lt;/style&gt;
+&lt;p&gt;
+&lt;link href=&#34;https://fonts.googleapis.com/css?family=Cookie&#34; rel=&#34;stylesheet&#34;&gt;&lt;a class=&#34;bmc-button&#34; target=&#34;_blank&#34; href=&#34;https://www.buymeacoffee.com/brodriguesco&#34;&gt;&lt;img src=&#34;https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg&#34; alt=&#34;Buy me an Espresso&#34;&gt;&lt;span style=&#34;margin-left:5px&#34;&gt;Buy me an Espresso&lt;/span&gt;&lt;/a&gt;
+&lt;/p&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Some learnings from functional programming you can use to write safer programs</title>
+      <link>https://www.brodrigues.co/blog/2022-05-26-safer_programs/</link>
+      <pubDate>Thu, 26 May 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://www.brodrigues.co/blog/2022-05-26-safer_programs/</guid>
+      <description>&lt;script src=&#34;https://www.brodrigues.co/rmarkdown-libs/header-attrs/header-attrs.js&#34;&gt;&lt;/script&gt;
+
+
+&lt;div style=&#34;text-align:center;&#34;&gt;
+&lt;video width=&#34;320&#34; height=&#34;240&#34; controls&gt;
+&lt;source src=&#34;https://www.brodrigues.co/img/american_psycho.mp4&#34; type=&#34;video/mp4&#34;&gt;
+&lt;/video&gt;
+&lt;/div&gt;
+&lt;div id=&#34;learning-number-1-make-functions-fail-early&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Learning number 1: make functions fail early&lt;/h2&gt;
+&lt;p&gt;When writing your own functions, avoid conversion of types without warning.
+For example, this function only works on characters:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;my_nchar &amp;lt;- function(x, result = 0){
+
+  if(x == &amp;quot;&amp;quot;){
+    result
+  } else {
+    result &amp;lt;- result + 1
+    split_x &amp;lt;- strsplit(x, split = &amp;quot;&amp;quot;)[[1]]
+    my_nchar(paste0(split_x[-1],
+                    collapse = &amp;quot;&amp;quot;), result)
+  }
+
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;my_nchar(&amp;quot;100000000&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] 9&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;my_nchar(100000000)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;Error in strsplit(x, split = &amp;quot;&amp;quot;) : non-character argument&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;It may tempting to write functions that accept a lot of different types of inputs, because it
+seems convenient and you’re a lazy ding-dong:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;my_nchar2 &amp;lt;- function(x, result = 0){
+
+  # What could go wrong?
+  x &amp;lt;- as.character(x)
+
+  if(x == &amp;quot;&amp;quot;){
+    result
+  } else {
+    result &amp;lt;- result + 1
+    split_x &amp;lt;- strsplit(x, split = &amp;quot;&amp;quot;)[[1]]
+    my_nchar2(paste0(split_x[-1],
+                    collapse = &amp;quot;&amp;quot;), result)
+  }
+
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;You should avoid doing this, because this can have unforseen consequences:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;my_nchar2(10000000)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] 5&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;If you think that this example is far-fetched, you’d be surprised to learn that this is exactly
+what &lt;code&gt;nchar()&lt;/code&gt;, the built-in function to count characters, does:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;nchar(&amp;quot;10000000&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] 8&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;to this:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;nchar(10000000)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] 5&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;(thanks to &lt;a href=&#34;https://twitter.com/cararthompson/status/1525114767614087169?s=20&amp;amp;t=tP8Wh8Iy25bWUC1y3Qk5oQ&#34;&gt;&lt;span class=&#34;citation&#34;&gt;@cararthompson&lt;/span&gt;&lt;/a&gt; for pointing this out on twitter)&lt;/p&gt;
+&lt;p&gt;You can also add guards to be extra safe:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;my_nchar2 &amp;lt;- function(x, result = 0){
+
+  if(!isTRUE(is.character(x))){
+    stop(paste0(&amp;quot;x should be of type &amp;#39;character&amp;#39;, but is of type &amp;#39;&amp;quot;,
+                typeof(x), &amp;quot;&amp;#39; instead.&amp;quot;))
+  } else if(x == &amp;quot;&amp;quot;){
+    result
+  } else {
+    result &amp;lt;- result + 1
+    split_x &amp;lt;- strsplit(x, split = &amp;quot;&amp;quot;)[[1]]
+    my_nchar2(paste0(split_x[-1],
+                     collapse = &amp;quot;&amp;quot;), result)
+  }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;my_nchar2(&amp;quot;10000000&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] 8&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;compare to this:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;my_nchar2(10000000)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;Error in my_nchar2(1000):
+x should be of type &amp;#39;character&amp;#39;, but is of type &amp;#39;double&amp;#39; instead.&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now this doesn’t really help here, because our function is already safe (it only handles
+characters, since &lt;code&gt;strsplit()&lt;/code&gt; only handles characters), but in other situations this could
+be helpful (and at least we customized the error message). Since it can be quite tedious
+to write all these &lt;code&gt;if...else...&lt;/code&gt; statements, you might want to take a look at
+&lt;code&gt;purrr::safely()&lt;/code&gt; (and &lt;code&gt;purrr::possibly()&lt;/code&gt;),
+the &lt;a href=&#34;https://armcn.github.io/maybe/&#34;&gt;{maybe}&lt;/a&gt; package, or the
+&lt;a href=&#34;https://github.com/moodymudskipper/typed&#34;&gt;{typed}&lt;/a&gt; package, or even
+&lt;a href=&#34;https://b-rodrigues.github.io/chronicler/&#34;&gt;my package&lt;/a&gt; for that matter.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;learning-number-2-make-your-functions-referentially-transparent-and-as-pure-as-possible&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Learning number 2: Make your functions referentially transparent (and as pure as possible)&lt;/h2&gt;
+&lt;p&gt;Any variable used by a function should be one of its parameters. Don’t do this:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;f &amp;lt;- function(x){
+  x + y
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This function has only one parameter, &lt;code&gt;x&lt;/code&gt;, and so depends on &lt;code&gt;y&lt;/code&gt; outside of this scope.
+This function is unpredictable, because the result it provides depends on the value of &lt;code&gt;y&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;See what happens:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;f(10)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] 20&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;f(10)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] 10&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;I called &lt;code&gt;f&lt;/code&gt; twice with &lt;code&gt;10&lt;/code&gt; and got two results (because I changed the value of &lt;code&gt;y&lt;/code&gt;
+without showing you). In very long scripts, having functions like this depending on
+values in the global environment is a recipe for disaster. It’s better to make this
+function referentially transparent; some very complicated words to describe a very
+simple concept:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;f &amp;lt;- function(x, y){
+  x + y
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Just give &lt;code&gt;f&lt;/code&gt; a second parameter, and you’re good to go.&lt;/p&gt;
+&lt;p&gt;Something else your functions shouldn’t do is changing stuff outside of its scope:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;f &amp;lt;- function(x, y){
+  result &amp;lt;&amp;lt;- x + y
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Let’s take a look at variables in global environment before calling &lt;code&gt;f&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;ls()&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;f&amp;quot;         &amp;quot;my_nchar&amp;quot;  &amp;quot;my_nchar2&amp;quot; &amp;quot;view&amp;quot;      &amp;quot;view_xl&amp;quot;   &amp;quot;y&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now let’s call it:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;f(1, 2)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;And let’s have a good look at the global environment again:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;ls()&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;f&amp;quot;         &amp;quot;my_nchar&amp;quot;  &amp;quot;my_nchar2&amp;quot; &amp;quot;result&amp;quot;    &amp;quot;view&amp;quot;      &amp;quot;view_xl&amp;quot;  
+## [7] &amp;quot;y&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We now see that &lt;code&gt;result&lt;/code&gt; has been defined in the global environment:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;result&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] 3&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Just like before, if your functions change stuff outside their scope, this is
+a recipe for disaster. You have to be very careful and know exactly what you’re doing
+if you want to use &lt;code&gt;&amp;lt;&amp;lt;-&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;So it’s better to write your function like this, and call it like this:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;f &amp;lt;- function(x, y){
+  x + y
+}
+
+result &amp;lt;- f(1, 2)&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id=&#34;learning-number-3-make-your-functions-do-one-thing&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Learning number 3: make your functions do one thing&lt;/h2&gt;
+&lt;p&gt;Try to write small functions that do just one thing. This make them easier to
+document, test and simply wrap your head around. You can then pipe your function
+one after the other to get stuff done:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;a |&amp;gt;
+  f() |&amp;gt;
+  g() |&amp;gt;
+  h()&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;You have of course to make sure that the output of &lt;code&gt;f()&lt;/code&gt; is of the correct type,
+so that &lt;code&gt;g()&lt;/code&gt; then knows how to handle it. In some cases, you really need a function
+to do several things to get the output you want. In that case, still write small
+functions to handle every aspect of the whole algorithm, and then write a function
+that calls each function. And if needed, you can even provide functions as arguments
+to other functions:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;h &amp;lt;- function(x, y, f, g){
+  f(x) + g(y)
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This makes &lt;code&gt;h()&lt;/code&gt; a higher-order function.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;learning-number-4-use-higher-order-functions-to-abstract-loops-away&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Learning number 4: use higher-order functions to abstract loops away&lt;/h2&gt;
+&lt;p&gt;Loops are hard to write. Higher order function are really cool though:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;Reduce(`+`, seq(1:100))&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] 5050&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;code&gt;Reduce()&lt;/code&gt; is a higher-order function that takes a function (here &lt;code&gt;+&lt;/code&gt;) and a list
+of inputs compatible with the function. So &lt;code&gt;Reduce()&lt;/code&gt; performs this operation:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;Reduce(`+`, seq(1:100))
+
+100 + Reduce(`+`, seq(2:100))
+100 + 99 + Reduce(`+`, seq(3:100))
+100 + 99 + 98 + Reduce(`+`, seq(4:100))&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This avoids having to write a loop, which can go wrong for many reasons (typos,
+checking input types, depending on variables outside the global environment…
+basically anything I mentioned already).&lt;/p&gt;
+&lt;p&gt;There’s also &lt;code&gt;purrr::reduce()&lt;/code&gt; if you prefer the &lt;code&gt;tidyverse&lt;/code&gt; ecosystem. Higher-order
+functions are super flexible; all that matters is that the function you give to &lt;code&gt;reduce()&lt;/code&gt;
+knows what the do with the elements in the list.&lt;/p&gt;
+&lt;p&gt;Another higher-order function you should know about is &lt;code&gt;purrr::map()&lt;/code&gt; (or &lt;code&gt;lapply()&lt;/code&gt; if
+your prefer &lt;code&gt;base&lt;/code&gt; functions):&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;purrr::map(list(mtcars, iris), nrow)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [[1]]
+## [1] 32
+## 
+## [[2]]
+## [1] 150&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This loops a function (here &lt;code&gt;nrow()&lt;/code&gt;) over a list of whatevers (here data frames). Super
+flexible once again.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;optional-learning-number-5-use-recursion-to-avoid-loops-further&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;(Optional) Learning number 5: use recursion to avoid loops further&lt;/h2&gt;
+&lt;p&gt;The following function calls itself and reverses a string:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;rev_char &amp;lt;- function(x){
+
+  try({
+    if(x == &amp;quot;&amp;quot;){
+      &amp;quot;&amp;quot;
+    } else {
+      split_x &amp;lt;- strsplit(x, split = &amp;quot;&amp;quot;)[[1]]
+
+      len_x &amp;lt;- length(split_x)
+
+      paste0(split_x[len_x],
+             rev_char(paste0(split_x[1:len_x-1],
+                             collapse = &amp;quot;&amp;quot;)))
+    }
+  }, stop(paste0(&amp;quot;x should be of type &amp;#39;character&amp;#39;, but is of type &amp;#39;&amp;quot;,
+                 typeof(x), &amp;quot;&amp;#39; instead.&amp;quot;)))
+
+}
+
+rev_char(&amp;quot;abc&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;cba&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;I say that this is optional, because while it might sometimes be easier to
+use recursion to define a functions, this is not always the case, and (in the case of R)
+runs slower than using a loop. If you’re interested in learning more about &lt;code&gt;map()&lt;/code&gt;
+and &lt;code&gt;reduce()&lt;/code&gt;, I wrote
+several blog posts on it &lt;a href=&#34;https://www.brodrigues.co/blog/2018-01-03-lists_all_the_way/&#34;&gt;here&lt;/a&gt;,
+&lt;a href=&#34;https://www.brodrigues.co/blog/2018-01-05-lists_all_the_way2/&#34;&gt;here&lt;/a&gt; and &lt;a href=&#34;https://www.brodrigues.co/blog/2018-01-19-mapping_functions_with_any_cols/&#34;&gt;here&lt;/a&gt;
+and some youtube videos as well:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.youtube.com/watch?v=3xIKZbZKCWQ&#34; class=&#34;uri&#34;&gt;https://www.youtube.com/watch?v=3xIKZbZKCWQ&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.youtube.com/watch?v=WjtXc4OXZuk&#34; class=&#34;uri&#34;&gt;https://www.youtube.com/watch?v=WjtXc4OXZuk&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.youtube.com/watch?v=vxaKamox_CQ&#34; class=&#34;uri&#34;&gt;https://www.youtube.com/watch?v=vxaKamox_CQ&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.youtube.com/watch?v=H3ao7LzcvW8&#34; class=&#34;uri&#34;&gt;https://www.youtube.com/watch?v=H3ao7LzcvW8&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.youtube.com/watch?v=vtxb1j0aqJM&#34; class=&#34;uri&#34;&gt;https://www.youtube.com/watch?v=vtxb1j0aqJM&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.youtube.com/watch?v=F2U-l3IcCtc&#34; class=&#34;uri&#34;&gt;https://www.youtube.com/watch?v=F2U-l3IcCtc&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.youtube.com/watch?v=gVW9KfkJIrQ&#34; class=&#34;uri&#34;&gt;https://www.youtube.com/watch?v=gVW9KfkJIrQ&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.youtube.com/watch?v=FanU60pjmt0&#34; class=&#34;uri&#34;&gt;https://www.youtube.com/watch?v=FanU60pjmt0&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.youtube.com/watch?v=DERMZi3Ck20&#34; class=&#34;uri&#34;&gt;https://www.youtube.com/watch?v=DERMZi3Ck20&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;
+Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on &lt;a href=&#34;https://www.twitter.com/brodriguesco&#34;&gt;twitter&lt;/a&gt; for blog post updates and
+&lt;a href=&#34;https://www.buymeacoffee.com/brodriguesco&#34;&gt;buy me an espresso&lt;/a&gt; or &lt;a href=&#34;https://www.paypal.me/brodriguesco&#34;&gt;paypal.me&lt;/a&gt;, or buy my ebook on &lt;a href=&#34;https://leanpub.com/modern_tidyverse&#34;&gt;Leanpub&lt;/a&gt;.
+You can also watch my videos on &lt;a href=&#34;https://www.youtube.com/c/BrunoRodrigues1988/&#34;&gt;youtube&lt;/a&gt;.
+So much content for you to consoom!
+&lt;/p&gt;
+&lt;style&gt;.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:&#39;Cookie&#39;, cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}&lt;/style&gt;
+&lt;p&gt;
+&lt;link href=&#34;https://fonts.googleapis.com/css?family=Cookie&#34; rel=&#34;stylesheet&#34;&gt;&lt;a class=&#34;bmc-button&#34; target=&#34;_blank&#34; href=&#34;https://www.buymeacoffee.com/brodriguesco&#34;&gt;&lt;img src=&#34;https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg&#34; alt=&#34;Buy me an Espresso&#34;&gt;&lt;span style=&#34;margin-left:5px&#34;&gt;Buy me an Espresso&lt;/span&gt;&lt;/a&gt;
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Get packages that introduce unique syntax adopted less?</title>
+      <link>https://www.brodrigues.co/blog/2022-05-21-heavy_syntax/</link>
+      <pubDate>Sat, 21 May 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://www.brodrigues.co/blog/2022-05-21-heavy_syntax/</guid>
+      <description>&lt;script src=&#34;https://www.brodrigues.co/rmarkdown-libs/header-attrs/header-attrs.js&#34;&gt;&lt;/script&gt;
+
+
+&lt;div style=&#34;text-align:center;&#34;&gt;
+&lt;p&gt;
+&lt;a href=&#34;https://cran.r-project.org/src/contrib/Archive/&#34;&gt;
+&lt;img src=&#34;https://www.brodrigues.co/img/packages.jpg&#34; title = &#34;The CRAN archive will always be there, at least&#34;&gt;&lt;/a&gt;
 &lt;/p&gt;
 &lt;/div&gt;
 &lt;p&gt;I have this hypothesis that packages that introduce a unique syntax, or a workflow change,
@@ -39,7 +1569,7 @@ know what a type system is, consider the following:&lt;/p&gt;
 &lt;p&gt;you get “9” back, no problem. But if you do:&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;nchar(100000000)&lt;/code&gt;&lt;/pre&gt;
 &lt;pre&gt;&lt;code&gt;## [1] 5&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;You get 5 back… what in the Lord’s name happened here? What happened is that the number 100000000 could
+&lt;p&gt;You get 5 back… what in the Lord’s name happened here? What happened is that the number 100000000 was
 converted to a character implicitly. But because of all these 0’s, this is what happened:&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;as.character(100000000)&lt;/code&gt;&lt;/pre&gt;
 &lt;pre&gt;&lt;code&gt;## [1] &amp;quot;1e+08&amp;quot;&lt;/code&gt;&lt;/pre&gt;
@@ -58,21 +1588,17 @@ for this!)&lt;/p&gt;
 &lt;p&gt;Now this function is safe:&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;nchar2(123456789)&lt;/code&gt;&lt;/pre&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;## [1] Error in nchar2(123456789) : x is not a character&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;&lt;code&gt;{typed}&lt;/code&gt; makes things like this easier. Using &lt;code&gt;{typed}&lt;/code&gt; you can write the wrapper like this:&lt;/p&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(typed)&lt;/code&gt;&lt;/pre&gt;
-&lt;pre&gt;&lt;code&gt;## 
-## Attaching package: &amp;#39;typed&amp;#39;&lt;/code&gt;&lt;/pre&gt;
-&lt;pre&gt;&lt;code&gt;## The following object is masked from &amp;#39;package:utils&amp;#39;:
-## 
-##     ?&lt;/code&gt;&lt;/pre&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;strict_nchar &amp;lt;- ? function(x = ? Character(), ...){
+&lt;p&gt;&lt;code&gt;{typed}&lt;/code&gt; makes writing safe functions like this easier.
+Using &lt;code&gt;{typed}&lt;/code&gt; you can write the wrapper like this:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(typed, warn.conflicts = FALSE) 
+
+strict_nchar &amp;lt;- ? function(x = ? Character(), ...){
 
   nchar(x, ...)
 
 }&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;&lt;code&gt;{typed}&lt;/code&gt; introduces &lt;code&gt;?&lt;/code&gt; (masking the &lt;code&gt;?&lt;/code&gt; command) allowing you to set the type the functions arguments
-(&lt;code&gt;x = ? Character()&lt;/code&gt;) and also we had to write &lt;code&gt;?&lt;/code&gt; in front of &lt;code&gt;function&lt;/code&gt;. It’s also possible to set
-the return type:&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;{typed}&lt;/code&gt; introduces &lt;code&gt;?&lt;/code&gt; (masking the base &lt;code&gt;?&lt;/code&gt; function to read a function’s docs) allowing you
+to set the type the function’s arguments. It’s also possible to set the return type of the function:&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;strict_nchar &amp;lt;- Integer() ? function(x = ? Character(), ...){
 
   nchar(x, ...)
@@ -80,6 +1606,96 @@ the return type:&lt;/p&gt;
 }&lt;/code&gt;&lt;/pre&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;strict_nchar(&amp;quot;10000000&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
 &lt;pre&gt;&lt;code&gt;## [1] 8&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This is very useful if you want to write safe functions in a very concise and clean way.&lt;/p&gt;
+&lt;p&gt;The second kind of package I was thinking about are packages like &lt;code&gt;{targets}&lt;/code&gt;, which force users to
+structure their projects in a very specific way. I really like &lt;code&gt;{targets}&lt;/code&gt; and have been using it for quite
+some time. &lt;code&gt;{targets}&lt;/code&gt; takes inspiration from build automation tools from the software development world
+and introduces the concept of build automation in R. If you’re a linux user, you’ve probably dealt with
+&lt;code&gt;Makefile&lt;/code&gt;s (especially if you’ve been using linux for more than 10 years), and &lt;code&gt;{targets}&lt;/code&gt; works in
+a similar way; by writing a script in which you define &lt;em&gt;targets&lt;/em&gt;, these get built in a reproducible way.
+If you’d like to see it in action, take a look at &lt;a href=&#34;https://www.youtube.com/watch?v=FvJ4xRGiEgw&#34;&gt;this video&lt;/a&gt;
+of mine. As useful as it is, I can imagine that some potential users will end up not adopting it, because
+&lt;code&gt;{targets}&lt;/code&gt; really does things in a very unique and different way. Most people do not know what build
+automation tools are, and the cost of adopting &lt;code&gt;{targets}&lt;/code&gt; seems disproportionally higher to its benefits
+(but believe me, it is well worth the cost!).&lt;/p&gt;
+&lt;p&gt;Now here’s the meat of the post: I think that packages like these, even though they’re very useful,
+get adopted less by users than other packages, that either:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;do not introduce a unique way of doing things;&lt;/li&gt;
+&lt;li&gt;for which alternatives are available.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The reason, I believe, is that users do not feel comfortable adopting a unique syntax and way of doing
+things that impact their code so much, because if these libraries get abandoned, users will need
+to completely rewrite their scripts. And this is especially true when the two conditions above are not
+verified.&lt;/p&gt;
+&lt;p&gt;Take &lt;code&gt;{dplyr}&lt;/code&gt;: one could argue that it introduces both a unique syntax, and a very specific
+workflow/way of doing things:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(dplyr)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## 
+## Attaching package: &amp;#39;dplyr&amp;#39;&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## The following objects are masked from &amp;#39;package:stats&amp;#39;:
+## 
+##     filter, lag&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## The following objects are masked from &amp;#39;package:base&amp;#39;:
+## 
+##     intersect, setdiff, setequal, union&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;mtcars %&amp;gt;%
+ filter(am == 0) %&amp;gt;%
+ group_by(cyl) %&amp;gt;%
+ summarise(mean_hp = mean(hp))&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## # A tibble: 3 × 2
+##     cyl mean_hp
+##   &amp;lt;dbl&amp;gt;   &amp;lt;dbl&amp;gt;
+## 1     4    84.7
+## 2     6   115. 
+## 3     8   194.&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;But there are alternatives to it (a lot of &lt;code&gt;{dplyr}&lt;/code&gt; functionality is covered by &lt;code&gt;base&lt;/code&gt; functions already,
+and there’s also &lt;code&gt;{data.table}&lt;/code&gt;), so IF &lt;code&gt;{dplyr}&lt;/code&gt; would get abandoned by Rstudio (which will never
+happen, but let’s assume for the sake of argument), users &lt;em&gt;could&lt;/em&gt; switch to &lt;code&gt;{data.table}&lt;/code&gt;. Not so with
+more niche packages like the ones discussed above.
+Also, even &lt;code&gt;{dplyr}&lt;/code&gt;’s unique syntax making heavy use of &lt;code&gt;%&amp;gt;%&lt;/code&gt; is not so unique anymore, since
+the release of R 4.1. A base approach to the above snippet would be:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;mtcars |&amp;gt;
+  subset(am == 0) |&amp;gt;
+  with(aggregate(hp, by = list(cyl), mean))&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##   Group.1         x
+## 1       4  84.66667
+## 2       6 115.25000
+## 3       8 194.16667&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Before R 4.1, looking at &lt;code&gt;{dplyr}&lt;/code&gt; chains felt like looking at a completely different language than
+base R, but now with the introduction of &lt;code&gt;|&amp;gt;&lt;/code&gt; not so anymore. The other thing packages like &lt;code&gt;{dplyr}&lt;/code&gt;
+have going for them, even when they introduce a completely new syntax, and do not have any alternative
+like &lt;code&gt;{ggplot2}&lt;/code&gt; (I don’t consider &lt;code&gt;base&lt;/code&gt; plotting an alternative to &lt;code&gt;{ggplot2}&lt;/code&gt;, because it works
+in a completely different way) is that they have big teams and/or companies behind them, like Rstudio.
+So users feel much more confident adopting such packages, than if they’re written by a very small
+team (sometimes even just one person).&lt;/p&gt;
+&lt;p&gt;The reason I’m thinking about all this, is because I
+&lt;a href=&#34;https://www.brodrigues.co/blog/2022-05-18-cran_0_2_0/&#34;&gt;recently released a package&lt;/a&gt; that raises
+all of the above red flags:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;new syntax (makes heavy use of a new pipe &lt;code&gt;%&amp;gt;=%&lt;/code&gt;);&lt;/li&gt;
+&lt;li&gt;forces a new workflow on users;&lt;/li&gt;
+&lt;li&gt;developed by a single dude in his free time who isn’t even a programmer (me).&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;If I was a potential interested user, I honestly don’t know if I’d adopt this package for anything
+critical. I might play around with it a bit, but using that in production? What if the author (me)
+gets sick of it after a few months/years? Even I, as the author, cannot guarantee today that this
+package will still be maintained in 2 years. So users that might have important stuff running which uses my
+package are now screwed. I think that the only way for such packages to succeed, is if a sizeable
+community gathers around it and if the team of developers expands, and ideally, if it gets backed
+by a company (like Rstudio with all their packages, or rOpenSci &lt;a href=&#34;https://docs.ropensci.org/targets/&#34;&gt;does for
+&lt;code&gt;{targets}&lt;/code&gt;&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;To be clear, I am NOT complaining about free and open source software: these problems also exist
+with proprietary software. If a company builds something and they decide to abandon it, that’s it,
+it’s over. If there are no alternatives to it, users are screwed just as well. And companies can also
+go bankrupt or &lt;em&gt;change focus on other more profitable projects&lt;/em&gt;.
+At least with free and open source software, if the author of a package has had enough
+and decides to not maintain anymore, there is still the possibility of someone else taking it over,
+and this someone else might be a user! There is also the possibility of running old R version with
+older versions of packages, even if they’re abandoned, using Docker. So maybe it’s not so bad.&lt;/p&gt;
+&lt;p&gt;What do you think? I’d be curious to hear your thoughts. Tell me what you think on
+&lt;a href=&#34;https://github.com/b-rodrigues/fp_in_R_discussion/issues/2&#34;&gt;this github issue I opened&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Oh and by the way, IF you’re using &lt;code&gt;{chronicler}&lt;/code&gt; after reading this, really, thank you.&lt;/p&gt;
 &lt;p&gt;
 Hope you enjoyed! If you found this blog post useful, you might want to follow
 me on &lt;a href=&#34;https://www.twitter.com/brodriguesco&#34;&gt;twitter&lt;/a&gt; for blog post updates and
@@ -2196,7 +3812,7 @@ easier to read. For example, I tweeted this code snippet some time ago:&lt;/p&gt
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;blogdown::shortcode(&amp;quot;tweet&amp;quot;,
                     &amp;quot;1431718740341764099&amp;quot;
                     )&lt;/code&gt;&lt;/pre&gt;
-&lt;blockquote class=&#34;twitter-tweet&#34;&gt;&lt;p lang=&#34;en&#34; dir=&#34;ltr&#34;&gt;I don&amp;#39;t see how one could prefer base  &lt;a href=&#34;https://twitter.com/hashtag/RStats?src=hash&amp;amp;ref_src=twsrc%5Etfw&#34;&gt;#RStats&lt;/a&gt;&lt;br&gt;&lt;br&gt;but then again, there&amp;#39;s people out there who like licorice candies... &lt;a href=&#34;https://t.co/bwW74SRDrN&#34;&gt;pic.twitter.com/bwW74SRDrN&lt;/a&gt;&lt;/p&gt;&amp;mdash; Bruno Rodrigues (@brodriguesco) &lt;a href=&#34;https://twitter.com/brodriguesco/status/1431718740341764099?ref_src=twsrc%5Etfw&#34;&gt;August 28, 2021&lt;/a&gt;&lt;/blockquote&gt;
+&lt;blockquote class=&#34;twitter-tweet&#34;&gt;&lt;p lang=&#34;en&#34; dir=&#34;ltr&#34;&gt;I don&amp;#39;t see how one could prefer base  &lt;a href=&#34;https://twitter.com/hashtag/RStats?src=hash&amp;amp;ref_src=twsrc%5Etfw&#34;&gt;#RStats&lt;/a&gt;&lt;br&gt;&lt;br&gt;but then again, there&amp;#39;s people out there who like licorice candies... &lt;a href=&#34;https://t.co/bwW74SRDrN&#34;&gt;pic.twitter.com/bwW74SRDrN&lt;/a&gt;&lt;/p&gt;&amp;mdash; Bruno Rodrigues (@brodriguesco@fosstodon.org) (@brodriguesco) &lt;a href=&#34;https://twitter.com/brodriguesco/status/1431718740341764099?ref_src=twsrc%5Etfw&#34;&gt;August 28, 2021&lt;/a&gt;&lt;/blockquote&gt;
 &lt;script async src=&#34;https://platform.twitter.com/widgets.js&#34; charset=&#34;utf-8&#34;&gt;&lt;/script&gt;
 
 &lt;p&gt;and in my opinion the example in my tweet shows clearly that the &lt;code&gt;{tidyverse}&lt;/code&gt; code is more easily
@@ -5290,7 +6906,7 @@ how I set up my own Shiny server using a Raspberry Pi 4B. If you visited the fol
 &lt;a href=&#34;https://www.brodrigues.co/blog/2020-09-20-shiny_raspberry/&#34;&gt;link&lt;/a&gt; you’ll be connecting to my
 Raspberry Pi and can play around with a Shiny app that I called &lt;code&gt;golemDemo&lt;/code&gt;.
 It’s been quite a few months that I wanted to discuss this app:&lt;/p&gt;
-&lt;blockquote class=&#34;twitter-tweet&#34;&gt;&lt;p lang=&#34;en&#34; dir=&#34;ltr&#34;&gt;A little prototype app I&amp;#39;m working on to learn more about &lt;a href=&#34;https://twitter.com/thinkR_fr?ref_src=twsrc%5Etfw&#34;&gt;@thinkR_fr&lt;/a&gt; &amp;#39;s {golem} and interaction between modules, YouTube video coming later this week &lt;a href=&#34;https://t.co/DRfM2KqqQf&#34;&gt;pic.twitter.com/DRfM2KqqQf&lt;/a&gt;&lt;/p&gt;&amp;mdash; Bruno Rodrigues (@brodriguesco) &lt;a href=&#34;https://twitter.com/brodriguesco/status/1277671383573704706?ref_src=twsrc%5Etfw&#34;&gt;June 29, 2020&lt;/a&gt;&lt;/blockquote&gt;
+&lt;blockquote class=&#34;twitter-tweet&#34;&gt;&lt;p lang=&#34;en&#34; dir=&#34;ltr&#34;&gt;A little prototype app I&amp;#39;m working on to learn more about &lt;a href=&#34;https://twitter.com/thinkR_fr?ref_src=twsrc%5Etfw&#34;&gt;@thinkR_fr&lt;/a&gt; &amp;#39;s {golem} and interaction between modules, YouTube video coming later this week &lt;a href=&#34;https://t.co/DRfM2KqqQf&#34;&gt;pic.twitter.com/DRfM2KqqQf&lt;/a&gt;&lt;/p&gt;&amp;mdash; Bruno Rodrigues (@brodriguesco@fosstodon.org) (@brodriguesco) &lt;a href=&#34;https://twitter.com/brodriguesco/status/1277671383573704706?ref_src=twsrc%5Etfw&#34;&gt;June 29, 2020&lt;/a&gt;&lt;/blockquote&gt;
 &lt;script async src=&#34;https://platform.twitter.com/widgets.js&#34; charset=&#34;utf-8&#34;&gt;&lt;/script&gt;
 
 &lt;p&gt;So the tweet mentions that a video was coming in the following week and you’ll notice that the tweet
@@ -12587,7 +14203,7 @@ me on &lt;a href=&#34;https://www.twitter.com/brodriguesco&#34;&gt;twitter&lt;/a
 &lt;img src=&#34;https://www.brodrigues.co/img/typical_emacs_user.gif&#34; title = &#34;typical emacs user working&#34;&gt;&lt;/a&gt;&lt;/p&gt;
 &lt;/div&gt;
 &lt;p&gt;The creation of this blog post was prompted by this tweet, asking an age-old question:&lt;/p&gt;
-&lt;blockquote class=&#34;twitter-tweet&#34;&gt;&lt;p lang=&#34;und&#34; dir=&#34;ltr&#34;&gt;&lt;a href=&#34;https://twitter.com/spacemacs?ref_src=twsrc%5Etfw&#34;&gt;@spacemacs&lt;/a&gt;&lt;/p&gt;&amp;mdash; Bruno Rodrigues (@brodriguesco) &lt;a href=&#34;https://twitter.com/brodriguesco/status/1128981852558123008?ref_src=twsrc%5Etfw&#34;&gt;May 16, 2019&lt;/a&gt;&lt;/blockquote&gt;
+&lt;blockquote class=&#34;twitter-tweet&#34;&gt;&lt;p lang=&#34;qam&#34; dir=&#34;ltr&#34;&gt;&lt;a href=&#34;https://twitter.com/spacemacs?ref_src=twsrc%5Etfw&#34;&gt;@spacemacs&lt;/a&gt;&lt;/p&gt;&amp;mdash; Bruno Rodrigues (@brodriguesco@fosstodon.org) (@brodriguesco) &lt;a href=&#34;https://twitter.com/brodriguesco/status/1128981852558123008?ref_src=twsrc%5Etfw&#34;&gt;May 16, 2019&lt;/a&gt;&lt;/blockquote&gt;
 &lt;script async src=&#34;https://platform.twitter.com/widgets.js&#34; charset=&#34;utf-8&#34;&gt;&lt;/script&gt;
 
 &lt;p&gt;This is actually a very important question, that I have been asking myself for a long time. An IDE,
@@ -13948,6 +15564,11 @@ me on &lt;a href=&#34;https://www.twitter.com/brodriguesco&#34;&gt;twitter&lt;/a
 &lt;p&gt;&lt;a href=&#34;https://youtu.be/R2u0sN9stbA?t=69&#34;&gt;
 &lt;img src=&#34;https://www.brodrigues.co/img/pivot.jpg&#34; title = &#34;You know where this leads&#34;&gt;&lt;/a&gt;&lt;/p&gt;
 &lt;/div&gt;
+
+
+&lt;p&gt; Update: &lt;code&gt;pivot_wide()&lt;/code&gt; and &lt;code&gt;pivot_long()&lt;/code&gt; are now called &lt;code&gt;pivot_wider()&lt;/code&gt; and &lt;code&gt;pivot_longer()&lt;/code&gt;,
+    so the code below needs to be updated accondingly.&lt;/p&gt;
+
 &lt;p&gt;There’s a lot going on in the development version of &lt;code&gt;{tidyr}&lt;/code&gt;. New functions for pivoting data
 frames, &lt;code&gt;pivot_wide()&lt;/code&gt; and &lt;code&gt;pivot_long()&lt;/code&gt; are coming, and will replace the current functions,
 &lt;code&gt;spread()&lt;/code&gt; and &lt;code&gt;gather()&lt;/code&gt;. &lt;code&gt;spread()&lt;/code&gt; and &lt;code&gt;gather()&lt;/code&gt; will remain in the package though:&lt;/p&gt;
@@ -25939,7 +27560,12 @@ for blog post updates.&lt;/p&gt;
       <pubDate>Sun, 11 Feb 2018 00:00:00 +0000</pubDate>
       
       <guid>https://www.brodrigues.co/blog/2018-02-11-census-random_forest/</guid>
-      <description>&lt;p&gt;In this blog post, I am going to train a random forest on census data from the US to predict
+      <description>&lt;p&gt;Update 2022: there some literature advising against using techniques to artificially balance a dataset,
+   for example
+    &lt;a href=&#34;https://academic.oup.com/jamia/advance-article/doi/10.1093/jamia/ocac093/6605096?searchresult=1&amp;login=false#&#34;&gt;one&lt;/a&gt;.
+   Use at your own risks!&lt;/p&gt;
+
+&lt;p&gt;In this blog post, I am going to train a random forest on census data from the US to predict
 the probability that someone is looking for a job. To this end, I downloaded the US 1990 census
 data from the UCI &lt;a href=&#34;https://archive.ics.uci.edu/ml/datasets/US+Census+Data+%281990%29&#34;&gt;Machine Learning Repository&lt;/a&gt;.
 Having a background in economics, I am always quite interested by such datasets. I downloaded the raw
@@ -27250,7 +28876,7 @@ the hardcoding of the columns in &lt;code&gt;create_form()&lt;/code&gt;. I might
       
       <guid>https://www.brodrigues.co/blog/2017-12-17-teaching_tidyverse/</guid>
       <description>&lt;p&gt;End October I tweeted this:&lt;/p&gt;
-&lt;blockquote class=&#34;twitter-tweet&#34;&gt;&lt;p lang=&#34;en&#34; dir=&#34;ltr&#34;&gt;will teach &lt;a href=&#34;https://twitter.com/hashtag/rstats?src=hash&amp;amp;ref_src=twsrc%5Etfw&#34;&gt;#rstats&lt;/a&gt; soon again but this time following &lt;a href=&#34;https://twitter.com/drob?ref_src=twsrc%5Etfw&#34;&gt;@drob&lt;/a&gt; &amp;#39;s suggestion of the tidyverse first as laid out here: &lt;a href=&#34;https://t.co/js8SsUs8Nv&#34;&gt;https://t.co/js8SsUs8Nv&lt;/a&gt;&lt;/p&gt;&amp;mdash; Bruno Rodrigues (@brodriguesco) &lt;a href=&#34;https://twitter.com/brodriguesco/status/922741554992812032?ref_src=twsrc%5Etfw&#34;&gt;October 24, 2017&lt;/a&gt;&lt;/blockquote&gt;
+&lt;blockquote class=&#34;twitter-tweet&#34;&gt;&lt;p lang=&#34;en&#34; dir=&#34;ltr&#34;&gt;will teach &lt;a href=&#34;https://twitter.com/hashtag/rstats?src=hash&amp;amp;ref_src=twsrc%5Etfw&#34;&gt;#rstats&lt;/a&gt; soon again but this time following &lt;a href=&#34;https://twitter.com/drob?ref_src=twsrc%5Etfw&#34;&gt;@drob&lt;/a&gt; &amp;#39;s suggestion of the tidyverse first as laid out here: &lt;a href=&#34;https://t.co/js8SsUs8Nv&#34;&gt;https://t.co/js8SsUs8Nv&lt;/a&gt;&lt;/p&gt;&amp;mdash; Bruno Rodrigues (@brodriguesco@fosstodon.org) (@brodriguesco) &lt;a href=&#34;https://twitter.com/brodriguesco/status/922741554992812032?ref_src=twsrc%5Etfw&#34;&gt;October 24, 2017&lt;/a&gt;&lt;/blockquote&gt;
 &lt;script async src=&#34;https://platform.twitter.com/widgets.js&#34; charset=&#34;utf-8&#34;&gt;&lt;/script&gt;
 
 &lt;p&gt;and it generated some discussion. Some people believe that this is the right approach, and some
@@ -30594,8 +32220,8 @@ summary(my_gmm)
       <description>&lt;p&gt;My name is Bruno Rodrigues and hold a PhD in Economics from the
 &lt;a href=&#34;http://www.unistra.fr&#34;&gt;University of Strasbourg&lt;/a&gt;.&lt;/p&gt;
 
-&lt;div style=&#34;float: left;margin: 0px 80px 50px 0px&#34;&gt;
-    &lt;img src=&#34;https://www.brodrigues.co/img/profile.webp&#34; width=&#34;400&#34; height=&#34;400&#34;/&gt;
+&lt;div style=&#34;text-align:center;&#34;&gt;
+    &lt;img src=&#34;https://www.brodrigues.co/img/profile.jpg&#34;/&gt;
 &lt;/div&gt;
 
 &lt;p&gt;I&amp;rsquo;m currently employed as a statistician for the Ministry of Higher Education and Research in

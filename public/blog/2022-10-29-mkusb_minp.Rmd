@@ -1,0 +1,169 @@
+---
+date: 2022-10-29
+title: A Linux Live USB as a statistical programming dev environment
+tags: [R]
+menu:
+main:
+  parent: Blog
+  identifier: /blog/mkusb_minp.Rmd
+  weight: 1
+---
+
+<div style="text-align:center;">
+  <video width="640" height="480" controls>
+    <source src="/img/tux_usb_ubuntu_startup.mp4" type="video/mp4">
+  </video>
+</div>
+
+This blog post is divided in two parts: in the first part I'll show you how
+to create a Linux Live USB with persistent storage that can be used as 
+development environment, and in the second part I'll show you the easiest
+way to set up RStudio and R in Ubuntu.
+
+## Making your own, portable, development environment based on Ubuntu or Debian
+
+I'm currently teaching a course at the University of Luxembourg, which 
+focuses on setting up reproducible analytical pipelines (if you're
+interested, you can find the course notes [here](https://rap4mads.eu/)).
+
+The problem is that my work laptop runs Windows, and I didn't want to teach
+on Windows since I make heavy use of the command line. Plus I don't have
+admin rights on this machine, so installing what I needed would have been a pain.
+I also don't have a personal laptop, so I use my wife's laptop. However, the 
+laptop is completely full of pictures of our kids, so I couldn't install what I needed...
+This is when I thought about making a persistent live USB with Kubuntu on it 
+(Kubuntu is a variant of Ubuntu with KDE as the desktop manager instead of Gnome)
+with all the software I needed (R, Quarto, RStudio basically). It works quite well, and
+was also quite easy to do. But what is a live USB anyways? 
+A live USB is a full Linux installation on a USB stick, that you can use to test
+different Linux distributions or even to install said distribution on computers.
+
+The first step is to get a USB stick. Those are quite cheap nowadays, but you'll 
+need at least one with 8GB of space, and ideally USB 3 (you probably can't find
+any USB 2 these days anyways). I've bought a 32GB one for 10€.
+
+Then, we need to install Ubuntu on it. I'll be using Kubuntu 22.04, which is an LTS
+release. I would always recommend an LTS release for something like crafting
+a development environment. So if you're reading this in the future, and there's a new
+LTS (could be 24.04, 26.04, etc), you'd need to get that one.
+
+Creating a live USB is quite simple, but the issue if you create a live USB using the standard
+methods is that whatever you do on it once you're logged in while get erased after rebooting. A
+persistent live USB, I'm sure you've guessed it, keeps your changes even after rebooting, which
+means that you basically end up with a portable development environment. Note however that only
+Ubuntu (and variants) or Debian can be used to create persistent live USBs.
+
+You can create persistent live USB from another Linux distro, Windows or macOS.
+
+If you're already running Ubuntu on your pc, you might want to take a look at [this
+page](https://help.ubuntu.com/community/mkusb#Persistent_live_systems). You'll need to install a
+tool called `mkusb`. If you're not running Ubuntu, but find this tool in your distribution's
+package manager, I guess you're good to go as well. In my case, I'm running opensuse tumbleweed,
+and could not find this program in the opensuse's repositories. So I've used this
+[guide](https://help.ubuntu.com/community/mkusb/minp) that shows how to achieve the same thing
+using a very simple to use shell script which you can get
+[here](https://help.ubuntu.com/community/mkusb/minp?action=AttachFile&do=view&target=mkusb-minp) 
+called `mkusb-minp`. So in my case, I simply
+had to stick the USB stick in my computer, find out where it was mounted by running `df` in bash
+(in my case it was in `/dev/sdd`), download Kubuntu's iso image and run the following in my
+terminal:
+
+```
+sudo ./mkusb-minp -p kubuntu-22.04.1-desktop-amd64.iso /dev/sdX
+```
+
+(`/dev/sdX`: replace the X by the right letter, for me it was `/dev/sdd`)
+
+If you're using Windows, you can install [Rufus](https://rufus.ie/en/#) to create
+a persistent live USB.
+
+It would seem that for macOS the process is a bit more involved, but I've found this
+[blog post](https://sebay.github.io/posts/create-live-persistent-ubuntu-usb-on-mac/)
+that explains the process. 
+
+Once the process is finished, you can boot into your live USB key. For this, you might
+need to press `delete` or `F2` when your computer starts booting to access the
+[boot menu](https://www.computerhope.com/jargon/b/boot_menu.htm).
+You can then choose to boot from your USB device.
+
+Wait a bit and at some point you should see a prompt asking you if you want to 
+try or install Ubuntu. Choose `Try Ubuntu`:
+
+<div style="text-align:center;">
+<img src="/img/try_ubuntu.png">
+</div>
+
+And then wait some minutes. Yes booting takes some time because you're loading an entire
+operating system from a USB stick (hence why it's a good idea to go with a USB 3 stick).
+After some time you should see a new window:
+
+<div style="text-align:center;">
+<img src="/img/try_ubuntu2.png">
+</div>
+
+Once again, try Ubuntu, wait a bit, and that's it you're inside your dev environment!
+
+## Setting up R and RStudio
+
+Now that you're inside your dev environment, you actually need to start adding some
+tools. Let's start by adding R. The easiest way that I found is to use the
+[r2u project](https://eddelbuettel.github.io/r2u/) by 
+[Dirk Eddelbuettel](https://github.com/eddelbuettel). If you're on Ubuntu 22.04, 
+run [this script](https://github.com/eddelbuettel/r2u/blob/master/inst/scripts/add_cranapt_jammy.sh),
+as explained in the tutorial. This will add the required repositories that will install
+binary versions of R packages in mere seconds. The script will also
+add a repository to install the most recent version of R, so once the script is done running,
+install R and the `{tidyverse}` (or any other package) with the following command:
+
+```
+sudo apt install --no-install-recommends r-base r-cran-tidyverse
+```
+
+You can then install other packages from R using `install.packages("package_name")` as usual,
+and this will also make use of the `r2u` repositories.
+
+All that's missing now is RStudio (if you use RStudio). Surprisingly, when I set up my live USB
+two weeks ago, the current version of RStudio for Ubuntu would not install. This is apparently
+fixed with the daily versions which you can get [here](https://dailies.rstudio.com/). But 
+before that, do try to install the stable version. If you're reading this sometime in the future,
+maybe the issue I encountered has been fixed. Download RStudio from
+[here](https://www.rstudio.com/products/rstudio/download/#download), and then double click on the
+downloaded `.deb` package. If you see this message:
+
+```
+The following packages have unmet dependencies:
+ rstudio : Depends: libssl1.0.0 but it is not installable or
+                    libssl1.0.2 but it is not installable or
+                    libssl1.1 but it is not installable
+           Recommends: r-base (>= 3.0.1) but it is not going to be installed
+E: Unable to correct problems, you have held broken packages.
+```
+
+then this means that the problem has not been fixed. In that case, run the following line to
+repair everything:
+
+```
+sudo apt-get update --fix-missing
+```
+
+This should put you back into a clean state. So to continue, install a daily build from the link above.
+Simply click on the Ubuntu 22 button to download the daily. Unfortunately daily builds can be unstable
+and are usually used for testing purposes. So hopefully Posit will fix this soon.
+
+Of course, if you're using the 
+[greatest IDE ever made](https://www.brodrigues.co/blog/2019-05-19-spacemacs/) instead of RStudio,
+you won't have this issue.
+
+You can now keep installing things, for example [Quarto](https://quarto.org/docs/get-started/), or
+Python, or, or, or... there are no limits, and performance, as you would have noticed is great, because
+the operating system has access to all the resources from your machine. A persistent live USB is a 
+great solution if you need a portable dev environment and don't want/can't use Docker for example.
+
+<p>Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://fosstodon.org/@brodriguesco">Mastodon</a> or <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my ebook on <a href="https://leanpub.com/modern_tidyverse">Leanpub</a>.
+You can also watch my videos on <a href="https://www.youtube.com/c/BrunoRodrigues1988/">youtube</a>.
+So much content for you to consoom!</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
+</div>

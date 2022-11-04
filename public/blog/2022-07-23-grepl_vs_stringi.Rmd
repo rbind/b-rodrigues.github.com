@@ -1,0 +1,215 @@
+---
+date: 2022-07-23
+title: What's the fastest way to search and replace strings in a data frame?
+tags: [R]
+menu:
+main:
+  parent: Blog
+  identifier: /blog/grepl_vs_stringi.Rmd
+  weight: 1
+---
+
+<div style="text-align:center;">
+<p><a href="https://www.craiyon.com/">
+<img src="/img/wojak_violin.jpg" title = "Made by DALL-E mini"></a></p>
+</div>
+
+I've tweeted this:
+
+<blockquote class="twitter-tweet"><p lang="en" dir="ltr">Just changed like 100 grepl calls to stringi::stri_detect and my pipeline now runs 4 times faster <a href="https://twitter.com/hashtag/RStats?src=hash&amp;ref_src=twsrc%5Etfw">#RStats</a></p>&mdash; Bruno Rodrigues (@brodriguesco) <a href="https://twitter.com/brodriguesco/status/1549659454483857409?ref_src=twsrc%5Etfw">July 20, 2022</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+much discussed ensued. Some people were surprised, because in their experience, `grepl()`
+was faster than alternatives, especially if you set the `perl` parameter in `grepl()` to  `TRUE`.
+My use case was quite simple; I have a relatively large data set (half a million lines) with
+one column with several misspelling of city names. So I painstakingly wrote some code
+to correct the spelling of the major cities (those that came up often enough to matter. Minor
+cities were set to "Other". Sorry, [Wiltz](https://en.wikipedia.org/wiki/Wiltz)!)
+
+So in this short blog post, I benchmark some code to see if what I did the other day was a fluke.
+Maybe something weird with my R installation on my work laptop running Windows 10 somehow
+made `stri_detect()` run faster than `grepl()`? I don't even know if something like that is 
+possible. I'm writing these lines on my Linux machine, unlike the code I run at work.
+So maybe if I find some differences, they could be due to the different OS running. 
+I don't want to have to deal with Windows on my days off (for my blood pressure's sake), 
+so I'm not running this benchmark on my work laptop. So that part we'll never know.
+
+Anyways, let's start by getting some data. I'm not commenting the code below, because that's not
+the point of this post.
+
+```{r, message = FALSE, warning = FALSE}
+library(dplyr)
+library(stringi)
+library(stringr)
+library(re2)
+
+adult <- vroom::vroom(
+  "https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.data"
+)
+
+adult_colnames <- readLines(
+  "https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.names"
+)
+
+adult_colnames <- adult_colnames[97:110] %>%
+  str_extract(".*(?=:)") %>%
+  str_replace_all("-", "_")
+
+adult_colnames <- c(adult_colnames, "wage")
+
+colnames(adult) <- adult_colnames
+
+adult
+```
+
+Let's now write the functions used for benchmarking. There will be 5 of them:
+
+- One using `grepl()` without any fancy options;
+- One using `grepl()` where `perl` is set to `TRUE`;
+- One that uses `stringi::stri_detect()`;
+- One that uses `stringr::str_detect()`;
+- One that uses `re2::re2_detect()`.
+
+Below you can read the functions. They're all pretty much the same, only the function 
+looking for the string changes. These functions look for a string in the `marital_status` 
+variable and create a new variable with a corresponding integer.
+
+```{r}
+with_grepl <- function(dataset){
+  dataset |>
+    mutate(married = case_when(
+             grepl("Married", marital_status) ~ 1,
+             grepl("married", marital_status) ~ 2,
+             TRUE ~ 3)
+           )
+}
+
+with_grepl_perl <- function(dataset){
+  dataset |>
+    mutate(married = case_when(
+             grepl("Married", marital_status, perl = TRUE) ~ 1,
+             grepl("married", marital_status, perl = TRUE) ~ 2,
+             TRUE ~ 3)
+           )
+}
+
+with_stringi <- function(dataset){
+  dataset |>
+    mutate(married = case_when(
+             stri_detect(marital_status, regex = "Married") ~ 1,
+             stri_detect(marital_status, regex = "married") ~ 2,
+             TRUE ~ 3)
+           )
+}
+
+with_stringr <- function(dataset){
+  dataset |>
+    mutate(married = case_when(
+             str_detect(marital_status, "Married") ~ 1,
+             str_detect(marital_status, "married") ~ 2,
+             TRUE ~ 3)
+           )
+}
+
+with_re2 <- function(dataset){
+  dataset |>
+    mutate(married = case_when(
+             re2_detect(marital_status, "Married") ~ 1,
+             re2_detect(marital_status, "married") ~ 2,
+             TRUE ~ 3)
+           )
+}
+```
+
+Now I make extra sure these functions actually return the exact same thing. So for this
+I'm running them once on the data and use `testthat::expect_equal()`. It's a bit 
+unwieldy, so if you have a better way of doing this, please let me know.
+
+```{r}
+run_grepl <- function(){
+  with_grepl(adult) %>%
+    count(married, marital_status)
+}
+
+one <- run_grepl()
+
+run_grepl_perl <- function(){
+  with_grepl_perl(adult) %>%
+    count(married, marital_status)
+}
+
+two <- run_grepl_perl()
+
+run_stringi <- function(){
+  with_stringi(adult) %>%
+    count(married, marital_status)
+}
+
+three <- run_stringi()
+
+run_stringr <- function(){
+  with_stringr(adult) %>%
+    count(married, marital_status)
+}
+
+four <- run_stringr()
+
+run_re2 <- function(){
+  with_re2(adult) %>%
+    count(married, marital_status)
+}
+
+five <- run_re2()
+
+one_eq_two <- testthat::expect_equal(one, two)
+one_eq_three <- testthat::expect_equal(one, three)
+three_eq_four <- testthat::expect_equal(three, four)
+
+testthat::expect_equal(
+            one_eq_two,
+            one_eq_three
+          )
+
+testthat::expect_equal(
+            one_eq_three,
+            three_eq_four
+          )
+
+testthat::expect_equal(
+            one,
+            five)
+```
+
+`testthat::expect_equal()` does not complain, so I'm pretty sure my functions, while different,
+return the exact same thing. Now, we're ready for the benchmark itself. Let's run these 
+function 500 times using `{microbenchmark}`:
+
+```{r}
+microbenchmark::microbenchmark(
+     run_grepl(),
+     run_grepl_perl(),
+     run_stringi(),
+     run_stringr(),
+     run_re2(),
+     times = 500
+)
+
+```
+
+There you have it folks! The winner is `grepl()` with `perl = TRUE`, and then it's 
+pretty much tied between `stringi()`, `stringr()` and `re2()` (maybe there's a slight edge
+for `re2()`) and `grepl()` without `perl = TRUE` is last. But don't forget that this is running
+on my machine with Linux installed on it; maybe you'll get different results on different
+hardware and OSs! So if you rely a lot on `grepl()` and other such string manipulation
+function, maybe run a benchmark on your hardware first. How come switching from `grepl()`
+(without `perl = TRUE` though) to `stri_detect()` made my pipeline at work run 4 times
+faster I don't know. Maybe it has also to do with the size of the data, and the complexity
+of the regular expression used to detect the problematic strings? 
+
+<p>Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my ebook on <a href="https://leanpub.com/modern_tidyverse">Leanpub</a>.
+You can also watch my videos on <a href="https://www.youtube.com/c/BrunoRodrigues1988/">youtube</a>.
+So much content for you to consoom!</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
+</div>
