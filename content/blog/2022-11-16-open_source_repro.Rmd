@@ -62,7 +62,8 @@ the following bullet points:
 - Source code must obviously to be available and thoroughly tested and document;
 - To be written with an open source programming language (nocode tools are by default non-reproducible and belong in the trash);
 - The project needs to be run on an open source operating system.
-(- Data and paper need obviously to be accessible as well)
+- (Data and paper need obviously to be accessible as well)
+
 
 And the whole thing would ideally be packaged using Docker or Podman. This means that someone could 
 run an analysis in a single command, like:
