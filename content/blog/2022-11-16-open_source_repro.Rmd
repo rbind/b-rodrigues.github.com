@@ -1,0 +1,99 @@
+---
+date: 2022-11-16
+title: Open source is a hard requirement for reproducibility
+tags: [R]
+menu:
+main:
+  parent: Blog
+  identifier: /blog/open_source_repro.Rmd
+  weight: 1
+---
+
+<div style="text-align:center;">
+ <img src="/img/tux_tired_of_reproducibility_crisis.png" title = "Tux is tired of the reproducibility crisis" width="70%">
+</div>
+
+
+
+Open source is a hard requirement for reproducibility.
+
+No ifs nor buts. And I’m not only talking about the code you typed for your research
+paper/report/analysis. I’m talking about the whole ecosystem that you used to type your code.
+
+(I won’t be talking about making the data available, because I think this is another blog post on its own.)
+
+Is your code open? That’s good. But is it code for a proprietary program, like STATA, SAS or
+MATLAB? Then your project is not reproducible. It doesn’t matter if this code is well documented
+and written and available on Github. This project is not reproducible.
+
+Why?
+
+Because there is on way to re-execute your code with the exact same version of this proprietary
+program down the line. As I’m writing these lines, MATLAB, for example, is at version R2022b. And
+it is very unlikely that you can buy version, say, R2008a. Maybe you can. Maybe MATLAB offers this
+option. But maybe they don’t. And maybe if they do today, they won’t in the future. There’s no
+guarantee. And if you’re running old code written for version R2008a, there’s no guarantee that it
+will produce the exact same results on version 2022b. And let’s not even mention the toolboxes (if
+you’re not familiar with MATLAB’s toolboxes, they’re the equivalent of packages or libraries in
+other programming languages). These evolve as well, and there’s no guarantee that you can purchase
+older versions of said toolboxes. And also, is a project truly reproducible (even if old programs
+can be purchased) if it's behind a paywall?
+ 
+And let me be clear, what I’m describing here with MATLAB could also be said for any other
+proprietary programs still commonly (unfortunately) used in research and in statistics (like STATA
+or SAS).
+ 
+Then there’s another problem: let’s suppose you’ve written a nice, thoroughly tested and documented
+script, and made it available on Github (and let’s even assume that the data is available for
+people to freely download, and that the paper is open access). Let’s assume further that you’ve
+used R or Python, or any other open source programming language. Could this study/analysis be said to be
+reproducible? Well, if the analysis ran on a proprietary operating system, then the conclusion is:
+your project is not reproducible.
+ 
+This is because the operating system the code runs on can also influence the reproducibility of the
+project. There are some specificities in operating systems that may make certain things work
+differently. Admittedly, this is in practice rarely a problem, but 
+[it does happen](https://github.com/numpy/numpy/issues/9187), especially if you’re working with very high
+precision floating point arithmetic.
+
+So where does that leave us? Basically, for something to be truly reproducible, it has to respect
+the following bullet points:
+
+- Source code must obviously to be available and thoroughly tested and document;
+- To be written with an open source programming language (nocode tools are by default non-reproducible and belong in the trash);
+- The project needs to be run on an open source operating system.
+(- Data and paper need obviously to be accessible as well)
+
+And the whole thing would ideally be packaged using Docker or Podman. This means that someone could 
+run an analysis in a single command, like:
+
+```
+docker run --rm --name my_analysis_container researchers_name/reproducible_project
+```
+
+Where `reproducible_project` is a Docker image, which would not only be based (very often) on the
+Ubuntu operating system (the most popular Linux distribution) but also contain, already installed
+and ready-to-use, the required programming language and the required libraries to run the project.
+Also, usually, the researcher would have added the required scripts and commands such that the
+command above, automatically, and without any further input, reruns the whole analysis. The entry
+cost to Docker (or similar tools) might seem high, but it is worth it, and the only way to have a
+truly 100% reproducible pipeline. If you're using the R programming language for your analyses, you
+can use the pre-built Docker images from the amazing [Rocker project](https://rocker-project.org/).
+If you're interested, I show how you can build a reproducible pipeline using these images [in this
+chapter of my course I teach at university](https://rap4mads.eu/self-contained-raps-with-docker.html) 
+(as of writing this blog post, this chapter is not complete yet, but it will be by Sunday evening
+at the latest, as I have to teach this on Monday morning at the University).
+
+Open source programming languages and libraries can be dockerized and the Docker images can be 
+distributed. Maybe one day we will always have a Docker image alongside a research paper. 
+
+One can dream.
+
+<p>Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://fosstodon.org/@brodriguesco">Mastodon</a> or <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my ebook on <a href="https://leanpub.com/modern_tidyverse">Leanpub</a>.
+You can also watch my videos on <a href="https://www.youtube.com/c/BrunoRodrigues1988/">youtube</a>.
+So much content for you to consoom!</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
+</div>
