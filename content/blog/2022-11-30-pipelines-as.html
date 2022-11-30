@@ -1,0 +1,185 @@
+---
+date: 2022-11-30
+title: Functional programming explains why containerization is needed for reproducibility
+tags: [R]
+menu:
+main:
+  parent: Blog
+  identifier: /blog/pipelines-as.Rmd
+  weight: 1
+---
+
+
+
+<div style="text-align:center;">
+<p><img src="/img/dino.png" width="70%"></p>
+</div>
+<p>I’ve had some discussions online and in the real world about <a href="https://www.brodrigues.co/blog/2022-11-16-open_source_repro/">this blog post</a>
+and I’d like to restate why containerization is needed for reproducibility, and do so from the
+lens of functional programming.</p>
+<p>When setting up a pipeline, wether you’re a functional programming enthusiast or not,
+you’re aiming at setting it up in a way that this pipeline is the composition of (potentially)
+many referentially transparent and pure functions.</p>
+<p>As a reminder:</p>
+<ul>
+<li><p>referentially transparent functions are functions that always return the same output for
+the same given input. So for example <code>f(x, y):=x+y</code> is referentially transparent, but <code>h(x):=x+y</code>
+is not. Because <code>y</code> is not an input of <code>h</code>, <code>h</code> will look for <code>y</code> in the global environment.
+Depending on the value of y, <code>h(1)</code> might equal 10 one day, but 100 the next.
+Let’s say that <code>f(1, 10)</code> is always equal to 11. Because this is true, you could replace <code>f(1, 10)</code>
+everywhere it appears with 11. But consider the following example of a function that is not referentially
+transparent, <code>rnorm()</code>. Try <code>rnorm(1)</code> several times… It will always give a different result! This is because
+<code>rnorm()</code> looks for the seed in the global environment and uses that to generate a random number.</p></li>
+<li><p>pure functions are functions without side effects. So a function just does its thing, and does
+not interact with anything else; doesn’t change anything in the global environment, doesn’t print
+anything on screen, doesn’t write anything to disk. Basically, pure functions are functions that
+do nothing else but computing stuff. Now this may seem limiting, and to some extent it is, so we will
+need to relax this a bit: we’ll be ok with functions that output stuff, but only the very last function
+in the pipeline will be allowed to do it.</p></li>
+</ul>
+<p>To be pure, a function needs to be referentially transparent.</p>
+<p>Ok so now that we know what referentially transparent and pure functions are, let’s explain
+why we want a pipeline to be a composition of such functions.
+Function composition is an operation that takes two functions <em>g</em> and <em>f</em> and
+returns a new function <em>h</em> such that <code>h(x) = g(f(x))</code>. Formally:</p>
+<pre><code>h = g ∘ f such that h(x) = g(f(x))</code></pre>
+<p><code>∘</code> is the composition operator. You can read <code>g ∘ f</code> as <em>g after f</em>. In R,
+you can compose functions very easily, simply by using |&gt; or %&gt;%:</p>
+<pre><code>h &lt;- f |&gt; g</code></pre>
+<p><code>f |&gt; g</code> can be read as <em>f then g</em>, which is equivalent to <em>g after f</em> (ok, using <code>|&gt;</code> is chaining
+rather than composing functions, but the net effect is the same).</p>
+<p>So <code>h</code> would be our complete pipeline, which would be the composition, or chaining, of as many
+functions as needed:</p>
+<pre><code>h &lt;- a |&gt; b |&gt; c |&gt; d ... |&gt; z</code></pre>
+<p>If all the functions are pure (and referentially transparent) then we’re assured that <code>h</code> will
+always produce the same outputs for the same inputs. As stated above, <code>z</code> will be allowed to not
+be pure an actually output something (like a rendered Quarto document) to disk. Ok so that’s great,
+and all, but why does the title of this blog post say that containerization is needed?</p>
+<p>The problem is that all the functions we use have “hidden” inputs, and are never truly
+referentially transparent. These inputs are the following:</p>
+<ul>
+<li>Version of R (or whatever programming language you’re using)</li>
+<li>Versions of the packages you’re using</li>
+<li>Operating system and its version (and all the different operating system dependencies that get used at run- or compile time)</li>
+</ul>
+<p>For example, let’s take a look at this function:</p>
+<pre class="r"><code>f &lt;- function(x){
+  if (c(TRUE, FALSE)) x 
+}</code></pre>
+<p>which will return the following on R 4.1 (which was released on May 2021):</p>
+<pre class="r"><code>f(1)</code></pre>
+<pre class="r"><code>[1] 1
+Warning message:
+In if (c(TRUE, FALSE)) 1 :
+  the condition has length &gt; 1 and only the first element will be used</code></pre>
+<p>So a result 1 and a warning. On R 4.2.2 (the current version as of writing), the exact same
+call returns:</p>
+<pre class="r"><code>Error in if (c(TRUE, FALSE)) 1 : the condition has length &gt; 1</code></pre>
+<p>These types of breaking changes are rare in R, at least to my knowledge (I’m actually looking into
+this in greater detail, 2023 will likely be the year I show my findings), but in this case it
+illustrates my point: code that was behaving in a certain way started behaving in another way, even
+though nothing changed. What changed was the version of R, even though the function itself was pure.
+This wouldn’t be so surprising if instead of <code>f(x)</code>, the function was something like <code>f(x, r_version)</code>.
+In this case, the calls above would be something like:</p>
+<pre class="r"><code>f(1, r_version = &quot;4.1&quot;)</code></pre>
+<p>and this would always return:</p>
+<pre class="r"><code>[1] 1
+Warning message:
+In if (c(TRUE, FALSE)) 1 :
+  the condition has length &gt; 1 and only the first element will be used</code></pre>
+<p>but changing the call to this:</p>
+<pre class="r"><code>f(1, r_version = &quot;4.2.2&quot;)</code></pre>
+<p>would return the error:</p>
+<pre class="r"><code>Error in if (c(TRUE, FALSE)) 1 : the condition has length &gt; 1</code></pre>
+<p>regardless of the version of R we’re running, so our function would be referentially transparent.</p>
+<p>Alas, this is not possible, at least not like this.</p>
+<p>Hence why tools like Docker, Podman (a Docker alternative) or Guix (which I learned about recently
+but never used, yet, and as far as I know, not a containerization solution, but a solution actually
+based on functional programming) are crucial to ensure that your pipeline is truly reproducible.
+Basically, using Docker you turn the hidden inputs defined before (versions of tools and OS)
+explicit. Take a look at this Dockerfile:</p>
+<pre class="r"><code>FROM rocker/r-ver:4.1.0
+
+RUN R -e &quot;f &lt;- function(x){if (c(TRUE, FALSE)) x};f(1)&quot;
+
+CMD [&quot;R&quot;]</code></pre>
+<p>here’s what happens when you build it:</p>
+<pre><code>➤ docker build -t my_pipeline .</code></pre>
+<pre><code>Sending build context to Docker daemon  2.048kB
+Step 1/3 : FROM rocker/r-ver:4.1.0
+4.1.0: Pulling from rocker/r-ver
+
+eaead16dc43b: Already exists 
+35eac095fa03: Pulling fs layer
+c0088a79f8ab: Pulling fs layer
+28e8d0ade0c0: Pulling fs layer
+Digest: sha256:860c56970de1d37e9c376ca390617d50a127b58c56fbb807152c2e976ce02002
+Status: Downloaded newer image for rocker/r-ver:4.1.0
+ ---&gt; d83268fb6cda
+Step 2/3 : RUN R -e &quot;f &lt;- function(x){if (c(TRUE, FALSE)) x};f(1)&quot;
+ ---&gt; Running in a158e4ab474f
+
+R version 4.1.0 (2021-05-18) -- &quot;Camp Pontanezen&quot;
+Copyright (C) 2021 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type &#39;license()&#39; or &#39;licence()&#39; for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type &#39;contributors()&#39; for more information and
+&#39;citation()&#39; on how to cite R or R packages in publications.
+
+Type &#39;demo()&#39; for some demos, &#39;help()&#39; for on-line help, or
+&#39;help.start()&#39; for an HTML browser interface to help.
+Type &#39;q()&#39; to quit R.
+
+&gt; f &lt;- function(x){if (c(TRUE, FALSE)) x};f(1)
+[1] 1
+Warning message:
+In if (c(TRUE, FALSE)) x :&gt; 
+&gt; 
+
+  the condition has length &gt; 1 and only the first element will be used
+Removing intermediate container a158e4ab474f
+ ---&gt; 49e2eb20a535
+Step 3/3 : CMD [&quot;R&quot;]
+ ---&gt; Running in ccda657c4d95
+Removing intermediate container ccda657c4d95
+ ---&gt; 5a432adbe6ff
+Successfully built 5a432adbe6ff
+Successfully tagged my_package:latest</code></pre>
+<p>as you can read from above, this starts the container with R version 4.1.0 and runs the code
+in it. We get back our result with the warning (it should be noted that in practice, you would
+structure your Dockerfile differently for running an actual pipeline).</p>
+<p>This Dockerfile starts by using rocker/r-ver:4.1 as a basis. You can find this
+image in the <a href="https://github.com/rocker-org/rocker-versioned2/blob/master/dockerfiles/r-ver_4.1.0.Dockerfile">versioned</a>
+repository from the Rocker Project. This base image starts off from Ubuntu Focal Fossa
+so (Ubuntu version 20.04), uses R version 4.1.0 and even uses frozen CRAN repository as
+of 2021-08-09. It then runs our pipeline (or in this case, our simple function) in this, fixed
+environment. Our function essentially became <code>f(x, os_version, r_version, packages_version)</code> instead of
+just <code>f(x)</code>. By changing the first statement of the Dockerfile:</p>
+<pre class="r"><code>FROM rocker/r-ver:4.1.0</code></pre>
+<p>to this:</p>
+<pre class="r"><code>FROM rocker/r-ver:3.5.0</code></pre>
+<p>we can even do some archaeology and run the pipeline on R version 3.5.0! This has great potential
+and hopefully one day Docker or similar solution will become just another tool in scientists/analysts
+toolbox.</p>
+<p>If you want to start using Docker for your projects, I’ve written this
+<a href="https://www.brodrigues.co/blog/2022-11-19-raps/">tutorial</a> and even a whole
+<a href="https://rap4mads.eu/">ebook</a>.</p>
+<p>
+Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://fosstodon.org/@brodriguesco">Mastodon</a> or <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my ebook on <a href="https://leanpub.com/modern_tidyverse">Leanpub</a>.
+You can also watch my videos on <a href="https://www.youtube.com/c/BrunoRodrigues1988/">youtube</a>.
+So much content for you to consoom!
+</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p>
+<link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a>
+</p>
+</div>
