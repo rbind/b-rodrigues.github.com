@@ -1,0 +1,235 @@
+---
+date: 2022-12-21
+title: Code longevity of the R programming language
+tags: [R]
+menu:
+main:
+  parent: Blog
+  identifier: /blog/longevity.Rmd
+  weight: 1
+---
+
+
+
+<div style="text-align:center;">
+<p><img src="/img/spelunky.jpg" width="70%"></p>
+</div>
+<p>I’ve been working on a way to evaluate how old R code runs on the current version of R, and
+am now ready to share some results. It all started with this tweet:</p>
+<div style="text-align:center;">
+<p><a href = "https://twitter.com/brodriguesco/status/1588088437655093250?s=20&t=-8DPAVEpMEcAuxy8Q2sAQw">
+<img src="/img/tweet_old_code.png" width="70%">
+</a></p>
+</div>
+<p>The problem is that you have to find old code laying around. Some people have found old code they
+wrote a decade or more ago and tried to rerun it; there’s <a href="https://notstatschat.rbind.io/2022/10/14/code-archaeology-polynomial-distributed-lags/">this blog
+post</a> by
+Thomas Lumley and <a href="https://www.jumpingrivers.com/blog/r-from-the-turn-of-the-century/">this other
+one</a> by Colin Gillespie that I
+find fascinating, but ideally we’d have more than a handful of old scripts laying around. This is
+when Dirk Eddelbuettel suggested this:</p>
+<div style="text-align:center;">
+<p><a href = "https://twitter.com/eddelbuettel/status/1588149491772923907?s=20&t=-8DPAVEpMEcAuxy8Q2sAQw">
+<img src="/img/tweet_dirk.png" width="70%">
+</a></p>
+</div>
+<p>And this is what I did. I wrote a lot of code to achieve this graph here:</p>
+<div style="text-align:center;">
+<p><img src="https://camo.githubusercontent.com/5a87a4afdbac4947b852149496627c317b2bedcece0e4be66a3d60a76026f90d/68747470733a2f2f692e696d6775722e636f6d2f4f414947546a452e706e67" width="70%"></p>
+</div>
+<p>This graph shows the following: for each version of R, starting with R version 0.6.0 (released in
+1997), how well the examples that came with a standard installation of R with the current version
+of R (version 4.2.2 as of writing). These are the examples from the default packages like <code>{base}</code>,
+<code>{stats}</code>, <code>{stats4}</code>, and so on. Turns out that more than 75% of the example code from version
+0.6.0 still works on the current version of R. A small fraction output a message (which doesn’t
+mean the code doesn’t work), some 5% raise a warning, which again doesn’t necessarily mean that the
+code doesn’t work, and finally around 20% or so errors. As you can see, the closer we get to the
+current release, the less errors get raised.</p>
+<p>(But something important should be noted: just because some old piece of code runs without error,
+doesn’t mean that the result is exactly the same. There might be cases where the same function
+returns different results on different versions of R.)</p>
+<p>Then, once I had this graph, I had to continue with packages. How well do old examples
+from any given package run on the current version of the same package?</p>
+<p>What I came up with is a Docker image that runs this for you, and even starts a Shiny app
+to let you explore the results. All you have to do is edit one line in the Dockerfile.
+This Docker image uses a lot of code from other projects, and I even had to write a package
+for this, called <code>{wontrun}</code>.</p>
+<div id="the-wontrun-package" class="section level2">
+<h2>The {wontrun} package</h2>
+<p>The problem I needed to solve was how to easily run examples from archived packages. So I
+needed to first have an easy way to download them, then extract the examples, and then run them. So
+to help me with this I wrote the <code>{wontrun}</code> package (thanks again to
+<a href="https://fediscience.org/@dmi3kno/109296599193965025">Deemah</a> for suggesting the name and making
+the hex logo!). To be honest, the quality of this package could be improved. Documentation is still
+lacking, and the package only seems to work on Linux (but that’s not an issue, since it really only
+makes sense to use it within Docker). In any case, this package has a function to download the
+archived source code for a given package, using the <code>get_archived_sources()</code> function. This
+function takes the name of a package as an input and returns a data frame with the archived sources
+and the download links to them. To actually download the source packages, the <code>get_examples()</code>
+function is used. This function extracts the examples from the <code>man/</code> folder included in source
+packages, and converts the examples into scripts. Remember that example files are in the <code>.Rd</code> format,
+which is some kind of markup language format. Thankfully, there’s a function called <code>Rd2ex()</code> from
+the <code>{tools}</code> package which I use to convert <code>.Rd</code> files into <code>.R</code> scripts.</p>
+<p>Then, all that there is to do is to run these scripts. But that’s not as easy as one might think.
+This is becuse I first need to make sure that the latest version of the package is installed, and
+ideally, I don’t want to pollute my library with packages that I never use but only wanted to
+assess for their code longevity. I also need to make sure that I’m running all these scripts <em>all
+else being equal</em>: so same version of R, same version of the current packages and same operating
+system. That why I needed to use Docker for this. Also, all the required dependencies to run the
+examples should get installed as well. Sometimes, some examples load data from another package.
+So for this, I’m using the <code>renv::dependencies()</code> function which scans a file for calls to
+<code>library()</code> or <code>package::function()</code> to list the dependencies and then install them.
+This all happens automatically.</p>
+<p>To conclude this section: I cannot stress how much I’m relying on work by other people for this.
+This is the NAMESPACE file of the <code>{wontrun}</code> package (I’m only showing the import statements):</p>
+<pre><code>importFrom(callr,r_vanilla)
+importFrom(ctv,ctv)
+importFrom(dplyr,filter)
+importFrom(dplyr,group_by)
+importFrom(dplyr,mutate)
+importFrom(dplyr,rename)
+importFrom(dplyr,select)
+importFrom(dplyr,ungroup)
+importFrom(furrr,future_map2)
+importFrom(future,multisession)
+importFrom(future,plan)
+importFrom(janitor,clean_names)
+importFrom(lubridate,year)
+importFrom(lubridate,ymd)
+importFrom(lubridate,ymd_hm)
+importFrom(magrittr,&quot;%&gt;%&quot;)
+importFrom(pacman,p_load)
+importFrom(pkgsearch,cran_package)
+importFrom(purrr,keep)
+importFrom(purrr,map)
+importFrom(purrr,map_chr)
+importFrom(purrr,map_lgl)
+importFrom(purrr,pluck)
+importFrom(purrr,pmap_chr)
+importFrom(purrr,possibly)
+importFrom(renv,dependencies)
+importFrom(rlang,`!!`)
+importFrom(rlang,cnd_message)
+importFrom(rlang,quo)
+importFrom(rlang,try_fetch)
+importFrom(rvest,html_nodes)
+importFrom(rvest,html_table)
+importFrom(rvest,read_html)
+importFrom(stringr,str_extract)
+importFrom(stringr,str_remove_all)
+importFrom(stringr,str_replace)
+importFrom(stringr,str_trim)
+importFrom(tibble,as_tibble)
+importFrom(tidyr,unnest)
+importFrom(tools,Rd2ex)
+importFrom(withr,with_package)</code></pre>
+<p>That’s a lot of packages, most of them from Posit. What can I say, these packages are great! Even
+if I could reduce the number of dependencies from <code>{wontrun}</code>, I honestly cannot be bothered, I’ve
+been spoilt by the quality of Posit packages.</p>
+</div>
+<div id="docker-for-reproducibility" class="section level2">
+<h2>Docker for reproducibility</h2>
+<p>The Dockerfile I wrote is based on Ubuntu 22.04, compiles R 4.2.2 from source, and sets the
+repositories to <a href="https://packagemanager.rstudio.com/cran/__linux__/jammy/2022-11-21" class="uri">https://packagemanager.rstudio.com/cran/__linux__/jammy/2022-11-21</a> . This way, the
+packages get downloaded exactly as they were on November 21st 2022. This ensures that if readers of
+this blog post want to run this to assess the code longevity of some R packages, we can compare
+results and be certain that any conditions raised are not specific to any difference in R or
+package version. It should be noted that this Dockerfile is based on the work of the Rocker
+project, and more specifically their <a href="https://rocker-project.org/images/versioned/r-ver.html">versioned
+images</a> which are recommended when
+reproducibility is needed. Becuse the code runs inside Docker, it doesn’t matter if the <code>{wontrun}</code>
+package only runs on Linux (I think that this is the case because of the <code>untar()</code> function which I
+use to decompress the downloaded compressed archives from CRAN, and which seems to
+have a different behaviour on Linux vs Windows. No idea how this function behaves on macOS).</p>
+<p>The image defined by this Dockerfile is quite heavy, because I also installed all possible dependencies
+required to run R packages smoothly. This is because even though the Posit repositories install
+compiled packages on Linux, shared libraries are still needed for the packages to run.</p>
+<p>Here is what the Dockerfile looks like:</p>
+<pre><code>FROM brodriguesco/wontrun:r4.2.2
+
+# This gets the shiny app
+RUN git clone https://github.com/b-rodrigues/longevity_app.git
+
+# These are needed for the Shiny app
+RUN R -e &quot;install.packages(c(&#39;dplyr&#39;, &#39;forcats&#39;, &#39;ggplot2&#39;, &#39;shiny&#39;, &#39;shinyWidgets&#39;, &#39;DT&#39;))&quot;
+
+RUN mkdir /home/intermediary_output/
+RUN mkdir /home/output/
+
+COPY wontrun.R /home/wontrun.R
+
+# Add one line per package you want to asses
+RUN Rscript &#39;/home/wontrun.R&#39; dplyr 6
+RUN Rscript &#39;/home/wontrun.R&#39; haven 6
+
+CMD mv /home/intermediary_output/* /home/output/ &amp;&amp; R -e &#39;shiny::runApp(&quot;/longevity_app&quot;, port = 1506, host = &quot;0.0.0.0&quot;)&#39;</code></pre>
+<p>As you can see it starts by pulling an image from Docker Hub called <code>wontrun:r4.2.2</code>. This is the
+image based on Ubuntu 22.04 with R compiled from source and all dependencies pre-installed.
+(This Dockerfile is available <a href="https://github.com/b-rodrigues/code_longevity/tree/master/wontrun_dockerfile">here</a>.)</p>
+<p>Then my Shiny app gets cloned, the required packages for the app to run get installed, and some
+needed directories get made. Now comes the interesting part; a script called <code>wontrun.R</code> gets copied.
+This is what the script looks like:</p>
+<pre class="r"><code>#!/usr/bin/env Rscript
+args &lt;- commandArgs(trailingOnly = TRUE)
+
+library(wontrun)
+
+packages_sources &lt;- get_archived_sources(args[1])
+
+out &lt;- wontrun(packages_sources ,
+               ncpus = args[2],
+               setup = TRUE,
+               wontrun_lib = &quot;/usr/local/lib/R/site-library/&quot;)
+
+saveRDS(object = out,
+        file = paste0(&quot;/home/intermediary_output/&quot;, args[1], &quot;.rds&quot;))</code></pre>
+<p>This script uses the <code>{wontrun}</code> package to get the archived sources of a package of interest,
+and the examples get executed and results tallied using the <code>wontrun()</code> function. The results
+then get saved into an <code>.rds</code> file.</p>
+<p>Calling this script is done with this line in the Dockerfile:</p>
+<pre><code>RUN Rscript &#39;/home/wontrun.R&#39; dplyr 6</code></pre>
+<p>The <code>dplyr</code> and <code>6</code> get passed down to the <code>wontrun.R</code> script as a list called <code>args</code>. So
+<code>args[1]</code> is the “dplyr” string, and <code>args[2]</code> is 6. This means that the examples from
+archived versions of the <code>{dplyr}</code> package will get assessed on the current version of
+<code>{dplyr}</code> using 6 cores. You can add as many lines as you want and thus assess as many
+packages as you want. Once you’re done with editing the Dockerfile, you can build the image;
+this will actually run the code, so depending on how many packages you want to assess and the
+complexity of the examples, this may take some hours. To build the image run this in a console:</p>
+<pre><code>docker build -t code_longevity_packages .</code></pre>
+<p>Now, you still need to actually run a container based on this image. Running the container will
+move the <code>.rds</code> files from the container to your machine so you can actually get to the results,
+and it will also start a Shiny app in which you will be able to upload the <code>.rds</code> file and
+explore the results. Run the container with (and don’t forget to change <code>path/to/repository/</code> with
+the correct path on your machine):</p>
+<pre><code>docker run --rm --name code_longevity_packages_container -v /path/to/repository/code_longevity_packages/output:/home/output:rw -p 1506:1506 code_longevity_packages</code></pre>
+<p>Go over to <code>http://localhost:1506/</code> to start the Shiny app and explore the results:</p>
+<div style="text-align:center;">
+<p><video width="640" height="480" controls>
+<source src="/img/code_longevity.mp4" type="video/mp4">
+</video></p>
+</div>
+</div>
+<div id="a-collaborative-project" class="section level2">
+<h2>A collaborative project</h2>
+<p>Now it’s your turn: are you curious about the code longevity of one particular package? Then
+fork the repository, edit the Dockerfile, build, run and do a pull request! It’d be great
+to have an overview of the code longevity of as many packages as possible. I thought about
+looking at the longevity of several packages that form a group, like the tidyverse packages
+or packages from CRAN Task views. Please also edit the <code>package_list.txt</code> file which
+lists packages for which we already have results.</p>
+<p>By the way, if you want the results of the language itself (so the results of running the examples
+of <code>{base}</code>, <code>{stats}</code>, etc), go <a href="https://github.com/b-rodrigues/code_longevity/blob/master/docker/output/objects/base_runs">here</a> and click “download”.</p>
+<p>Looking forward to your pull requests!</p>
+<p>
+Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://fosstodon.org/@brodriguesco">Mastodon</a> or <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my ebook on <a href="https://leanpub.com/modern_tidyverse">Leanpub</a>.
+You can also watch my videos on <a href="https://www.youtube.com/c/BrunoRodrigues1988/">youtube</a>.
+So much content for you to consoom!
+</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p>
+<link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a>
+</p>
+</div>
+</div>
