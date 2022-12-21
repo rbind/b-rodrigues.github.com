@@ -44,7 +44,7 @@ And this is what I did. I wrote a lot of code to achieve this graph here:
 </div>
 
 This graph shows the following: for each version of R, starting with R version 0.6.0 (released in
-1997), how well the examples that came with a standard installation of R with the current version
+1997), how well the examples that came with a standard installation of R run on the current version
 of R (version 4.2.2 as of writing). These are the examples from the default packages like `{base}`,
 `{stats}`, `{stats4}`, and so on. Turns out that more than 75% of the example code from version
 0.6.0 still works on the current version of R. A small fraction output a message (which doesn't
