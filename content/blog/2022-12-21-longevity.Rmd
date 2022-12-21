@@ -258,7 +258,9 @@ fork the repository, edit the Dockerfile, build, run and do a pull request! It'd
 to have an overview of the code longevity of as many packages as possible. I thought about
 looking at the longevity of several packages that form a group, like the tidyverse packages
 or packages from CRAN Task views. Please also edit the `package_list.txt` file which 
-lists packages for which we already have results.
+lists packages for which we already have results. Find the repository here:
+
+https://github.com/b-rodrigues/code_longevity_packages
 
 By the way, if you want the results of the language itself (so the results of running the examples
 of `{base}`, `{stats}`, etc), go [here](https://github.com/b-rodrigues/code_longevity/blob/master/docker/output/objects/base_runs) and click "download".
