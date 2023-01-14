@@ -1,0 +1,896 @@
+---
+date: 2023-01-12
+title: MRAN is getting shutdown - what else is there for reproducibility with R, or why reproducibility is on a continuum?
+tags: [R]
+menu:
+main:
+  parent: Blog
+  identifier: /blog/repro_R.Rmd
+  weight: 1
+---
+
+
+
+<div style="text-align:center;">
+<p><img src="/img/sisyphus.jpg" width="70%"></p>
+</div>
+<div id="you-expect-me-to-read-this-long-ass-blog-post" class="section level2">
+<h2>You expect me to read this long ass blog post?</h2>
+<p><em>If you’re too busy to read this blog post, know that I respect your time. The table below
+summarizes this blog post:</em></p>
+<table>
+<colgroup>
+<col width="70%" />
+<col width="29%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Need</th>
+<th>Solution</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>I want to start a project and make it reproducible.</td>
+<td>{renv} and Docker</td>
+</tr>
+<tr class="even">
+<td>There’s an old script laying around that I want to run.</td>
+<td>{groundhog} and Docker</td>
+</tr>
+<tr class="odd">
+<td>I want to work inside an environment that</td>
+<td>Docker and the Posit</td>
+</tr>
+<tr class="even">
+<td>enables me to run code in a reproducible way.</td>
+<td>CRAN mirror.</td>
+</tr>
+</tbody>
+</table>
+<p><em>But this table doesn’t show the whole picture, especially the issues with relying so much on
+Docker. So if you’re interesting in making science and your work reproducible and robust, my advice
+is that you stop doomscrolling on social media and keep on reading. If at the end of the blog post
+you think that this was a waste of time, just sent an insult my way, that’s ok.</em></p>
+<p>I learnt last week that MRAN is going to get shutdown this year. For those of you that don’t know,
+MRAN was a CRAN mirror managed by Microsoft. What made MRAN stand out was the fact that Microsoft
+took daily snapshots of CRAN and it was thus possible to quite easily install old packages using
+the <code>{checkpoint}</code> package. This was a good thing for reproducibility, and for Windows and macOS,
+it was even possible to install binary packages, so no need to compile them from source.</p>
+<p>Last year I had the opportunity to teach a course on building reproducible analytical pipelines at
+the University of Luxembourg, and made my teaching material available as an ebook that you can find
+<a href="https://rap4mads.eu/">here</a>. I also wrote some blog posts about reproducibility and it looks like
+I will be continuing this trend for the forseeable future.</p>
+<p>So in this blog post I’m going to show what you, as an R user, can do to make your code reproducible now
+that MRAN is getting shutdown. MRAN is not the only option for reproducibility, and I’m going to
+present in this blog post everything I know about other options. So if you happen to know of some solution
+that I don’t discuss here, please leave a comment
+<a href="https://github.com/rbind/b-rodrigues.github.com/issues/5">here</a>. But this blog post is not just a tutorial.
+I will also discuss what I think is a major risk that is coming and what, maybe, we can do to avoid it.</p>
+</div>
+<div id="reproducibility-is-on-a-continuum" class="section level2">
+<h2>Reproducibility is on a continuum</h2>
+<p>Reproducibility is on a continuum, and depending on the nature of your project different tools are
+needed. First, let’s understand what I mean by “reproducibility is on a continuum”. Let’s suppose
+that you have written a script that produces some output. Here is the list of everything that can
+influence the output (other than the mathematical algorithm running under the hood):</p>
+<ul>
+<li>Version of the programming language used;</li>
+<li>Versions of the packages/libraries of said programming language used;</li>
+<li>Operating System, and its version;</li>
+<li>Versions of the underlying system libraries (which often go hand in hand with OS version, but not necessarily).</li>
+<li>Hardware that you run all that software stack on.</li>
+</ul>
+<p>So by “reproducibility is on a continuum”, what I mean is that you could set up your project in a
+way that none, one, two, three, four or all of the preceding items are taken into consideration when
+making your project reproducible.</p>
+<p>There is, however, something else to consider. Before, I wrote “let’s suppose you have written a
+script”, which means that you actually have a script laying around that was written in a particular
+programming language, and which makes use of a known set of packages/libraries. So for example, if
+my script uses the following R packages:</p>
+<ul>
+<li>dplyr</li>
+<li>tidyr</li>
+<li>ggplot2</li>
+</ul>
+<p>I, obviously, know this list and if I want to make my script reproducible, I should take note of
+the versions of these 3 packages (and potentially of their own dependencies). However, what if you
+don’t know this set of packages that are used? This happens when you want to set up an environment
+that is frozen, and then distribute this environment. Developers will then all work on the same
+base environment, but you cannot possibly list all the packages that are going to be used because
+you have no idea what the developers will end up using (and remember that future you is included in
+these developers, and you should always try to be nice to future you).</p>
+<p>So these means that we have two scenarios:</p>
+<ul>
+<li>Scenario 1: I have a script (or several), and want to make sure that it will always produce the same output;</li>
+<li>Scenario 2: I don’t know what I (or my colleagues) will develop, but we want to use the same environment across the organization to develop and deploy data products.</li>
+</ul>
+<p>Turns out that the solutions to these two scenarios are different, but available in R, even though
+we won’t soon be able to count on MRAN anymore. HOWEVER! R won’t suffice for this job.</p>
+</div>
+<div id="scenario-1-making-a-script-reproducible" class="section level2">
+<h2>Scenario 1: making a script reproducible</h2>
+<p>Ok, so let’s suppose that I want to make a script reproducible, or at least increase the probability
+that others (including future me) will be able to run this script and get the exact same output as
+I originally did. If you want to minimize the amount of time spent doing it, the minimum thing you
+should do is use <a href="https://rstudio.github.io/renv/articles/renv.html">{renv}</a>. <code>{renv}</code> allows you
+to create a file called <code>renv.lock</code>. You can then distribute this file to others alongside the code
+of your project, or the paper, data, whatever. Nothing else is required from you; if people have
+this file, they should be able to set up an environment that would closely mimic the one that was
+used to get the results originally (but ideally, you’d invest a bit more time to make your script
+run anywhere, for example by avoiding setting absolute paths that only exist on your machine).</p>
+<p>Let’s take a look at such an <code>renv.lock</code> file:</p>
+<details>
+<summary>
+Click me to see lock file
+</summary>
+<pre><code>{
+  &quot;R&quot;: {
+    &quot;Version&quot;: &quot;4.2.1&quot;,
+    &quot;Repositories&quot;: [
+      {
+        &quot;Name&quot;: &quot;CRAN&quot;,
+        &quot;URL&quot;: &quot;http://cran.rstudio.com&quot;
+      }
+    ]
+  },
+  &quot;Packages&quot;: {
+    &quot;MASS&quot;: {
+      &quot;Package&quot;: &quot;MASS&quot;,
+      &quot;Version&quot;: &quot;7.3-58.1&quot;,
+      &quot;Source&quot;: &quot;Repository&quot;,
+      &quot;Repository&quot;: &quot;RSPM&quot;,
+      &quot;Hash&quot;: &quot;762e1804143a332333c054759f89a706&quot;,
+      &quot;Requirements&quot;: []
+    },
+    &quot;Matrix&quot;: {
+      &quot;Package&quot;: &quot;Matrix&quot;,
+      &quot;Version&quot;: &quot;1.5-1&quot;,
+      &quot;Source&quot;: &quot;Repository&quot;,
+      &quot;Repository&quot;: &quot;RSPM&quot;,
+      &quot;Hash&quot;: &quot;539dc0c0c05636812f1080f473d2c177&quot;,
+      &quot;Requirements&quot;: [
+        &quot;lattice&quot;
+      ]
+    },
+    &quot;R6&quot;: {
+      &quot;Package&quot;: &quot;R6&quot;,
+      &quot;Version&quot;: &quot;2.5.1&quot;,
+      &quot;Source&quot;: &quot;Repository&quot;,
+      &quot;Repository&quot;: &quot;RSPM&quot;,
+      &quot;Hash&quot;: &quot;470851b6d5d0ac559e9d01bb352b4021&quot;,
+      &quot;Requirements&quot;: []
+    },
+    &quot;RColorBrewer&quot;: {
+      &quot;Package&quot;: &quot;RColorBrewer&quot;,
+      &quot;Version&quot;: &quot;1.1-3&quot;,
+      &quot;Source&quot;: &quot;Repository&quot;,
+      &quot;Repository&quot;: &quot;RSPM&quot;,
+      &quot;Hash&quot;: &quot;45f0398006e83a5b10b72a90663d8d8c&quot;,
+      &quot;Requirements&quot;: []
+    },
+    &quot;cli&quot;: {
+      &quot;Package&quot;: &quot;cli&quot;,
+      &quot;Version&quot;: &quot;3.4.1&quot;,
+      &quot;Source&quot;: &quot;Repository&quot;,
+      &quot;Repository&quot;: &quot;RSPM&quot;,
+      &quot;Hash&quot;: &quot;0d297d01734d2bcea40197bd4971a764&quot;,
+      &quot;Requirements&quot;: []
+    },
+    &quot;colorspace&quot;: {
+      &quot;Package&quot;: &quot;colorspace&quot;,
+      &quot;Version&quot;: &quot;2.0-3&quot;,
+      &quot;Source&quot;: &quot;Repository&quot;,
+      &quot;Repository&quot;: &quot;RSPM&quot;,
+      &quot;Hash&quot;: &quot;bb4341986bc8b914f0f0acf2e4a3f2f7&quot;,
+      &quot;Requirements&quot;: []
+    },
+    &quot;digest&quot;: {
+      &quot;Package&quot;: &quot;digest&quot;,
+      &quot;Version&quot;: &quot;0.6.29&quot;,
+      &quot;Source&quot;: &quot;Repository&quot;,
+      &quot;Repository&quot;: &quot;RSPM&quot;,
+      &quot;Hash&quot;: &quot;cf6b206a045a684728c3267ef7596190&quot;,
+      &quot;Requirements&quot;: []
+    },
+    &quot;fansi&quot;: {
+      &quot;Package&quot;: &quot;fansi&quot;,
+      &quot;Version&quot;: &quot;1.0.3&quot;,
+      &quot;Source&quot;: &quot;Repository&quot;,
+      &quot;Repository&quot;: &quot;RSPM&quot;,
+      &quot;Hash&quot;: &quot;83a8afdbe71839506baa9f90eebad7ec&quot;,
+      &quot;Requirements&quot;: []
+    },
+    &quot;farver&quot;: {
+      &quot;Package&quot;: &quot;farver&quot;,
+      &quot;Version&quot;: &quot;2.1.1&quot;,
+      &quot;Source&quot;: &quot;Repository&quot;,
+      &quot;Repository&quot;: &quot;RSPM&quot;,
+      &quot;Hash&quot;: &quot;8106d78941f34855c440ddb946b8f7a5&quot;,
+      &quot;Requirements&quot;: []
+    },
+    &quot;ggplot2&quot;: {
+      &quot;Package&quot;: &quot;ggplot2&quot;,
+      &quot;Version&quot;: &quot;3.3.6&quot;,
+      &quot;Source&quot;: &quot;Repository&quot;,
+      &quot;Repository&quot;: &quot;RSPM&quot;,
+      &quot;Hash&quot;: &quot;0fb26d0674c82705c6b701d1a61e02ea&quot;,
+      &quot;Requirements&quot;: [
+        &quot;MASS&quot;,
+        &quot;digest&quot;,
+        &quot;glue&quot;,
+        &quot;gtable&quot;,
+        &quot;isoband&quot;,
+        &quot;mgcv&quot;,
+        &quot;rlang&quot;,
+        &quot;scales&quot;,
+        &quot;tibble&quot;,
+        &quot;withr&quot;
+      ]
+    },
+    &quot;glue&quot;: {
+      &quot;Package&quot;: &quot;glue&quot;,
+      &quot;Version&quot;: &quot;1.6.2&quot;,
+      &quot;Source&quot;: &quot;Repository&quot;,
+      &quot;Repository&quot;: &quot;RSPM&quot;,
+      &quot;Hash&quot;: &quot;4f2596dfb05dac67b9dc558e5c6fba2e&quot;,
+      &quot;Requirements&quot;: []
+    },
+    &quot;gtable&quot;: {
+      &quot;Package&quot;: &quot;gtable&quot;,
+      &quot;Version&quot;: &quot;0.3.1&quot;,
+      &quot;Source&quot;: &quot;Repository&quot;,
+      &quot;Repository&quot;: &quot;RSPM&quot;,
+      &quot;Hash&quot;: &quot;36b4265fb818f6a342bed217549cd896&quot;,
+      &quot;Requirements&quot;: []
+    },
+    &quot;isoband&quot;: {
+      &quot;Package&quot;: &quot;isoband&quot;,
+      &quot;Version&quot;: &quot;0.2.5&quot;,
+      &quot;Source&quot;: &quot;Repository&quot;,
+      &quot;Repository&quot;: &quot;RSPM&quot;,
+      &quot;Hash&quot;: &quot;7ab57a6de7f48a8dc84910d1eca42883&quot;,
+      &quot;Requirements&quot;: []
+    },
+    &quot;labeling&quot;: {
+      &quot;Package&quot;: &quot;labeling&quot;,
+      &quot;Version&quot;: &quot;0.4.2&quot;,
+      &quot;Source&quot;: &quot;Repository&quot;,
+      &quot;Repository&quot;: &quot;RSPM&quot;,
+      &quot;Hash&quot;: &quot;3d5108641f47470611a32d0bdf357a72&quot;,
+      &quot;Requirements&quot;: []
+    },
+    &quot;lattice&quot;: {
+      &quot;Package&quot;: &quot;lattice&quot;,
+      &quot;Version&quot;: &quot;0.20-45&quot;,
+      &quot;Source&quot;: &quot;Repository&quot;,
+      &quot;Repository&quot;: &quot;CRAN&quot;,
+      &quot;Hash&quot;: &quot;b64cdbb2b340437c4ee047a1f4c4377b&quot;,
+      &quot;Requirements&quot;: []
+    },
+    &quot;lifecycle&quot;: {
+      &quot;Package&quot;: &quot;lifecycle&quot;,
+      &quot;Version&quot;: &quot;1.0.3&quot;,
+      &quot;Source&quot;: &quot;Repository&quot;,
+      &quot;Repository&quot;: &quot;RSPM&quot;,
+      &quot;Hash&quot;: &quot;001cecbeac1cff9301bdc3775ee46a86&quot;,
+      &quot;Requirements&quot;: [
+        &quot;cli&quot;,
+        &quot;glue&quot;,
+        &quot;rlang&quot;
+      ]
+    },
+    &quot;magrittr&quot;: {
+      &quot;Package&quot;: &quot;magrittr&quot;,
+      &quot;Version&quot;: &quot;2.0.3&quot;,
+      &quot;Source&quot;: &quot;Repository&quot;,
+      &quot;Repository&quot;: &quot;RSPM&quot;,
+      &quot;Hash&quot;: &quot;7ce2733a9826b3aeb1775d56fd305472&quot;,
+      &quot;Requirements&quot;: []
+    },
+    &quot;mgcv&quot;: {
+      &quot;Package&quot;: &quot;mgcv&quot;,
+      &quot;Version&quot;: &quot;1.8-40&quot;,
+      &quot;Source&quot;: &quot;Repository&quot;,
+      &quot;Repository&quot;: &quot;CRAN&quot;,
+      &quot;Hash&quot;: &quot;c6b2fdb18cf68ab613bd564363e1ba0d&quot;,
+      &quot;Requirements&quot;: [
+        &quot;Matrix&quot;,
+        &quot;nlme&quot;
+      ]
+    },
+    &quot;munsell&quot;: {
+      &quot;Package&quot;: &quot;munsell&quot;,
+      &quot;Version&quot;: &quot;0.5.0&quot;,
+      &quot;Source&quot;: &quot;Repository&quot;,
+      &quot;Repository&quot;: &quot;RSPM&quot;,
+      &quot;Hash&quot;: &quot;6dfe8bf774944bd5595785e3229d8771&quot;,
+      &quot;Requirements&quot;: [
+        &quot;colorspace&quot;
+      ]
+    },
+    &quot;nlme&quot;: {
+      &quot;Package&quot;: &quot;nlme&quot;,
+      &quot;Version&quot;: &quot;3.1-159&quot;,
+      &quot;Source&quot;: &quot;Repository&quot;,
+      &quot;Repository&quot;: &quot;RSPM&quot;,
+      &quot;Hash&quot;: &quot;4a0b3a68f846cb999ff0e8e519524fbb&quot;,
+      &quot;Requirements&quot;: [
+        &quot;lattice&quot;
+      ]
+    },
+    &quot;pillar&quot;: {
+      &quot;Package&quot;: &quot;pillar&quot;,
+      &quot;Version&quot;: &quot;1.8.1&quot;,
+      &quot;Source&quot;: &quot;Repository&quot;,
+      &quot;Repository&quot;: &quot;RSPM&quot;,
+      &quot;Hash&quot;: &quot;f2316df30902c81729ae9de95ad5a608&quot;,
+      &quot;Requirements&quot;: [
+        &quot;cli&quot;,
+        &quot;fansi&quot;,
+        &quot;glue&quot;,
+        &quot;lifecycle&quot;,
+        &quot;rlang&quot;,
+        &quot;utf8&quot;,
+        &quot;vctrs&quot;
+      ]
+    },
+    &quot;pkgconfig&quot;: {
+      &quot;Package&quot;: &quot;pkgconfig&quot;,
+      &quot;Version&quot;: &quot;2.0.3&quot;,
+      &quot;Source&quot;: &quot;Repository&quot;,
+      &quot;Repository&quot;: &quot;RSPM&quot;,
+      &quot;Hash&quot;: &quot;01f28d4278f15c76cddbea05899c5d6f&quot;,
+      &quot;Requirements&quot;: []
+    },
+    &quot;purrr&quot;: {
+      &quot;Package&quot;: &quot;purrr&quot;,
+      &quot;Version&quot;: &quot;0.3.5&quot;,
+      &quot;Source&quot;: &quot;Repository&quot;,
+      &quot;Repository&quot;: &quot;RSPM&quot;,
+      &quot;Hash&quot;: &quot;54842a2443c76267152eface28d9e90a&quot;,
+      &quot;Requirements&quot;: [
+        &quot;magrittr&quot;,
+        &quot;rlang&quot;
+      ]
+    },
+    &quot;renv&quot;: {
+      &quot;Package&quot;: &quot;renv&quot;,
+      &quot;Version&quot;: &quot;0.16.0&quot;,
+      &quot;Source&quot;: &quot;Repository&quot;,
+      &quot;Repository&quot;: &quot;CRAN&quot;,
+      &quot;Hash&quot;: &quot;c9e8442ab69bc21c9697ecf856c1e6c7&quot;,
+      &quot;Requirements&quot;: []
+    },
+    &quot;rlang&quot;: {
+      &quot;Package&quot;: &quot;rlang&quot;,
+      &quot;Version&quot;: &quot;1.0.6&quot;,
+      &quot;Source&quot;: &quot;Repository&quot;,
+      &quot;Repository&quot;: &quot;RSPM&quot;,
+      &quot;Hash&quot;: &quot;4ed1f8336c8d52c3e750adcdc57228a7&quot;,
+      &quot;Requirements&quot;: []
+    },
+    &quot;scales&quot;: {
+      &quot;Package&quot;: &quot;scales&quot;,
+      &quot;Version&quot;: &quot;1.2.1&quot;,
+      &quot;Source&quot;: &quot;Repository&quot;,
+      &quot;Repository&quot;: &quot;RSPM&quot;,
+      &quot;Hash&quot;: &quot;906cb23d2f1c5680b8ce439b44c6fa63&quot;,
+      &quot;Requirements&quot;: [
+        &quot;R6&quot;,
+        &quot;RColorBrewer&quot;,
+        &quot;farver&quot;,
+        &quot;labeling&quot;,
+        &quot;lifecycle&quot;,
+        &quot;munsell&quot;,
+        &quot;rlang&quot;,
+        &quot;viridisLite&quot;
+      ]
+    },
+    &quot;tibble&quot;: {
+      &quot;Package&quot;: &quot;tibble&quot;,
+      &quot;Version&quot;: &quot;3.1.8&quot;,
+      &quot;Source&quot;: &quot;Repository&quot;,
+      &quot;Repository&quot;: &quot;RSPM&quot;,
+      &quot;Hash&quot;: &quot;56b6934ef0f8c68225949a8672fe1a8f&quot;,
+      &quot;Requirements&quot;: [
+        &quot;fansi&quot;,
+        &quot;lifecycle&quot;,
+        &quot;magrittr&quot;,
+        &quot;pillar&quot;,
+        &quot;pkgconfig&quot;,
+        &quot;rlang&quot;,
+        &quot;vctrs&quot;
+      ]
+    },
+    &quot;utf8&quot;: {
+      &quot;Package&quot;: &quot;utf8&quot;,
+      &quot;Version&quot;: &quot;1.2.2&quot;,
+      &quot;Source&quot;: &quot;Repository&quot;,
+      &quot;Repository&quot;: &quot;RSPM&quot;,
+      &quot;Hash&quot;: &quot;c9c462b759a5cc844ae25b5942654d13&quot;,
+      &quot;Requirements&quot;: []
+    },
+    &quot;vctrs&quot;: {
+      &quot;Package&quot;: &quot;vctrs&quot;,
+      &quot;Version&quot;: &quot;0.5.1&quot;,
+      &quot;Source&quot;: &quot;Repository&quot;,
+      &quot;Repository&quot;: &quot;RSPM&quot;,
+      &quot;Hash&quot;: &quot;970324f6572b4fd81db507b5d4062cb0&quot;,
+      &quot;Requirements&quot;: [
+        &quot;cli&quot;,
+        &quot;glue&quot;,
+        &quot;lifecycle&quot;,
+        &quot;rlang&quot;
+      ]
+    },
+    &quot;viridisLite&quot;: {
+      &quot;Package&quot;: &quot;viridisLite&quot;,
+      &quot;Version&quot;: &quot;0.4.1&quot;,
+      &quot;Source&quot;: &quot;Repository&quot;,
+      &quot;Repository&quot;: &quot;RSPM&quot;,
+      &quot;Hash&quot;: &quot;62f4b5da3e08d8e5bcba6cac15603f70&quot;,
+      &quot;Requirements&quot;: []
+    },
+    &quot;withr&quot;: {
+      &quot;Package&quot;: &quot;withr&quot;,
+      &quot;Version&quot;: &quot;2.5.0&quot;,
+      &quot;Source&quot;: &quot;Repository&quot;,
+      &quot;Repository&quot;: &quot;RSPM&quot;,
+      &quot;Hash&quot;: &quot;c0e49a9760983e81e55cdd9be92e7182&quot;,
+      &quot;Requirements&quot;: []
+    }
+  }
+}
+</code></pre>
+</details>
+<p>as you can see this file lists the R version that was used as well as the different libraries for a
+project. Versions of the libraries are also listed, where they came from (CRAN or Github for
+example) and these libraries’ requirements as well. So someone who wants to run the original script
+in a similar environment has all the info needed to do it. <code>{renv}</code> also provides a simple way to
+install all of this. Simply put the <code>renv.lock</code> file in the same folder as the original script and
+run <code>renv::restore()</code>, and the right packages with the right versions get automagically installed
+(and without interfering with your system-wide, already installed library of packages). The “only”
+difficulty that you might have is installing the right version of R. If this is a recent
+enough version of R, this shouldn’t be a problem, but installing old software might be difficult.
+For example installing R version 2.5 might, or might not, be possible depending on your operating system
+(I don’t like microsoft windows, but generally speaking it is quite easy to install very old
+software on it, which in the case of Linux distros can be quite difficult. So I guess on windows
+this could work more easily). Then there’s also the system libraries that your script might need, and it might
+also be difficult to install these older versions. So that’s why I said that providing the
+<code>renv.lock</code> file is the bare minimum. But before seeing how we can deal with that, let’s discuss a
+scenario 1bis, which is the case where you want to run an old script (say, from 5 years ago), but
+there’s no <code>renv.lock</code> file to be found.</p>
+</div>
+<div id="scenario-1bis-old-script-no-renv.lock-file" class="section level2">
+<h2>Scenario 1bis: old script, no renv.lock file</h2>
+<p>For these cases I would have used <code>{checkpoint}</code>, but as explained in the intro MRAN is getting
+shutdown, and with it out of the picture <code>{checkpoint}</code> will cease to work.</p>
+<p>The way <code>{checkpoint}</code> worked is that you would simply add the following line at the very top of
+the script in question:</p>
+<pre class="r"><code>checkpoint::checkpoint(&quot;2018-12-12&quot;)</code></pre>
+<p>and this would download the packages needed for the script from that specific date and run your
+script. Really, really useful. But unfortunately, Microsoft decided that MRAN should get the axe.
+So what else is there? While researching for this blog post, I learned about <code>{groundhog}</code> which
+supposedly provides the same functionality. Suppose I have a script from 5 years ago that loads the
+following libraries:</p>
+<pre class="r"><code>library(purrr)
+library(ggplot2)</code></pre>
+<p>By rewriting this like so (and installing <code>{groundhog}</code> beforehand):</p>
+<pre class="r"><code>groundhog.library(&quot;
+    library(purrr)
+    library(ggplot2)&quot;,
+    &quot;2017-10-04&quot;,
+    tolerate.R.version = &quot;4.2.2&quot;)</code></pre>
+<p><code>{purrr}</code> and <code>{ggplot2}</code> get downloaded as they were on the date I provided. If you want to know
+what I had to use the “tolerate.R.version” option, this is because if you try to run it without it,
+you get the following very useful message:</p>
+<pre><code>---------------------------------------------------------------------------
+|IMPORTANT.
+|    Groundhog says: you are using R-4.2.2, but the version of R current 
+|    for the entered date, &#39;2017-10-04&#39;, is R-3.4.x. It is recommended 
+|    that you either keep this date and switch to that version of R, or 
+|    you keep the version of R you are using but switch the date to 
+|    between &#39;2022-04-22&#39; and &#39;2023-01-08&#39;. 
+|
+|    You may bypass this R-version check by adding: 
+|    `tolerate.R.version=&#39;4.2.2&#39;`as an option in your groundhog.library() 
+|    call. Please type &#39;OK&#39; to confirm you have read this message. 
+|   &gt;ok</code></pre>
+<p>That’s is pretty neat, as it tells you “hey, getting the right packages is good, but if your R
+version is not the same, you’re not guaranteed to get the same results back, and this might not
+even work at all”.</p>
+<p>So, here’s what happens when I try to install these packages (on my windows laptop, as most people
+would do), without installing the right version of R as suggested by <code>{groundhog}</code>:</p>
+<details>
+<summary>
+Click me to see lock file
+</summary>
+<pre><code>+ Will now attempt installing 5 packages from source.
+
+groundhog says: Installing &#39;magrittr_1.5&#39;, package #1 (from source) out of 5 needed
+&gt; As of 16:12, the best guess is that all 5 packages will install around 16:14
+trying URL &#39;https://packagemanager.rstudio.com/all/latest/src/contrib/Archive/magrittr/magrittr_1.5.tar.gz&#39;
+Content type &#39;application/x-tar&#39; length 200957 bytes (196 KB)
+downloaded 196 KB
+
+
+groundhog says: Installing &#39;rlang_0.1.2&#39;, package #2 (from source) out of 5 needed
+&gt; As of 16:12, the best guess is that all 5 packages will install around 16:14
+trying URL &#39;https://packagemanager.rstudio.com/all/latest/src/contrib/Archive/rlang/rlang_0.1.2.tar.gz&#39;
+Content type &#39;application/x-tar&#39; length 200867 bytes (196 KB)
+downloaded 196 KB
+
+
+groundhog says: Installing &#39;Rcpp_0.12.13&#39;, package #3 (from source) out of 5 needed
+&gt; As of 16:13, the best guess is that all 5 packages will install around 16:14
+trying URL &#39;https://packagemanager.rstudio.com/all/latest/src/contrib/Archive/Rcpp/Rcpp_0.12.13.tar.gz&#39;
+Content type &#39;application/x-tar&#39; length 3752364 bytes (3.6 MB)
+downloaded 3.6 MB
+
+Will try again, now showing all installation output.
+trying URL &#39;https://packagemanager.rstudio.com/all/latest/src/contrib/Archive/Rcpp/Rcpp_0.12.13.tar.gz&#39;
+Content type &#39;application/x-tar&#39; length 3752364 bytes (3.6 MB)
+downloaded 3.6 MB
+
+* installing *source* package &#39;Rcpp&#39; ...
+** package &#39;Rcpp&#39; successfully unpacked and MD5 sums checked
+staged installation is only possible with locking
+** using non-staged installation
+** libs
+g++ -std=gnu++11  -I&quot;c:/Users/Bruno/AppData/Roaming/R-42~1.2/include&quot; -DNDEBUG -I../inst/include/    -I&quot;c:/rtools42/x86_64-w64-mingw32.static.posix/include&quot;     -O2 -Wall  -mfpmath=sse -msse2 -mstackrealign  -c Date.cpp -o Date.o
+In file included from ../inst/include/RcppCommon.h:67,
+                 from ../inst/include/Rcpp.h:27,
+                 from Date.cpp:31:
+../inst/include/Rcpp/sprintf.h: In function &#39;std::string Rcpp::sprintf(const char*, ...)&#39;:
+../inst/include/Rcpp/sprintf.h:30:12: warning: unnecessary parentheses in declaration of &#39;ap&#39; [-Wparentheses]
+   30 |     va_list(ap);
+      |            ^~~~
+../inst/include/Rcpp/sprintf.h:30:12: note: remove parentheses
+   30 |     va_list(ap);
+      |            ^~~~
+      |            -  -
+In file included from ../inst/include/Rcpp.h:77,
+                 from Date.cpp:31:
+../inst/include/Rcpp/Rmath.h: In function &#39;double R::pythag(double, double)&#39;:
+../inst/include/Rcpp/Rmath.h:222:60: error: &#39;::Rf_pythag&#39; has not been declared; did you mean &#39;pythag&#39;?
+  222 |     inline double pythag(double a, double b)    { return ::Rf_pythag(a, b); }
+      |                                                            ^~~~~~~~~
+      |                                                            pythag
+make: *** [c:/Users/Bruno/AppData/Roaming/R-42~1.2/etc/x64/Makeconf:260: Date.o] Error 1
+ERROR: compilation failed for package &#39;Rcpp&#39;
+* removing &#39;C:/Users/Bruno/Documents/R_groundhog/groundhog_library/R-4.2/Rcpp_0.12.13/Rcpp&#39;
+The package &#39;Rcpp_0.12.13&#39; failed to install!
+groundhog says:
+The package may have failed to install because you are using R-4.2.2
+which is at least one major update after the date you entered &#39;2017-10-04&#39;.
+You can try using a more recent date in your groundhog.library() command, 
+or run it with the same date using &#39;R-3.4.4&#39;
+Instructions for running older versions of R: 
+    http://groundhogr.com/many
+
+----------------   The package purrr_0.2.3 did NOT install.  Read above for details  -----------------
+
+Warning message:
+In utils::install.packages(url, repos = NULL, lib = snowball$installation.path[k],  :
+  installation of package &#39;C:/Users/Bruno/AppData/Local/Temp/RtmpyKYXFd/downloaded_packages/Rcpp_0.12.13.tar.gz&#39; had non-zero exit status
+&gt; </code></pre>
+</details>
+<p>As you can see it failed, very likely because I don’t have the right development libraries
+installed on my windows laptop, due to the version mismatch that <code>{groundhog}</code> complained about. I
+also tried on my Linux workstation, and got the same outcome. In any case, I want to stress that
+this is not <code>{groundhog}</code>’s fault, but this due to the fact that I was here only concerned with
+packages; as I said multiple times now, reproducibility is on an continuum, and you also need to
+deal with OS and system libraries. So for now, we only got part of the solution.</p>
+<p>By the way, you should know 3 more things about <code>{groundhog}</code>:</p>
+<ul>
+<li>the earliest available date is, in theory, any date. However, according to its author, <code>{groundhog}</code> should work reliably with a date as early as “2015-04-16”. That’s because the oldest R version <code>{groundhog}</code> is compatible with is R 3.2. However, again according to its author, it should be possible to patch <code>{groundhog}</code> to work with any earlier versions of R.</li>
+<li><code>{groundhog}</code>’s developer is <a href="https://github.com/CredibilityLab/groundhog/issues/83#issuecomment-1379932166">planning</a> to save the binary packages off MRAN so that <code>{groundhog}</code> will continue offering binary packages once MRAN is out of the picture, which will make installing these packages more reliable.</li>
+<li>On Windows and macOS, <code>{groundhog}</code> installs binary packages if they’re available (which basically is always the case, in the example above it was not the case because I was using Posit’s CRAN mirror, and I don’t think they have binary packages for Windows that are that old. But if using another mirror, that should not be a problem). So if you install the right version of R, you’re almost guaranteed that it’s going to work. But, there is always a but, this also depends on hardware now. I’ll explain in the last part of this blog post, so read on.</li>
+</ul>
+</div>
+<div id="docker-to-the-rescue" class="section level2">
+<h2>Docker to the rescue</h2>
+<p>The full solution in both scenarios involves Docker. If you are totally unfamiliar with Docker, you
+can imagine that Docker makes it easy to set up a Linux virtual machine and run it. In Docker, you
+use Dockerfiles (which are configuration files) to define Docker <em>images</em> and you can then run
+<em>containers</em> (your VMs, if you wish) based on that image. Inside that Dockerfile you can declare
+which operating system you want to use and what you want to run inside of it. For example, here’s a
+very simple Dockerfile that prints “Hello from Docker” on the Ubuntu operating system (a popular
+Linux distribution):</p>
+<pre><code>FROM ubuntu:latest
+
+RUN echo &quot;Hello, World!&quot;</code></pre>
+<p>You then need to build the image as defined from this Dockerfile. (Don’t try to follow along for now
+with your own computer; I’ll link to resources below so that you can get started if you’re
+interested. What matters is that you understand <em>why</em> Docker is needed).</p>
+<p>Building the image can be achieved by running this command where the Dockerfile is located:</p>
+<pre><code>docker build -t hello .</code></pre>
+<p>and then run a container from this image:</p>
+<pre><code>docker run --rm -d --name hello_container hello</code></pre>
+<pre><code>Sending build context to Docker daemon  2.048kB
+Step 1/2 : FROM ubuntu:latest
+ ---&gt; 6b7dfa7e8fdb
+Step 2/2 : RUN echo &quot;Hello, World!&quot;
+ ---&gt; Running in 5dfbff5463cf
+Hello, World!
+Removing intermediate container 5dfbff5463cf
+ ---&gt; c14004cd1801
+Successfully built c14004cd1801
+Successfully tagged hello:latest</code></pre>
+<p>You should see “Hello, World!” inside your terminal. Ok so this is the very basics. Now why is that useful? It turns
+out that there’s the so-called Rocker project, and this project provides a collection of Dockerfiles for current, but also older
+versions of R. So if we go back to our <code>renv.lock</code> file from before, we can see which R version was used (it was R 4.2.1) and
+define a new Dockerfile that builds upon the
+<a href="https://github.com/rocker-org/rocker-versioned2/blob/master/dockerfiles/r-ver_4.2.1.Dockerfile">Dockerfile from the Rocker project for R version 4.2.1</a>.</p>
+<p>Let’s first start by writing a very simple script. Suppose that this is the script that we want to make reproducible:</p>
+<pre class="r"><code>library(purrr)
+library(ggplot2)
+
+data(mtcars)
+
+myplot &lt;- ggplot(mtcars) +
+  geom_line(aes(y = hp, x = mpg))
+
+ggsave(&quot;/home/project/output/myplot.pdf&quot;, myplot)</code></pre>
+<p>First, let’s assume that I did my homework and that the <code>renv.lock</code> file from before is actually
+the one that was generated at the time this script was written. In that case, you could write a
+Dockerfile with the correct version of R and use the <code>renv.lock</code> file to install the right
+packages. This Dockerfile would look like this:</p>
+<pre><code>FROM rocker/r-ver:4.2.1
+
+RUN mkdir /home/project
+
+RUN mkdir /home/project/output
+
+COPY renv.lock /home/project/renv.lock
+
+COPY script.R /home/project/script.R
+
+RUN R -e &quot;install.packages(&#39;renv&#39;)&quot;
+
+RUN R -e &quot;setwd(&#39;/home/project/&#39;);renv::restore(confirm = FALSE)&quot;
+
+CMD R -e &quot;source(&#39;/home/project/script.R&#39;)&quot;</code></pre>
+<p>We need to put the <code>renv.lock</code> file, as well as the script <code>script.R</code> in the same folder as the Dockerfile,
+and then build and run the image:</p>
+<pre><code># Build it with
+docker build -t project .</code></pre>
+<p>run the container (and mount a volume to get the image back – don’t worry if you don’t know what volumes are,
+I’ll link resources at the end):</p>
+<pre><code>docker run --rm -d --name project_container -v /path/to/your/project/output:/home/project/output:rw project</code></pre>
+<p>Even if you’ve never seen a Dockerfile in your life, you likely understand what is going on here:
+the first line pulls a Docker image that contains R version 4.2.1 pre-installed on Ubuntu. Then, we
+create a directory to hold our files, we copy said files in the directory, and then run several R
+commands to install the packages as defined in the <code>renv.lock</code> file and run our script in an
+environment that not only has the right versions of the packages but also the right version of R.
+This script then saves the plot in a folder called <code>output/</code>, which we link to a folder also called
+<code>output/</code> but on our machine, so that we can then look at the generated plot (this is what <code>-v /path/to/your/project/output:/home/project/output:rw</code> does). Just as this script saves a plot, it
+could be doing any arbitrarily complex thing, like compiling an Rmarkdown file, running a model,
+etc, etc.</p>
+<p>Here’s a short video of this process in action:</p>
+<p><a href="http://www.youtube.com/watch?v=E3E0yd6aFss" title="renv Docker demo"><img src="http://img.youtube.com/vi/E3E0yd6aFss/0.jpg" alt="Link to renv and Docker demo" /></a></p>
+<p>Now, let’s do the same thing but for our scenario 1bis that relied on <code>{groundhog}</code>. Before writing the
+Dockerfile down, here’s how you should change the script. Add these lines at the very top:</p>
+<pre class="r"><code>groundhog::set.groundhog.folder(&quot;/home/groundhog_folder&quot;)
+
+groundhog::groundhog.library(&quot;
+    library(purrr)
+    library(ggplot2)&quot;,
+    &quot;2017-10-04&quot;
+    )
+
+data(mtcars)
+
+myplot &lt;- ggplot(mtcars) +
+  geom_line(aes(y = hp, x = mpg))
+
+ggsave(&quot;/home/project/output/myplot.pdf&quot;, myplot)</code></pre>
+<p>I also created a new script that installs the dependencies of my script when building my Dockerfile. This
+way, when I run the container, nothing gets installed anymore. Here’s what this script looks like:</p>
+<pre class="r"><code>groundhog::set.groundhog.folder(&quot;/home/groundhog_folder&quot;)
+
+groundhog::groundhog.library(&quot;
+    library(purrr)
+    library(ggplot2)&quot;,
+    &quot;2017-10-04&quot;
+    )</code></pre>
+<p>It’s exactly the beginning from the main script. Now here comes the Dockerfile, and this time it’s going to
+be a bit more complicated:</p>
+<pre><code>FROM rocker/r-ver:3.4.4
+
+RUN echo &quot;options(repos = c(CRAN=&#39;https://packagemanager.rstudio.com/cran/latest&#39;), download.file.method = &#39;libcurl&#39;)&quot; &gt;&gt; /usr/local/lib/R/etc/Rprofile.site
+
+RUN mkdir /home/project
+
+RUN mkdir /home/groundhog_folder
+
+RUN mkdir /home/project/output
+
+COPY script.R /home/project/script.R
+
+COPY install_deps.R /home/project/install_deps.R
+
+RUN R -e &quot;install.packages(&#39;groundhog&#39;);source(&#39;/home/project/install_deps.R&#39;)&quot;
+
+CMD R -e &quot;source(&#39;/home/project/script.R&#39;)&quot;</code></pre>
+<p>As you can see from the first line, this time we’re pulling an image that comes with R 3.4.4. This
+is because that version of R was the current version as of 2017-10-04, the date we assumed this
+script was written on. Because this is now quite old, we need to add some more stuff to the
+Dockerfile to make it work. First, I change the repositories to the current mirror from
+<a href="https://packagemanager.rstudio.com/client/#/repos/2/overview">Posit</a>. This is because the
+repositories from this image are set to MRAN at a fixed date. This was done at the time for
+reproducibility, but now MRAN is getting shutdown, so we need to change the repositories or else
+our container will not be able to download packages. Also, <code>{groundhog}</code> will take care of
+installing the right package versions. Then I create the necessary folders and run the
+<code>install_deps.R</code> script which is the one that will install the packages. This way, the packages get
+installed when building the Docker image, and not when running the container, which is preferable.
+Finally, the main script gets run, and an output gets produced. Here’s a video showing this
+process:</p>
+<p><a href="http://www.youtube.com/watch?v=g0eG1OvXl9s" title="renv Docker demo"><img src="http://img.youtube.com/vi/g0eG1OvXl9s/0.jpg" alt="Link to the groundhog and Docker demo" /></a></p>
+<p>Now all of this may seem complicated, and to be honest it is. Reproducibility is no easy task, but I hope that
+I’ve convinced you that by combining <code>{renv}</code> and Docker, or <code>{groundhog}</code> and Docker it is possible to rerun
+any analysis. But you do have to be familiar with these tools, and there’s also another issue by using Docker.
+Docker works on Windows, macOS and Linux, but the container that runs must be a Linux distribution, usually Ubuntu.
+But what if the original analysis was done on Windows and macOS? This can be a problem if the script relies on some
+Windows or macOS specific things, which even for a language available on all platforms like R can happen. For example,
+I’ve recently noticed that the <code>tar()</code> function in R, which is used to decompress <code>tar.gz</code> files, behaves differently
+on Windows than on Linux. So ideally, even if you’re running your analysis on Windows, you should then try
+to distribute a working Dockerfile alongside your paper (if you’re a researcher, or if you’re working in the private
+sector, you should do the same for each project). Of course, that is quite demanding, and you would need to
+learn about these tools, or hire someone to do that for you… But a natural question is then, well, “why
+use Docker at all? Since it’s easy to install older versions of R on Windows and macOS, wouldn’t an <code>renv.lock</code>
+file suffice? Or even just <code>{groundhog}</code> which is arguably even easier to use?”</p>
+<p>Well, more on this later. I still need to discuss scenario 2 first.</p>
+</div>
+<div id="scenario-2-offering-an-environment-that-is-made-for-reproducibility" class="section level2">
+<h2>Scenario 2: offering an environment that is made for reproducibility</h2>
+<p>Ok, so this one is easier. In this scenario, you have no idea what people are going to use, so you
+cannot generate an <code>renv.lock</code> file beforehand, and <code>{groundhog}</code> is of no help either, because,
+well, there’s no scripts yet to actually make reproducible. This is the situation I’ve had for this
+project that I’ve discussed at the end of last year, on <a href="https://www.brodrigues.co/blog/2022-12-21-longevity/">code
+longevity</a> of the R programming language. The
+solution is to write a Dockerfile that people can modify and run; this in turn produces some
+results that can then be shared. This Dockerfile pulls from another Dockerfile, and that other
+Dockerfile is made for reproducibility. How? Because that other Dockerfile is based on Ubuntu
+22.04, compiles R 4.2.2 from source, and sets the repositories to
+<a href="https://packagemanager.rstudio.com/cran/__linux__/jammy/2022-11-21" class="uri">https://packagemanager.rstudio.com/cran/__linux__/jammy/2022-11-21</a> . This way, the packages get
+downloaded exactly as they were on November 21st 2022. So every time this image defined from this
+Dockerfile gets built, we get exactly the same environment.</p>
+<p>It should also be noted that this solution can be used in the case of scenario 1bis. Let’s say I
+have a script from August 2018; by using a Docker image that ships the current version of R at that
+time (which should be R version 3.5.x) and Ubuntu (which at the time was 18.04, codenamed Bionic
+Beaver) and then using the Posit package manager at a frozen date, for example
+<a href="https://packagemanager.rstudio.com/cran/__linux__/bionic/2018-08-16" class="uri">https://packagemanager.rstudio.com/cran/__linux__/bionic/2018-08-16</a> I should be able to reproduce
+an environment that is close enough. However the problem is that Posit’s package manager earliest
+available date is Octobre 2017, so anything before that would not be possible to reproduce.</p>
+<p>Ok, great, here are the solutions for reproducibility. But there are still problems.</p>
+</div>
+<div id="a-single-point-of-failure-docker" class="section level2">
+<h2>A single point of failure: Docker</h2>
+<p>Let’s be blunt: having Docker as the common denominator in all these solutions is a problem. This is
+because Docker represents a single point of failure. But the problem is not Docker itself, but the
+infrastructure.</p>
+<p>Let me explain: Docker is based on many different open source parts, and that’s great. There’s also
+Podman, which is basically a drop-in replacement (when combined with other tools) made by Red Hat,
+which is completely open source as well. So the risk does not come from there, because even if for
+some reason Docker would disappear, or get abandoned or whatever, we could still work with Podman,
+and it would likely be possible to create a fork from Docker.</p>
+<p>But the issue is the infrastructure. For now, using Docker and more importantly hosting images is
+free for personal use, education, open source communities and small businesses. So this means that
+a project like Rocker likely pays nothing for hosting all the images they produce (but who knows, I
+may be wrong on this). And Rocker makes a lot of images. See, at the top of the Dockerfiles I’ve used
+in this blog post, there’s always a statement like:</p>
+<pre><code>FROM rocker/r-ver:4.2.1</code></pre>
+<p>as explained before, this states that a pre-built image that ships R version 4.2.1 on Ubuntu gets downloaded.
+But from where? This image gets downloaded from Docker Hub, see
+<a href="https://hub.docker.com/layers/rocker/r-ver/4.2.1/images/sha256-3636493af7028d899a6598ee4aabe70d231fb0ff60f61a70f8ea0ea24a51c3e6?context=explore">here</a>.</p>
+<p>This means that you can download this pre-built image and don’t need to build it each time you need
+to work with it. You can simply use that as a base for your work, like the image built for reproducibility
+described in scenario 2. But what happens if at some point in the future Docker changes its licensing
+model? What if they still have a free tier, but massively limit the amount of images that get
+hosted for free? What if they get rid of the free tier entirely? This is a massive risk that needs to be
+managed in my opinion. There is the option of the Rocker project hosting the images themselves.
+It is possible to create your own, self-hosted Docker registry and not use Docker
+Hub, after all. But this is costly not only in terms of storage, but also of manpower to maintain all this.
+But maybe worse than that is: what if at some point in the future you cannot rebuild these
+images, at all? You would need to make sure that these pre-built images do not get lost. And this is
+already happening because of MRAN getting shutdown. In this blog post I’ve used the
+<code>rocker/r-ver:3.4.4</code> image to run code from 2017. The problem is that if you look at its
+Dockerfile, you see that building this image <a href="https://github.com/rocker-org/rocker-versioned/blob/1920e7cfc757bad02d041a0bddec1a18b1ebc4c1/r-ver/3.4.4.Dockerfile#L118">requires
+MRAN</a>.
+So in other words, once MRAN is offline, it won’t be possible to rebuild this image, and the Rocker
+project will need to make sure that the pre-built image that is currently available on Docker Hub
+stays available forever. Because if not, it would be quite hard to rerun code from, say, 2017. Same
+goes for Posit’s package manager. Posit’s package manager could be used as a drop-in replacement
+for MRAN, but for how long? Even though Posit is a very responsible company, I believe that it is
+dangerous that such a crucial service is managed by only one company.</p>
+<p>And rebuilding old images will be necessary. This is now the part where I answer the question from above:</p>
+<p>“why use Docker at all? Since it’s easy to install older versions of R on Windows and macOS, wouldn’t an <code>renv.lock</code>
+file suffice? Or even just <code>{groundhog}</code> which is arguably even easier to use?”</p>
+<p>The problem is hardware. You see, Apple has changed hardware architecture recently, their new computers
+switched from Intel based hardware to their own proprietary architecture (Apple Silicon) based on the ARM specification.
+And what does that mean concretely? It means that all the binary packages that were built for Intel based
+Apple computers cannot work on their new computers. Which means that if you have a recent M1 Macbook and
+need to install old CRAN packages (for example, by using <code>{groundhog}</code>), these need to be compiled to work
+on M1. You cannot even install older versions of R, unless you also compile those from source! Now I have
+read about a compatibility layer called Rosetta which enables to run binaries compiled for the Intel architecture
+on the ARM architecture, and maybe this works well with R and CRAN binaries compiled
+for Intel architecture. Maybe, I don’t know. But my point is that you never know what might come in the future,
+and thus needing to be able to compile from source is important, because compiling from source is what
+requires the least amount of dependencies that are outside of your control. Relying on binaries is not future-proof.</p>
+<p>And for you Windows users, don’t think that the preceding paragraph does not concern you. I think that it is
+very likely that Microsoft will push in the future for OEM manufacturers to develop more ARM based computers.
+There is already an ARM version of Windows after all, and it has been around for quite some time, and I think
+that Microsoft will not kill that version any time in the future.
+This is because ARM is much more energy efficient than other architectures, and any manufacturer can
+build its own ARM cpus by purchasing a license, which can be quite interesting. For example in the case
+of Apple silicon cpus, Apple can now get exactly the cpus they want for their machines and make their
+software work seamlessly with it. I doubt that others will pass the chance to do the same.</p>
+<p>Also, something else that might happen is that we might move towards more and more cloud based computing,
+but I think that this scenario is less likely than the one from before. But who knows. And in that case
+it is quite likely that the actual code will be running on Linux servers that will likely be ARM based
+because of energy costs. Here again, if you want to run your historical code, you’ll have to compile
+old packages and R versions from source.</p>
+<p>Basically, binary packages are in my opinion not a future-proof option, so that’s why something like
+Docker will stay, and become ever more relevant. But as I argued before, that’s a single point of failure.</p>
+<p>But there might be a way we can solve this and not have to rely on Docker at all.</p>
+</div>
+<div id="guix-toward-practical-transparent-verifiable-and-long-term-reproducible-research" class="section level2">
+<h2>Guix: <em>toward practical transparent verifiable and long-term reproducible research</em></h2>
+<p>The title of this section is the same as the title from a research paper published in 2022 that you
+can read <a href="https://www.nature.com/articles/s41597-022-01720-9#Abs1">here</a>.</p>
+<p>This paper presents and shows how to use Guix, which is a tool to build, from scratch and in a
+reproducible manner, the computational environment that was used to run some code for research. Very
+importantly, Guix doesn’t rely on containers, virtual machines or anything like that. From my,
+albeit still limited, understanding of how it works, Guix requires some recipes telling it how it
+should build software. Guix integrates with CRAN, so it’s possible to tell Guix “hey, could you
+build ggplot2” and Guix does as instructed. It builds <code>{ggplot2}</code> and all the required
+dependencies. And what’s great about Guix is that it’s also possible to build older versions of
+software.</p>
+<p>The authors illustrate this by reproducing results from a 2019 paper, by recreating the environment
+used at the time, 3 years later.</p>
+<p>This could be a great solution, because it would always allow the recreation of computational
+environments from source. So architecture changes would not be a problem, making Guix quite future
+proof. The issue I’ve found though, is that Guix only works on Linux. So if you’re working on
+Windows or macOS, you would need Docker to recreate a computational environment with Guix. So you
+could think that we’re back to square one, but actually no. Because you could always have a Linux
+machine or server that you would use for reproducibility, on which Linux is installed, thus
+eliminating the need for Docker, thus removing that risk entirely.</p>
+<p>I’m currently exploring Guix and will report on it in greater detail in the future. In the
+meantime, I hope to have convinced you that, while reproducibility is no easy task, the tools that
+are currently available can help you set up reproducible project. However, for something to be and
+stay truly reproducible, some long term maintenance is also required.</p>
+</div>
+<div id="conclusion" class="section level2">
+<h2>Conclusion</h2>
+<p>So here we are, these are, as far as I know, the options to make your code reproducible. But it is
+no easy task and it takes time. Unfortunately, many scientists are not really concerned with making
+their code reproducible, simply because there is no real incentive for them to do it. And it’s
+a task that is becoming more and more complex as there are other risks that need to be managed,
+like the transition from Intel based architectures for cpus towards ARM. I’m pretty sure there
+are many scientists who have absolutely no idea what Intel based cpus or ARM cpus or Rosetta or whatever
+are. So telling them they need to make their code reproducible is one thing, telling them they
+need to make it so future proof that architecture changes won’t matter is like asking for the Moon.</p>
+<p>So research software engineers will become more and more crucial, and should be integrated to research
+teams to deal with this question (and this also holds true for the private sector; there should be someone
+whose job is make code reproducible across the organization).</p>
+<p>Anyways, if you read until here, I appreciate it. This was a long blog post. If you want to know more, you can read
+this <a href="https://www.brodrigues.co/blog/2022-11-19-raps/">other blog post</a> of mine that explains how to use Docker,
+and also this <a href="https://www.brodrigues.co/blog/2022-11-30-pipelines-as/">other blog post</a>
+that explains why Docker <em>is not</em> optional (but now that I’ve discovered Guix, maybe it’s Guix that is not
+optional).</p>
+<p>By the way, if you want to grab the scripts and Dockerfiles from this blog post, you can get them
+<a href="https://github.com/b-rodrigues/repro_r">here</a>.</p>
+<p>
+Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://fosstodon.org/@brodriguesco">Mastodon</a> or <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my ebook on <a href="https://leanpub.com/modern_tidyverse">Leanpub</a>.
+You can also watch my videos on <a href="https://www.youtube.com/c/BrunoRodrigues1988/">youtube</a>.
+So much content for you to consoom!
+</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p>
+<link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a>
+</p>
+</div>
