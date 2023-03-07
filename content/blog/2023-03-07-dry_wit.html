@@ -1,0 +1,182 @@
+---
+date: 2023-03-07
+title: Software engineering techniques that non-programmers who write a lot of code can benefit from — the DRY WIT approach
+tags: [R]
+menu:
+main:
+  parent: Blog
+  identifier: /blog/dry_wit.Rmd
+  weight: 1
+---
+
+
+
+<div style="text-align:center;">
+<p><img src="/img/archetypical_data_scientist.png" width="50%"></p>
+</div>
+<p>Data scientists, statisticians, analysts, researchers, and many other
+professionals write <em>a lot of code</em>.</p>
+<p>Not only do they write a lot of code, but they must also read and review a lot
+of code as well. They either work in teams and need to review each other’s code,
+or need to be able to reproduce results from past projects, be it for peer
+review or auditing purposes. And yet, they never, or very rarely, get taught
+the tools and techniques that would make the process of writing, collaborating,
+reviewing and reproducing projects possible.</p>
+<p>Which is truly unfortunate because software engineers face the same challenges
+and solved them decades ago. Software engineers developed a set of project
+management techniques and tools that non-programmers who write a lot of code
+could benefit from as well.</p>
+<p>These tools and techniques can be used right from the start of a project at a
+minimal cost, such that the analysis is well-tested, well-documented,
+trustworthy and reproducible <em>by design</em>. Projects are going to be reproducible
+simply because they were engineered, from the start, to be reproducible.</p>
+<p>But all these tools, frameworks and techniques boil down to two acronyms that I
+like to keep in my head at all times:</p>
+<ul>
+<li>DRY: Don’t Repeat Yourself;</li>
+<li>WIT: Write It Down.</li>
+</ul>
+<p>DRY WIT: by systematically avoiding not to repeat yourself and
+by writing everything down, projects become well-tested, well-documented,
+trustworthy and reproducible by design. Why is that?</p>
+<div id="dry-dont-repeat-yourself" class="section level2">
+<h2>DRY: Don’t Repeat Yourself</h2>
+<p>Let’s start with DRY: what does it mean not having to repeat oneself? It means:</p>
+<ul>
+<li>using functions instead of copy-and-pasting bits of code here and there;</li>
+<li>using literate programming, to avoid having to copy and paste graphs and tables into
+word or pdf documents;</li>
+<li>treating code as data and making use of templating.</li>
+</ul>
+<p>The most widely used programming languages for data science/statistics, Python and R,
+both have first-class functions. This means that functions can be manipulated like
+any other object. So something like:</p>
+<pre class="r"><code>Reduce(`+`, seq(1:100))</code></pre>
+<pre><code>## [1] 5050</code></pre>
+<p>where the function <code>+</code>() gets used as an argument of the higher-order <code>Reduce()</code>
+function is absolutely valid (and so is Python’s equivalent <code>reduce</code> from
+<code>functools</code>) and avoids having to use a for-loop which can lead to other issues.
+Generally speaking, the functional programming paradigm lends itself very
+naturally to data analysis tasks, and in my opinion data scientists and
+statisticians would benefit a lot from adopting this paradigm.</p>
+<p>Literate programming is another tool that needs to be in the toolbox of
+any person analysing data. This is because at the end of the day, the results
+of an analysis need to be in some form of document. Without literate programming,
+this is how you would draft reports:</p>
+<div style="text-align:center;">
+<p><img src="https://github.com/b-rodrigues/rap4all/blob/master/images/report_draft_loop.png?raw=true" width="100%"></p>
+</div>
+<p>But with literate programming, this is how this loop would look like:</p>
+<div style="text-align:center;">
+<p><img src="https://github.com/b-rodrigues/rap4all/blob/master/images/md_draft_loop.png?raw=true" width="100%"></p>
+</div>
+<p><a href="https://quarto.org/">Quarto</a> is the latest open-source scientific and technical
+publishing system that leverages Pandoc and supports R, Python, Julia and
+ObservableJs right out of the box.</p>
+<p>Below is a little Quarto Hello World:</p>
+<pre class="default"><code>---
+output: pdf
+---
+
+In this example we embed parts of the examples from the
+\texttt{kruskal.test} help page into a LaTeX document:
+
+```{r}
+data (airquality)
+kruskal.test(Ozone ~ Month, data = airquality)
+```
+
+which shows that the location parameter of the Ozone
+distribution varies significantly from month to month.
+Finally we include a boxplot of the data:
+
+```{r, echo = FALSE}
+boxplot(Ozone ~ Month, data = airquality)
+```
+</code></pre>
+<p>Compiling this document results in the following:</p>
+<div style="text-align:center;">
+<img src="https://raw.githubusercontent.com/b-rodrigues/rap4all/master/images/hello_rmd.PNG" width="100%">
+<figcaption>
+Example from Leisch’s 2002 paper.
+</figcaption>
+</div>
+<p>Of course, you could use Python code chunks instead of R, you could also compile
+this document to Word, or HTML, or anything else really. By combining code and
+prose, the process of data analysis gets streamlined and we don’t need to repeat
+ourselves copy and pasting images and tables into Word documents.</p>
+<p>Finally, treating code as data is also quite useful. This means that it is
+possible to compute on the language itself. This is a more advanced topic, but
+definitely worth the effort. As an illustration, consider the following R toy example:</p>
+<pre class="r"><code>show_and_eval &lt;- function(f, ...){
+  f &lt;- deparse(substitute(f))
+  dots &lt;- list(...)
+  message(&quot;Evaluating: &quot;, f, &quot;() with arguments: &quot;, deparse(dots))
+  do.call(f, dots)
+}</code></pre>
+<p>Running this function does the following:</p>
+<pre class="r"><code>show_and_eval(sqrt, 2)</code></pre>
+<pre><code>## Evaluating: sqrt() with arguments: list(2)</code></pre>
+<pre><code>## [1] 1.414214</code></pre>
+<pre class="r"><code>show_and_eval(mean, x = c(NA, 1, 2))</code></pre>
+<pre><code>## Evaluating: mean() with arguments: list(x = c(NA, 1, 2))</code></pre>
+<pre><code>## [1] NA</code></pre>
+<pre class="r"><code>show_and_eval(mean, x = c(NA, 1, 2), na.rm = TRUE)</code></pre>
+<pre><code>## Evaluating: mean() with arguments: list(x = c(NA, 1, 2), na.rm = TRUE)</code></pre>
+<pre><code>## [1] 1.5</code></pre>
+<p>This is incredibly useful when writing packages (to know more about these
+techniques in the R programming language, read the chapter <em>Metaprogramming</em> from
+<a href="https://adv-r.hadley.nz/metaprogramming.html">Advanced R</a>).</p>
+</div>
+<div id="wit-write-it-down" class="section level2">
+<h2>WIT: Write It Down</h2>
+<p>Now on the WIT bit: <em>write it down</em>. You’ve just written a function. To see if
+it works correctly, you test it in the interactive console. You execute the
+test, see that it works, and move on. But wait! What you just did is called a
+unit test. Instead of writing that in the console and then never use it ever
+again, write it down in a script. Now you’ve got a unit test for that function
+that you can execute each time you update that function’s code, and make sure
+that it keeps working as expected. There are many unit testing frameworks that
+can help you how to write unit tests consistently and run them automatically.</p>
+<p>Documentation: write it down! How does the function work? What are its inputs?
+Its outputs? What else should the user know to make it work? Very often,
+documentation is but a series of comments in your scripts. That’s already nice,
+but using literate programming, you could also turn these comments into proper
+documentation. You could use <em>docstrings</em> in Python or <code>{roxygen2}</code> style
+comments in R.</p>
+<p>Another classic: you correct some data manually in the raw dataset (very often a
+<code>.csv</code> or <code>.xlsx</code> file). For example, when dealing with data on people, sex is
+sometimes “M” or “F”, sometimes “Male” or “Female”, sometimes “1” or “0”. You
+spot a couple of inconsistencies and decide to <em>quickly</em> correct them by hand.
+Maybe only 3 men were coded as “Male” so you simply erase the “ale” and go on
+with your project. Stop!</p>
+<p>Write it down!</p>
+<p>Write a couple of lines of code that does the replacement for you. Not only will
+this leave a trace, it will ensure that when you get an update to that data in
+the future you don’t have to remember to have to change it by hand.</p>
+<p>You should aim at completely eliminating any required manual intervention when
+building your project. A project that can be fully run by a machine is easier to
+debug, its execution can be scheduled and can be iterated over very quickly.</p>
+<p>Something else that you should write down, or rather, let another tool do it for
+you: how you collaborate with your teammates. For this, you should be using
+Git. Who changed what part of what function when? If the project’s code is
+versioned, Git writes it down for you. You want to experiment with a new
+feature? Write it down by creating a new branch and going nuts. There’s something
+wrong in the code? Write it down as an issue on your versioning platform (usually
+Github).</p>
+<p>There are many more topics that us disciplines of the data could learn from
+software engineers. I’m currently working on a free ebook that you can read
+<a href="https://raps-with-r.dev/">here</a> that teaches these techniques. If this post
+opened your appetite, give the book a go!</p>
+<p>
+Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://fosstodon.org/@brodriguesco">Mastodon</a> or <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my <a href="https://www.brodrigues.co/about/books/">ebooks</a>.
+You can also watch my videos on <a href="https://www.youtube.com/c/BrunoRodrigues1988/">youtube</a>.
+So much content for you to consoom!
+</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p>
+<link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a>
+</p>
+</div>
