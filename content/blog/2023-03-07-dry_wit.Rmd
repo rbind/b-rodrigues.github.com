@@ -37,7 +37,7 @@ But all these tools, frameworks and techniques boil down to two acronyms that I
 like to keep in my head at all times:
 
 - DRY: Don’t Repeat Yourself;
-- WIT: Write It Down.
+- WIT: Write IT down.
 
 DRY WIT: by systematically avoiding not to repeat yourself and 
 by writing everything down, projects become well-tested, well-documented,
@@ -151,7 +151,7 @@ This is incredibly useful when writing packages (to know more about these
 techniques in the R programming language, read the chapter *Metaprogramming* from
 [Advanced R](https://adv-r.hadley.nz/metaprogramming.html)).
 
-## WIT: Write It Down
+## WIT: Write IT down
 
 Now on the WIT bit: *write it down*. You’ve just written a function. To see if
 it works correctly, you test it in the interactive console. You execute the
@@ -176,7 +176,7 @@ spot a couple of inconsistencies and decide to *quickly* correct them by hand.
 Maybe only 3 men were coded as "Male" so you simply erase the "ale" and go on
 with your project. Stop!
 
-Write it down!
+Write IT down!
 
 Write a couple of lines of code that does the replacement for you. Not only will
 this leave a trace, it will ensure that when you get an update to that data in
