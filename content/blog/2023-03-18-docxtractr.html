@@ -1,0 +1,479 @@
+---
+date: 2023-03-18
+title: Automating checks of *handcrafted* Word tables with {docxtractr}
+tags: [R]
+menu:
+main:
+  parent: Blog
+  identifier: /blog/docxtractr.Rmd
+  weight: 1
+---
+
+
+
+<div style="text-align:center;">
+<p><img src="/img/excel_nightmare.png" width="100%"></p>
+</div>
+<p>Unfortunately not everyone knows about literate programming so many tables in
+Word documents are “generated” by hand (generated is really too strong a word)
+and what very often happens is that these handcrafted tables have typos. Usually
+it’s totals that are wrong. Checking the totals in these tables by hand with a
+pocket calculator is a tedious, long and boring job.</p>
+<p>So as my job’s <em>statistician but also kinda automation dude that types all day
+in a weird black box</em>, I’ve been asked if it were possible to automate these
+checks on tables in a Word document. And of course, the answer is yes, because
+whatever you need to get done, there’s an R package for that!</p>
+<p>There are, to my knowledge, 2 packages that we can use to get tables from a Word
+document into R (an activity that I will now refer to as <em>office-scraping</em>).</p>
+<p>These packages are <code>{officer}</code> and <code>{docxtractr}</code>. For his particular task I’ve
+used <code>{docxtractr}</code>. The reason is that <code>{docxtractr}</code> returns the table
+“as-is”, while <code>{officer}</code> returns a tibble where each cell of the table gets a
+row in the tibble. <code>{officer}</code>’s representation of the scraped tables might be
+useful in some cases, but in this particular case, <code>{docxtractr}</code>’s approach was
+exactly what I needed.</p>
+<p>First of all, we need a Word document with some tables.<a href="https://github.com/rbind/b-rodrigues.github.com/raw/master/content/blog/report.docx">Here’s
+one</a>
+I’ve prepared that contains two tables that look close to the ones I had to deal
+with. In the actual document, there were hundreds of such tables. Here’s a
+picture of the tables in case you can’t open the document:</p>
+<div style="text-align:center;">
+<p><img src="/img/report_tables.png" width="100%"></p>
+</div>
+<p>The first table is divided by departments of the company, and each section of
+the table has its own sub-total. As stated in the beginning, the goal is to
+check for typos by recomputing the sub-totals and totals and then comparing
+the original tables with the ones where the totals were recomputed.</p>
+<p>The problem we will face with each table are the merged cells; if there were
+no merged cells, scraping them with <code>{docxtractr}</code> would be trivially simple,
+but because of these merged cells, we will have to write quite a lot of code
+to get them in a format that we can actually use.</p>
+<div id="extracting-the-tables-using-docxtractr" class="section level2">
+<h2>Extracting the tables using {docxtractr}</h2>
+<p><code>{docxtractr}</code> has a very handy function that gets all the tables from a Word
+document and puts them into a list (it’s also possible to extract other stuff
+like comments). Let’s start by loading <code>{dplyr}</code> (for the rest of the functions,
+I’ll use the <code>package::function()</code> notation to make it clear where the functions
+come from):</p>
+<pre class="r"><code>library(dplyr)</code></pre>
+<p>Let’s now read the document using <code>{docxtractr}</code>:</p>
+<pre class="r"><code>doc_raw &lt;- docxtractr::read_docx(&quot;report.docx&quot;)</code></pre>
+<p>And let’s get all the tables:</p>
+<pre class="r"><code>list_tables &lt;- docxtractr::docx_extract_all_tbls(doc_raw)</code></pre>
+<p>Let’s now take a look at the second element of the list, which corresponds to
+the second table (I’m starting with the second table because it’s the smallest
+of the two):</p>
+<pre class="r"><code>table_1 &lt;- list_tables[[1]] %&gt;%
+  janitor::clean_names()
+
+table_2 &lt;- list_tables[[2]] %&gt;%
+  janitor::clean_names()
+
+table_2</code></pre>
+<pre><code>## # A tibble: 8 × 11
+##   company            x2020 x2021 x2022 na    na_2  na_3  na_4  na_5  na_6  na_7 
+##   &lt;chr&gt;              &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;
+## 1 &quot;&quot;                 M     F     Total M     F     Total M     F     Total &lt;NA&gt; 
+## 2 &quot;Luxembourg branc… Work… 92    124   210   87    129   216   99    129   228  
+## 3 &quot;&quot;                 Mana… 22    81    103   28    81    109   26    85    112  
+## 4 &quot;&quot;                 Assi… 1     0     10    1     0     1     1     0     1    
+## 5 &quot;&quot;                 Dire… 3     1     4     0     0     0     0     1     0    
+## 6 &quot;External consult… 38    55    95    35    64    99    42    70    112   &lt;NA&gt; 
+## 7 &quot;Statisticians&quot;    0     0     0     0     0     0     0     0     0     &lt;NA&gt; 
+## 8 &quot;Total&quot;            156   263   419   151   274   425   168   285   453   &lt;NA&gt;</code></pre>
+<p>As you can see, because of the merged cells, the rows are not all aligned with
+the columns. So we need to split the table, and treat the two parts separately.
+I’m starting with the part of the table where the rows are correctly aligned
+with the columns. This is just a matter of renaming some columns, and converting
+the numbers (that are represented as characters) into <code>numeric</code>s:</p>
+<pre class="r"><code>table_2_1 &lt;- table_2 %&gt;%
+  select(-company) %&gt;%
+  filter(!is.na(na_7)) %&gt;%
+  purrr::set_names(
+    c(&quot;worker_type&quot;,
+      &quot;m_2020&quot;,
+      &quot;f_2020&quot;,
+      &quot;t_2020&quot;,
+      &quot;m_2021&quot;,
+      &quot;f_2021&quot;,
+      &quot;t_2021&quot;,
+      &quot;m_2022&quot;,
+      &quot;f_2022&quot;,
+      &quot;t_2022&quot;
+      )
+    ) %&gt;%
+  mutate(across(!starts_with(&quot;worker&quot;),
+                as.numeric))
+
+table_2_1</code></pre>
+<pre><code>## # A tibble: 4 × 10
+##   worker_type m_2020 f_2020 t_2020 m_2021 f_2021 t_2021 m_2022 f_2022 t_2022
+##   &lt;chr&gt;        &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;
+## 1 Workers         92    124    210     87    129    216     99    129    228
+## 2 Managers        22     81    103     28     81    109     26     85    112
+## 3 Assistants       1      0     10      1      0      1      1      0      1
+## 4 Directors        3      1      4      0      0      0      0      1      0</code></pre>
+<p>Let’s now deal with the second part of the table. This is the part of the table
+where the rows were not aligned with the columns, due to the merged cells.
+The operations are essentially the same as before, the difference is that we need
+to remove a different column (here we remove <code>na_7</code>, before it was <code>company</code>):</p>
+<pre class="r"><code>table_2_2 &lt;- table_2 %&gt;%
+  filter(is.na(na_7)) %&gt;%
+  select(-na_7) %&gt;%
+  rename(worker_type = company) %&gt;%
+  filter(worker_type != &quot;&quot;) %&gt;%
+  purrr::set_names(
+           c(&quot;worker_type&quot;,
+             &quot;m_2020&quot;,
+             &quot;f_2020&quot;,
+             &quot;t_2020&quot;,
+             &quot;m_2021&quot;,
+             &quot;f_2021&quot;,
+             &quot;t_2021&quot;,
+             &quot;m_2022&quot;,
+             &quot;f_2022&quot;,
+             &quot;t_2022&quot;
+             )
+         ) %&gt;%
+  mutate(across(!starts_with(&quot;worker&quot;),
+                as.numeric))
+
+table_2_2</code></pre>
+<pre><code>## # A tibble: 3 × 10
+##   worker_type     m_2020 f_2020 t_2020 m_2021 f_2021 t_2021 m_2022 f_2022 t_2022
+##   &lt;chr&gt;            &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;
+## 1 External consu…     38     55     95     35     64     99     42     70    112
+## 2 Statisticians        0      0      0      0      0      0      0      0      0
+## 3 Total              156    263    419    151    274    425    168    285    453</code></pre>
+<p>I didn’t comment the operations, but if you’re following along, take some time
+to see what each line does.</p>
+<p>Now we can bind the rows and we end up with the table from the Word document as
+a flat and easy to manipulate data frame:</p>
+<pre class="r"><code>table_2_clean &lt;- bind_rows(
+  table_2_1,
+  table_2_2
+)
+
+table_2_clean</code></pre>
+<pre><code>## # A tibble: 7 × 10
+##   worker_type     m_2020 f_2020 t_2020 m_2021 f_2021 t_2021 m_2022 f_2022 t_2022
+##   &lt;chr&gt;            &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;
+## 1 Workers             92    124    210     87    129    216     99    129    228
+## 2 Managers            22     81    103     28     81    109     26     85    112
+## 3 Assistants           1      0     10      1      0      1      1      0      1
+## 4 Directors            3      1      4      0      0      0      0      1      0
+## 5 External consu…     38     55     95     35     64     99     42     70    112
+## 6 Statisticians        0      0      0      0      0      0      0      0      0
+## 7 Total              156    263    419    151    274    425    168    285    453</code></pre>
+<p>All of this because of these merged cells! This may seem like a lot of work, but
+imagine that you need to check 50 such tables. You could put all the previous
+operations into a function and then simply apply that function over all the
+tables (which is exactly what I did at my job). So you end up with 50 cleaned
+tables in a matter of seconds. Now let’s not forget our original objective, we
+wanted to recompute the totals to check if everything was alright. In the
+operations below I remove the columns that represent the totals and remove the
+row with the grand totals as well. I then simply recompute the totals:</p>
+<pre class="r"><code>table_2_totals &lt;- table_2_clean %&gt;%
+  select(-starts_with(&quot;t_&quot;)) %&gt;%
+  filter(worker_type != &quot;Total&quot;) %&gt;%
+  mutate(
+    t_2020 = m_2020 + f_2020,
+    t_2021 = m_2021 + f_2021,
+    t_2022 = m_2022 + f_2022,
+    ) %&gt;%
+  select(
+    worker_type,
+    m_2020,
+    f_2020,
+    t_2020,
+    m_2021,
+    f_2021,
+    t_2021,
+    m_2022,
+    f_2022,
+    t_2022,
+    ) %&gt;%
+  janitor::adorn_totals()</code></pre>
+<p>We can now compare both data frames and see if there were mistakes:</p>
+<pre class="r"><code>table_2_clean == table_2_totals</code></pre>
+<pre><code>##      worker_type m_2020 f_2020 t_2020 m_2021 f_2021 t_2021 m_2022 f_2022 t_2022
+## [1,]        TRUE   TRUE   TRUE  FALSE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE
+## [2,]        TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE  FALSE
+## [3,]        TRUE   TRUE   TRUE  FALSE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE
+## [4,]        TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE  FALSE
+## [5,]        TRUE   TRUE   TRUE  FALSE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE
+## [6,]        TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE
+## [7,]        TRUE   TRUE  FALSE  FALSE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE</code></pre>
+<p>We do see a bunch of <code>FALSE</code> statements, so we need to check those! This is
+where some typos where found.</p>
+<p>Let’s now deal with table 1. The way we will handle this one will be very
+similar to the one before. It’s just that we have subtotals to deal with as
+well.</p>
+<pre class="r"><code>table_1</code></pre>
+<pre><code>## # A tibble: 32 × 8
+##    by_department   fte        persons na    na_2  na_3  na_4  na_5 
+##    &lt;chr&gt;           &lt;chr&gt;      &lt;chr&gt;   &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;
+##  1 &quot;&quot;              M          F       Total M     F     Total &lt;NA&gt; 
+##  2 &quot;Dep A&quot;         Workers    12,30   33,40 55,70 13    36    59   
+##  3 &quot;&quot;              Managers   3,80    19,90 15,70 4     19    19   
+##  4 &quot;&quot;              Assistants 0,00    0,00  0,00  0     0     0    
+##  5 &quot;&quot;              Directors  0,20    0,00  0,20  1     0     1    
+##  6 &quot;Total – Dep A&quot; 26,30      45,30   71,60 28,00 51,00 79,00 &lt;NA&gt; 
+##  7 &quot;Dep B&quot;         Workers    31,80   39,60 71,40 32    41    73   
+##  8 &quot;&quot;              Managers   3,00    13,50 16,50 3     15    18   
+##  9 &quot;&quot;              Assistants 0,00    0,00  0,00  0     0     0    
+## 10 &quot;&quot;              Directors  0,20    0,20  0,40  1     1     2    
+## # … with 22 more rows</code></pre>
+<p>Here as well, we have a problem with merged cells. But only the rows with the
+totals are affected. So just like before, we can split that into two tables and
+deal with the two parts separately:</p>
+<pre class="r"><code>table_1_1 &lt;- table_1 %&gt;%
+  filter(!grepl(&quot;(t|T)otal&quot;, by_department),
+         fte != &quot;M&quot;) %&gt;%
+  purrr::set_names(
+           c(&quot;department&quot;,
+             &quot;worker_type&quot;,
+             &quot;m_fte&quot;,
+             &quot;f_fte&quot;,
+             &quot;t_fte&quot;,
+             &quot;m_hc&quot;,
+             &quot;f_hc&quot;,
+             &quot;t_hc&quot;
+             )
+         ) %&gt;%
+  mutate(department = ifelse(department == &quot;&quot;,
+                              NA,
+                              department)) %&gt;%
+  tidyr::fill(department, .direction = &quot;down&quot;) %&gt;%
+  mutate(across(contains(&quot;fte&quot;),
+                \(x)(gsub(pattern = &quot;,&quot;, replacement = &quot;.&quot;, x = x))),
+         across(-c(&quot;department&quot;, &quot;worker_type&quot;),
+                as.numeric)) %&gt;%
+  as.data.frame()</code></pre>
+<p>Here again, it’s really worth it to take your time going through all the
+different commands.</p>
+<p>Let’s now clean the totals:</p>
+<pre class="r"><code>table_1_2 &lt;- table_1 %&gt;%
+  filter(grepl(&quot;(t|T)otal&quot;, by_department),
+         fte != &quot;M&quot;) %&gt;%
+  select(by_department, na_5, everything()) %&gt;%
+  purrr::set_names(
+           c(&quot;department&quot;,
+             &quot;worker_type&quot;,
+             &quot;m_fte&quot;,
+             &quot;f_fte&quot;,
+             &quot;t_fte&quot;,
+             &quot;m_hc&quot;,
+             &quot;f_hc&quot;,
+             &quot;t_hc&quot;
+             )
+         ) %&gt;%
+  tidyr::fill(department, .direction = &quot;down&quot;) %&gt;%
+  mutate(across(-c(&quot;department&quot;, &quot;worker_type&quot;),
+                \(x)(gsub(pattern = &quot;,&quot;, replacement = &quot;.&quot;, x = x))),
+         across(-c(&quot;department&quot;, &quot;worker_type&quot;),
+                as.numeric)) %&gt;%
+  as.data.frame()</code></pre>
+<p>Finally, we can bind the rows and we end up with a clean data frame:</p>
+<pre class="r"><code>table_1 &lt;- bind_rows(
+  table_1_1,
+  table_1_2
+)
+
+table_1</code></pre>
+<pre><code>##       department worker_type m_fte  f_fte  t_fte m_hc f_hc t_hc
+## 1          Dep A     Workers  12.3  33.40  55.70   13   36   59
+## 2          Dep A    Managers   3.8  19.90  15.70    4   19   19
+## 3          Dep A  Assistants   0.0   0.00   0.00    0    0    0
+## 4          Dep A   Directors   0.2   0.00   0.20    1    0    1
+## 5          Dep B     Workers  31.8  39.60  71.40   32   41   73
+## 6          Dep B    Managers   3.0  13.50  16.50    3   15   18
+## 7          Dep B  Assistants   0.0   0.00   0.00    0    0    0
+## 8          Dep B   Directors   0.2   0.20   0.40    1    1    2
+## 9          Dep C     Workers  19.0  24.20  43.20   20   26   46
+## 10         Dep C    Managers   1.0   8.95   9.95    1   11   12
+## 11         Dep C  Assistants   0.0   0.00   0.00    0    0    0
+## 12         Dep C   Directors   0.0   0.00   0.00    0    0    0
+## 13         Dep D     Workers   7.5   5.00  12.50    8    5   13
+## 14         Dep D    Managers   0.5   1.60   2.10    1    2    3
+## 15         Dep D  Assistants   1.0   0.00   1.60    1    0    1
+## 16         Dep D   Directors   0.4   0.00   0.40    1    0    1
+## 17         Dep E     Workers  11.8  13.75  27.55   14   16   30
+## 18         Dep E    Managers  16.0  38.20  54.20   17   42   59
+## 19         Dep E  Assistants   0.0   0.00   0.00    0    0    0
+## 20         Dep E   Directors   0.0   0.00   0.00    0    0    0
+## 21         Dep F     Workers   0.2   0.00   0.20    1    0    1
+## 22         Dep F    Managers   0.0   0.00   0.00    0    0    0
+## 23         Dep F  Assistants   0.0   0.00   0.00    0    0    0
+## 24         Dep F   Directors   0.2   0.00   0.20    1    0    1
+## 25 Total – Dep A        &lt;NA&gt;  26.3  45.30  71.60   28   51   79
+## 26 Total – Dep B        &lt;NA&gt;  35.0  53.30  98.30   36   57   93
+## 27 Total – Dep C        &lt;NA&gt;  20.0  33.15  53.15   21   37   58
+## 28 Total – Dep D        &lt;NA&gt;   9.4   6.60  16.00   11    7   18
+## 29 Total – Dep E        &lt;NA&gt;  29.8  51.95  81.75   31   58   89
+## 30 Total – Dep F        &lt;NA&gt;   1.0   1.00   0.20    1    1    1
+## 31   Grand total        &lt;NA&gt; 101.5 195.40 316.90  129  216  345</code></pre>
+<p>Again, let’s not forget our objective: recomputing the totals to see if
+everything is alright. So because we need each sub-total, one per department,
+we will simply group by departments and use <code>janitor::adorn_totals()</code>. But
+<code>janitor::adorn_totals()</code> does not work on grouped data frames. So instead
+I use <code>group_nest()</code> to create a tibble with a list column, and then map
+<code>janitor::adorn_totals</code>:</p>
+<pre class="r"><code>table_1_subtotals &lt;- table_1 %&gt;%
+  filter(!grepl(&quot;(t|T)otal&quot;, department)) %&gt;%
+  group_nest(department) %&gt;%
+  mutate(data = purrr::map(data, janitor::adorn_totals)) %&gt;%
+  tidyr::unnest(cols = data) %&gt;%
+  arrange(department) %&gt;%
+  as.data.frame()</code></pre>
+<p>Ok so in the table above I have the subtotals per department. Now, I need to
+compute the grand total:</p>
+<pre class="r"><code>table_1_total &lt;- table_1_subtotals %&gt;%
+  filter(grepl(&quot;Total&quot;, worker_type)) %&gt;%
+  janitor::adorn_totals()</code></pre>
+<p>Now I just need to bind the grand total to the table from before:</p>
+<pre class="r"><code>table_1_clean &lt;- bind_rows(
+  table_1_subtotals,
+  filter(
+    table_1_total,
+    department == &quot;Total&quot;)
+)
+
+table_1_clean</code></pre>
+<pre><code>##    department worker_type m_fte  f_fte  t_fte m_hc f_hc t_hc
+## 1       Dep A     Workers  12.3  33.40  55.70   13   36   59
+## 2       Dep A    Managers   3.8  19.90  15.70    4   19   19
+## 3       Dep A  Assistants   0.0   0.00   0.00    0    0    0
+## 4       Dep A   Directors   0.2   0.00   0.20    1    0    1
+## 5       Dep A       Total  16.3  53.30  71.60   18   55   79
+## 6       Dep B     Workers  31.8  39.60  71.40   32   41   73
+## 7       Dep B    Managers   3.0  13.50  16.50    3   15   18
+## 8       Dep B  Assistants   0.0   0.00   0.00    0    0    0
+## 9       Dep B   Directors   0.2   0.20   0.40    1    1    2
+## 10      Dep B       Total  35.0  53.30  88.30   36   57   93
+## 11      Dep C     Workers  19.0  24.20  43.20   20   26   46
+## 12      Dep C    Managers   1.0   8.95   9.95    1   11   12
+## 13      Dep C  Assistants   0.0   0.00   0.00    0    0    0
+## 14      Dep C   Directors   0.0   0.00   0.00    0    0    0
+## 15      Dep C       Total  20.0  33.15  53.15   21   37   58
+## 16      Dep D     Workers   7.5   5.00  12.50    8    5   13
+## 17      Dep D    Managers   0.5   1.60   2.10    1    2    3
+## 18      Dep D  Assistants   1.0   0.00   1.60    1    0    1
+## 19      Dep D   Directors   0.4   0.00   0.40    1    0    1
+## 20      Dep D       Total   9.4   6.60  16.60   11    7   18
+## 21      Dep E     Workers  11.8  13.75  27.55   14   16   30
+## 22      Dep E    Managers  16.0  38.20  54.20   17   42   59
+## 23      Dep E  Assistants   0.0   0.00   0.00    0    0    0
+## 24      Dep E   Directors   0.0   0.00   0.00    0    0    0
+## 25      Dep E       Total  27.8  51.95  81.75   31   58   89
+## 26      Dep F     Workers   0.2   0.00   0.20    1    0    1
+## 27      Dep F    Managers   0.0   0.00   0.00    0    0    0
+## 28      Dep F  Assistants   0.0   0.00   0.00    0    0    0
+## 29      Dep F   Directors   0.2   0.00   0.20    1    0    1
+## 30      Dep F       Total   0.4   0.00   0.40    2    0    2
+## 31      Total           - 108.9 198.30 311.80  119  214  339</code></pre>
+<p>We’re almost done! We now need to make sure that the rows are in the same
+order across the two tables. So we need to transform the original table from
+the Word document a little bit:</p>
+<pre class="r"><code>table_1 &lt;- table_1 %&gt;%
+  mutate(worker_type = ifelse(is.na(worker_type),
+                              &quot;Total&quot;,
+                              worker_type)) %&gt;%
+  mutate(department = stringr::str_remove_all(department, &quot;Total – &quot;),
+         worker_type = ifelse(department == &quot;Grand total&quot;,
+                              &quot;-&quot;,
+                              worker_type),
+         department = ifelse(department == &quot;Grand total&quot;,
+                             &quot;Total&quot;,
+                             department))</code></pre>
+<p>We can now order them the same way, and finally compare them!</p>
+<pre class="r"><code>arrange(table_1, worker_type) == arrange(table_1_clean, worker_type)</code></pre>
+<pre><code>##       department worker_type m_fte f_fte t_fte  m_hc  f_hc  t_hc
+##  [1,]       TRUE        TRUE FALSE FALSE FALSE FALSE FALSE FALSE
+##  [2,]       TRUE        TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE
+##  [3,]       TRUE        TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE
+##  [4,]       TRUE        TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE
+##  [5,]       TRUE        TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE
+##  [6,]       TRUE        TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE
+##  [7,]       TRUE        TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE
+##  [8,]       TRUE        TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE
+##  [9,]       TRUE        TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE
+## [10,]       TRUE        TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE
+## [11,]       TRUE        TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE
+## [12,]       TRUE        TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE
+## [13,]       TRUE        TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE
+## [14,]       TRUE        TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE
+## [15,]       TRUE        TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE
+## [16,]       TRUE        TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE
+## [17,]       TRUE        TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE
+## [18,]       TRUE        TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE
+## [19,]       TRUE        TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE
+## [20,]       TRUE        TRUE FALSE FALSE FALSE FALSE FALSE  TRUE
+## [21,]       TRUE        TRUE  TRUE FALSE FALSE  TRUE  TRUE  TRUE
+## [22,]       TRUE        TRUE  TRUE  TRUE FALSE  TRUE  TRUE  TRUE
+## [23,]       TRUE        TRUE  TRUE  TRUE FALSE  TRUE  TRUE  TRUE
+## [24,]       TRUE        TRUE FALSE  TRUE  TRUE  TRUE  TRUE  TRUE
+## [25,]       TRUE        TRUE FALSE FALSE FALSE FALSE FALSE FALSE
+## [26,]       TRUE        TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE
+## [27,]       TRUE        TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE
+## [28,]       TRUE        TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE
+## [29,]       TRUE        TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE
+## [30,]       TRUE        TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE
+## [31,]       TRUE        TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE</code></pre>
+<p>Let’s see where all the <code>FALSE</code>s are:</p>
+<pre class="r"><code>arrange(table_1, worker_type)</code></pre>
+<pre><code>##    department worker_type m_fte  f_fte  t_fte m_hc f_hc t_hc
+## 1       Total           - 101.5 195.40 316.90  129  216  345
+## 2       Dep A  Assistants   0.0   0.00   0.00    0    0    0
+## 3       Dep B  Assistants   0.0   0.00   0.00    0    0    0
+## 4       Dep C  Assistants   0.0   0.00   0.00    0    0    0
+## 5       Dep D  Assistants   1.0   0.00   1.60    1    0    1
+## 6       Dep E  Assistants   0.0   0.00   0.00    0    0    0
+## 7       Dep F  Assistants   0.0   0.00   0.00    0    0    0
+## 8       Dep A   Directors   0.2   0.00   0.20    1    0    1
+## 9       Dep B   Directors   0.2   0.20   0.40    1    1    2
+## 10      Dep C   Directors   0.0   0.00   0.00    0    0    0
+## 11      Dep D   Directors   0.4   0.00   0.40    1    0    1
+## 12      Dep E   Directors   0.0   0.00   0.00    0    0    0
+## 13      Dep F   Directors   0.2   0.00   0.20    1    0    1
+## 14      Dep A    Managers   3.8  19.90  15.70    4   19   19
+## 15      Dep B    Managers   3.0  13.50  16.50    3   15   18
+## 16      Dep C    Managers   1.0   8.95   9.95    1   11   12
+## 17      Dep D    Managers   0.5   1.60   2.10    1    2    3
+## 18      Dep E    Managers  16.0  38.20  54.20   17   42   59
+## 19      Dep F    Managers   0.0   0.00   0.00    0    0    0
+## 20      Dep A       Total  26.3  45.30  71.60   28   51   79
+## 21      Dep B       Total  35.0  53.30  98.30   36   57   93
+## 22      Dep C       Total  20.0  33.15  53.15   21   37   58
+## 23      Dep D       Total   9.4   6.60  16.00   11    7   18
+## 24      Dep E       Total  29.8  51.95  81.75   31   58   89
+## 25      Dep F       Total   1.0   1.00   0.20    1    1    1
+## 26      Dep A     Workers  12.3  33.40  55.70   13   36   59
+## 27      Dep B     Workers  31.8  39.60  71.40   32   41   73
+## 28      Dep C     Workers  19.0  24.20  43.20   20   26   46
+## 29      Dep D     Workers   7.5   5.00  12.50    8    5   13
+## 30      Dep E     Workers  11.8  13.75  27.55   14   16   30
+## 31      Dep F     Workers   0.2   0.00   0.20    1    0    1</code></pre>
+<p>We see that the totals for department A and F are all wrong, and some others for
+other departments as well. Obviously the grand total is this completely wrong!</p>
+</div>
+<div id="conclusion" class="section level2">
+<h2>Conclusion</h2>
+<p>If this looked complicated, let me assure you that, yes, it was. That’s quite
+typical with tasks like these: if the data is not in a tidy format, you really
+have to type a lot of code to make it tidy. But the advantage now is that I
+could put all this code into two functions, and apply them to as many tables as
+I need. This is what I did, and what I will be doing in the future as well.
+Now that the code is written, I can simply keep applying it to future reports
+that use the same table format.</p>
+<p>
+Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://fosstodon.org/@brodriguesco">Mastodon</a> or <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my <a href="https://www.brodrigues.co/about/books/">ebooks</a>.
+You can also watch my videos on <a href="https://www.youtube.com/c/BrunoRodrigues1988/">youtube</a>.
+So much content for you to consoom!
+</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p>
+<link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a>
+</p>
+</div>
