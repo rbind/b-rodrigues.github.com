@@ -1,0 +1,140 @@
+---
+date: 2023-04-25
+title: I've been blogging for 10 years
+tags: [R]
+menu:
+main:
+  parent: Blog
+  identifier: /blog/10_years.Rmd
+  weight: 1
+---
+
+<div style="text-align:center;">
+ <img src="/img/10_years.jpg">
+</div>
+
+I’ve been blogging for 10 years, actually even a bit more than that, my very first
+blog is not online anymore and if I remember correctly was in French. I think it
+was around 2010 when I was a Master’s student.
+
+Anyways, here are my thoughts on why I think blogging is a very nice activity if
+you’re interested in technology or science.
+
+The primary reason I started my blog was to have a repository of code snippets
+that I could re-use. Anytime I had to do something for my thesis or for work, I
+would write instructions around the code that I’ve used to explain how and why
+things worked out. But I needed a spot to save these scripts, and it turns out
+that a blog was the best solution for this: it doesn’t require any subscription
+to a (very often proprietary) service to store my notes for me, and I need 0
+discipline to maintain a blog. Simply write a post, push to Github, website gets
+updated. If I would store the notes myself on my computer instead, this would
+mean a lot of work, and I would need to think about how to make them available
+across devices.
+
+The other reason is that I thought that this would be a good way for me to
+contribute to the wider free software and open source ecosystem. I’m not a
+programmer, so contributing code would be quite difficult for me. I’ve recently
+published a [package](https://b-rodrigues.github.io/chronicler/), so in the end
+I ended up contributing code, but that was more due to "luck" finding an actual
+problem that hadn’t been solved (well, that’s not really the case, logging in R
+had been solved, but not using a monad and for some reason I had become obsessed
+with monads in 2022) and also thanks to the help of much better programmers than
+myself. So writing and posting these blog posts would be my way to contribute to
+the community. I think that this was the right decision, as I’ve had many people
+throughout the years thank me for some of my blog posts that helped them with
+some of their tasks.
+
+Now, not all blog posts were about problems that I encountered throughout my
+career. There were also some blog posts about topics that piqued my interest,
+but purely out of curiosity. For example the ones about NLP, like this
+[one](https://www.brodrigues.co/blog/2019-04-07-historical_newspaper_scraping_tesseract/),
+among others. I’m lucky enough that I find enjoyment in programming and exploring
+data for fun, so I do write a lot of code. But how did I manage to consistently
+write blog posts for 10 years+?
+
+I think that part of the reason is that I have literally 0 commitment to this
+blog. I don’t force myself to write on a schedule and sometimes don’t write for
+months like in 2020 where I didn’t write for 5 months because I was busy
+renovating my home and taking care of my baby daughter. I didn’t even miss
+writing. I think that one of the reasons this works is also because I have
+absolutely 0 trackers on this website. For all I know, this post will get read
+by 3 people, me, you and my mom. The only clue I have that one particular post
+was successful is if people reshare the announcement I make on social media, or
+if they contact me with questions or praise, or if it gets picked up for the R
+weekly highlights. By not having any trackers and not having really a clue of
+what people like, I avoid falling into the "recommendation engine" or "SEO"
+trap. If I did use trackers and knew exactly what my *audience* wanted, I’d be
+very incentivized to just continue writing what would generate the most traffic.
+And the issue with that, is that it would feel like a job, and I very likely
+would have abandoned this endeavour a long time ago. What generates a lot of
+traffic are posts mostly aimed at beginners, tutorials that explain how to do a
+t-test or make a bar graph with two y-axes, but sorry, I’m not interested. I
+don’t *hate* beginners, but I don’t only want to write tutorials to serve ads to
+my readers and tell them to subscribe to newsletters, bla bla bla. I have no
+qualms with people doing this, but that’s simply not my thing. Not interested (and 
+don’t get me wrong, I have nothing against tutorial blog post, quite the contrary,
+especially when they present some lesser-known features of a package).
+
+Also, the first thing I install on my web-browser is an ad-blocker, and I would
+be a huge hypocrite if I tracked my blog’s visits. To be fully transparent, I do
+use Goatcounter for my latest book [here](https://raps-with-r.dev/), but I don’t
+adjust the book’s content to the audience. It’s just to know if people read it,
+because writing a book takes some effort and I was curious. I might remove it in
+the future though. Again, nothing against people trying to live off the
+internet, I myself accept
+[donations](https://www.buymeacoffee.com/brodriguesco), but if I started to look
+into what drives people to click and donate, I’d turn this into a job, and that
+would be the fastest way for me to hate blogging.
+
+So the reason this has been working is simply because I avoided considering this
+as an obligation, a duty or a job, and in order to do this, I avoid collecting
+data.
+
+So blogging is a nice way to store code snippets and quickly find them. These
+code snippets can in turn help other people facing similar issues. But what are
+some other benefits of blogging? First, by turning your code into a full-fledged
+blog post, it also forces you to think more carefully about the solution you
+found. Very often, while writing the blog post to a problem I’ve solved, I often
+find a simpler, more elegant solution, and then use that solution instead to
+solve my problem. It’s a similar idea to rubber duck debugging, or writing a
+Minimal Reproducible Example when opening an issue because (you think) you found
+a nasty bug somewhere in that package you use daily and never bothered reading
+the documentation for carefully. Blogging is also a way to get some feedback by
+other people, and sometimes people show me other ways of doing things, like
+[here](https://www.brodrigues.co/blog/2021-09-05-speedrunning_rows/). Blogging
+also helped me meet people in the real world, and discuss with them about
+certain of the topics I’ve blogged about. I think that’s really neat.
+
+Blogging also helps (at least it helped me) realize what I really enjoy about
+statistics, programming, and data science, and once you have a nice collection
+of blog posts, you could turn them easily into a book. That’s another way of
+contributing to the community. I’ve written two books, the latest one seems
+to really interest people:
+<blockquote class="twitter-tweet"><p lang="en" dir="ltr">My book is done. I need to write a conclusion to the last chapter and will likely rewrite some paragraphs, but I won&#39;t make major changes anymore. So if you&#39;re interested in building reproducible analytical pipelines with <a href="https://twitter.com/hashtag/RStats?src=hash&amp;ref_src=twsrc%5Etfw">#RStats</a>, take a look it&#39;s free: <a href="https://t.co/Vx8LGpddwR">https://t.co/Vx8LGpddwR</a> <a href="https://t.co/PKFb2P4pJK">pic.twitter.com/PKFb2P4pJK</a></p>&mdash; Bruno Rodrigues (@brodriguesco@fosstodon.org) (@brodriguesco) <a href="https://twitter.com/brodriguesco/status/1650229398988095489?ref_src=twsrc%5Etfw">April 23, 2023</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+That’s my most "viral" tweet! Before it was this classic:
+
+<blockquote class="twitter-tweet"><p lang="en" dir="ltr">&quot;doing science&quot; <a href="https://t.co/T0TJQ6vY6q">pic.twitter.com/T0TJQ6vY6q</a></p>&mdash; Bruno Rodrigues (@brodriguesco@fosstodon.org) (@brodriguesco) <a href="https://twitter.com/brodriguesco/status/1443538925474222080?ref_src=twsrc%5Etfw">September 30, 2021</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+
+I’m sure that many people, maybe even you!, work in an industry that tackles
+many interesting problems, and could share that with the world either through
+blog posts or books, or videos (yes, I also do that
+[sometimes](https://www.youtube.com/channel/UCTZXht1RTL2Duc3eU8MYGzQ)), and many
+people would find that interesting. I’ve had people tell me that they have
+nothing interesting to write about, so they don’t even want to start. Who cares,
+just write.
+
+So it’d be cool if you blogged. I like it, so maybe you will as well?
+
+Anyways, thanks for reading, especially if you’ve been reading my blog for years. 
+
+Here’s to 10 more years!
+
+<p>Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://fosstodon.org/@brodriguesco">Mastodon</a> or <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my <a href="https://www.brodrigues.co/about/books/">ebooks</a>.
+You can also watch my videos on <a href="https://www.youtube.com/c/BrunoRodrigues1988/">youtube</a>.
+So much content for you to consoom!</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
