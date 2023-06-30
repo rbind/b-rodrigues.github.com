@@ -23,7 +23,7 @@ others.</p>
 <ul>
   <li>Read it for free: <a href="https://raps-with-r.dev/">https://raps-with-r.dev/</a></li>
   <li>Buy the DRM free Epub or PDF: <a href="https://leanpub.com/raps-with-r/">https://leanpub.com/raps-with-r/</a></li>
-  <li>Buy a physical copy (coming 2023)</li>
+  <li>Buy a physical copy on Amazon: <a href="https://www.amazon.com/Building-reproducible-analytical-pipelines-R/dp/B0C87H6MGF">https://www.amazon.com/Building-reproducible-analytical-pipelines-R/dp/B0C87H6MGF</a></li>
 </ul>
 </p>
 
