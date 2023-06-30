@@ -13,6 +13,12 @@ main:
  <img src="/img/gosling.jpg" width="100%">
 </div>
 
+UPDATE: I've update this blog post on the 30 of June 2023. I corrected a statement
+where I said that the `_quarto.yml` file is where you can choose the version of R
+to compile the book. That's wrong, choosing the version of R to compile the book
+is done on the Github Actions workflow. I've also added some answers to questions
+I got on social media.
+
 So I’ve recently self-published a book on both
 [Leanpub](https://leanpub.com/raps-with-r/) as an Ebook and
 [Amazon](https://www.amazon.com/dp/B0C87H6MGF) as a *physical* book and thought
@@ -50,8 +56,8 @@ file using `renv::snapshot()`.
 
 Whatever output format, everything gets defined in the `_quarto.yml` file in the
 root directory of your book. This file is where you can choose which themes to
-use for your website for example, which version of R to use to compile the book
-etc. I’ll discuss each option for each format below.
+use for your website for example, which output formats you want to compile your
+book into, etc. I’ll discuss each option for each format below.
 
 ## Generating the website
 
@@ -62,7 +68,9 @@ a specific place in your repository.
 [Here](https://github.com/b-rodrigues/kdp_quarto/blob/main/.github/workflows/build_book.yml)
 is that file for the repo I linked above. I won’t go into details because I’ve
 explained how Github Actions works
-[here](https://www.brodrigues.co/blog/2022-11-19-raps/) already.
+[here](https://www.brodrigues.co/blog/2022-11-19-raps/) already, but you'll notice
+that you can choose a version of R to compile your document and also a different
+version of Quarto. This can be useful for reproducibility.
 
 Create a new branch called `gh-pages` and then go to settings, then on the
 side-bar on the left choose "Actions", and scroll down. Then, in "Workflow
@@ -190,6 +198,39 @@ That's it! You should now be able to generate a book that is print-ready, and
 an Epub that passes `epubcheck` as well as website. You can now just focus
 on writing. Also check the source of `index.qmd` for to see how to include text
 in the PDF only (or not show text in the PDF).
+
+## My personal experience and some FAQ
+
+Overall, I enjoyed using both Leanpub and Amazon to publish my book. Leanpub is
+really nice, because they really offer a very nice deal: you get 80% of the
+sales price as royalties, which is the highest share I've seen. Also the people
+working there are really nice, I've had the chance to discuss with Len Epp,
+Leanpub's cofounder, in his [Frontmatter podcast](https://youtu.be/aXfjhf2cDo0)
+and would definitely continue using their platform in the future. Regarding
+Amazon I must say that the experience was quite good as well; the only friction
+I had was getting the PDF in the right format for printing, but that's hardly
+something that Amazon can be blamed for. After all if the PDF's formatting is
+bad, the books will look like crap as well. One thing you should know though is
+that you need to get a VAT number to sell books on Amazon. I live in Luxembourg
+and getting one is trivial, but in other countries this may be more complex. You
+should know as well that Leanpub can sell the physical copies of your book,
+through Amazon, for you. They essentially act as a publisher then. This way, you
+don't need to get a VAT number, if that's difficult for you. But you'll need to
+share the Amazon royalties with Leanpub.
+
+When publishing a book through Amazon's KDP service, you also get access to a
+basic book cover editor that you can use to create a cover for your book. You
+can provide an image and then use the editor to create the cover, but you can
+also provide a ready-made cover if you have the talent to make one using an
+image editing software. Once you're done, and click "Publish" on Amazon, the
+book will get reviewed by a human. This process can take up to three days, but
+in my case it took only 4 to 6 hours. However, my book was rejected, twice. One
+time was because one of the images I used in the book had colour bars in the
+bottom right corner, that I needed to remove, and the other time was because the
+"g" in my name, "Rodrigues" was cut by the cover editor and it was hard to tell
+if it was a "g" or a "q". Once I corrected both issues, the book was available
+for order on Amazon.com within the day. The other marketplaces, like France and
+Germany took one day more, and the UK marketplace took 4 days.
 
 ### References
 
