@@ -184,7 +184,7 @@ Docker image for me, it’s that powerful!</p>
 <ul>
 <li>As I stated above, the entry cost is quite high, because Nix is not “just a tool”, it’s a complete programming language that can even run pipelines, so you could technically even replace something like <code>{targets}</code> with it;</li>
 <li>If you need to install specific versions of R packages, that are not pinned to dates, then Nix is not for you. Nix will always create a coherent environment with R and R packages that go together for a particular release of <code>nixpkgs</code>. If for some reason you need a very old version of <code>{ggplot2}</code> but a much more recent version of <code>{dplyr}</code>, using Nix won’t make this any easier than other methods;</li>
-<li>There is no easy way (afaik) to find the version of <code>nixpkgs</code> that you need to download to find the version of R that you may need;</li>
+<li>There is no easy way (afaik) to find the version of <code>nixpkgs</code> that you need to download to find the version of R that you may need; <strong>UPDATE</strong>: turns out that there is such a <a href="https://lazamar.co.uk/nix-versions/?channel=nixpkgs-unstable&amp;package=r">simple tool</a>, thanks to <span class="citation">@shane</span><span class="citation">@hachyderm.io</span> for the telling me!</li>
 <li>R packages (and I guess others for other programming languages as well) that are available on the stable channel of <code>nixpkgs</code> lag a bit behind their counterparts on CRAN. These usually all get updated whenever there’s a new release of R. Currently however, R is at version 4.2.3, but R should be at version 4.3.1 on the stable branch of <code>nixpkgs</code>. This can sometimes happen due to various reasons (there are actual human beings behind this that volunteer their time and they also have a life). There is however an “unstable” <code>nixpkgs</code> channel that contains bleeding edge versions of R packages (and R itself) if you really need the latest versions of packages (don’t worry about the “unstable” label, from my understanding this simply means that package have not been thoroughly tested yet, but is still pretty much rock-solid);</li>
 <li>If you need something that is not on CRAN (or Bioconductor) then it’s still possible to use Nix to install these packages, but you’ll have to perform some manual configuration.</li>
 </ul>
@@ -206,6 +206,7 @@ Docker image for me, it’s that powerful!</p>
 <li><a href="https://christitus.com/nixos-explained/">NixOS explained</a>: NixOS is an entire Linux distribution that uses Nix as its package manager.</li>
 <li><a href="https://rgoswami.me/posts/nix-r-devtools/">Blog post: Nix with R and devtools</a></li>
 <li><a href="https://rgoswami.me/posts/rethinking-r-nix/">Blog post: Statistical Rethinking and Nix</a></li>
+<li><a href="https://lazamar.github.io/download-specific-package-version-with-nix/">Blog post: Searching and installing old versions of Nix packages</a></li>
 </ul>
 </div>
 <div id="thanks" class="section level3">

@@ -225,7 +225,7 @@ Nix seems like a very powerful tool to me. But there are some "issues":
 
 - As I stated above, the entry cost is quite high, because Nix is not "just a tool", it's a complete programming language that can even run pipelines, so you could technically even replace something like `{targets}` with it;
 - If you need to install specific versions of R packages, that are not pinned to dates, then Nix is not for you. Nix will always create a coherent environment with R and R packages that go together for a particular release of `nixpkgs`. If for some reason you need a very old version of `{ggplot2}` but a much more recent version of `{dplyr}`, using Nix won't make this any easier than other methods;
-- There is no easy way (afaik) to find the version of `nixpkgs` that you need to download to find the version of R that you may need;
+- There is no easy way (afaik) to find the version of `nixpkgs` that you need to download to find the version of R that you may need; **UPDATE**: turns out that there is such a [simple tool](https://lazamar.co.uk/nix-versions/?channel=nixpkgs-unstable&package=r), thanks to @shane@hachyderm.io for the telling me!
 - R packages (and I guess others for other programming languages as well) that are available on the stable channel of `nixpkgs` lag a bit behind their counterparts on CRAN. These usually all get updated whenever there's a new release of R. Currently however, R is at version 4.2.3, but R should be at version 4.3.1 on the stable branch of `nixpkgs`. This can sometimes happen due to various reasons (there are actual human beings behind this that volunteer their time and they also have a life). There is however an "unstable" `nixpkgs` channel that contains bleeding edge versions of R packages (and R itself) if you really need the latest versions of packages (don't worry about the "unstable" label, from my understanding this simply means that package have not been thoroughly tested yet, but is still pretty much rock-solid);
 - If you need something that is not on CRAN (or Bioconductor) then it's still possible to use Nix to install these packages, but you'll have to perform some manual configuration.
 
@@ -247,12 +247,12 @@ Here are some of the resources I've been using:
 - [NixOS explained](https://christitus.com/nixos-explained/): NixOS is an entire Linux distribution that uses Nix as its package manager.
 - [Blog post: Nix with R and devtools](https://rgoswami.me/posts/nix-r-devtools/)
 - [Blog post: Statistical Rethinking and Nix](https://rgoswami.me/posts/rethinking-r-nix/)
+- [Blog post: Searching and installing old versions of Nix packages](https://lazamar.github.io/download-specific-package-version-with-nix/)
 
 ### Thanks
 
 Many thanks to [Justin Bedő](https://github.com/jbedo), maintainer of the R
 package for Nix, for answering all my questions on Nix!
-
 
 <p>Hope you enjoyed! If you found this blog post useful, you might want to follow
 me on <a href="https://fosstodon.org/@brodriguesco">Mastodon</a> or <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
