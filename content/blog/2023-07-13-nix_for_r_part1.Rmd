@@ -151,7 +151,7 @@ particular version of Nix will *ever* install. I then define a variable called
 By the way, this may look like it would take a lot of time to install because,
 after all, you need to install R, R packages and underlying system dependencies,
 but thankfully there is an online cache of binaries that gets automatically used
-by Nix ([cache.nixorg.org](https://cache.nixos.org/)) for fast installations. If
+by Nix ([cache.nixos.org](https://cache.nixos.org/)) for fast installations. If
 binaries are not available, sources get compiled.
 
 I can now create an environment with these exact specifications using (in the
