@@ -1,0 +1,386 @@
+---
+date: 2023-03-18
+title: Automating checks of *handcrafted* Word tables with {docxtractr}
+tags: [R]
+menu:
+main:
+  parent: Blog
+  identifier: /blog/docxtractr.Rmd
+  weight: 1
+---
+
+<div style="text-align:center;">
+ <img src="/img/excel_nightmare.png" width="100%">
+</div>
+
+Unfortunately not everyone knows about literate programming so many tables in
+Word documents are "generated" by hand (generated is really too strong a word)
+and what very often happens is that these handcrafted tables have typos. Usually
+it’s totals that are wrong. Checking the totals in these tables by hand with a
+pocket calculator is a tedious, long and boring job.
+
+So as my job’s *statistician but also kinda automation dude that types all day
+in a weird black box*, I’ve been asked if it were possible to automate these
+checks on tables in a Word document. And of course, the answer is yes, because 
+whatever you need to get done, there’s an R package for that!
+
+There are, to my knowledge, 2 packages that we can use to get tables from a Word
+document into R (an activity that I will now refer to as *office-scraping*).
+
+These packages are `{officer}` and `{docxtractr}`. For his particular task I’ve
+used `{docxtractr}`. The reason is that `{docxtractr}` returns the table
+"as-is", while `{officer}` returns a tibble where each cell of the table gets a
+row in the tibble. `{officer}`'s representation of the scraped tables might be
+useful in some cases, but in this particular case, `{docxtractr}`'s approach was
+exactly what I needed. 
+
+First of all, we need a Word document with some tables.[Here’s
+one](https://github.com/rbind/b-rodrigues.github.com/raw/master/content/blog/report.docx)
+I’ve prepared that contains two tables that look close to the ones I had to deal
+with. In the actual document, there were hundreds of such tables. Here’s a
+picture of the tables in case you can’t open the document:
+
+<div style="text-align:center;">
+ <img src="/img/report_tables.png" width="100%">
+</div>
+
+The first table is divided by departments of the company, and each section of
+the table has its own sub-total. As stated in the beginning, the goal is to
+check for typos by recomputing the sub-totals and totals and then comparing
+the original tables with the ones where the totals were recomputed.
+
+The problem we will face with each table are the merged cells; if there were
+no merged cells, scraping them with `{docxtractr}` would be trivially simple,
+but because of these merged cells, we will have to write quite a lot of code
+to get them in a format that we can actually use.
+
+## Extracting the tables using {docxtractr}
+
+`{docxtractr}` has a very handy function that gets all the tables from a Word
+document and puts them into a list (it’s also possible to extract other stuff
+like comments). Let's start by loading `{dplyr}` (for the rest of the functions,
+I'll use the `package::function()` notation to make it clear where the functions
+come from):
+
+```{r, include = F}
+library(dplyr)
+```
+
+```{r, eval = F}
+library(dplyr)
+```
+
+Let's now read the document using `{docxtractr}`:
+
+```{r}
+doc_raw <- docxtractr::read_docx("report.docx")
+```
+
+And let's get all the tables:
+
+```{r}
+list_tables <- docxtractr::docx_extract_all_tbls(doc_raw)
+```
+
+Let’s now take a look at the second element of the list, which corresponds to
+the second table (I’m starting with the second table because it’s the smallest
+of the two):
+
+```{r}
+table_1 <- list_tables[[1]] %>%
+  janitor::clean_names()
+
+table_2 <- list_tables[[2]] %>%
+  janitor::clean_names()
+
+table_2
+```
+
+As you can see, because of the merged cells, the rows are not all aligned with
+the columns. So we need to split the table, and treat the two parts separately. 
+I'm starting with the part of the table where the rows are correctly aligned
+with the columns. This is just a matter of renaming some columns, and converting
+the numbers (that are represented as characters) into `numeric`s:
+
+```{r}
+table_2_1 <- table_2 %>%
+  select(-company) %>%
+  filter(!is.na(na_7)) %>%
+  purrr::set_names(
+    c("worker_type",
+      "m_2020",
+      "f_2020",
+      "t_2020",
+      "m_2021",
+      "f_2021",
+      "t_2021",
+      "m_2022",
+      "f_2022",
+      "t_2022"
+      )
+    ) %>%
+  mutate(across(!starts_with("worker"),
+                as.numeric))
+
+table_2_1
+```
+
+Let’s now deal with the second part of the table. This is the part of the table
+where the rows were not aligned with the columns, due to the merged cells.
+The operations are essentially the same as before, the difference is that we need
+to remove a different column (here we remove `na_7`, before it was `company`):
+
+```{r}
+table_2_2 <- table_2 %>%
+  filter(is.na(na_7)) %>%
+  select(-na_7) %>%
+  rename(worker_type = company) %>%
+  filter(worker_type != "") %>%
+  purrr::set_names(
+           c("worker_type",
+             "m_2020",
+             "f_2020",
+             "t_2020",
+             "m_2021",
+             "f_2021",
+             "t_2021",
+             "m_2022",
+             "f_2022",
+             "t_2022"
+             )
+         ) %>%
+  mutate(across(!starts_with("worker"),
+                as.numeric))
+
+table_2_2
+```
+
+I didn’t comment the operations, but if you’re following along, take some time
+to see what each line does.
+
+Now we can bind the rows and we end up with the table from the Word document as
+a flat and easy to manipulate data frame:
+
+```{r}
+table_2_clean <- bind_rows(
+  table_2_1,
+  table_2_2
+)
+
+table_2_clean
+```
+
+All of this because of these merged cells! This may seem like a lot of work, but
+imagine that you need to check 50 such tables. You could put all the previous
+operations into a function and then simply apply that function over all the
+tables (which is exactly what I did at my job). So you end up with 50 cleaned
+tables in a matter of seconds. Now let’s not forget our original objective, we
+wanted to recompute the totals to check if everything was alright. In the
+operations below I remove the columns that represent the totals and remove the
+row with the grand totals as well. I then simply recompute the totals:
+
+```{r}
+table_2_totals <- table_2_clean %>%
+  select(-starts_with("t_")) %>%
+  filter(worker_type != "Total") %>%
+  mutate(
+    t_2020 = m_2020 + f_2020,
+    t_2021 = m_2021 + f_2021,
+    t_2022 = m_2022 + f_2022,
+    ) %>%
+  select(
+    worker_type,
+    m_2020,
+    f_2020,
+    t_2020,
+    m_2021,
+    f_2021,
+    t_2021,
+    m_2022,
+    f_2022,
+    t_2022,
+    ) %>%
+  janitor::adorn_totals()
+
+```
+
+We can now compare both data frames and see if there were mistakes:
+
+```{r}
+table_2_clean == table_2_totals
+
+```
+
+We do see a bunch of `FALSE` statements, so we need to check those! This is
+where some typos where found.
+
+Let’s now deal with table 1. The way we will handle this one will be very
+similar to the one before. It's just that we have subtotals to deal with as
+well.
+
+```{r}
+table_1
+```
+
+Here as well, we have a problem with merged cells. But only the rows with the
+totals are affected. So just like before, we can split that into two tables and
+deal with the two parts separately:
+
+```{r}
+table_1_1 <- table_1 %>%
+  filter(!grepl("(t|T)otal", by_department),
+         fte != "M") %>%
+  purrr::set_names(
+           c("department",
+             "worker_type",
+             "m_fte",
+             "f_fte",
+             "t_fte",
+             "m_hc",
+             "f_hc",
+             "t_hc"
+             )
+         ) %>%
+  mutate(department = ifelse(department == "",
+                              NA,
+                              department)) %>%
+  tidyr::fill(department, .direction = "down") %>%
+  mutate(across(contains("fte"),
+                \(x)(gsub(pattern = ",", replacement = ".", x = x))),
+         across(-c("department", "worker_type"),
+                as.numeric)) %>%
+  as.data.frame()
+
+```
+
+Here again, it’s really worth it to take your time going through all the
+different commands.
+
+Let’s now clean the totals:
+
+```{r}
+table_1_2 <- table_1 %>%
+  filter(grepl("(t|T)otal", by_department),
+         fte != "M") %>%
+  select(by_department, na_5, everything()) %>%
+  purrr::set_names(
+           c("department",
+             "worker_type",
+             "m_fte",
+             "f_fte",
+             "t_fte",
+             "m_hc",
+             "f_hc",
+             "t_hc"
+             )
+         ) %>%
+  tidyr::fill(department, .direction = "down") %>%
+  mutate(across(-c("department", "worker_type"),
+                \(x)(gsub(pattern = ",", replacement = ".", x = x))),
+         across(-c("department", "worker_type"),
+                as.numeric)) %>%
+  as.data.frame()
+
+```
+
+Finally, we can bind the rows and we end up with a clean data frame:
+
+```{r}
+table_1 <- bind_rows(
+  table_1_1,
+  table_1_2
+)
+
+table_1
+```
+
+Again, let’s not forget our objective: recomputing the totals to see if
+everything is alright. So because we need each sub-total, one per department,
+we will simply group by departments and use `janitor::adorn_totals()`. But
+`janitor::adorn_totals()` does not work on grouped data frames. So instead
+I use `group_nest()` to create a tibble with a list column, and then map
+`janitor::adorn_totals`:
+
+```{r}
+table_1_subtotals <- table_1 %>%
+  filter(!grepl("(t|T)otal", department)) %>%
+  group_nest(department) %>%
+  mutate(data = purrr::map(data, janitor::adorn_totals)) %>%
+  tidyr::unnest(cols = data) %>%
+  arrange(department) %>%
+  as.data.frame()
+```
+
+Ok so in the table above I have the subtotals per department. Now, I need to
+compute the grand total:
+
+```{r}
+table_1_total <- table_1_subtotals %>%
+  filter(grepl("Total", worker_type)) %>%
+  janitor::adorn_totals()
+
+```
+
+Now I just need to bind the grand total to the table from before:
+
+```{r}
+table_1_clean <- bind_rows(
+  table_1_subtotals,
+  filter(
+    table_1_total,
+    department == "Total")
+)
+
+table_1_clean
+```
+
+We're almost done! We now need to make sure that the rows are in the same
+order across the two tables. So we need to transform the original table from
+the Word document a little bit:
+
+```{r}
+table_1 <- table_1 %>%
+  mutate(worker_type = ifelse(is.na(worker_type),
+                              "Total",
+                              worker_type)) %>%
+  mutate(department = stringr::str_remove_all(department, "Total – "),
+         worker_type = ifelse(department == "Grand total",
+                              "-",
+                              worker_type),
+         department = ifelse(department == "Grand total",
+                             "Total",
+                             department))
+```
+
+We can now order them the same way, and finally compare them!
+
+```{r}
+arrange(table_1, worker_type) == arrange(table_1_clean, worker_type)
+```
+
+Let's see where all the `FALSE`s are:
+
+```{r}
+arrange(table_1, worker_type)
+```
+
+We see that the totals for department A and F are all wrong, and some others for
+other departments as well. Obviously the grand total is this completely wrong!
+
+## Conclusion
+
+If this looked complicated, let me assure you that, yes, it was. That's quite
+typical with tasks like these: if the data is not in a tidy format, you really
+have to type a lot of code to make it tidy. But the advantage now is that I
+could put all this code into two functions, and apply them to as many tables as
+I need. This is what I did, and what I will be doing in the future as well.
+Now that the code is written, I can simply keep applying it to future reports
+that use the same table format.
+
+<p>Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://fosstodon.org/@brodriguesco">Mastodon</a> or <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my <a href="https://www.brodrigues.co/about/books/">ebooks</a>.
+You can also watch my videos on <a href="https://www.youtube.com/c/BrunoRodrigues1988/">youtube</a>.
+So much content for you to consoom!</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>

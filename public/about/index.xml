@@ -11,11 +11,87 @@
     
     
     <item>
-      <title>Who am I?</title>
-      <link>https://www.brodrigues.co/about/about/</link>
+      <title>Books</title>
+      <link>https://www.brodrigues.co/about/books/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>https://www.brodrigues.co/about/about/</guid>
+      <guid>https://www.brodrigues.co/about/books/</guid>
+      <description>
+
+&lt;h2 id=&#34;building-reproducible-analytical-pipelines-with-r&#34;&gt;Building reproducible analytical pipelines with R&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href = &#34;https://leanpub.com/raps-with-r/&#34;&gt;&lt;img
+src=&#34;https://d2sofvawe08yqg.cloudfront.net/raps-with-r/s_hero2x?1676902653&#34;
+align=&#34;left&#34; style=&#34;display: inline; margin: 10px 50px 10px 10px; border-width:
+0px;&#34; width=&#34;180&#34; /&gt;&lt;/a&gt;&lt;p&gt;Build reproducible analytical pipelines that will
+output consistent, high-quality analyses using the R programming language, Git,
+Github and Docker. Learn about functional and literate programming to keep your
+code concise, easier to test, easier to share and easily understandable by
+others.&lt;/p&gt;&lt;/p&gt;
+
+&lt;p&gt;
+&lt;ul&gt;
+  &lt;li&gt;Read it for free: &lt;a href=&#34;https://raps-with-r.dev/&#34;&gt;https://raps-with-r.dev/&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;Buy the DRM free Epub or PDF: &lt;a href=&#34;https://leanpub.com/raps-with-r/&#34;&gt;https://leanpub.com/raps-with-r/&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;Buy a physical copy on Amazon: &lt;a href=&#34;https://www.amazon.com/Building-reproducible-analytical-pipelines-R/dp/B0C87H6MGF&#34;&gt;https://www.amazon.com/Building-reproducible-analytical-pipelines-R/dp/B0C87H6MGF&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/p&gt;
+
+&lt;h2 style=&#34;margin-top:3cm;&#34;&gt;Modern R with the tidyverse&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href = &#34;https://leanpub.com/modern_tidyverse&#34;&gt;&lt;img
+src=&#34;https://d2sofvawe08yqg.cloudfront.net/modern_tidyverse/s_hero2x?1620608950&#34;
+align=&#34;left&#34; style=&#34;display: inline; margin: 10px 50px 10px 10px; border-width:
+0px;&#34; width=&#34;180&#34; /&gt;&lt;/a&gt;&lt;p&gt;This book focuses on teaching you how to use R in a
+modern way. Why modern? Because you will learn about the tidyverse collection of
+packages, which enable you to write efficient, legible code. You will also learn
+about functional programming, some statistical methods, writing your own
+packages&amp;hellip; By the end of the book, you will have all the knowledge and tools on
+hand to use R for your day-to-day data science tasks!&lt;/p&gt;&lt;/p&gt;
+
+&lt;p&gt;
+&lt;ul&gt;
+  &lt;li&gt;Read it for free: &lt;a href=&#34;https://modern-rstats.eu/&#34;&gt;https://modern-rstats.eu/&lt;/a&gt;&lt;/li&gt;
+&lt;/li&gt;
+  &lt;li&gt;Buy the DRM free Epub or PDF (very out of date, update coming Q4-2023): &lt;a href=&#34;https://leanpub.com/modern_tidyverse/&#34;&gt;https://leanpub.com/modern_tidyverse/&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;Buy a physical copy (coming 2023)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Talks and interviews</title>
+      <link>https://www.brodrigues.co/about/talks/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://www.brodrigues.co/about/talks/</guid>
+      <description>
+
+&lt;h2 id=&#34;talks&#34;&gt;Talks&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;French &lt;a href=&#34;https://649017259ea33242fbd1a328--courageous-cajeta-2542d9.netlify.app/#/title-slide&#34;&gt;&lt;em&gt;Slides only&lt;/em&gt; &amp;ldquo;La reproductibilité avec R, ou pourquoi celle-ci est située sur un continuum&amp;rdquo;, Talk I gave at the &lt;em&gt;Rencontres R&lt;/em&gt; 2023 in Avignon, France, on the 26th of June 2023.&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Portuguese &lt;a href=&#34;https://jocular-panda-1e5d6e.netlify.app/#/title-slide&#34;&gt;&lt;em&gt;Slides only&lt;/em&gt; &amp;ldquo;Porquê usar monads (programação funcional)? Uma ilustração com o pacote {chronicler}&amp;rdquo;, Talk I gave (online) at the INE (Instituto Nacional de Estatística), on the 7th of June 2023.&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;interviews&#34;&gt;Interviews&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;French &lt;a href=&#34;https://archive.is/uNxNw&#34;&gt;Bruno Rodrigues défend une approche basée sur la reproductibilité de la data science au Luxembourg&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;English &lt;a href=&#34;https://www.youtube.com/watch?v=aXfjhf2cDo0&#34;&gt;My appearance on the Leanpub Frontmatter Podcast&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Who am I?</title>
+      <link>https://www.brodrigues.co/about/me/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://www.brodrigues.co/about/me/</guid>
       <description>&lt;p&gt;My name is Bruno Rodrigues and hold a PhD in Economics from the
 &lt;a href=&#34;http://www.unistra.fr&#34;&gt;University of Strasbourg&lt;/a&gt;.&lt;/p&gt;
 
@@ -32,7 +108,7 @@ which is more compatible with the life of a young father.
 I started this blog to share my enthusiasm for statistics. My blog posts are reshared on
 &lt;a href=&#34;https://www.r-bloggers.com/&#34;&gt;R-bloggers&lt;/a&gt; and &lt;a href=&#34;https://rweekly.org/&#34;&gt;RWeekly&lt;/a&gt;.
 I also enjoy learning about the R programming language and sharing my knowledge.
-That&amp;rsquo;s why I made this blog and also am writing an &lt;a href=&#34;https://b-rodrigues.github.io/modern_R/&#34;&gt;ebook&lt;/a&gt;.
+That&amp;rsquo;s why I made this blog and write &lt;a href=&#34;../books&#34;&gt;ebooks&lt;/a&gt;.
 I also have a &lt;a href=&#34;https://www.youtube.com/channel/UCTZXht1RTL2Duc3eU8MYGzQ&#34;&gt;youtube channel&lt;/a&gt;,
 where I show some tips and tricks with R, or rant about stuff.&lt;/p&gt;
 </description>

@@ -42,7 +42,7 @@ This faster solution is the `{arrow}` package, which is an interface to the
 The final strategy is to enable caching in the app.
 
 So first, install the `{arrow}` package by running `install.packages("arrow")`. This will compile
-`libarrow` from source on Linux and might take some time, so perhaps go grab a coffee. One other
+`libarrow` from source on Linux and might take some time, so perhaps go grab a coffee. On other
 operating systems, I guess that a binary version gets installed.
 
 Before building the app, let me perform a very simple benchmark. The script below reads in the data,

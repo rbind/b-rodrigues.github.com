@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<style type=text/css>body{font-family:monospace;}</style>
+	<title>How to self-publish a technical book on Leanpub and Amazon using Quarto</title>
+	
+	
+	<link rel="stylesheet" href="/css/style.css">
+	
+	
+</head>
+<body>
+	<header>
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+<pre>
+<a class="nav-link" href="/index.html">Econometrics and Free Software</a> by <a class="nav-link" href="/about/me">Bruno Rodrigues</a>.
+<a href="https://www.brodrigues.co/blog/index.xml">RSS feed for blog post updates</a>.
+Follow me on <a rel="me" href="https://fosstodon.org/@brodriguesco">Mastodon</a>, <a href="https://twitter.com/brodriguesco" rel="nofollow">twitter</a>, or check out my <a href="https://github.com/b-rodrigues">Github</a>.
+Check out my package that adds logging to R functions, <a href="https://b-rodrigues.github.io/chronicler/">{chronicler}</a>.
+Or read my free ebooks, <a href="https://www.brodrigues.co/about/books/">to learn some R and build reproducible analytical pipelines.</a>.
+You can also watch my <a href="https://www.youtube.com/user/cbrunos" rel="nofollow">youtube</a> channel or find the slides to the talks I've given <a href="https://www.brodrigues.co/about/talks/">here</a>.
+<a href="https://www.buymeacoffee.com/brodriguesco" rel="nofollow">Buy me a coffee</a>, my kids don't let me sleep.
+</pre>
+</header>
+
+	
+	<main>
+		<article>
+			<h1>How to self-publish a technical book on Leanpub and Amazon using Quarto</h1>
+			<b><time>2023/06/29</time></b>
+		       
+		           <a href="/tags/r">R</a>
+        	       
+
+			<div>
+				<div style="text-align:center;">
+<p><img src="/img/gosling.jpg" width="100%"></p>
+</div>
+<p>UPDATE: I’ve update this blog post on the 30 of June 2023. I corrected a statement
+where I said that the <code>_quarto.yml</code> file is where you can choose the version of R
+to compile the book. That’s wrong, choosing the version of R to compile the book
+is done on the Github Actions workflow. I’ve also added some answers to questions
+I got on social media.</p>
+<p>So I’ve recently self-published a book on both
+<a href="https://leanpub.com/raps-with-r/">Leanpub</a> as an Ebook and
+<a href="https://www.amazon.com/dp/B0C87H6MGF">Amazon</a> as a <em>physical</em> book and thought
+that it would be worth it to write down how to do it. I’ve wasted some time
+getting everything to work flawlessly so if you’re looking for a guide on how to
+create both an ebook and a print-ready PDF for Amazon’s Kindle Direct Publishing
+service using Quarto, you’ve come to the right place.</p>
+<p>If you don’t want to waste time reading, <a href="https://github.com/b-rodrigues/kdp_quarto">just fork this
+repo</a> and use that as a starting
+point. Each time you push a change to the repo, a website, Epub and PDF get
+generated using Github Actions. If you want to understand the details, read on.</p>
+<div id="your-books-dependencies" class="section level2">
+<h2>Your book’s dependencies</h2>
+<p>You should start by creating an <code>renv.lock</code> file. This file will list all the
+dependencies of your book. For example, if you’re using <code>{ggplot2}</code> to make
+graphs or <code>{flextable}</code> for tables, the <code>renv.lock</code> file will list them and then
+this file will be used to download the required packages by Github Actions (more
+on Github Actions later) to create the book. The template comes with one such
+<code>renv.lock</code> file, but you should generate one specific to your project. Simply
+install <code>{renv}</code> and run:</p>
+<pre class="r"><code>renv::init()</code></pre>
+<p>Answer “Y” to the question and wait a little. The <code>renv.lock</code> file should appear
+alongside the source of your book now. If you need to install more packages to
+keep writing your book, install them as usual (using
+<code>install.packages("package")</code>) but then don’t forget to create a new <code>renv.lock</code>
+file using <code>renv::snapshot()</code>.</p>
+</div>
+<div id="quarto.yml" class="section level2">
+<h2>_quarto.yml</h2>
+<p>Whatever output format, everything gets defined in the <code>_quarto.yml</code> file in the
+root directory of your book. This file is where you can choose which themes to
+use for your website for example, which output formats you want to compile your
+book into, etc. I’ll discuss each option for each format below.</p>
+</div>
+<div id="generating-the-website" class="section level2">
+<h2>Generating the website</h2>
+<p>I’m using Github Actions to generate each format of the book. Github Actions is
+essentially a computer hosted by Github that you can use to run arbitrary
+commands. These commands must be written in a specific file which must be put in
+a specific place in your repository.
+<a href="https://github.com/b-rodrigues/kdp_quarto/blob/main/.github/workflows/build_book.yml">Here</a>
+is that file for the repo I linked above. I won’t go into details because I’ve
+explained how Github Actions works
+<a href="https://www.brodrigues.co/blog/2022-11-19-raps/">here</a> already, but you’ll notice
+that you can choose a version of R to compile your document and also a different
+version of Quarto. This can be useful for reproducibility.</p>
+<p>Create a new branch called <code>gh-pages</code> and then go to settings, then on the
+side-bar on the left choose “Actions”, and scroll down. Then, in “Workflow
+persmissions”, check “Read and Write permissions” and “Allow Github Actions to
+create and approve pull requests”. Then go to “Pages” which you can find on the
+side-bar on the left, and choose “Deploy from a branch” under “Build and
+deployment” and choose “gh-pages” and “root”:</p>
+<div style="text-align:center;">
+<p><img src="/img/github_pages.png" width="100%"></p>
+</div>
+<p>Each time you push, the website to your book will get updated. Here are the options
+I chose for my website, which you can find in the <code>_quarto.yml</code> file:</p>
+<pre><code>html:
+   theme:
+     light: flatly
+     dark: solar
+   css:
+     epub.css</code></pre>
+<p>So my website is available in two themes, a dark and light one. I highly
+recommend you also provide two themes. You can also provide a <code>.css</code> file to
+customize the appearance of you website, and of your ebook (that’s because an
+Epub is actually a bunch of html files). The <code>.css</code> I’m using is quite simple,
+the only thing it’s doing is making sure that images won’t be wider than the
+web-page. You can view the website of this template book
+<a href="https://b-rodrigues.github.io/kdp_quarto/">here</a>.</p>
+</div>
+<div id="generating-an-ebook" class="section level2">
+<h2>Generating an Ebook</h2>
+<p>Let’s continue with the <code>.epub</code> format. This is an Ebook format that can be read
+on E-readers such as the Kindle from Amazon. If you want to sell an Ebook on
+Leanpub (or send it to your Kindle), it needs to pass a tool called <code>epubcheck</code>.</p>
+<p>I’ve already written about generating ebooks in the past
+(<a href="https://www.brodrigues.co/blog/2023-03-03-quarto_books/">here</a>). However, the
+advice in that blog post was only valid because there were bugs in the version
+of Quarto that was current at the time and so I showed some workarounds. With
+the current version, no workarounds are needed anymore, Epubs generated by
+Quarto now pass <code>epubcheck</code>. Check the source, specifically <code>index.qmd</code> to see
+how I include graphics.</p>
+</div>
+<div id="generating-a-print-ready-pdf" class="section level2">
+<h2>Generating a print-ready PDF</h2>
+<p>This was the hardest part: I’m using Amazon’s KDP service to sell physical
+copies of the book and the PDF needs to be in a specific format. I’m using the 6
+x 9 format without bleed, which seems to be the most common. If you look again
+at the <code>_quarto.yml</code> file, you should see this:</p>
+<pre><code>  pdf:
+    keep-tex: true
+    documentclass: scrbook
+    classoption: [paper=6in:9in,pagesize=pdftex,headinclude=on,footinclude=on,12pt]
+    include-in-header:
+      text: |
+        \usepackage{fvextra}
+        \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
+        \areaset[0.50in]{4.5in}{8in}
+    include-before-body:
+      text: |
+        \RecustomVerbatimEnvironment{verbatim}{Verbatim}{
+           showspaces = false,
+           showtabs = false,
+           breaksymbolleft={},
+           breaklines
+           % Note: setting commandchars=\\\{\} here will cause an error 
+        }
+    fig-pos: &#39;H&#39;</code></pre>
+<p>What’s important is ‘classoption’:</p>
+<pre><code>classoption: [paper=6in:9in,pagesize=pdftex,headinclude=on,footinclude=on,12pt]</code></pre>
+<p>This is where I can choose the dimensions of the book (6 x 9) and the size of the font (12pt).
+Then:</p>
+<pre><code>include-in-header:
+  text: |
+    \usepackage{fvextra}
+    \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
+    \areaset[0.50in]{4.5in}{8in}</code></pre>
+<p>With <code>fvextra</code> and the call to <code>\DefineVerbatimEnvironment</code> I make sure that long lines of code
+get wrapped in the PDF. Without this, long lines of code would simply continue outside the margins
+of the PDF, and Amazon’s KDP doesn’t accept a PDF like this.</p>
+<p><code>\areaset[0.50in]{4.5in}{8in}</code>: this is the area that well be used for writing. These are the correct
+dimensions for a 6 by 9 book without bleed. Then, I keep customizing the <code>verbatim</code> environment:</p>
+<pre><code>include-before-body:
+  text: |
+    \RecustomVerbatimEnvironment{verbatim}{Verbatim}{
+       showspaces = false,
+       showtabs = false,
+       breaksymbolleft={},
+       breaklines
+       % Note: setting commandchars=\\\{\} here will cause an error 
+    }</code></pre>
+<p>Finally, the last option:</p>
+<pre><code>fig-pos: &#39;H&#39;</code></pre>
+<p>This ensures that the figures are placed EXACTLY where you say they should be in
+the final PDF. For those of you that use LaTeX, you know that LaTeX sometimes
+takes some liberties with figure placement. I’ve been told the lie that LaTeX
+knows where to place the figures perfectly well many times but I don’t buy
+it. So use <code>fig-pos: 'H'</code> to avoid lots of frustration.</p>
+<p>That’s it! You should now be able to generate a book that is print-ready, and
+an Epub that passes <code>epubcheck</code> as well as website. You can now just focus
+on writing. Also check the source of <code>index.qmd</code> for to see how to include text
+in the PDF only (or not show text in the PDF).</p>
+</div>
+<div id="my-personal-experience-and-some-faq" class="section level2">
+<h2>My personal experience and some FAQ</h2>
+<p>Overall, I enjoyed using both Leanpub and Amazon to publish my book. Leanpub is
+really nice, because they really offer a very nice deal: you get 80% of the
+sales price as royalties, which is the highest share I’ve seen. Also the people
+working there are really nice, I’ve had the chance to discuss with Len Epp,
+Leanpub’s cofounder, in his <a href="https://youtu.be/aXfjhf2cDo0">Frontmatter podcast</a>
+and would definitely continue using their platform in the future. Regarding
+Amazon I must say that the experience was quite good as well; the only friction
+I had was getting the PDF in the right format for printing, but that’s hardly
+something that Amazon can be blamed for. After all if the PDF’s formatting is
+bad, the books will look like crap as well. One thing you should know though is
+that you need to get a VAT number to sell books on Amazon. I live in Luxembourg
+and getting one is trivial, but in other countries this may be more complex. You
+should know as well that Leanpub can sell the physical copies of your book,
+through Amazon, for you. They essentially act as a publisher then. This way, you
+don’t need to get a VAT number, if that’s difficult for you. But you’ll need to
+share the Amazon royalties with Leanpub.</p>
+<p>When publishing a book through Amazon’s KDP service, you also get access to a
+basic book cover editor that you can use to create a cover for your book. You
+can provide an image and then use the editor to create the cover, but you can
+also provide a ready-made cover if you have the talent to make one using an
+image editing software. Once you’re done, and click “Publish” on Amazon, the
+book will get reviewed by a human. This process can take up to three days, but
+in my case it took only 4 to 6 hours. However, my book was rejected, twice. One
+time was because one of the images I used in the book had colour bars in the
+bottom right corner, that I needed to remove, and the other time was because the
+“g” in my name, “Rodrigues” was cut by the cover editor and it was hard to tell
+if it was a “g” or a “q”. Once I corrected both issues, the book was available
+for order on Amazon.com within the day. The other marketplaces, like France and
+Germany took one day more, and the UK marketplace took 4 days.</p>
+<div id="references" class="section level3">
+<h3>References</h3>
+<p>I’m sorry, I have no idea where I found all of this stuff. I looked for it for
+some time, and if memory serves most of this came from stackoverflow.</p>
+<p>
+Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://fosstodon.org/@brodriguesco">Mastodon</a> or <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my <a href="https://www.brodrigues.co/about/books/">ebooks</a>.
+You can also watch my videos on <a href="https://www.youtube.com/c/BrunoRodrigues1988/">youtube</a>.
+So much content for you to consoom!
+</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p>
+<link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a>
+</p>
+</div>
+</div>
+
+			</div>
+		</article>
+	</main>
+<aside>
+	<div>
+		<div>
+			<h3>LATEST POSTS</h3>
+		</div>
+		<div>
+			<ul>
+				
+				<li><a href="/blog/2023-07-19-nix_for_r_part2/">Reproducible data science with Nix, part 2 -- running {targets} pipelines with Nix</a></li>
+				
+				<li><a href="/blog/2023-07-13-nix_for_r_part1/">Reproducible data science with Nix, part 1 -- what is Nix</a></li>
+				
+				<li><a href="/blog/2023-06-29-book_quarto/">How to self-publish a technical book on Leanpub and Amazon using Quarto</a></li>
+				
+				<li><a href="/blog/2023-05-08-dock_dev_env/">Why you should consider working on a dockerized development environment</a></li>
+				
+				<li><a href="/blog/2023-04-25-10_years/">I&#39;ve been blogging for 10 years</a></li>
+				
+			</ul>
+		</div>
+	</div>
+</aside>
+
+
+	<footer>
+  <div class="row">
+    <div class="col-lg-12">
+      <p>2023, content by Bruno Rodrigues, unless otherwise stated, every content of this blog is licensed under the <a href="http://www.wtfpl.net/txt/copying/" rel="nofollow">WTFPL</a>.</p>
+      <p>The theme this blog uses is a slight variation of the <a href="https://github.com/colorchestra/smol" rel="nofollow">Smol</a> theme.</p>
+      <p><a class="nav-link" href="/index.html">Back to main page.</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

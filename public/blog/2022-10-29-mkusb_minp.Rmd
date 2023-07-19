@@ -48,7 +48,7 @@ a development environment. So if you're reading this in the future, and there's 
 LTS (could be 24.04, 26.04, etc), you'd need to get that one.
 
 Creating a live USB is quite simple, but the issue if you create a live USB using the standard
-methods is that whatever you do on it once you're logged in while get erased after rebooting. A
+methods is that whatever you do on it once you're logged in will get erased after rebooting. A
 persistent live USB, I'm sure you've guessed it, keeps your changes even after rebooting, which
 means that you basically end up with a portable development environment. Note however that only
 Ubuntu (and variants) or Debian can be used to create persistent live USBs.

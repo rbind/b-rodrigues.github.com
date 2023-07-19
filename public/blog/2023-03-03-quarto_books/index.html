@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<style type=text/css>body{font-family:monospace;}</style>
+	<title>What I&#39;ve learned making an .epub Ebook with Quarto</title>
+	
+	
+	<link rel="stylesheet" href="/css/style.css">
+	
+	
+</head>
+<body>
+	<header>
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+<pre>
+<a class="nav-link" href="/index.html">Econometrics and Free Software</a> by <a class="nav-link" href="/about/me">Bruno Rodrigues</a>.
+<a href="https://www.brodrigues.co/blog/index.xml">RSS feed for blog post updates</a>.
+Follow me on <a rel="me" href="https://fosstodon.org/@brodriguesco">Mastodon</a>, <a href="https://twitter.com/brodriguesco" rel="nofollow">twitter</a>, or check out my <a href="https://github.com/b-rodrigues">Github</a>.
+Check out my package that adds logging to R functions, <a href="https://b-rodrigues.github.io/chronicler/">{chronicler}</a>.
+Or read my free ebooks, <a href="https://www.brodrigues.co/about/books/">to learn some R and build reproducible analytical pipelines.</a>.
+You can also watch my <a href="https://www.youtube.com/user/cbrunos" rel="nofollow">youtube</a> channel or find the slides to the talks I've given <a href="https://www.brodrigues.co/about/talks/">here</a>.
+<a href="https://www.buymeacoffee.com/brodriguesco" rel="nofollow">Buy me a coffee</a>, my kids don't let me sleep.
+</pre>
+</header>
+
+	
+	<main>
+		<article>
+			<h1>What I&#39;ve learned making an .epub Ebook with Quarto</h1>
+			<b><time>2023/03/03</time></b>
+		       
+		           <a href="/tags/r">R</a>
+        	       
+
+			<div>
+				<div style="text-align:center;">
+<p><img src="/img/epubcheck.png" width="50%"></p>
+</div>
+<p>I’ve been working on an ebook (that you can read over
+<a href="https://raps-with-r.dev/">here</a>) made using Quarto. Since I’m also selling a
+DRM-free Epub and PDF on <a href="https://leanpub.com/raps-with-r/">Leanpub</a> I wanted to
+share some tips and tricks I’ve learned to generate an Epub that passes
+<code>epubcheck</code> using Quarto.</p>
+<div style="text-align:center;">
+<p><iframe width='160' height='400' src='https://leanpub.com/raps-with-r/embed' frameborder='0' allowtransparency='true'></iframe></p>
+</div>
+<p>Quarto is a tool made by Posit and is an <em>open-source scientific and technical</em>
+publishing tool. If you know what LaTeX is, then it should be easy for you to
+grok Quarto. The idea of Quarto is that you write documents using Markdown, and
+then compile these source files into either PDFs, Word documents, but also
+books, web-sites, ebooks (in the Epub format) and so on… It’s quite powerful,
+and you can also use programming language code chunks for literate programming.
+Quarto support R, Python, Julia and ObsevableJS chunks.</p>
+<p>So, as I said, I’ve been using Quarto to write an ebook, and from a single set
+of Markdown source files I can generate the website (linked above), the PDF of
+the book and the Epub of the book. But you see, if you want to sell an Epub on
+platforms like Leanpub, the generated Epub must pass <code>epubcheck</code>. <code>epubcheck</code> is
+a command line application that verifies that your Epub satisfies certain
+quality checks. If these quality standards are not satisfied, there is no
+guarantee that Epub readers can successfully open your Epub. Leanpub actually
+allows you to upload an Epub that does not pass <code>epubcheck</code>, but they warn you
+that you really should strive for publishing an Epub without any errors or
+warnings raised by <code>epubcheck</code>. For example, the first version of my Epub did not
+pass <code>epubcheck</code> and I couldn’t upload it to my Kindle.</p>
+<p>In this blog post I’ll show you what you should do to generate an Epub that
+passes <code>epubcheck</code> using Quarto.</p>
+<div id="starting-from-the-default-template" class="section level2">
+<h2>Starting from the default template</h2>
+<p>Start by installing Quarto by downloading the right package for your operating
+system <a href="https://quarto.org/docs/get-started/">here</a>. To start from a book template
+open a terminal and run:</p>
+<pre><code>quarto create-project example_book --type book</code></pre>
+<p>Let’s open the <code>_quarto.yml</code> file that is inside the newly created
+<code>example_book/</code>. This is your book’s configuration file. It should look like
+this:</p>
+<pre><code>project:
+  type: book
+
+book:
+  title: &quot;example_book&quot;
+  author: &quot;Jane Doe&quot;
+  date: &quot;3/3/2023&quot;
+  chapters:
+    - index.qmd
+    - intro.qmd
+    - summary.qmd
+    - references.qmd
+
+bibliography: references.bib
+
+format:
+  html:
+    theme: cosmo
+  pdf:
+    documentclass: scrreprt</code></pre>
+<p>You can change whatever you like, but for our purposes, we are going to add the
+<code>epub</code> output format all the way at the bottom of the file. So change these
+lines:</p>
+<pre><code>format:
+  html:
+    theme: cosmo
+  pdf:
+    documentclass: scrreprt</code></pre>
+<p>into these lines:</p>
+<pre><code>format:
+  html:
+    theme: cosmo
+  epub:
+    toc: true</code></pre>
+<p>I’ve added the <code>epub</code> format as an output, as well as the <code>toc: true</code> option,
+which builds a table of contents. I’ve also removed the <code>pdf</code> output because you
+need to have a LaTeX distribution installed for this, and the point of this blog
+post is not to talk about the PDF output (which works flawlessly by the way).
+Before compiling, let’s open one of the <code>.qmd</code> files. These files are the
+Markdown source files that we need to edit in order to fill our book with
+content. Let’s open <code>intro.qmd</code> and change these lines from:</p>
+<pre><code># Introduction
+
+This is a book created from markdown and executable code.
+
+See @knuth84 for additional discussion of literate programming.</code></pre>
+<p>to:</p>
+<pre><code># Introduction
+
+This is a book created from markdown and executable code.
+
+See @knuth84 for additional discussion of literate programming.
+
+![By Boaworm - Own work, CC BY 3.0, https://commons.wikimedia.org/w/index.php?curid=10649477](images/640px-Eyjafjallajokull_Gigjokull_in_ash.jpg)
+</code></pre>
+<p>Download the image from this
+<a href="https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Eyjafjallajokull_Gigjokull_in_ash.jpg/640px-Eyjafjallajokull_Gigjokull_in_ash.jpg?download">link</a>
+and create the <code>images/</code> folder at the root of the book, right next to the
+<code>.qmd</code> files.</p>
+<p>This syntax is the default syntax for adding pictures in a Markdown document. If
+you’re an R user, you could also use an R code chunk and the function
+<code>knitr::include_graphics()</code> to achieve the same thing.</p>
+<p>Let’s compile our little example book, and then use <code>epubcheck</code> to see what’s
+wrong! Use these commands to render the book in all the formats:</p>
+<pre><code>cd example_book/
+
+quarto render</code></pre>
+<p>You should see a folder called <code>_book</code> appear on the root of your project.
+Inside this folder, you will see a bunch of <code>.html</code> files: these constitute the
+web-site of your book. You can right click on <code>index.html</code> and open it with a
+web browser and see how your book, as a web-site, looks like. You could host
+this book on Github pages for free!</p>
+<p>But what interests us is the <code>.epub</code> file. If your PDF reader supports this
+format, you can open it and see how it looks. On Windows you could use
+SumatraPDF. I use Okular on Linux to open PDF and Epub documents. Anyways, there
+doesn’t seem to be anything wrong with it. You can open it, you can read it, it
+seems to be working just fine. But let’s see if <code>epubcheck</code> thinks the same. You
+can download <code>epubcheck</code> from <a href="https://www.w3.org/publishing/epubcheck/">here</a>.
+Save the downloaded file on the root directory of the book and decompress it.
+Inside the decompressed folder, you’ll see a file called <code>epubcheck.jar</code>. Put
+your epub file right next to it, in the same folder. Now, open a terminal and
+navigate to the right folder and run the following command to check the epub
+file:</p>
+<pre><code>cd epubcheck-5.0.0 # or whatever version it is you downloaded
+
+java -jar epubcheck.jar example_book.epub</code></pre>
+<p>You should see this output:</p>
+<pre><code>Validating using EPUB version 3.3 rules.
+ERROR(RSC-005): example_book.epub/EPUB/content.opf(6,39): Error while parsing file: character content of element &quot;dc:date&quot; invalid; must 
+be a string with length at least 1 (actual length was 0)
+WARNING(OPF-053): example_book.epub/EPUB/content.opf(6,39): Date value &quot;&quot; does not follow recommended syntax as per http://www.w3.org/TR/NOTE-datetime:zero-length string.
+ERROR(RSC-005): example_book.epub/EPUB/text/ch002.xhtml(354,16): Error while parsing file: element &quot;figcaption&quot; not allowed here; expected the element end-tag, text, element &quot;a&quot;, &quot;abbr&quot;, &quot;area&quot;, &quot;audio&quot;, &quot;b&quot;, &quot;bdi&quot;, &quot;bdo&quot;, &quot;br&quot;, &quot;button&quot;, &quot;canvas&quot;, &quot;cite&quot;, &quot;code&quot;, &quot;data&quot;, &quot;datalist&quot;, &quot;del&quot;, &quot;dfn&quot;, &quot;em&quot;, &quot;embed&quot;, &quot;epub:switch&quot;, &quot;i&quot;, &quot;iframe&quot;, &quot;img&quot;, &quot;input&quot;, &quot;ins&quot;, &quot;kbd&quot;, &quot;label&quot;, &quot;link&quot;, &quot;map&quot;, &quot;mark&quot;, &quot;meta&quot;, &quot;meter&quot;, &quot;ns1:math&quot;, &quot;ns2:svg&quot;, &quot;object&quot;, &quot;output&quot;, &quot;picture&quot;, &quot;progress&quot;, &quot;q&quot;, &quot;ruby&quot;, &quot;s&quot;, &quot;samp&quot;, &quot;script&quot;, &quot;select&quot;, &quot;small&quot;, &quot;span&quot;, &quot;strong&quot;, &quot;sub&quot;, &quot;sup&quot;, &quot;template&quot;, &quot;textarea&quot;, &quot;time&quot;, &quot;u&quot;, &quot;var&quot;, &quot;video&quot; or &quot;wbr&quot; (with xmlns:ns1=&quot;http://www.w3.org/1998/Math/MathML&quot; xmlns:ns2=&quot;http://www.w3.org/2000/svg&quot;) or an element from another namespace
+
+Check finished with errors
+Messages: 0 fatals / 2 errors / 1 warning / 0 infos
+
+EPUBCheck completed</code></pre>
+<p>So we get 2 errors and 1 warning! Let’s look at the first error:</p>
+<pre><code>ERROR(RSC-005): example_book.epub/EPUB/content.opf(6,39): Error while parsing file: character content of element &quot;dc:date&quot; invalid; must 
+be a string with length at least 1 (actual length was 0)</code></pre>
+<p>The first error message states that our epub does not have a valid <code>dc:date</code>
+attribute. The warning is also related to this. We can correct this by adding
+this attribute in the <code>_quarto.yml</code> file:</p>
+<pre><code>format:
+  epub:
+    toc:
+      true
+    date:
+      &quot;2023-03-01&quot;</code></pre>
+<p>However this is not enough. There is a bug in the current release of Quarto that
+prevents this from working, even though we did what we should. However, this bug
+<a href="https://github.com/quarto-dev/quarto-cli/issues/4615#issuecomment-1453921865">is already corrected in the development version of the next
+release</a>.
+But until the next version of Quarto, 1.3, gets released, here is the
+workaround; you need to also specify the language of the book:</p>
+<pre><code>format:
+  html:
+    theme: cosmo
+  epub:
+    toc:
+      true
+    lang:
+      en-GB
+    date:
+      &quot;2023-03-01&quot;</code></pre>
+<p>And now <code>epubcheck</code> does not complain about the date anymore!</p>
+<p>The next error:</p>
+<pre><code>ERROR(RSC-005): example_book.epub/EPUB/text/ch002.xhtml(354,16): Error while parsing file: element &quot;figcaption&quot; not allowed here; expected the element end-tag, text, element &quot;a&quot;, &quot;abbr&quot;, &quot;area&quot;, &quot;audio&quot;, &quot;b&quot;, &quot;bdi&quot;, &quot;bdo&quot;, &quot;br&quot;, &quot;button&quot;, &quot;canvas&quot;, &quot;cite&quot;, &quot;code&quot;, &quot;data&quot;, &quot;datalist&quot;, &quot;del&quot;, &quot;dfn&quot;, &quot;em&quot;, &quot;embed&quot;, &quot;epub:switch&quot;, &quot;i&quot;, &quot;iframe&quot;, &quot;img&quot;, &quot;input&quot;, &quot;ins&quot;, &quot;kbd&quot;, &quot;label&quot;, &quot;link&quot;, &quot;map&quot;, &quot;mark&quot;, &quot;meta&quot;, &quot;meter&quot;, &quot;ns1:math&quot;, &quot;ns2:svg&quot;, &quot;object&quot;, &quot;output&quot;, &quot;picture&quot;, &quot;progress&quot;, &quot;q&quot;, &quot;ruby&quot;, &quot;s&quot;, &quot;samp&quot;, &quot;script&quot;, &quot;select&quot;, &quot;small&quot;, &quot;span&quot;, &quot;strong&quot;, &quot;sub&quot;, &quot;sup&quot;, &quot;template&quot;, &quot;textarea&quot;, &quot;time&quot;, &quot;u&quot;, &quot;var&quot;, &quot;video&quot; or &quot;wbr&quot; (with xmlns:ns1=&quot;http://www.w3.org/1998/Math/MathML&quot; xmlns:ns2=&quot;http://www.w3.org/2000/svg&quot;) or an element from another namespace</code></pre>
+<p>is related to the image. It turns out that including the image like we did
+generates code that is not quite correct from the point of view of the
+standard that Epubs should follow. You should know that Epubs are actually a
+collection of HTML files, so you can include images by using HTML code in the
+source Markdown files.</p>
+<p>If you insert the image like so, the error should disappear:</p>
+<pre><code>&lt;figure&gt;
+    &lt;img src=&quot;images/640px-Eyjafjallajokull_Gigjokull_in_ash.jpg&quot;
+         alt=&quot;By Boaworm - Own work, CC BY 3.0, https://commons.wikimedia.org/w/index.php?curid=10649477&quot;&gt;&lt;/img&gt;
+    &lt;figcaption&gt;By Boaworm - Own work, CC BY 3.0, https://commons.wikimedia.org/w/index.php?curid=10649477&lt;/figcaption&gt;
+&lt;/figure&gt;</code></pre>
+<p>If you re-render the Epub, and try <code>epubcheck</code> again, you should see this:</p>
+<pre><code>java -jar epubcheck.jar example_book.epub</code></pre>
+<pre><code>Validating using EPUB version 3.3 rules.
+No errors or warnings detected.
+Messages: 0 fatals / 0 errors / 0 warnings / 0 infos</code></pre>
+</div>
+<div id="using-github-actions-to-build-the-book" class="section level2">
+<h2>Using Github Actions to build the book</h2>
+<p>Finally, as a bonus, if you’re using Github, you can also use Github Actions to
+generate the web-site, as well as the Epub (and the PDF if you want). If you go
+to <a href="https://github.com/b-rodrigues/epubcheck_quarto_test">this repository</a>,
+which contains the example book from this post, you can find the workflow to
+automatically build the Epub and web-site from your Quarto source in the
+<code>.github/workflows/</code> folder. Create the same folder structure in your repository
+and copy the <code>.yml</code> file that is in it to these folders. You should then create
+a <code>gh-pages</code> branch and make sure that Github Actions has the required
+permissions to push. For this, go to the <em>Settings</em> menu of your repository,
+then <em>Actions</em> (listed in the menu on the left), then <em>General</em>, and then under
+<em>Workflow permissions</em> make sure that <em>Read and write permissions</em> is checked.</p>
+<div style="text-align:center;">
+<p><img src="/img/ga_permissions.png" width="100%"></p>
+</div>
+<p>Now, each time you push, you should see your Epub get built in the <code>gh-pages</code>
+branch! If you use R code chunks, you also need to set up an action to set up R.
+Take a look at the
+<a href="https://github.com/b-rodrigues/rap4all/blob/master/.github/workflows/quarto-publish.yml">repo</a>
+of my book for an example.</p>
+<p>
+Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://fosstodon.org/@brodriguesco">Mastodon</a> or <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my <a href="https://www.brodrigues.co/about/books/">ebooks</a>.
+You can also watch my videos on <a href="https://www.youtube.com/c/BrunoRodrigues1988/">youtube</a>.
+So much content for you to consoom!
+</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p>
+<link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a>
+</p>
+</div>
+
+			</div>
+		</article>
+	</main>
+<aside>
+	<div>
+		<div>
+			<h3>LATEST POSTS</h3>
+		</div>
+		<div>
+			<ul>
+				
+				<li><a href="/blog/2023-07-19-nix_for_r_part2/">Reproducible data science with Nix, part 2 -- running {targets} pipelines with Nix</a></li>
+				
+				<li><a href="/blog/2023-07-13-nix_for_r_part1/">Reproducible data science with Nix, part 1 -- what is Nix</a></li>
+				
+				<li><a href="/blog/2023-06-29-book_quarto/">How to self-publish a technical book on Leanpub and Amazon using Quarto</a></li>
+				
+				<li><a href="/blog/2023-05-08-dock_dev_env/">Why you should consider working on a dockerized development environment</a></li>
+				
+				<li><a href="/blog/2023-04-25-10_years/">I&#39;ve been blogging for 10 years</a></li>
+				
+			</ul>
+		</div>
+	</div>
+</aside>
+
+
+	<footer>
+  <div class="row">
+    <div class="col-lg-12">
+      <p>2023, content by Bruno Rodrigues, unless otherwise stated, every content of this blog is licensed under the <a href="http://www.wtfpl.net/txt/copying/" rel="nofollow">WTFPL</a>.</p>
+      <p>The theme this blog uses is a slight variation of the <a href="https://github.com/colorchestra/smol" rel="nofollow">Smol</a> theme.</p>
+      <p><a class="nav-link" href="/index.html">Back to main page.</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

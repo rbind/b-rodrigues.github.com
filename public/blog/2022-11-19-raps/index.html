@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<style type=text/css>body{font-family:monospace;}</style>
+	<title>Reproducibility with Docker and Github Actions for the average R enjoyer</title>
+	
+	
+	<link rel="stylesheet" href="/css/style.css">
+	
+	
+</head>
+<body>
+	<header>
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+<pre>
+<a class="nav-link" href="/index.html">Econometrics and Free Software</a> by <a class="nav-link" href="/about/me">Bruno Rodrigues</a>.
+<a href="https://www.brodrigues.co/blog/index.xml">RSS feed for blog post updates</a>.
+Follow me on <a rel="me" href="https://fosstodon.org/@brodriguesco">Mastodon</a>, <a href="https://twitter.com/brodriguesco" rel="nofollow">twitter</a>, or check out my <a href="https://github.com/b-rodrigues">Github</a>.
+Check out my package that adds logging to R functions, <a href="https://b-rodrigues.github.io/chronicler/">{chronicler}</a>.
+Or read my free ebooks, <a href="https://www.brodrigues.co/about/books/">to learn some R and build reproducible analytical pipelines.</a>.
+You can also watch my <a href="https://www.youtube.com/user/cbrunos" rel="nofollow">youtube</a> channel or find the slides to the talks I've given <a href="https://www.brodrigues.co/about/talks/">here</a>.
+<a href="https://www.buymeacoffee.com/brodriguesco" rel="nofollow">Buy me a coffee</a>, my kids don't let me sleep.
+</pre>
+</header>
+
+	
+	<main>
+		<article>
+			<h1>Reproducibility with Docker and Github Actions for the average R enjoyer</h1>
+			<b><time>2022/11/19</time></b>
+		       
+		           <a href="/tags/r">R</a>
+        	       
+
+			<div>
+				<div style="text-align:center;">
+<p><img src="/img/raps.png" width="70%"></p>
+</div>
+<p><em>This blog post is a summary of Chapters 9 and 10 of this
+<a href="https://rap4mads.eu/self-contained-raps-with-docker.html">ebook</a> I wrote for a course</em></p>
+<p>The goal is the following: we want to write a pipeline that produces some plots. We want
+the code to be executed inside a Docker container for reproducibility, and we want this container
+to get executed on Github Actions. Github Actions is a <em>Continuous Integration and Continuous Delivery</em>
+service from Github that allows you to execute arbitrary code on events (like pushing code to a repo).
+It’s pretty neat. For example, you could be writing a paper using Latex and get the pdf compiled
+on Github Actions each time you push, without needing to have to do it yourself. Or if you are developing
+an R package, unit tests could get executed each time you push code, so you don’t have to do it manually.</p>
+<p>This blog post will assume that you are familiar with R and are comfortable with it, as well
+as Git and Github.</p>
+<p>It will also assume that you’ve at least heard of Docker and have it already installed on your computer,
+but ideally, you’ve already played a bit around with Docker.
+If you’re a total Docker beginner, this tutorial might be a bit too esoteric.</p>
+<p>Let’s start by writing a pipeline that works on our machines using the <code>{targets}</code> package.</p>
+<div id="getting-something-working-on-your-machine" class="section level2">
+<h2>Getting something working on your machine</h2>
+<p>So, let’s say that you got some nice code that you need to rerun every month, week, day, or even
+hour. Or let’s say that you’re a researcher that is concerned with reproducibility.
+Let’s also say that you want to make sure that this code always produces the same result
+(let’s say it’s some plots that need to get remade once some data is refreshed).</p>
+<p>Ok, so first of all, you really want your workflow to be defined using the <code>{targets}</code> package.
+If you’re not familiar with <code>{targets}</code>, this will serve as a micro introduction, but you
+really should read the <code>{targets}</code> manual, at least the
+<a href="https://books.ropensci.org/targets/walkthrough.html">walkthrough</a> (watch the 4 minute video).
+<code>{targets}</code> is a build automation tool that you should definitely add to your toolbox.</p>
+<p>Let’s define a workflow that does the following: data gets read, data gets filtered, data gets
+plotted. What’s the data about? Unemployment in Luxembourg. Luxembourg is a little Western European
+country that looks like a shoe and is <a href="https://raw.githubusercontent.com/rbind/b-rodrigues.github.com/master/static/img/rhode_island.png">about the size of .98 Rhode Islands</a>
+from which yours truly hails from. Did you know that Luxembourg was a monarchy, and the last
+Grand-Duchy in the World? I bet you did not know that. Also, what you should know to understand the
+script below is that the country of Luxembourg is divided into Cantons, and each Cantons into
+Communes. Basically, if Luxembourg was the USA, Cantons would be States and Communes would be
+Counties (or Parishes or Boroughs). What’s confusing is that “Luxembourg” is also the name
+of a Canton, and of a Commune (which also has the status of a city).</p>
+<p>Anyways, here’s how my script looks like:</p>
+<pre class="r"><code>library(targets)
+library(dplyr)
+library(ggplot2)
+source(&quot;functions.R&quot;)
+
+
+list(
+    tar_target(
+        unemp_data,
+        get_data()
+    ),
+
+    tar_target(
+        lux_data,
+        clean_unemp(unemp_data,
+                    place_name_of_interest = &quot;Luxembourg&quot;,
+                    level_of_interest = &quot;Country&quot;,
+                    col_of_interest = active_population)
+    ),
+
+    tar_target(
+        canton_data,
+        clean_unemp(unemp_data,
+                    level_of_interest = &quot;Canton&quot;,
+                    col_of_interest = active_population)
+    ),
+
+    tar_target(
+        commune_data,
+        clean_unemp(unemp_data,
+                    place_name_of_interest = c(&quot;Luxembourg&quot;,
+                                               &quot;Dippach&quot;,
+                                               &quot;Wiltz&quot;,
+                                               &quot;Esch/Alzette&quot;,
+                                               &quot;Mersch&quot;),
+                    col_of_interest = active_population)
+    ),
+
+    tar_target(
+        lux_plot,
+        make_plot(lux_data)
+    ),
+
+    tar_target(
+        canton_plot,
+        make_plot(canton_data)
+    ),
+
+    tar_target(
+        commune_plot,
+        make_plot(commune_data)
+    ),
+
+    tar_target(
+        luxembourg_saved_plot,
+        save_plot(&quot;fig/luxembourg.png&quot;, lux_plot),
+        format = &quot;file&quot;
+    ),
+
+    tar_target(
+        canton_saved_plot,
+        save_plot(&quot;fig/canton.png&quot;, canton_plot),
+        format = &quot;file&quot;
+    ),
+
+    tar_target(
+        commune_saved_plot,
+        save_plot(&quot;fig/commune.png&quot;, commune_plot),
+        format = &quot;file&quot;
+    )
+
+
+)</code></pre>
+<p>Because this is a <code>{targets}</code> script, this needs to be saved inside a file called <code>_targets.R</code>.
+Each <code>tar_target()</code> object defines a target that will get built once we run the pipeline.
+The first element of <code>tar_target()</code> is the name of the target, the second line a call to a function
+that returns the first element and in the last three targets <code>format = "file"</code> is used to indicate
+that this target saves an output to disk (as a file).</p>
+<p>The fourth line of the script sources a script called <code>functions.R</code>. This script should be placed
+next to the <code>_targets.R</code> script and should look like this:</p>
+<pre><code># clean_unemp() is a function inside a package I made. Because I don&#39;t want you to install
+# the package if you&#39;re following along, I&#39;m simply sourcing it:
+
+source(&quot;https://raw.githubusercontent.com/b-rodrigues/myPackage/main/R/functions.R&quot;)
+
+# The cleaned data is also available in that same package. But again, because I don&#39;t want you
+# to install a package just for a blog post, here is the script to clean it.
+# Don&#39;t waste time trying to understand it, it&#39;s very specific to the data I&#39;m using
+# to illustrate the concept of reproducible analytical pipelines. Just accept this data 
+# as given.
+
+# This is a helper function to clean the data
+clean_data &lt;- function(x){
+  x %&gt;%
+    janitor::clean_names() %&gt;%
+    mutate(level = case_when(
+             grepl(&quot;Grand-D.*&quot;, commune) ~ &quot;Country&quot;,
+             grepl(&quot;Canton&quot;, commune) ~ &quot;Canton&quot;,
+             !grepl(&quot;(Canton|Grand-D.*)&quot;, commune) ~ &quot;Commune&quot;
+           ),
+           commune = ifelse(grepl(&quot;Canton&quot;, commune),
+                            stringr::str_remove_all(commune, &quot;Canton &quot;),
+                            commune),
+           commune = ifelse(grepl(&quot;Grand-D.*&quot;, commune),
+                            stringr::str_remove_all(commune, &quot;Grand-Duche de &quot;),
+                            commune),
+           ) %&gt;%
+    select(year,
+           place_name = commune,
+           level,
+           everything())
+}
+
+# This reads in the data.
+get_data &lt;- function(){
+  list(
+    &quot;https://raw.githubusercontent.com/b-rodrigues/modern_R/master/datasets/unemployment/unemp_2013.csv&quot;,
+    &quot;https://raw.githubusercontent.com/b-rodrigues/modern_R/master/datasets/unemployment/unemp_2014.csv&quot;,
+    &quot;https://raw.githubusercontent.com/b-rodrigues/modern_R/master/datasets/unemployment/unemp_2015.csv&quot;,
+    &quot;https://raw.githubusercontent.com/b-rodrigues/modern_R/master/datasets/unemployment/unemp_2016.csv&quot;,
+  ) |&gt;
+    purrr::map_dfr(readr::read_csv) %&gt;%
+    purrr::map_dfr(clean_data)
+}
+
+# This plots the data
+make_plot &lt;- function(data){
+  ggplot(data) +
+    geom_col(
+      aes(
+        y = active_population,
+        x = year,
+        fill = place_name
+      )
+    ) +
+    theme(legend.position = &quot;bottom&quot;,
+          legend.title = element_blank())
+}
+
+# This saves plots to disk
+save_plot &lt;- function(save_path, plot){
+  ggsave(save_path, plot)
+  save_path
+}</code></pre>
+<p>What you could do instead of having a <code>functions.R</code> script that you source like this, is put
+everything inside a package that you then host on Github. But that’s outside the scope of this
+blog post. Put these scripts inside a folder, open an R session
+inside that folder, and run the pipeline using <code>targets::tar_make()</code>:</p>
+<pre class="r"><code>targets::tar_make()</code></pre>
+<pre><code>/
+Attaching package: ‘dplyr’
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+• start target unemp_data
+• built target unemp_data [1.826 seconds]
+• start target canton_data
+• built target canton_data [0.038 seconds]
+• start target lux_data
+• built target lux_data [0.034 seconds]
+• start target commune_data
+• built target commune_data [0.043 seconds]
+• start target canton_plot
+• built target canton_plot [0.007 seconds]
+• start target lux_plot
+• built target lux_plot [0.006 seconds]
+• start target commune_plot
+• built target commune_plot [0.003 seconds]
+• start target canton_saved_plot
+Saving 7 x 7 in image
+• built target canton_saved_plot [0.425 seconds]
+• start target luxembourg_saved_plot
+Saving 7 x 7 in image
+• built target luxembourg_saved_plot [0.285 seconds]
+• start target commune_saved_plot
+Saving 7 x 7 in image
+• built target commune_saved_plot [0.291 seconds]
+• end pipeline [3.128 seconds]</code></pre>
+<p>You can now see a <code>fig/</code> folder in the root of your project with the plots. Sweet.</p>
+</div>
+<div id="making-sure-this-is-reproducible" class="section level2">
+<h2>Making sure this is reproducible</h2>
+<p>Now what we would like to do is make sure that this pipeline will, for the same inputs,
+returns the same outputs FOREVER. If I’m running this in 10 years on R version 6.9, I want
+the exact same plots back. So the idea is to actually never run this on whatever version
+of R will be available in 10 years, but keep rerunning it, <em>ad vitam æternam</em> on whatever
+environment I’m using now to type this blog post. So for this, I’m going to use Docker.</p>
+<p>(If, like me, you’re an average functional programming enjoyer, then this means getting
+rid of the hidden state of our pipeline. The hidden global state is
+the version of R and packages used to run the pipeline.)</p>
+<p>What’s Docker? Docker is a way to run a Linux computer inside your computer (Linux or not). That
+computer is not real, but real enough for our purposes. Ever heard of virtual machines? Basically
+the same thing, but without the overhead of actually setting up and running a virtual machine.</p>
+<p>You can write a simple text file that defines what your machine is, and what it should run.
+Thankfully, we don’t need to start from scratch and can use the amazing
+<a href="https://rocker-project.org/">Rocker project</a> that provides many, many, images for us to start
+playing with Docker. What’s a Docker image? A definition of a computer/machine. Which is a text file.
+Don’t ask why it’s called an image. Turns out the Rocker project has a page specifically
+on <a href="https://rocker-project.org/use/reproducibility.html">reproducibility</a>. Their advice can be
+summarised as follows: if you’re aiming at setting up a reproducible pipeline, use a version-stable
+image. This means that if you start from such an image, the exact same R version will always be used
+to run your pipeline. Plus, the RStudio Public Package Manager (RSPM), frozen at a specific date, will
+be used to fetch the packages needed for your pipeline. So, not only is the R version frozen,
+but the exact same packages will always get installed (as long as the RSPM exists, hopefully for a long
+time).</p>
+<p>Now, I’ve been talking about a script that defines an image for some time. This script is called
+a <code>Dockerfile</code>, and you can find the versioned <code>Dockerfiles</code>
+<a href="https://github.com/rocker-org/rocker-versioned2/tree/master/dockerfiles">here</a>. As you can see
+there are many <code>Dockerfile</code>s, each defining a Linux machine and with several
+things pre-installed. Let’s take a look at the image
+<a href="https://github.com/rocker-org/rocker-versioned2/blob/master/dockerfiles/r-ver_4.2.1.Dockerfile">r-ver_4.2.1.Dockerfile</a>.
+What’s interesting here are the following lines (let’s ignore the others):</p>
+<pre><code>8 ENV R_VERSION=4.2.1
+
+16 ENV CRAN=https://packagemanager.rstudio.com/cran/__linux__/focal/2022-10-28</code></pre>
+<p>The last characters of that link are a date. This means that if you use this for your project,
+packages will be downloaded as they were on the October 28th, 2022, and the R version used
+will always be version 4.2.1.</p>
+<p>Ok so, how do we use this?</p>
+<p>Let’s add a <code>Dockerfile</code> to our project. Simply create a text file called <code>Dockerfile</code> and add the
+following lines in it:</p>
+<pre><code>FROM rocker/r-ver:4.2.1
+
+RUN R -e &quot;install.packages(c(&#39;dplyr&#39;, &#39;purrr&#39;, &#39;readr&#39;, &#39;stringr&#39;, &#39;ggplot2&#39;, &#39;janitor&#39;, &#39;targets&#39;))&quot;
+
+RUN mkdir /home/fig
+
+COPY _targets.R /_targets.R
+
+COPY functions.R /functions.R
+
+CMD R -e &quot;targets::tar_make()&quot;</code></pre>
+<p>Before continuing, I should explain what the first line does:</p>
+<pre><code>FROM rocker/r-ver:4.2.1</code></pre>
+<p>This simply means that we are using the image
+<a href="https://github.com/rocker-org/rocker-versioned2/blob/master/dockerfiles/r-ver_4.2.1.Dockerfile">from before</a> as a base.
+This image is itself based on <em>Ubuntu Focal</em>, see its first line:</p>
+<pre><code>FROM ubuntu:focal</code></pre>
+<p>Ubuntu is a very popular, likely the most popular, Linux distribution. So the versioned image
+is built on top of Ubuntu 20.04 codenamed Focal Fossa (which is a long term support release),
+and our image is built on top of that. To make sense of all this, you can take a look at the table
+<a href="https://github.com/rocker-org/rocker-versioned2/wiki/Versions">here</a>.</p>
+<p>So now that we’ve written this <code>Dockerfile</code>, we need to build the image. This can be done inside
+a terminal with the following line:</p>
+<pre><code>docker build -t my_pipeline .</code></pre>
+<p>This tells Docker to build an image called <code>my_pipeline</code> using the Dockerfile in the current directory
+(hence the <code>.</code>).</p>
+<p>But, here’s what happens when we try to run the pipeline (I’ll be showing the command
+to run the pipeline below):</p>
+<pre><code>&gt; targets::tar_make()
+Error in dyn.load(file, DLLpath = DLLpath, ...) : 
+  unable to load shared object &#39;/usr/local/lib/R/site-library/igraph/libs/igraph.so&#39;:
+  libxml2.so.2: cannot open shared object file: No such file or directory
+Calls: loadNamespace ... asNamespace -&gt; loadNamespace -&gt; library.dynam -&gt; dyn.load
+Execution halted</code></pre>
+<p>We get a nasty error message; apparently some library, <code>libxml2.so</code> cannot be found.
+So we need to change our <code>Dockerfile</code>, and add the following lines:</p>
+<pre><code>FROM rocker/r-ver:4.2.1
+
+RUN apt-get update &amp;&amp; apt-get install -y \
+    libxml2-dev \
+    libglpk-dev \
+    libxt-dev
+
+RUN R -e &quot;install.packages(c(&#39;dplyr&#39;, &#39;purrr&#39;, &#39;readr&#39;, &#39;stringr&#39;, &#39;ggplot2&#39;, &#39;janitor&#39;, &#39;targets&#39;))&quot;
+
+RUN mkdir /home/fig
+
+COPY _targets.R /_targets.R
+
+COPY functions.R /functions.R
+
+CMD R -e &quot;targets::tar_make()&quot;</code></pre>
+<p>I’ve added these lines:</p>
+<pre><code>RUN apt-get update &amp;&amp; apt-get install -y \
+    libxml2-dev \
+    libglpk-dev \
+    libxt-dev</code></pre>
+<p>this runs the <code>apt-get update</code> and <code>apt-get install</code> commands. Aptitude is Ubuntu’s package manager
+and is used to install software. The three pieces of software I installed will avoid
+further issues. <code>libxml2-dev</code> is for the error message I’ve pasted here, while the
+other two avoid further error messages. One last thing before we rebuild th image:
+we actually need to change the <code>_targets.R</code> file a bit. Let’s take a look at our
+<code>Dockerfile</code> again, there’s three lines I haven’t commented:</p>
+<pre><code>RUN mkdir /home/fig
+
+COPY _targets.R /_targets.R
+
+COPY functions.R /functions.R</code></pre>
+<p>The first line creates the <code>fig/</code> folder in the <code>home/</code> directory, and the <code>COPY</code>
+statements copy the files into the Docker image, so that they’re actually available
+inside the Docker. I also need to tell <code>_targets</code> to save the figures into the
+<code>home/fig</code> folder. So simply change the last three targets from this:</p>
+<pre><code>tar_target(
+        luxembourg_saved_plot,
+        save_plot(&quot;fig/luxembourg.png&quot;, lux_plot),
+        format = &quot;file&quot;
+    ),
+
+    tar_target(
+        canton_saved_plot,
+        save_plot(&quot;fig/canton.png&quot;, canton_plot),
+        format = &quot;file&quot;
+    ),
+
+    tar_target(
+        commune_saved_plot,
+        save_plot(&quot;fig/commune.png&quot;, commune_plot),
+        format = &quot;file&quot;
+    )</code></pre>
+<p>to this:</p>
+<pre><code>tar_target(
+        luxembourg_saved_plot,
+        save_plot(&quot;/home/fig/luxembourg.png&quot;, lux_plot),
+        format = &quot;file&quot;
+    ),
+
+    tar_target(
+        canton_saved_plot,
+        save_plot(&quot;/home/fig/canton.png&quot;, canton_plot),
+        format = &quot;file&quot;
+    ),
+
+    tar_target(
+        commune_saved_plot,
+        save_plot(&quot;/home/fig/commune.png&quot;, commune_plot),
+        format = &quot;file&quot;
+    )</code></pre>
+<p>Ok, so now we’re ready to rebuild the image:</p>
+<pre><code>docker build -t my_pipeline .</code></pre>
+<p>and we can now run it:</p>
+<pre><code>docker run --rm --name my_pipeline_container -v /path/to/fig:/home/fig my_pipeline</code></pre>
+<p><code>docker run</code> runs a container based on the image you defined. <code>--rm</code> means that the container
+should be removed once it stops, <code>--name</code> gives it a name, here <code>my_pipeline_container</code> (this is
+not really needed here, because the container stops and gets removed once it’s done running), and
+<code>-v</code> mounts a volume, which is a fancy way of saying that the folder <code>/path/to/fig/</code>, which is a
+real folder on your computer, is a portal to the folder <code>/home/fig/</code> (which we created in the
+<code>Dockerfile</code>). This means that whatever gets saved inside <code>home/fig/</code> inside the Docker container
+gets also saved inside <code>/path/to/fig</code> on your computer. The last argument <code>my_pipeline</code> is simply
+the Docker image you built before. You should see the three plots magically appearing in
+<code>/path/to/fig</code> once the container is done running. The other neat thing is that you can upload this
+image to Docker Hub, for free (to know how to do this, check out this
+<a href="https://rap4mads.eu/self-contained-raps-with-docker.html#building-a-truly-reproducible-pipeline">section</a>
+of the course I teach on this). This way, if other people want to run it, they could do so by
+running the same command as above, but replacing <code>my_pipeline</code> by
+<code>your_username_on_docker_hub/image_name_on_docker_hub</code>. People could even create new images based
+on this image, by using <code>FROM your_username_on_docker_hub/image_name_on_docker_hub</code> at the
+beginning of their <code>Dockerfile</code>s. If you want an example of a pipeline that starts off from such an
+image, you can check out this
+<a href="https://github.com/b-rodrigues/dockerized_pipeline_demo/tree/main">repository</a>. This repository
+tells you how can run a reproducible pipeline by simply cloning it, building the image (which only
+takes a few seconds because all software is already installed in the image that I start from) and
+then running it.</p>
+</div>
+<div id="running-this-on-github-actions" class="section level2">
+<h2>Running this on Github Actions</h2>
+<p>Ok, so now, let’s suppose that we got an image on Docker Hub that contains all the dependencies
+required for our pipeline, and let’s say that we create a Github repository containing a
+<code>Dockerfile</code> that pulls from this image, as well as the required scripts for our pipeline.
+Basically, this is what I did <a href="https://github.com/b-rodrigues/dockerized_pipeline_demo/tree/main">here</a>
+(the same repository that I linked above already). If you take a look at the first line of the
+<code>Dockerfile</code> in it, you will see this:</p>
+<pre><code>FROM brodriguesco/r421_rap:version1</code></pre>
+<p>This means that the image that gets built from this <code>Dockerfile</code> starts off from <a href="https://hub.docker.com/layers/brodriguesco/r421_rap/version1/images/sha256-9b8cdaaaf14828468f6c3136c6e2916d3a6efe9c654a97a2a0d12d5d9e5b9ccc?context=repo">this image
+I’ve uploaded on Docker
+Hub</a>, this way each time the image gets rebuilt,
+because the dependencies are already installed, it’s going to be fast.
+Ok, so now what I want is the following: each time I change a file, be it the <code>Dockerfile</code>, or the
+<code>_targets.R</code> script, commit my changes and push them, I want Github Actions to rebuild the image,
+run the container, and give me the plots back.</p>
+<p>This means that I can focus on coding, Github Actions will take care of the boring stuff.</p>
+<p>To do this, start by creating a <code>.github/</code> directory on the root of your Github repo, and
+inside of it, add a <code>.workflows</code> directory, and add a file in it called something like
+<code>docker-build-run.yml</code>. What matters is that this file ends in <code>.yml</code>. This is what the
+file I use to define the actions I’ve described above looks like:</p>
+<pre><code>name: Docker Image CI
+
+on:
+  push:
+    branches: [ &quot;main&quot; ]
+  pull_request:
+    branches: [ &quot;main&quot; ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build the Docker image
+      run: docker build -t my-image-name .
+    - name: Docker Run Action
+      run: docker run --rm --name my_pipeline_container -v /github/workspace/fig/:/home/graphs/:rw my-image-name
+    - uses: actions/upload-artifact@v3
+      with:
+        name: my-figures
+        path: /github/workspace/fig/</code></pre>
+<p>The first line defines the name of the job, here <code>Docker Image CI</code>.
+The lines state when this should get executed: whenever there’s a push on or pull request on <code>main</code>.
+The job itself runs on an Ubuntu VM (so Github Actions starts an Ubuntu VM that will pull a Docker
+image itself running Ubuntu…).
+Then, there’s the <code>steps</code> statement. For now, let’s focus on the <code>run</code> statements inside <code>steps</code>,
+because these should be familiar:</p>
+<pre><code>run: docker build -t my-image-name .</code></pre>
+<p>and:</p>
+<pre><code>run: docker run --rm --name my_pipeline_container -v /github/workspace/fig/:/home/graphs/:rw my-image-name</code></pre>
+<p>The only new thing here, is that the path “on our machine” has been changed to <code>/github/workspace/</code>.
+This is the home directory of your repository, so to speak. Now there’s the <code>uses</code> keyword that’s new:</p>
+<pre><code>uses: actions/checkout@v3</code></pre>
+<p>This action checkouts your repository inside the VM, so the files in the repo are available inside the VM.
+Then, there’s this action here:</p>
+<pre><code>- uses: actions/upload-artifact@v3
+  with:
+    name: my-figures
+    path: /github/workspace/fig/</code></pre>
+<p>This action takes what’s inside <code>/github/workspace/fig/</code> (which will be the output of our pipeline)
+and makes the contents available as so-called “artifacts”. Artifacts are the outputs of your
+workflow, and will be made available as <code>zip</code> files for download.
+In our case, as stated, the output of the pipeline.
+It is thus possible to rerun our workflow in the cloud. This has the
+advantage that we can now focus on simply changing the code, and not have to bother with
+useless manual steps. For example, let’s change this target in the <code>_targets.R</code> file:</p>
+<pre><code>tar_target(
+    commune_data,
+    clean_unemp(unemp_data,
+                place_name_of_interest = c(&quot;Luxembourg&quot;, &quot;Dippach&quot;, 
+                                           &quot;Wiltz&quot;, &quot;Esch/Alzette&quot;, 
+                                           &quot;Mersch&quot;, &quot;Dudelange&quot;),
+                col_of_interest = active_population)
+)
+</code></pre>
+<p>I’ve added “Dudelange” to the list of communes to plot. Let me push this change to the repo now,
+and let’s take a look at the artifacts. The video below summarises the process:</p>
+<div style="text-align:center;">
+<p><video width="640" height="480" controls>
+<source src="/img/ga_3.mp4" type="video/mp4">
+</video></p>
+</div>
+<p>As you can see in the video, the <code>_targets.R</code> script was changed, and the changes pushed to Github.
+This triggered the action we’ve defined before. The plots (artifacts) get refreshed, and we can
+download them. We see then that Dudelange was added in the <code>communes.png</code> plot!</p>
+<p>If you enjoyed this blog post and want more of this, I wrote a whole <a href="https://rap4mads.eu/">ebook on it</a>.</p>
+<p>
+Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://fosstodon.org/@brodriguesco">Mastodon</a> or <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my ebook on <a href="https://leanpub.com/modern_tidyverse">Leanpub</a>.
+You can also watch my videos on <a href="https://www.youtube.com/c/BrunoRodrigues1988/">youtube</a>.
+So much content for you to consoom!
+</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p>
+<link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a>
+</p>
+</div>
+</div>
+
+			</div>
+		</article>
+	</main>
+<aside>
+	<div>
+		<div>
+			<h3>LATEST POSTS</h3>
+		</div>
+		<div>
+			<ul>
+				
+				<li><a href="/blog/2023-07-19-nix_for_r_part2/">Reproducible data science with Nix, part 2 -- running {targets} pipelines with Nix</a></li>
+				
+				<li><a href="/blog/2023-07-13-nix_for_r_part1/">Reproducible data science with Nix, part 1 -- what is Nix</a></li>
+				
+				<li><a href="/blog/2023-06-29-book_quarto/">How to self-publish a technical book on Leanpub and Amazon using Quarto</a></li>
+				
+				<li><a href="/blog/2023-05-08-dock_dev_env/">Why you should consider working on a dockerized development environment</a></li>
+				
+				<li><a href="/blog/2023-04-25-10_years/">I&#39;ve been blogging for 10 years</a></li>
+				
+			</ul>
+		</div>
+	</div>
+</aside>
+
+
+	<footer>
+  <div class="row">
+    <div class="col-lg-12">
+      <p>2023, content by Bruno Rodrigues, unless otherwise stated, every content of this blog is licensed under the <a href="http://www.wtfpl.net/txt/copying/" rel="nofollow">WTFPL</a>.</p>
+      <p>The theme this blog uses is a slight variation of the <a href="https://github.com/colorchestra/smol" rel="nofollow">Smol</a> theme.</p>
+      <p><a class="nav-link" href="/index.html">Back to main page.</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

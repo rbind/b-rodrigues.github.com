@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<style type=text/css>body{font-family:monospace;}</style>
+	<title>Reproducible data science with Nix, part 1 -- what is Nix</title>
+	
+	
+	<link rel="stylesheet" href="/css/style.css">
+	
+	
+</head>
+<body>
+	<header>
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+<pre>
+<a class="nav-link" href="/index.html">Econometrics and Free Software</a> by <a class="nav-link" href="/about/me">Bruno Rodrigues</a>.
+<a href="https://www.brodrigues.co/blog/index.xml">RSS feed for blog post updates</a>.
+Follow me on <a rel="me" href="https://fosstodon.org/@brodriguesco">Mastodon</a>, <a href="https://twitter.com/brodriguesco" rel="nofollow">twitter</a>, or check out my <a href="https://github.com/b-rodrigues">Github</a>.
+Check out my package that adds logging to R functions, <a href="https://b-rodrigues.github.io/chronicler/">{chronicler}</a>.
+Or read my free ebooks, <a href="https://www.brodrigues.co/about/books/">to learn some R and build reproducible analytical pipelines.</a>.
+You can also watch my <a href="https://www.youtube.com/user/cbrunos" rel="nofollow">youtube</a> channel or find the slides to the talks I've given <a href="https://www.brodrigues.co/about/talks/">here</a>.
+<a href="https://www.buymeacoffee.com/brodriguesco" rel="nofollow">Buy me a coffee</a>, my kids don't let me sleep.
+</pre>
+</header>
+
+	
+	<main>
+		<article>
+			<h1>Reproducible data science with Nix, part 1 -- what is Nix</h1>
+			<b><time>2023/07/13</time></b>
+		       
+		           <a href="/tags/r">R</a>
+        	       
+
+			<div>
+				<div style="text-align:center;">
+<p><img src="/img/nix.jpg" width="100%"></p>
+</div>
+<p>This is the first of a (hopefully) series of posts about Nix. Disclaimer: I’m a
+super beginner with Nix. So this series of blog posts is more akin to notes that
+I’m taking while learning than a super detailed tutorial. So if you’re a Nix
+expert and read something stupid in here, that’s normal. This post is going to
+focus on R (obviously) but the ideas are applicable to any programming language.</p>
+<p>To ensure that a project is reproducible you need to deal with at least four
+things:</p>
+<ul>
+<li>Make sure that the required/correct version of R (or any other language) is installed;</li>
+<li>Make sure that the required versions of packages are installed;</li>
+<li>Make sure that system dependencies are installed (for example, you’d need a working Java installation to install the <code>{rJava}</code> R package on Linux);</li>
+<li>Make sure that you can install all of this for the hardware you have on hand.</li>
+</ul>
+<p>For the three first bullet points, the consensus seems to be a mixture of Docker
+to deal with system dependencies, <code>{renv}</code> for the packages (or <code>{groundhog}</code>,
+or a fixed CRAN snapshot like those <a href="https://packagemanager.posit.co/__docs__/user/get-repo-url/#ui-frozen-urls">Posit
+provides</a>)
+and the <a href="https://github.com/r-lib/rig">R installation manager</a> to install the
+correct version of R (unless you use a Docker image as base that already ships
+the required version by default). As for the last point, the only way out is to
+be able to compile the software for the target architecture. There’s a lot of
+moving pieces, and knowledge that you need to know and I even wrote a whole 522
+pages <a href="https://raps-with-r.dev/">book about all of this</a>.</p>
+<p>But it turns out that this is not the only solution. Docker + <code>{renv}</code> (or some
+other way to deal with packages) is likely the most popular way to ensure
+reproducibility of your projects, but there are other tools to achieve this. One
+such tool is called Nix.</p>
+<p>Nix is a package manager for Linux distributions, macOS and apparently it even
+works on Windows if you enable WSL2. What’s a package manager? If you’re not a
+Linux user, you may not be aware. Let me explain it this way: in R, if you want
+to install a package to provide some functionality not included with a vanilla
+installation of R, you’d run this:</p>
+<pre><code>install.packages(&quot;dplyr&quot;)</code></pre>
+<p>It turns out that Linux distributions, like Ubuntu for example, work in a
+similar way, but for software that you’d usually install using an installer (at
+least on Windows). For example you could install Firefox on Ubuntu using:</p>
+<pre><code>sudo apt-get install firefox</code></pre>
+<p>(there’s also graphical interfaces that make this process “more user-friendly”).
+In Linux jargon, <code>packages</code> are simply what normies call software (or I guess
+it’s all “apps” these days). These packages get downloaded from so-called
+repositories (think of CRAN, the repository of R packages) but for any type of
+software that you might need to make your computer work: web browsers, office
+suites, multimedia software and so on.</p>
+<p>So Nix is just another package manager that you can use to install software.</p>
+<p>But what interests us is not using Nix to install Firefox, but instead to
+install R and the R packages that we require for our analysis (or any other
+programming language that we need). But why use Nix instead of the usual ways to
+install software on our operating systems?</p>
+<p>The first thing that you should know is that Nix’s repository, <code>nixpkgs</code>, is
+huge. Humongously huge. As I’m writing these lines, <a href="https://search.nixos.org/packages">there’s more than 80’000
+pieces of software available</a>, and the
+<em>entirety of CRAN</em> is also available through <code>nixpkgs</code>. So instead of installing
+R as you usually do and then use <code>install.packages()</code> to install packages, you
+could use Nix to handle everything. But still, why use Nix at all?</p>
+<p>Nix has an interesting feature: using Nix, it is possible to install software in
+(relatively) isolated environments. So using Nix, you can install as many
+versions of R and R packages that you need. Suppose that you start working on a
+new project. As you start the project, with Nix, you would install a
+project-specific version of R and R packages that you would only use for that
+particular project. If you switch projects, you’d switch versions of R and R
+packages. If you are familiar with <code>{renv}</code>, you should see that this is exactly
+the same thing: the difference is that not only will you have a project-specific
+library of R packages, you will also have a project-specific R version. So if
+you start a project now, you’d have R version 4.2.3 installed (the latest
+version available in <code>nixpkgs</code> but not the latest version available, more on
+this later), with the accompagnying versions of R packages, for as long as the
+project lives (which can be a long time). If you start a project next year, then
+that project will have its own R, maybe R version 4.4.2 or something like that,
+and the set of required R packages that would be current at that time. This is
+because Nix always installs the software that you need in separate, (isolated)
+environments on your computer. So you can define an environment for one specific
+project.</p>
+<p>But Nix even goes even further: not only can you install R and R packages using
+Nix (in isolated) project-specific environments, Nix even installs the required
+system dependencies. So for example if I need <code>{rJava}</code>, Nix will make sure to
+install the correct version of Java as well, always in that project-specific
+environment (so if you already some Java version installed on your system, there
+won’t be any interference).</p>
+<p>What’s also pretty awesome, is that you can use a specific version of <code>nixpkgs</code>
+to <em>always</em> get <em>exactly</em> the same versions of <strong>all</strong> the software whenever you
+build that environment to run your project’s code. The environment gets defined
+in a simple plain-text file, and anyone using that file to build the environment
+will get exactly, byte by byte, the same environment as you when you initially
+started the project. And this also regardless of the operating system that is
+used.</p>
+<p>So let me illustrate this. After <a href="https://nix.dev/tutorials/install-nix">installing
+Nix</a>, I can define an environment by
+writing a file called <code>default.nix</code> that looks like this:</p>
+<pre><code>{ pkgs ? import (fetchTarball &quot;https://github.com/NixOS/nixpkgs/archive/e11142026e2cef35ea52c9205703823df225c947.tar.gz&quot;) {} }:
+
+with pkgs;
+
+let
+  my-pkgs = rWrapper.override {
+    packages = with rPackages; [ dplyr ggplot2 R];
+  };
+in
+mkShell {
+  buildInputs = [my-pkgs];
+}</code></pre>
+<p>Now this certainly looks complicated! And it is. The entry cost to Nix is quite
+high, because, actually, Nix is more than a package manager. It is also a
+programming language, and this programming language gets used to configure
+environments. I won’t go too much into detail, but you’ll see in the first line
+that I’m using a specific version of <code>nixpkgs</code> that gets downloaded directly
+from Github. This means that all the software that I will install with that
+specific version of <code>nixpkgs</code> will always install the same software. This is
+what ensures that R and R packages are versioned. Basically, by using a specific
+version of <code>nixpkgs</code>, I pin all the versions of all the software that this
+particular version of Nix will <em>ever</em> install. I then define a variable called
+<code>my-pkgs</code> which lists the packages I want to install (<code>{dplyr}</code>, <code>{ggplot2}</code> and
+<code>R</code>).</p>
+<p>By the way, this may look like it would take a lot of time to install because,
+after all, you need to install R, R packages and underlying system dependencies,
+but thankfully there is an online cache of binaries that gets automatically used
+by Nix (<a href="https://cache.nixos.org/">cache.nixos.org</a>) for fast installations. If
+binaries are not available, sources get compiled.</p>
+<p>I can now create an environment with these exact specifications using (in the
+directory where <code>default.nix</code> is):</p>
+<pre><code>nix-build</code></pre>
+<p>or I could use the R version from this environment to run some arbitrary code:</p>
+<pre><code>nix-shell /home/renv/default.nix --run &quot;Rscript -e &#39;sessionInfo()&#39;&quot; &gt;&gt; /home/renv/sessionInfo.txt</code></pre>
+<p>(assuming my <code>default.nix</code> file is available in the <code>/home/renv/</code> directory).
+This would build the environment on the fly and run <code>sessionInfo()</code> inside of
+it. Here are the contents of this <code>sessionInfo.txt</code> file:</p>
+<pre><code>R version 4.2.3 (2023-03-15)
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+Matrix products: default
+BLAS/LAPACK: /nix/store/pbfs53rcnrzgjiaajf7xvwrfqq385ykv-blas-3/lib/libblas.so.3
+
+locale:
+[1] C
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+loaded via a namespace (and not attached):
+[1] compiler_4.2.3</code></pre>
+<p>This looks like any other output of the <code>sessionInfo()</code> function, but there is
+something quite unusual: the <code>BLAS/LAPACK</code> line:</p>
+<pre><code>BLAS/LAPACK: /nix/store/pbfs53rcnrzgjiaajf7xvwrfqq385ykv-blas-3/lib/libblas.so.3</code></pre>
+<p>BLAS is a library that R uses for linear algebra, matrix multiplication and
+vector operations. R usually ships with its own version of BLAS and LAPACK, but
+it’s also possible to use external ones. Here, we see that the path to the
+shared object <code>libblas.so.3</code> is somewhere in <code>/nix/store/....</code>. <code>/nix/store/</code> is
+where all the software gets installed. The long chain of seemingly random
+characters is a hash, essentially the unique identifier of that particular
+version of BLAS. This means that unlike Docker, if you’re using Nix you are also
+certain than these types of dependencies, that may have an impact on your
+results, also get handled properly, and that the exact same version you used
+will keep getting installed in the future. Docker images also evolve, and even
+if you use an LTS release of Ubuntu as a base, the underlying system packages
+will evolve through time as well. And there will be a point in time where this
+release will be abandoned (LTS releases receive 5 years of support), so if you
+need to rebuild a Docker images based on an LTS that doesn’t get supported
+anymore, you’re out of luck.</p>
+<p>If you don’t want to install Nix just yet on your computer, you should know that
+there’s also a complete operating system called NixOS, that uses Nix as its
+package manager, and that there are Docker images that use NixOS as a base. So
+this means that you could use such an image and then build the environment (that
+is 100% completely reproducible) inside and run a container that will always
+produce the same output. To see an example of this, check out this <a href="https://github.com/b-rodrigues/nix_experiments/tree/master">Github
+repo</a>. I’m writing a
+Dockerfile as I usually do, but actually I could even use Nix to define the
+Docker image for me, it’s that powerful!</p>
+<p>Nix seems like a very powerful tool to me. But there are some “issues”:</p>
+<ul>
+<li>As I stated above, the entry cost is quite high, because Nix is not “just a tool”, it’s a complete programming language that can even run pipelines, so you could technically even replace something like <code>{targets}</code> with it;</li>
+<li>If you need to install specific versions of R packages, that are not pinned to dates, then Nix is not for you. Nix will always create a coherent environment with R and R packages that go together for a particular release of <code>nixpkgs</code>. If for some reason you need a very old version of <code>{ggplot2}</code> but a much more recent version of <code>{dplyr}</code>, using Nix won’t make this any easier than other methods;</li>
+<li>There is no easy way (afaik) to find the version of <code>nixpkgs</code> that you need to download to find the version of R that you may need; <strong>UPDATE</strong>: turns out that there is such a <a href="https://lazamar.co.uk/nix-versions/?channel=nixpkgs-unstable&amp;package=r">simple tool</a>, thanks to <span class="citation">@shane</span><span class="citation">@hachyderm.io</span> for the telling me!</li>
+<li>R packages (and I guess others for other programming languages as well) that are available on the stable channel of <code>nixpkgs</code> lag a bit behind their counterparts on CRAN. These usually all get updated whenever there’s a new release of R. Currently however, R is at version 4.2.3, but R should be at version 4.3.1 on the stable branch of <code>nixpkgs</code>. This can sometimes happen due to various reasons (there are actual human beings behind this that volunteer their time and they also have a life). There is however an “unstable” <code>nixpkgs</code> channel that contains bleeding edge versions of R packages (and R itself) if you really need the latest versions of packages (don’t worry about the “unstable” label, from my understanding this simply means that package have not been thoroughly tested yet, but is still pretty much rock-solid);</li>
+<li>If you need something that is not on CRAN (or Bioconductor) then it’s still possible to use Nix to install these packages, but you’ll have to perform some manual configuration.</li>
+</ul>
+<p>I will keep exploring Nix, and this is essentially my todo:</p>
+<ul>
+<li>using my environment that I installed with Nix to work interactively;</li>
+<li>write some tool that lets me specify an R version, a list of packages and it generates a <code>default.nix</code> file automagically (ideally it should also deal with packages only available on Github);</li>
+<li>????</li>
+<li>Profit!</li>
+</ul>
+<div id="resources" class="section level3">
+<h3>Resources</h3>
+<p>Here are some of the resources I’ve been using:</p>
+<ul>
+<li><a href="https://nix.dev/tutorials/first-steps/towards-reproducibility-pinning-nixpkgs#pinning-nixpkgs">nix.dev tutorials</a></li>
+<li><a href="https://nix-tutorial.gitlabpages.inria.fr/nix-tutorial/installation.html">INRIA’s Nix tutorial</a></li>
+<li><a href="https://nixos.org/guides/nix-pills/">Nix pills</a></li>
+<li><a href="https://github.com/nix-community/nix-data-science">Nix for Data Science</a></li>
+<li><a href="https://christitus.com/nixos-explained/">NixOS explained</a>: NixOS is an entire Linux distribution that uses Nix as its package manager.</li>
+<li><a href="https://rgoswami.me/posts/nix-r-devtools/">Blog post: Nix with R and devtools</a></li>
+<li><a href="https://rgoswami.me/posts/rethinking-r-nix/">Blog post: Statistical Rethinking and Nix</a></li>
+<li><a href="https://lazamar.github.io/download-specific-package-version-with-nix/">Blog post: Searching and installing old versions of Nix packages</a></li>
+</ul>
+</div>
+<div id="thanks" class="section level3">
+<h3>Thanks</h3>
+<p>Many thanks to <a href="https://github.com/jbedo">Justin Bedő</a>, maintainer of the R
+package for Nix, for answering all my questions on Nix!</p>
+<p>
+Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://fosstodon.org/@brodriguesco">Mastodon</a> or <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my <a href="https://www.brodrigues.co/about/books/">ebooks</a>.
+You can also watch my videos on <a href="https://www.youtube.com/c/BrunoRodrigues1988/">youtube</a>.
+So much content for you to consoom!
+</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p>
+<link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a>
+</p>
+</div>
+
+			</div>
+		</article>
+	</main>
+<aside>
+	<div>
+		<div>
+			<h3>LATEST POSTS</h3>
+		</div>
+		<div>
+			<ul>
+				
+				<li><a href="/blog/2023-07-19-nix_for_r_part2/">Reproducible data science with Nix, part 2 -- running {targets} pipelines with Nix</a></li>
+				
+				<li><a href="/blog/2023-07-13-nix_for_r_part1/">Reproducible data science with Nix, part 1 -- what is Nix</a></li>
+				
+				<li><a href="/blog/2023-06-29-book_quarto/">How to self-publish a technical book on Leanpub and Amazon using Quarto</a></li>
+				
+				<li><a href="/blog/2023-05-08-dock_dev_env/">Why you should consider working on a dockerized development environment</a></li>
+				
+				<li><a href="/blog/2023-04-25-10_years/">I&#39;ve been blogging for 10 years</a></li>
+				
+			</ul>
+		</div>
+	</div>
+</aside>
+
+
+	<footer>
+  <div class="row">
+    <div class="col-lg-12">
+      <p>2023, content by Bruno Rodrigues, unless otherwise stated, every content of this blog is licensed under the <a href="http://www.wtfpl.net/txt/copying/" rel="nofollow">WTFPL</a>.</p>
+      <p>The theme this blog uses is a slight variation of the <a href="https://github.com/colorchestra/smol" rel="nofollow">Smol</a> theme.</p>
+      <p><a class="nav-link" href="/index.html">Back to main page.</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -3,6 +3,71 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
+    <loc>https://www.brodrigues.co/blog/2023-07-19-nix_for_r_part2/</loc>
+    <lastmod>2023-07-19T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://www.brodrigues.co/blog/2023-07-13-nix_for_r_part1/</loc>
+    <lastmod>2023-07-13T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://www.brodrigues.co/blog/2023-06-29-book_quarto/</loc>
+    <lastmod>2023-06-29T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://www.brodrigues.co/blog/2023-05-08-dock_dev_env/</loc>
+    <lastmod>2023-05-08T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://www.brodrigues.co/blog/2023-04-25-10_years/</loc>
+    <lastmod>2023-04-25T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://www.brodrigues.co/blog/2023-03-18-docxtractr/</loc>
+    <lastmod>2023-03-18T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://www.brodrigues.co/blog/2023-03-07-dry_wit/</loc>
+    <lastmod>2023-03-07T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://www.brodrigues.co/blog/2023-03-03-quarto_books/</loc>
+    <lastmod>2023-03-03T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://www.brodrigues.co/blog/2023-01-12-repro_r/</loc>
+    <lastmod>2023-01-12T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://www.brodrigues.co/blog/2022-12-21-longevity/</loc>
+    <lastmod>2022-12-21T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://www.brodrigues.co/blog/2022-11-30-pipelines-as/</loc>
+    <lastmod>2022-11-30T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://www.brodrigues.co/blog/2022-11-19-raps/</loc>
+    <lastmod>2022-11-19T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://www.brodrigues.co/blog/2022-11-16-open_source_repro/</loc>
+    <lastmod>2022-11-16T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
     <loc>https://www.brodrigues.co/blog/2022-10-31-optim_shiny/</loc>
     <lastmod>2022-10-31T00:00:00+00:00</lastmod>
   </url>
@@ -674,8 +739,12 @@
   
   <url>
     <loc>https://www.brodrigues.co/blog/</loc>
-    <lastmod>2022-10-31T00:00:00+00:00</lastmod>
+    <lastmod>2023-07-19T00:00:00+00:00</lastmod>
     <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.brodrigues.co/about/books/</loc>
   </url>
   
   <url>
@@ -685,24 +754,28 @@
   
   <url>
     <loc>https://www.brodrigues.co/</loc>
-    <lastmod>2022-10-31T00:00:00+00:00</lastmod>
+    <lastmod>2023-07-19T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://www.brodrigues.co/tags/r/</loc>
-    <lastmod>2022-10-31T00:00:00+00:00</lastmod>
+    <lastmod>2023-07-19T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://www.brodrigues.co/tags/</loc>
-    <lastmod>2022-10-31T00:00:00+00:00</lastmod>
+    <lastmod>2023-07-19T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://www.brodrigues.co/about/about/</loc>
+    <loc>https://www.brodrigues.co/about/talks/</loc>
+  </url>
+  
+  <url>
+    <loc>https://www.brodrigues.co/about/me/</loc>
   </url>
   
 </urlset>

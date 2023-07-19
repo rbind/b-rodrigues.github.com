@@ -1,0 +1,352 @@
+---
+date: 2023-07-19
+title: Reproducible data science with Nix, part 2 -- running {targets} pipelines with Nix
+tags: [R]
+menu:
+main:
+  parent: Blog
+  identifier: /blog/nix_for_r_part2.Rmd
+  weight: 1
+---
+
+<div style="text-align:center;">
+ <img src="/img/pipeline_nix.jpg" width="100%">
+</div>
+
+This is the second post in a series of posts about Nix. Disclaimer: I'm a super
+beginner with Nix. So this series of blog posts is more akin to notes that I'm
+taking while learning than a super detailed tutorial. So if you're a Nix expert
+and read something stupid in here, that's normal. This post is going to focus on
+R (obviously) but the ideas are applicable to any programming language.
+
+So in [part 1](https://www.brodrigues.co/blog/2023-07-13-nix_for_r_part1/) I
+explained what Nix was and how you could use it to build reproducible
+development environments. Now, let's go into more details and actually set up
+some environments and run a `{targets}` pipeline using it.
+
+Obviously the first thing you should do is install Nix. A lot of what I'm
+showing here comes from the [Nix.dev](https://nix.dev/tutorials/) so if you want
+to install Nix, then look at the instructions
+[here](https://nix.dev/tutorials/install-nix). If you're using Windows, you'll
+have to have WSL2 installed. If you don't want to install Nix just yet, you can
+also play around with a NixOS Docker image. NixOS is a Linux distribution that
+uses the concepts of Nix for managing the whole operating system, and obviously
+comes with the Nix package manager installed. But if you're using Nix inside
+Docker you won't be able to work interactively with graphical applications like
+RStudio, due to how Docker works (but more on working interactively with IDEs in
+part 3 of this series, which I'm already drafting).
+
+Assuming you have Nix installed, you should be able to run the following command
+in a terminal:
+
+```
+nix-shell -p sl
+```
+
+This will launch a Nix shell with the `sl` package installed. Because `sl` is
+not available, it'll get installed on the fly, and you will get "dropped" into a
+Nix shell:
+
+```
+[nix-shell:~]$
+```
+
+You can now run `sl` and marvel at what it does (I won't spoil you). You can quit
+the Nix shell by typing `exit` and you'll go back to your usual terminal. If you
+try now to run `sl` it won't work (unless you installed on your daily machine).
+So if you need to go back to that Nix shell and rerun `sl`, simply rerun:
+
+```
+nix-shell -p sl
+```
+
+This time you'll be dropped into the Nix shell immediately and can run `sl`.
+So if you need to use R, simply run the following:
+
+```
+nix-shell -p R
+```
+
+and you'll be dropped in a Nix shell with R. This version of R will be different
+than the one potentially already installed on your system, and it won't have
+access to any R packages that you might have installed. This is because Nix
+environment are isolated from the rest of your system (well, not quite, but
+again, more on this in part 3). So you'd need to add packages as well (exit the
+Nix shell and run this command to add packages):
+
+```
+nix-shell -p R rPackages.dplyr rPackages.janitor
+```
+
+You can now start R in that Nix shell and load the `{dplyr}` and `{janitor}`
+packages. You might be wondering how I knew that I needed to type
+`rPackages.dplyr` to install `{dplyr}`. You can look for this information
+[online](https://search.nixos.org/packages). By the way, if a package uses the
+`.` character in its name, you should replace that `.` character by `_` so to
+install `{data.table}` write `rPackages.data_table`.
+
+So that's nice and dandy, but not quite what we want. Instead, what we want is
+to be able to declare what we need in terms of packages, dependencies, etc,
+inside a file, and have Nix build an environment according to these
+specifications which we can then use for our daily needs. To do so, we need to
+write a so-called `default.nix` file. This is what such a file looks like:
+
+```
+{ pkgs ? import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/e11142026e2cef35ea52c9205703823df225c947.tar.gz") {} }:
+
+with pkgs;
+
+let
+  my-pkgs = rWrapper.override {
+    packages = with rPackages; [dplyr ggplot2 R];
+  };
+in
+mkShell {
+  buildInputs = [my-pkgs];
+}
+```
+
+I wont discuss the intricate details of writing such a file just yet, because
+it'll take too much time and I'll be repeating what you can find on the
+[Nix.dev](https://nix.dev/) website. I'll give some pointers though. But for
+now, let's assume that we already have such a `default.nix` file that we defined
+for our project, and see how we can use it to run a `{targets}` pipeline. I'll
+explain how I write such files.
+
+## Running a {targets} pipeline using Nix
+
+Let's say I have this, more complex, `default.nix` file:
+
+```
+{ pkgs ? import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/8ad5e8132c5dcf977e308e7bf5517cc6cc0bf7d8.tar.gz") {} }:
+
+with pkgs;
+
+let
+  my-pkgs = rWrapper.override {
+    packages = with rPackages; [
+      targets
+      tarchetypes
+      rmarkdown
+    (buildRPackage {
+      name = "housing";
+      src = fetchgit {
+        url = "https://github.com/rap4all/housing/";
+        branchName = "fusen";
+        rev = "1c860959310b80e67c41f7bbdc3e84cef00df18e";
+        sha256 = "sha256-s4KGtfKQ7hL0sfDhGb4BpBpspfefBN6hf+XlslqyEn4=";
+      };
+    propagatedBuildInputs = [
+        dplyr
+        ggplot2
+        janitor
+        purrr
+        readxl
+        rlang
+        rvest
+        stringr
+        tidyr
+        ];
+      })
+    ];
+  };
+in
+mkShell {
+  buildInputs = [my-pkgs];
+}
+```
+
+So the file above defines an environment that contains all the required packages
+to run a pipeline that you can find on [this Github
+repository](https://github.com/b-rodrigues/nix_targets_pipeline). What's
+interesting is that I need to install a package that's only been released on
+Github, the `{housing}` package that I wrote for the [purposes of my
+book](https://raps-with-r.dev/packages.html), and I can do so in that file as
+well, using the `fetchgit()` function. Nix has many such functions, called
+*fetchers* that simplify the process of downloading files from the internet, see
+[here](https://ryantm.github.io/nixpkgs/builders/fetchers/). This function takes
+some self-explanatory inputs as arguments, and two other arguments that might
+not be that self-explanatory: `rev` and `sha256`. `rev` is actually the commit
+on the Github repository. This commit is the one that I want to use for this
+particular project. So if I keep working on this package, then building an
+environment with this `default.nix` will always pull the source code as it was
+at that particular commit. `sha256` is the hash of the downloaded repository. It
+makes sure that the files weren't tampered with. How did I obtain that? Well,
+the simplest way is to set it to the empty string `""` and then try to build the
+environment. This error message will pop-up:
+
+```
+error: hash mismatch in fixed-output derivation '/nix/store/449zx4p6x0yijym14q3jslg55kihzw66-housing-1c86095.drv':
+         specified: sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+            got:    sha256-s4KGtfKQ7hL0sfDhGb4BpBpspfefBN6hf+XlslqyEn4=
+```
+
+So simply copy the hash from the last line, and rebuild! Then if in the future
+something happens to the files, you'll know. Another interesting input is
+`propagatedBuildInputs`. These are simply the dependencies of the `{housing}`
+package. To find them, see the `Imports:` section of the
+[DESCRIPTION](https://github.com/rap4all/housing/blob/fusen/DESCRIPTION) file.
+There's also the `fetchFromGithub` fetcher that I could have used, but unlike
+`fetchgit`, it is not possible to specify the branch name we want to use. Since
+here I wanted to get the code from the branch called `fusen`, I had to use
+`fetchgit`. The last thing I want to explain is the very first line:
+
+```
+{ pkgs ? import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/8ad5e8132c5dcf977e308e7bf5517cc6cc0bf7d8.tar.gz") {} }:
+```
+
+In particular the url. This url points to a specific release of `nixpkgs`, that
+ships the required version of R for this project, R version 4.2.2. How did I
+find this release of `nixpkgs`? There's a handy service for that
+[here](https://lazamar.co.uk/nix-versions/?channel=nixpkgs-unstable&package=r).
+So using this service, I get the right commit hash for the release that install
+R version 4.2.2.
+
+Ok, but before building the environment defined by this file, let me just say
+that I know what you're thinking. Probably something along the lines of: *damn
+it Bruno, this looks complicated and why should I care? Let me just use
+{renv}!!* and I'm not going to lie, writing the above file from scratch didn't
+take me long in typing, but it took me long in reading. I had to read quite a
+lot (look at [part
+1](https://www.brodrigues.co/blog/2023-07-13-nix_for_r_part1/) for some nice
+references) before being comfortable enough to write it. But I'll just say this:
+
+- continue reading, because I hope to convince you that Nix is really worth the effort
+- I'm working on a package that will help R users generate `default.nix` files like the one from above with minimal effort (more on this at the end of the blog post)
+
+If you're following along, instead of typing this file, you can clone
+this [repository](https://github.com/b-rodrigues/nix_targets_pipeline).
+This repository contains the `default.nix` file from above, and a `{targets}`
+pipeline that I will run in that environment.
+
+Ok, so now let's build the environment by running `nix-build` inside a terminal
+in the folder that contains this file. It should take a bit of time, because
+many of the packages will need to be built from source. But they **will** get
+built. Then, you can drop into a Nix shell using `nix-shell` and then type R,
+which will start the R session in that environment. You can then simply run
+`targets::tar_make()`, and you'll see the file `analyse.html` appear, which is
+the output of the `{targets}` pipeline.
+
+Before continuing, let me just make you realize three things:
+
+- we just ran a targets pipeline with all the needed dependencies which include not only package dependencies, but the right version of R (version 4.2.2) as well, and all required system dependencies;
+- we did so WITHOUT using any containerization tool like Docker;
+- the whole thing is **completely** reproducible; the exact same packages will forever be installed, regardless of *when* we build this environment, because I'm using a particular release of `nixpkgs` (8ad5e8132c5dcf977e308e7bf5517cc6cc0bf7d8) so each piece of software this release of Nix installs is going to stay constant.
+
+And I need to stress *completely reproducible*. Because using {renv}+Docker,
+while providing a very nice solution, still has some issues. First of all, with
+Docker, the underlying operating system (often Ubuntu) evolves and changes
+through time. So lower level dependencies might change. And at some point in the
+future, that version of Ubuntu will not be supported anymore. So it won't be
+possible to rebuild the image, because it won't be possible to download any
+software into it. So either we build our Docker image and really need to make
+sure to keep it forever, or we need to port our pipeline to newer versions of
+Ubuntu, without any guarantee that it's going to work exactly the same. Also, by
+defining `Dockerfile`s that build upon `Dockerfile`s that build upon
+`Dockerfile`s, it's difficult to know what is actually installed in a particular
+image. This situation can of course be avoided by writing `Dockerfile`s in such
+a way that it doesn't rely on any other `Dockerfile`, but that's also a lot of
+effort. Now don't get me wrong: I'm not saying Docker should be canceled. I
+still think that it has its place and that its perfectly fine to use it (I'll
+take a project that uses `{renv}`+Docker any day over one that doesn't!). But
+you should be aware of alternative ways of running pipelines in a reproducible
+way, and Nix is such a way.
+
+Going back to our pipeline, we could also run the pipeline with this command:
+
+```
+nix-shell /path/to/default.nix --run "Rscript -e 'setwd(\"/path/to\");targets::tar_make()'"
+```
+
+but it's a bit of a mouthful. What you could do instead is running the pipeline
+each time you drop into the nix shell by adding a so-called `shellHook`. For
+this, we need to change the `default.nix` file again. Add these lines in the
+`mkShell` function:
+
+```
+...
+mkShell {
+  buildInputs = [my-pkgs];
+  shellHook = ''
+     Rscript -e "targets::tar_make()"
+  '';
+}
+```
+
+Now, each time you drop into the Nix shell in the folder containing that
+`default.nix` file, `targets::tar_make()` get automatically executed. You can
+then inspect the results.
+
+In the next blog post, I'll show how we can use that environment with IDEs like
+RStudio, VS Code and Emacs to work interactively. But first, let me quickly talk
+about a package I've been working on to ease the process of writing
+`default.nix` files.
+
+## Rix: Reproducible Environments with Nix
+
+I wrote a very early, experimental package called `{rix}` which will help write
+these `default.nix` files for us. `{rix}` is an R package that hopefully will
+make R users want to try out Nix for their development purposes. It aims to
+mimic the workflow of `{renv}`, or to be more exact, the workflow of what Python
+users do when starting a new project. Usually what they do is create a
+completely fresh environment using `pyenv` (or another similar tool). Using
+`pyenv`, Python developers can install a per project version of Python and
+Python packages, but unlike Nix, won't install system-level dependencies as
+well.
+
+If you want to install `{rix}`, run the following line in an R session:
+
+```{r, eval = F}
+devtools::install_github("b-rodrigues/rix")
+```
+
+You can then using the `rix()` function to create a `default.nix` file like so:
+
+```{r, eval = F}
+rix::rix(r_ver = "current",
+         pkgs = c("dplyr", "janitor"),
+         ide = "rstudio",
+         path = ".")
+```
+
+This will create a `default.nix` file that Nix can use to build an environment
+that includes the current versions of R, `{dplyr}` and `{janitor}`, and RStudio
+as well. Yes you read that right: you need to have a per-project RStudio
+installation. The reason is that RStudio modifies environment variables and so
+your "locally" installed RStudio would not find the R version installed with
+Nix. This is not the case with other IDEs like VS Code or Emacs. If you
+want to have an environment with another version of R, simply run:
+
+```{r, eval = F}
+rix::rix(r_ver = "4.2.1",
+         pkgs = c("dplyr", "janitor"),
+         ide = "rstudio",
+         path = ".")
+```
+
+and you'll get an environment with R version 4.2.1. To see which versions are
+available, you can run `rix::available_r()`. Learn more about `{rix}` on its
+[website](https://b-rodrigues.github.io/rix/). It's in very early stages, and
+doesn't handle packages that have only been released on Github, yet. And the
+interface might change. I'm thinking of making it possible to list the packages
+in a yaml file and then have `rix()` generate the `default.nix` file from the
+yaml file. This might be cleaner. There is already something like this called
+[Nixml](https://github.com/luispedro/nixml/tree/main), so maybe I don't even
+need to rewrite anything!
+
+But I'll discuss this is more detail next time, where I'll explain how you can
+use development environments built with Nix using an IDE.
+
+## References
+
+- The great [Nix.dev](https://nix.dev/tutorials/install-nix) tutorials.
+- This [blog post: Statistical Rethinking and Nix](https://rgoswami.me/posts/rethinking-r-nix/) I referenced in part 1 as well, it helped me install my `{housing}` package from Github.
+- [Nixml](https://github.com/luispedro/nixml/tree/main).
+
+<p>Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://fosstodon.org/@brodriguesco">Mastodon</a> or <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my <a href="https://www.brodrigues.co/about/books/">ebooks</a>.
+You can also watch my videos on <a href="https://www.youtube.com/c/BrunoRodrigues1988/">youtube</a>.
+So much content for you to consoom!</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
