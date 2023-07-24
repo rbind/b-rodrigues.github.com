@@ -19,6 +19,8 @@ menu:
 
 ## Interviews, podcasts...
 
+- French [Data Workers Podcast #1 Large Scale Testing : Contenir la covid-19 avec des dépistages ciblés](https://youtu.be/vI6KbMJAMQk)
+
 - French [Bruno Rodrigues défend une approche basée sur la reproductibilité de la data science au Luxembourg](https://archive.is/uNxNw)
 
-- English [My appearance on the Leanpub Frontmatter Podcast](https://www.youtube.com/watch?v=aXfjhf2cDo0)
+- English [Leanpub Frontmatter Podcast #263](https://www.youtube.com/watch?v=aXfjhf2cDo0)

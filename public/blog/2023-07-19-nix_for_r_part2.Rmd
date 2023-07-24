@@ -343,7 +343,6 @@ use development environments built with Nix using an IDE.
 - This [blog post: Statistical Rethinking and Nix](https://rgoswami.me/posts/rethinking-r-nix/) I referenced in part 1 as well, it helped me install my `{housing}` package from Github.
 - [Nixml](https://github.com/luispedro/nixml/tree/main).
 
-
 <p>Hope you enjoyed! If you found this blog post useful, you might want to follow
 me on <a href="https://fosstodon.org/@brodriguesco">Mastodon</a> or <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
 <a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my <a href="https://www.brodrigues.co/about/books/">ebooks</a>.
