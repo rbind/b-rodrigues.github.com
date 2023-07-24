@@ -68,15 +68,19 @@ hand to use R for your day-to-day data science tasks!&lt;/p&gt;&lt;/p&gt;
       <guid>https://www.brodrigues.co/about/talks/</guid>
       <description>
 
-&lt;h2 id=&#34;talks&#34;&gt;Talks&lt;/h2&gt;
+&lt;h2 id=&#34;talks-presentation-workshops&#34;&gt;Talks, presentation, workshops&amp;hellip;&lt;/h2&gt;
 
 &lt;ul&gt;
-&lt;li&gt;&lt;p&gt;French &lt;a href=&#34;https://649017259ea33242fbd1a328--courageous-cajeta-2542d9.netlify.app/#/title-slide&#34;&gt;&lt;em&gt;Slides only&lt;/em&gt; &amp;ldquo;La reproductibilité avec R, ou pourquoi celle-ci est située sur un continuum&amp;rdquo;, Talk I gave at the &lt;em&gt;Rencontres R&lt;/em&gt; 2023 in Avignon, France, on the 26th of June 2023.&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;em&gt;&amp;ldquo;Porquê usar monads (programação funcional)? Uma ilustração com o pacote {chronicler}&amp;rdquo;&lt;/em&gt; (&lt;em&gt;Why use monads (functional programming)? An illustration with the {chronicler} package&lt;/em&gt;), Talk I gave (online) at the INE (Instituto Nacional de Estatística), on the 7th of June 2023. &lt;a href=&#34;https://jocular-panda-1e5d6e.netlify.app/#/title-slide&#34;&gt;Slides in Portuguese&lt;/a&gt;.&lt;/p&gt;&lt;/li&gt;
 
-&lt;li&gt;&lt;p&gt;Portuguese &lt;a href=&#34;https://jocular-panda-1e5d6e.netlify.app/#/title-slide&#34;&gt;&lt;em&gt;Slides only&lt;/em&gt; &amp;ldquo;Porquê usar monads (programação funcional)? Uma ilustração com o pacote {chronicler}&amp;rdquo;, Talk I gave (online) at the INE (Instituto Nacional de Estatística), on the 7th of June 2023.&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;em&gt;&amp;ldquo;La reproductibilité avec R, ou pourquoi celle-ci est située sur un continuum&amp;rdquo;&lt;/em&gt; (&lt;em&gt;Reproducibility with R, or why it lies on a continuum&lt;/em&gt;). Talk I gave at the &lt;em&gt;Rencontres R&lt;/em&gt; 2023 in Avignon, France, on the 26th of June 2023. &lt;a href=&#34;https://649017259ea33242fbd1a328--courageous-cajeta-2542d9.netlify.app/#/title-slide&#34;&gt;Slides in French&lt;/a&gt;, &lt;a href=&#34;https://youtu.be/kan7-thkqYk&#34;&gt;Video with English subtitles.&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;em&gt;&amp;ldquo;Building reproducible analytical pipelines&amp;rdquo;&lt;/em&gt;, Workshop I gave for &lt;a href=&#34;https://sites.google.com/view/dariia-mykhailyshyna/main/r-workshops-for-ukraine#h.i3fjt5lw8dyo&#34;&gt;&amp;ldquo;Workshops for Ukraine&amp;rdquo;&lt;/a&gt; on June 29th, 2023. You can pull the Docker image with the slides and code &lt;a href=&#34;https://hub.docker.com/repository/docker/brodriguesco/raps_ukraine/general&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;em&gt;&amp;ldquo;Building reproducible analytical pipelines&amp;rdquo;&lt;/em&gt;, Talk I gave for &lt;em&gt;ReproducibiliTea UCL&lt;/em&gt; on the 19th of July, 2023. &lt;a href=&#34;https://64a7f00fce57ea61a8302dd5--stellar-bublanina-8574b2.netlify.app/#/title-slide&#34;&gt;Slides&lt;/a&gt; and &lt;a href=&#34;https://youtu.be/zs6LtT0PavM&#34;&gt;Video&lt;/a&gt;. You can pull the Docker image with the slides and code &lt;a href=&#34;https://hub.docker.com/repository/docker/brodriguesco/raps_reprotea/general&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h2 id=&#34;interviews&#34;&gt;Interviews&lt;/h2&gt;
+&lt;h2 id=&#34;interviews-podcasts&#34;&gt;Interviews, podcasts&amp;hellip;&lt;/h2&gt;
 
 &lt;ul&gt;
 &lt;li&gt;&lt;p&gt;French &lt;a href=&#34;https://archive.is/uNxNw&#34;&gt;Bruno Rodrigues défend une approche basée sur la reproductibilité de la data science au Luxembourg&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;

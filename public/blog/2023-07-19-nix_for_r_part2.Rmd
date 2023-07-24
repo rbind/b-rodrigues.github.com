@@ -10,7 +10,7 @@ main:
 ---
 
 <div style="text-align:center;">
- <img src="/img/nix.jpg" width="100%">
+ <img src="/img/pipeline_nix.jpg" width="100%">
 </div>
 
 This is the second post in a series of posts about Nix. Disclaimer: I'm a super
@@ -19,13 +19,10 @@ taking while learning than a super detailed tutorial. So if you're a Nix expert
 and read something stupid in here, that's normal. This post is going to focus on
 R (obviously) but the ideas are applicable to any programming language.
 
-*This is a long blog post. Get a coffee or tea or whatever you fancy, and pause
-your Slack notifications.*
-
 So in [part 1](https://www.brodrigues.co/blog/2023-07-13-nix_for_r_part1/) I
 explained what Nix was and how you could use it to build reproducible
 development environments. Now, let's go into more details and actually set up
-some environments.
+some environments and run a `{targets}` pipeline using it.
 
 Obviously the first thing you should do is install Nix. A lot of what I'm
 showing here comes from the [Nix.dev](https://nix.dev/tutorials/) so if you want
@@ -36,7 +33,8 @@ also play around with a NixOS Docker image. NixOS is a Linux distribution that
 uses the concepts of Nix for managing the whole operating system, and obviously
 comes with the Nix package manager installed. But if you're using Nix inside
 Docker you won't be able to work interactively with graphical applications like
-RStudio, due to how Docker works.
+RStudio, due to how Docker works (but more on working interactively with IDEs in
+part 3 of this series, which I'm already drafting).
 
 Assuming you have Nix installed, you should be able to run the following command
 in a terminal:
@@ -69,10 +67,12 @@ So if you need to use R, simply run the following:
 nix-shell -p R
 ```
 
-and you'll be dropped in a Nix shell with R. That version of R will be different
-than the one potentially installed on your system, and it won't have access
-to any R packages that you might have installed. So you'd need to add packages
-as well (exit the Nix shell and run this command to add packages):
+and you'll be dropped in a Nix shell with R. This version of R will be different
+than the one potentially already installed on your system, and it won't have
+access to any R packages that you might have installed. This is because Nix
+environment are isolated from the rest of your system (well, not quite, but
+again, more on this in part 3). So you'd need to add packages as well (exit the
+Nix shell and run this command to add packages):
 
 ```
 nix-shell -p R rPackages.dplyr rPackages.janitor
@@ -81,7 +81,9 @@ nix-shell -p R rPackages.dplyr rPackages.janitor
 You can now start R in that Nix shell and load the `{dplyr}` and `{janitor}`
 packages. You might be wondering how I knew that I needed to type
 `rPackages.dplyr` to install `{dplyr}`. You can look for this information
-[online](https://search.nixos.org/packages).
+[online](https://search.nixos.org/packages). By the way, if a package uses the
+`.` character in its name, you should replace that `.` character by `_` so to
+install `{data.table}` write `rPackages.data_table`.
 
 So that's nice and dandy, but not quite what we want. Instead, what we want is
 to be able to declare what we need in terms of packages, dependencies, etc,
@@ -106,16 +108,14 @@ mkShell {
 
 I wont discuss the intricate details of writing such a file just yet, because
 it'll take too much time and I'll be repeating what you can find on the
-[Nix.dev](https://nix.dev/) website. I'll give some pointers though, in the next
-sections. But for now, let's assume that we already have such a `default.nix`
-that we defined for our project, and see how we can use it. There's two ways to
-use this, a *non-interactive way* and an *interactive way*. Let's start with the
-non-interactive way. Then, I'll explain how I write such files.
+[Nix.dev](https://nix.dev/) website. I'll give some pointers though. But for
+now, let's assume that we already have such a `default.nix` file that we defined
+for our project, and see how we can use it to run a `{targets}` pipeline. I'll
+explain how I write such files.
 
-## Using Nix non-interactively
+## Running a {targets} pipeline using Nix
 
-The use case for this is running pipelines. Let's say I have this `default.nix`
-file:
+Let's say I have this, more complex, `default.nix` file:
 
 ```
 { pkgs ? import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/8ad5e8132c5dcf977e308e7bf5517cc6cc0bf7d8.tar.gz") {} }:
@@ -168,12 +168,12 @@ well, using the `fetchgit()` function. Nix has many such functions, called
 some self-explanatory inputs as arguments, and two other arguments that might
 not be that self-explanatory: `rev` and `sha256`. `rev` is actually the commit
 on the Github repository. This commit is the one that I want to use for this
-particular project. So if I keep working on this project, then building an
+particular project. So if I keep working on this package, then building an
 environment with this `default.nix` will always pull the source code as it was
-at that particular commit. `sha256` is the hash of the downloaded repository.
-It makes sure that the files weren't tampered with. How did I obtain that?
-Well, the simplest way is to set it to the empty string `""` and then try
-to build the environment. This error message will pop-up:
+at that particular commit. `sha256` is the hash of the downloaded repository. It
+makes sure that the files weren't tampered with. How did I obtain that? Well,
+the simplest way is to set it to the empty string `""` and then try to build the
+environment. This error message will pop-up:
 
 ```
 error: hash mismatch in fixed-output derivation '/nix/store/449zx4p6x0yijym14q3jslg55kihzw66-housing-1c86095.drv':
@@ -242,9 +242,9 @@ possible to rebuild the image, because it won't be possible to download any
 software into it. So either we build our Docker image and really need to make
 sure to keep it forever, or we need to port our pipeline to newer versions of
 Ubuntu, without any guarantee that it's going to work exactly the same. Also, by
-defining `Dockerfiles` that build upon `Dockerfiles` that build upon
-`Dockerfiles`, it's difficult to know what is actually installed in a particular
-image. This situation can of course be avoided by writing `Dockerfiles` in such
+defining `Dockerfile`s that build upon `Dockerfile`s that build upon
+`Dockerfile`s, it's difficult to know what is actually installed in a particular
+image. This situation can of course be avoided by writing `Dockerfile`s in such
 a way that it doesn't rely on any other `Dockerfile`, but that's also a lot of
 effort. Now don't get me wrong: I'm not saying Docker should be canceled. I
 still think that it has its place and that its perfectly fine to use it (I'll
@@ -275,22 +275,26 @@ mkShell {
 
 Now, each time you drop into the Nix shell in the folder containing that
 `default.nix` file, `targets::tar_make()` get automatically executed. You can
-then inspect the results. 
+then inspect the results.
 
+In the next blog post, I'll show how we can use that environment with IDEs like
+RStudio, VS Code and Emacs to work interactively. But first, let me quickly talk
+about a package I've been working on to ease the process of writing
+`default.nix` files.
 
+## Rix: Reproducible Environments with Nix
 
-## Rix (to rewrite)
+I wrote a very early, experimental package called `{rix}` which will help write
+these `default.nix` files for us. `{rix}` is an R package that hopefully will
+make R users want to try out Nix for their development purposes. It aims to
+mimic the workflow of `{renv}`, or to be more exact, the workflow of what Python
+users do when starting a new project. Usually what they do is create a
+completely fresh environment using `pyenv` (or another similar tool). Using
+`pyenv`, Python developers can install a per project version of Python and
+Python packages, but unlike Nix, won't install system-level dependencies as
+well.
 
-Instead, we'll be using an experimental package I wrote called `{rix}` which
-will write these files for us. `{rix}` is an R package that hopefully will make
-R users want to try out Nix for their development purposes. It aims to mimic the
-workflow of `{renv}`, or to be more exact, the workflow of what Python users do
-when starting a new project. Usually what they do is create a completely fresh
-environment using `pyenv` (or another similar tool). Using `pyenv`, Python
-developers can install a per project version of Python and Python packages, but
-unlike Nix, won't install system-level dependencies as well.
-
-If you want to install `{rix}`, running the following line in an R session:
+If you want to install `{rix}`, run the following line in an R session:
 
 ```{r, eval = F}
 devtools::install_github("b-rodrigues/rix")
@@ -310,12 +314,34 @@ that includes the current versions of R, `{dplyr}` and `{janitor}`, and RStudio
 as well. Yes you read that right: you need to have a per-project RStudio
 installation. The reason is that RStudio modifies environment variables and so
 your "locally" installed RStudio would not find the R version installed with
-Nix.
+Nix. This is not the case with other IDEs like VS Code or Emacs. If you
+want to have an environment with another version of R, simply run:
 
+```{r, eval = F}
+rix::rix(r_ver = "4.2.1",
+         pkgs = c("dplyr", "janitor"),
+         ide = "rstudio",
+         path = ".")
+```
+
+and you'll get an environment with R version 4.2.1. To see which versions are
+available, you can run `rix::available_r()`. Learn more about `{rix}` on its
+[website](https://b-rodrigues.github.io/rix/). It's in very early stages, and
+doesn't handle packages that have only been released on Github, yet. And the
+interface might change. I'm thinking of making it possible to list the packages
+in a yaml file and then have `rix()` generate the `default.nix` file from the
+yaml file. This might be cleaner. There is already something like this called
+[Nixml](https://github.com/luispedro/nixml/tree/main), so maybe I don't even
+need to rewrite anything!
+
+But I'll discuss this is more detail next time, where I'll explain how you can
+use development environments built with Nix using an IDE.
 
 ## References
 
 - The great [Nix.dev](https://nix.dev/tutorials/install-nix) tutorials.
+- This [blog post: Statistical Rethinking and Nix](https://rgoswami.me/posts/rethinking-r-nix/) I referenced in part 1 as well, it helped me install my `{housing}` package from Github.
+- [Nixml](https://github.com/luispedro/nixml/tree/main).
 
 
 <p>Hope you enjoyed! If you found this blog post useful, you might want to follow

@@ -18,19 +18,17 @@
       
       <guid>https://www.brodrigues.co/blog/2023-07-19-nix_for_r_part2/</guid>
       <description>&lt;div style=&#34;text-align:center;&#34;&gt;
-&lt;p&gt;&lt;img src=&#34;https://www.brodrigues.co/img/nix.jpg&#34; width=&#34;100%&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://www.brodrigues.co/img/pipeline_nix.jpg&#34; width=&#34;100%&#34;&gt;&lt;/p&gt;
 &lt;/div&gt;
 &lt;p&gt;This is the second post in a series of posts about Nix. Disclaimer: I’m a super
 beginner with Nix. So this series of blog posts is more akin to notes that I’m
 taking while learning than a super detailed tutorial. So if you’re a Nix expert
 and read something stupid in here, that’s normal. This post is going to focus on
 R (obviously) but the ideas are applicable to any programming language.&lt;/p&gt;
-&lt;p&gt;&lt;em&gt;This is a long blog post. Get a coffee or tea or whatever you fancy, and pause
-your Slack notifications.&lt;/em&gt;&lt;/p&gt;
 &lt;p&gt;So in &lt;a href=&#34;https://www.brodrigues.co/blog/2023-07-13-nix_for_r_part1/&#34;&gt;part 1&lt;/a&gt; I
 explained what Nix was and how you could use it to build reproducible
 development environments. Now, let’s go into more details and actually set up
-some environments.&lt;/p&gt;
+some environments and run a &lt;code&gt;{targets}&lt;/code&gt; pipeline using it.&lt;/p&gt;
 &lt;p&gt;Obviously the first thing you should do is install Nix. A lot of what I’m
 showing here comes from the &lt;a href=&#34;https://nix.dev/tutorials/&#34;&gt;Nix.dev&lt;/a&gt; so if you want
 to install Nix, then look at the instructions
@@ -40,7 +38,8 @@ also play around with a NixOS Docker image. NixOS is a Linux distribution that
 uses the concepts of Nix for managing the whole operating system, and obviously
 comes with the Nix package manager installed. But if you’re using Nix inside
 Docker you won’t be able to work interactively with graphical applications like
-RStudio, due to how Docker works.&lt;/p&gt;
+RStudio, due to how Docker works (but more on working interactively with IDEs in
+part 3 of this series, which I’m already drafting).&lt;/p&gt;
 &lt;p&gt;Assuming you have Nix installed, you should be able to run the following command
 in a terminal:&lt;/p&gt;
 &lt;pre&gt;&lt;code&gt;nix-shell -p sl&lt;/code&gt;&lt;/pre&gt;
@@ -56,15 +55,19 @@ So if you need to go back to that Nix shell and rerun &lt;code&gt;sl&lt;/code&gt
 &lt;p&gt;This time you’ll be dropped into the Nix shell immediately and can run &lt;code&gt;sl&lt;/code&gt;.
 So if you need to use R, simply run the following:&lt;/p&gt;
 &lt;pre&gt;&lt;code&gt;nix-shell -p R&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;and you’ll be dropped in a Nix shell with R. That version of R will be different
-than the one potentially installed on your system, and it won’t have access
-to any R packages that you might have installed. So you’d need to add packages
-as well (exit the Nix shell and run this command to add packages):&lt;/p&gt;
+&lt;p&gt;and you’ll be dropped in a Nix shell with R. This version of R will be different
+than the one potentially already installed on your system, and it won’t have
+access to any R packages that you might have installed. This is because Nix
+environment are isolated from the rest of your system (well, not quite, but
+again, more on this in part 3). So you’d need to add packages as well (exit the
+Nix shell and run this command to add packages):&lt;/p&gt;
 &lt;pre&gt;&lt;code&gt;nix-shell -p R rPackages.dplyr rPackages.janitor&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;You can now start R in that Nix shell and load the &lt;code&gt;{dplyr}&lt;/code&gt; and &lt;code&gt;{janitor}&lt;/code&gt;
 packages. You might be wondering how I knew that I needed to type
 &lt;code&gt;rPackages.dplyr&lt;/code&gt; to install &lt;code&gt;{dplyr}&lt;/code&gt;. You can look for this information
-&lt;a href=&#34;https://search.nixos.org/packages&#34;&gt;online&lt;/a&gt;.&lt;/p&gt;
+&lt;a href=&#34;https://search.nixos.org/packages&#34;&gt;online&lt;/a&gt;. By the way, if a package uses the
+&lt;code&gt;.&lt;/code&gt; character in its name, you should replace that &lt;code&gt;.&lt;/code&gt; character by &lt;code&gt;_&lt;/code&gt; so to
+install &lt;code&gt;{data.table}&lt;/code&gt; write &lt;code&gt;rPackages.data_table&lt;/code&gt;.&lt;/p&gt;
 &lt;p&gt;So that’s nice and dandy, but not quite what we want. Instead, what we want is
 to be able to declare what we need in terms of packages, dependencies, etc,
 inside a file, and have Nix build an environment according to these
@@ -84,15 +87,13 @@ mkShell {
 }&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;I wont discuss the intricate details of writing such a file just yet, because
 it’ll take too much time and I’ll be repeating what you can find on the
-&lt;a href=&#34;https://nix.dev/&#34;&gt;Nix.dev&lt;/a&gt; website. I’ll give some pointers though, in the next
-sections. But for now, let’s assume that we already have such a &lt;code&gt;default.nix&lt;/code&gt;
-that we defined for our project, and see how we can use it. There’s two ways to
-use this, a &lt;em&gt;non-interactive way&lt;/em&gt; and an &lt;em&gt;interactive way&lt;/em&gt;. Let’s start with the
-non-interactive way. Then, I’ll explain how I write such files.&lt;/p&gt;
-&lt;div id=&#34;using-nix-non-interactively&#34; class=&#34;section level2&#34;&gt;
-&lt;h2&gt;Using Nix non-interactively&lt;/h2&gt;
-&lt;p&gt;The use case for this is running pipelines. Let’s say I have this &lt;code&gt;default.nix&lt;/code&gt;
-file:&lt;/p&gt;
+&lt;a href=&#34;https://nix.dev/&#34;&gt;Nix.dev&lt;/a&gt; website. I’ll give some pointers though. But for
+now, let’s assume that we already have such a &lt;code&gt;default.nix&lt;/code&gt; file that we defined
+for our project, and see how we can use it to run a &lt;code&gt;{targets}&lt;/code&gt; pipeline. I’ll
+explain how I write such files.&lt;/p&gt;
+&lt;div id=&#34;running-a-targets-pipeline-using-nix&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Running a {targets} pipeline using Nix&lt;/h2&gt;
+&lt;p&gt;Let’s say I have this, more complex, &lt;code&gt;default.nix&lt;/code&gt; file:&lt;/p&gt;
 &lt;pre&gt;&lt;code&gt;{ pkgs ? import (fetchTarball &amp;quot;https://github.com/NixOS/nixpkgs/archive/8ad5e8132c5dcf977e308e7bf5517cc6cc0bf7d8.tar.gz&amp;quot;) {} }:
 
 with pkgs;
@@ -141,12 +142,12 @@ well, using the &lt;code&gt;fetchgit()&lt;/code&gt; function. Nix has many such 
 some self-explanatory inputs as arguments, and two other arguments that might
 not be that self-explanatory: &lt;code&gt;rev&lt;/code&gt; and &lt;code&gt;sha256&lt;/code&gt;. &lt;code&gt;rev&lt;/code&gt; is actually the commit
 on the Github repository. This commit is the one that I want to use for this
-particular project. So if I keep working on this project, then building an
+particular project. So if I keep working on this package, then building an
 environment with this &lt;code&gt;default.nix&lt;/code&gt; will always pull the source code as it was
-at that particular commit. &lt;code&gt;sha256&lt;/code&gt; is the hash of the downloaded repository.
-It makes sure that the files weren’t tampered with. How did I obtain that?
-Well, the simplest way is to set it to the empty string &lt;code&gt;&#34;&#34;&lt;/code&gt; and then try
-to build the environment. This error message will pop-up:&lt;/p&gt;
+at that particular commit. &lt;code&gt;sha256&lt;/code&gt; is the hash of the downloaded repository. It
+makes sure that the files weren’t tampered with. How did I obtain that? Well,
+the simplest way is to set it to the empty string &lt;code&gt;&#34;&#34;&lt;/code&gt; and then try to build the
+environment. This error message will pop-up:&lt;/p&gt;
 &lt;pre&gt;&lt;code&gt;error: hash mismatch in fixed-output derivation &amp;#39;/nix/store/449zx4p6x0yijym14q3jslg55kihzw66-housing-1c86095.drv&amp;#39;:
          specified: sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
             got:    sha256-s4KGtfKQ7hL0sfDhGb4BpBpspfefBN6hf+XlslqyEn4=&lt;/code&gt;&lt;/pre&gt;
@@ -204,9 +205,9 @@ possible to rebuild the image, because it won’t be possible to download any
 software into it. So either we build our Docker image and really need to make
 sure to keep it forever, or we need to port our pipeline to newer versions of
 Ubuntu, without any guarantee that it’s going to work exactly the same. Also, by
-defining &lt;code&gt;Dockerfiles&lt;/code&gt; that build upon &lt;code&gt;Dockerfiles&lt;/code&gt; that build upon
-&lt;code&gt;Dockerfiles&lt;/code&gt;, it’s difficult to know what is actually installed in a particular
-image. This situation can of course be avoided by writing &lt;code&gt;Dockerfiles&lt;/code&gt; in such
+defining &lt;code&gt;Dockerfile&lt;/code&gt;s that build upon &lt;code&gt;Dockerfile&lt;/code&gt;s that build upon
+&lt;code&gt;Dockerfile&lt;/code&gt;s, it’s difficult to know what is actually installed in a particular
+image. This situation can of course be avoided by writing &lt;code&gt;Dockerfile&lt;/code&gt;s in such
 a way that it doesn’t rely on any other &lt;code&gt;Dockerfile&lt;/code&gt;, but that’s also a lot of
 effort. Now don’t get me wrong: I’m not saying Docker should be canceled. I
 still think that it has its place and that its perfectly fine to use it (I’ll
@@ -229,18 +230,23 @@ mkShell {
 &lt;p&gt;Now, each time you drop into the Nix shell in the folder containing that
 &lt;code&gt;default.nix&lt;/code&gt; file, &lt;code&gt;targets::tar_make()&lt;/code&gt; get automatically executed. You can
 then inspect the results.&lt;/p&gt;
+&lt;p&gt;In the next blog post, I’ll show how we can use that environment with IDEs like
+RStudio, VS Code and Emacs to work interactively. But first, let me quickly talk
+about a package I’ve been working on to ease the process of writing
+&lt;code&gt;default.nix&lt;/code&gt; files.&lt;/p&gt;
 &lt;/div&gt;
-&lt;div id=&#34;rix-to-rewrite&#34; class=&#34;section level2&#34;&gt;
-&lt;h2&gt;Rix (to rewrite)&lt;/h2&gt;
-&lt;p&gt;Instead, we’ll be using an experimental package I wrote called &lt;code&gt;{rix}&lt;/code&gt; which
-will write these files for us. &lt;code&gt;{rix}&lt;/code&gt; is an R package that hopefully will make
-R users want to try out Nix for their development purposes. It aims to mimic the
-workflow of &lt;code&gt;{renv}&lt;/code&gt;, or to be more exact, the workflow of what Python users do
-when starting a new project. Usually what they do is create a completely fresh
-environment using &lt;code&gt;pyenv&lt;/code&gt; (or another similar tool). Using &lt;code&gt;pyenv&lt;/code&gt;, Python
-developers can install a per project version of Python and Python packages, but
-unlike Nix, won’t install system-level dependencies as well.&lt;/p&gt;
-&lt;p&gt;If you want to install &lt;code&gt;{rix}&lt;/code&gt;, running the following line in an R session:&lt;/p&gt;
+&lt;div id=&#34;rix-reproducible-environments-with-nix&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Rix: Reproducible Environments with Nix&lt;/h2&gt;
+&lt;p&gt;I wrote a very early, experimental package called &lt;code&gt;{rix}&lt;/code&gt; which will help write
+these &lt;code&gt;default.nix&lt;/code&gt; files for us. &lt;code&gt;{rix}&lt;/code&gt; is an R package that hopefully will
+make R users want to try out Nix for their development purposes. It aims to
+mimic the workflow of &lt;code&gt;{renv}&lt;/code&gt;, or to be more exact, the workflow of what Python
+users do when starting a new project. Usually what they do is create a
+completely fresh environment using &lt;code&gt;pyenv&lt;/code&gt; (or another similar tool). Using
+&lt;code&gt;pyenv&lt;/code&gt;, Python developers can install a per project version of Python and
+Python packages, but unlike Nix, won’t install system-level dependencies as
+well.&lt;/p&gt;
+&lt;p&gt;If you want to install &lt;code&gt;{rix}&lt;/code&gt;, run the following line in an R session:&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;devtools::install_github(&amp;quot;b-rodrigues/rix&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;You can then using the &lt;code&gt;rix()&lt;/code&gt; function to create a &lt;code&gt;default.nix&lt;/code&gt; file like so:&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;rix::rix(r_ver = &amp;quot;current&amp;quot;,
@@ -252,12 +258,30 @@ that includes the current versions of R, &lt;code&gt;{dplyr}&lt;/code&gt; and &l
 as well. Yes you read that right: you need to have a per-project RStudio
 installation. The reason is that RStudio modifies environment variables and so
 your “locally” installed RStudio would not find the R version installed with
-Nix.&lt;/p&gt;
+Nix. This is not the case with other IDEs like VS Code or Emacs. If you
+want to have an environment with another version of R, simply run:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;rix::rix(r_ver = &amp;quot;4.2.1&amp;quot;,
+         pkgs = c(&amp;quot;dplyr&amp;quot;, &amp;quot;janitor&amp;quot;),
+         ide = &amp;quot;rstudio&amp;quot;,
+         path = &amp;quot;.&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;and you’ll get an environment with R version 4.2.1. To see which versions are
+available, you can run &lt;code&gt;rix::available_r()&lt;/code&gt;. Learn more about &lt;code&gt;{rix}&lt;/code&gt; on its
+&lt;a href=&#34;https://b-rodrigues.github.io/rix/&#34;&gt;website&lt;/a&gt;. It’s in very early stages, and
+doesn’t handle packages that have only been released on Github, yet. And the
+interface might change. I’m thinking of making it possible to list the packages
+in a yaml file and then have &lt;code&gt;rix()&lt;/code&gt; generate the &lt;code&gt;default.nix&lt;/code&gt; file from the
+yaml file. This might be cleaner. There is already something like this called
+&lt;a href=&#34;https://github.com/luispedro/nixml/tree/main&#34;&gt;Nixml&lt;/a&gt;, so maybe I don’t even
+need to rewrite anything!&lt;/p&gt;
+&lt;p&gt;But I’ll discuss this is more detail next time, where I’ll explain how you can
+use development environments built with Nix using an IDE.&lt;/p&gt;
 &lt;/div&gt;
 &lt;div id=&#34;references&#34; class=&#34;section level2&#34;&gt;
 &lt;h2&gt;References&lt;/h2&gt;
 &lt;ul&gt;
 &lt;li&gt;The great &lt;a href=&#34;https://nix.dev/tutorials/install-nix&#34;&gt;Nix.dev&lt;/a&gt; tutorials.&lt;/li&gt;
+&lt;li&gt;This &lt;a href=&#34;https://rgoswami.me/posts/rethinking-r-nix/&#34;&gt;blog post: Statistical Rethinking and Nix&lt;/a&gt; I referenced in part 1 as well, it helped me install my &lt;code&gt;{housing}&lt;/code&gt; package from Github.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/luispedro/nixml/tree/main&#34;&gt;Nixml&lt;/a&gt;.&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;
 Hope you enjoyed! If you found this blog post useful, you might want to follow
@@ -36101,15 +36125,19 @@ hand to use R for your day-to-day data science tasks!&lt;/p&gt;&lt;/p&gt;
       <guid>https://www.brodrigues.co/about/talks/</guid>
       <description>
 
-&lt;h2 id=&#34;talks&#34;&gt;Talks&lt;/h2&gt;
+&lt;h2 id=&#34;talks-presentation-workshops&#34;&gt;Talks, presentation, workshops&amp;hellip;&lt;/h2&gt;
 
 &lt;ul&gt;
-&lt;li&gt;&lt;p&gt;French &lt;a href=&#34;https://649017259ea33242fbd1a328--courageous-cajeta-2542d9.netlify.app/#/title-slide&#34;&gt;&lt;em&gt;Slides only&lt;/em&gt; &amp;ldquo;La reproductibilité avec R, ou pourquoi celle-ci est située sur un continuum&amp;rdquo;, Talk I gave at the &lt;em&gt;Rencontres R&lt;/em&gt; 2023 in Avignon, France, on the 26th of June 2023.&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;em&gt;&amp;ldquo;Porquê usar monads (programação funcional)? Uma ilustração com o pacote {chronicler}&amp;rdquo;&lt;/em&gt; (&lt;em&gt;Why use monads (functional programming)? An illustration with the {chronicler} package&lt;/em&gt;), Talk I gave (online) at the INE (Instituto Nacional de Estatística), on the 7th of June 2023. &lt;a href=&#34;https://jocular-panda-1e5d6e.netlify.app/#/title-slide&#34;&gt;Slides in Portuguese&lt;/a&gt;.&lt;/p&gt;&lt;/li&gt;
 
-&lt;li&gt;&lt;p&gt;Portuguese &lt;a href=&#34;https://jocular-panda-1e5d6e.netlify.app/#/title-slide&#34;&gt;&lt;em&gt;Slides only&lt;/em&gt; &amp;ldquo;Porquê usar monads (programação funcional)? Uma ilustração com o pacote {chronicler}&amp;rdquo;, Talk I gave (online) at the INE (Instituto Nacional de Estatística), on the 7th of June 2023.&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;em&gt;&amp;ldquo;La reproductibilité avec R, ou pourquoi celle-ci est située sur un continuum&amp;rdquo;&lt;/em&gt; (&lt;em&gt;Reproducibility with R, or why it lies on a continuum&lt;/em&gt;). Talk I gave at the &lt;em&gt;Rencontres R&lt;/em&gt; 2023 in Avignon, France, on the 26th of June 2023. &lt;a href=&#34;https://649017259ea33242fbd1a328--courageous-cajeta-2542d9.netlify.app/#/title-slide&#34;&gt;Slides in French&lt;/a&gt;, &lt;a href=&#34;https://youtu.be/kan7-thkqYk&#34;&gt;Video with English subtitles.&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;em&gt;&amp;ldquo;Building reproducible analytical pipelines&amp;rdquo;&lt;/em&gt;, Workshop I gave for &lt;a href=&#34;https://sites.google.com/view/dariia-mykhailyshyna/main/r-workshops-for-ukraine#h.i3fjt5lw8dyo&#34;&gt;&amp;ldquo;Workshops for Ukraine&amp;rdquo;&lt;/a&gt; on June 29th, 2023. You can pull the Docker image with the slides and code &lt;a href=&#34;https://hub.docker.com/repository/docker/brodriguesco/raps_ukraine/general&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;em&gt;&amp;ldquo;Building reproducible analytical pipelines&amp;rdquo;&lt;/em&gt;, Talk I gave for &lt;em&gt;ReproducibiliTea UCL&lt;/em&gt; on the 19th of July, 2023. &lt;a href=&#34;https://64a7f00fce57ea61a8302dd5--stellar-bublanina-8574b2.netlify.app/#/title-slide&#34;&gt;Slides&lt;/a&gt; and &lt;a href=&#34;https://youtu.be/zs6LtT0PavM&#34;&gt;Video&lt;/a&gt;. You can pull the Docker image with the slides and code &lt;a href=&#34;https://hub.docker.com/repository/docker/brodriguesco/raps_reprotea/general&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h2 id=&#34;interviews&#34;&gt;Interviews&lt;/h2&gt;
+&lt;h2 id=&#34;interviews-podcasts&#34;&gt;Interviews, podcasts&amp;hellip;&lt;/h2&gt;
 
 &lt;ul&gt;
 &lt;li&gt;&lt;p&gt;French &lt;a href=&#34;https://archive.is/uNxNw&#34;&gt;Bruno Rodrigues défend une approche basée sur la reproductibilité de la data science au Luxembourg&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;

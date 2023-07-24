@@ -249,7 +249,6 @@ Here are some of the resources I've been using:
 - [Blog post: Statistical Rethinking and Nix](https://rgoswami.me/posts/rethinking-r-nix/)
 - [Blog post: Searching and installing old versions of Nix packages](https://lazamar.github.io/download-specific-package-version-with-nix/)
 
-
 ### Thanks
 
 Many thanks to [Justin Bedő](https://github.com/jbedo), maintainer of the R

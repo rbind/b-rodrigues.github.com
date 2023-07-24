@@ -38,19 +38,17 @@ You can also watch my <a href="https://www.youtube.com/user/cbrunos" rel="nofoll
 
 			<div>
 				<div style="text-align:center;">
-<p><img src="/img/nix.jpg" width="100%"></p>
+<p><img src="/img/pipeline_nix.jpg" width="100%"></p>
 </div>
 <p>This is the second post in a series of posts about Nix. Disclaimer: I’m a super
 beginner with Nix. So this series of blog posts is more akin to notes that I’m
 taking while learning than a super detailed tutorial. So if you’re a Nix expert
 and read something stupid in here, that’s normal. This post is going to focus on
 R (obviously) but the ideas are applicable to any programming language.</p>
-<p><em>This is a long blog post. Get a coffee or tea or whatever you fancy, and pause
-your Slack notifications.</em></p>
 <p>So in <a href="https://www.brodrigues.co/blog/2023-07-13-nix_for_r_part1/">part 1</a> I
 explained what Nix was and how you could use it to build reproducible
 development environments. Now, let’s go into more details and actually set up
-some environments.</p>
+some environments and run a <code>{targets}</code> pipeline using it.</p>
 <p>Obviously the first thing you should do is install Nix. A lot of what I’m
 showing here comes from the <a href="https://nix.dev/tutorials/">Nix.dev</a> so if you want
 to install Nix, then look at the instructions
@@ -60,7 +58,8 @@ also play around with a NixOS Docker image. NixOS is a Linux distribution that
 uses the concepts of Nix for managing the whole operating system, and obviously
 comes with the Nix package manager installed. But if you’re using Nix inside
 Docker you won’t be able to work interactively with graphical applications like
-RStudio, due to how Docker works.</p>
+RStudio, due to how Docker works (but more on working interactively with IDEs in
+part 3 of this series, which I’m already drafting).</p>
 <p>Assuming you have Nix installed, you should be able to run the following command
 in a terminal:</p>
 <pre><code>nix-shell -p sl</code></pre>
@@ -76,15 +75,19 @@ So if you need to go back to that Nix shell and rerun <code>sl</code>, simply re
 <p>This time you’ll be dropped into the Nix shell immediately and can run <code>sl</code>.
 So if you need to use R, simply run the following:</p>
 <pre><code>nix-shell -p R</code></pre>
-<p>and you’ll be dropped in a Nix shell with R. That version of R will be different
-than the one potentially installed on your system, and it won’t have access
-to any R packages that you might have installed. So you’d need to add packages
-as well (exit the Nix shell and run this command to add packages):</p>
+<p>and you’ll be dropped in a Nix shell with R. This version of R will be different
+than the one potentially already installed on your system, and it won’t have
+access to any R packages that you might have installed. This is because Nix
+environment are isolated from the rest of your system (well, not quite, but
+again, more on this in part 3). So you’d need to add packages as well (exit the
+Nix shell and run this command to add packages):</p>
 <pre><code>nix-shell -p R rPackages.dplyr rPackages.janitor</code></pre>
 <p>You can now start R in that Nix shell and load the <code>{dplyr}</code> and <code>{janitor}</code>
 packages. You might be wondering how I knew that I needed to type
 <code>rPackages.dplyr</code> to install <code>{dplyr}</code>. You can look for this information
-<a href="https://search.nixos.org/packages">online</a>.</p>
+<a href="https://search.nixos.org/packages">online</a>. By the way, if a package uses the
+<code>.</code> character in its name, you should replace that <code>.</code> character by <code>_</code> so to
+install <code>{data.table}</code> write <code>rPackages.data_table</code>.</p>
 <p>So that’s nice and dandy, but not quite what we want. Instead, what we want is
 to be able to declare what we need in terms of packages, dependencies, etc,
 inside a file, and have Nix build an environment according to these
@@ -104,15 +107,13 @@ mkShell {
 }</code></pre>
 <p>I wont discuss the intricate details of writing such a file just yet, because
 it’ll take too much time and I’ll be repeating what you can find on the
-<a href="https://nix.dev/">Nix.dev</a> website. I’ll give some pointers though, in the next
-sections. But for now, let’s assume that we already have such a <code>default.nix</code>
-that we defined for our project, and see how we can use it. There’s two ways to
-use this, a <em>non-interactive way</em> and an <em>interactive way</em>. Let’s start with the
-non-interactive way. Then, I’ll explain how I write such files.</p>
-<div id="using-nix-non-interactively" class="section level2">
-<h2>Using Nix non-interactively</h2>
-<p>The use case for this is running pipelines. Let’s say I have this <code>default.nix</code>
-file:</p>
+<a href="https://nix.dev/">Nix.dev</a> website. I’ll give some pointers though. But for
+now, let’s assume that we already have such a <code>default.nix</code> file that we defined
+for our project, and see how we can use it to run a <code>{targets}</code> pipeline. I’ll
+explain how I write such files.</p>
+<div id="running-a-targets-pipeline-using-nix" class="section level2">
+<h2>Running a {targets} pipeline using Nix</h2>
+<p>Let’s say I have this, more complex, <code>default.nix</code> file:</p>
 <pre><code>{ pkgs ? import (fetchTarball &quot;https://github.com/NixOS/nixpkgs/archive/8ad5e8132c5dcf977e308e7bf5517cc6cc0bf7d8.tar.gz&quot;) {} }:
 
 with pkgs;
@@ -161,12 +162,12 @@ well, using the <code>fetchgit()</code> function. Nix has many such functions, c
 some self-explanatory inputs as arguments, and two other arguments that might
 not be that self-explanatory: <code>rev</code> and <code>sha256</code>. <code>rev</code> is actually the commit
 on the Github repository. This commit is the one that I want to use for this
-particular project. So if I keep working on this project, then building an
+particular project. So if I keep working on this package, then building an
 environment with this <code>default.nix</code> will always pull the source code as it was
-at that particular commit. <code>sha256</code> is the hash of the downloaded repository.
-It makes sure that the files weren’t tampered with. How did I obtain that?
-Well, the simplest way is to set it to the empty string <code>""</code> and then try
-to build the environment. This error message will pop-up:</p>
+at that particular commit. <code>sha256</code> is the hash of the downloaded repository. It
+makes sure that the files weren’t tampered with. How did I obtain that? Well,
+the simplest way is to set it to the empty string <code>""</code> and then try to build the
+environment. This error message will pop-up:</p>
 <pre><code>error: hash mismatch in fixed-output derivation &#39;/nix/store/449zx4p6x0yijym14q3jslg55kihzw66-housing-1c86095.drv&#39;:
          specified: sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
             got:    sha256-s4KGtfKQ7hL0sfDhGb4BpBpspfefBN6hf+XlslqyEn4=</code></pre>
@@ -224,9 +225,9 @@ possible to rebuild the image, because it won’t be possible to download any
 software into it. So either we build our Docker image and really need to make
 sure to keep it forever, or we need to port our pipeline to newer versions of
 Ubuntu, without any guarantee that it’s going to work exactly the same. Also, by
-defining <code>Dockerfiles</code> that build upon <code>Dockerfiles</code> that build upon
-<code>Dockerfiles</code>, it’s difficult to know what is actually installed in a particular
-image. This situation can of course be avoided by writing <code>Dockerfiles</code> in such
+defining <code>Dockerfile</code>s that build upon <code>Dockerfile</code>s that build upon
+<code>Dockerfile</code>s, it’s difficult to know what is actually installed in a particular
+image. This situation can of course be avoided by writing <code>Dockerfile</code>s in such
 a way that it doesn’t rely on any other <code>Dockerfile</code>, but that’s also a lot of
 effort. Now don’t get me wrong: I’m not saying Docker should be canceled. I
 still think that it has its place and that its perfectly fine to use it (I’ll
@@ -249,18 +250,23 @@ mkShell {
 <p>Now, each time you drop into the Nix shell in the folder containing that
 <code>default.nix</code> file, <code>targets::tar_make()</code> get automatically executed. You can
 then inspect the results.</p>
+<p>In the next blog post, I’ll show how we can use that environment with IDEs like
+RStudio, VS Code and Emacs to work interactively. But first, let me quickly talk
+about a package I’ve been working on to ease the process of writing
+<code>default.nix</code> files.</p>
 </div>
-<div id="rix-to-rewrite" class="section level2">
-<h2>Rix (to rewrite)</h2>
-<p>Instead, we’ll be using an experimental package I wrote called <code>{rix}</code> which
-will write these files for us. <code>{rix}</code> is an R package that hopefully will make
-R users want to try out Nix for their development purposes. It aims to mimic the
-workflow of <code>{renv}</code>, or to be more exact, the workflow of what Python users do
-when starting a new project. Usually what they do is create a completely fresh
-environment using <code>pyenv</code> (or another similar tool). Using <code>pyenv</code>, Python
-developers can install a per project version of Python and Python packages, but
-unlike Nix, won’t install system-level dependencies as well.</p>
-<p>If you want to install <code>{rix}</code>, running the following line in an R session:</p>
+<div id="rix-reproducible-environments-with-nix" class="section level2">
+<h2>Rix: Reproducible Environments with Nix</h2>
+<p>I wrote a very early, experimental package called <code>{rix}</code> which will help write
+these <code>default.nix</code> files for us. <code>{rix}</code> is an R package that hopefully will
+make R users want to try out Nix for their development purposes. It aims to
+mimic the workflow of <code>{renv}</code>, or to be more exact, the workflow of what Python
+users do when starting a new project. Usually what they do is create a
+completely fresh environment using <code>pyenv</code> (or another similar tool). Using
+<code>pyenv</code>, Python developers can install a per project version of Python and
+Python packages, but unlike Nix, won’t install system-level dependencies as
+well.</p>
+<p>If you want to install <code>{rix}</code>, run the following line in an R session:</p>
 <pre class="r"><code>devtools::install_github(&quot;b-rodrigues/rix&quot;)</code></pre>
 <p>You can then using the <code>rix()</code> function to create a <code>default.nix</code> file like so:</p>
 <pre class="r"><code>rix::rix(r_ver = &quot;current&quot;,
@@ -272,12 +278,30 @@ that includes the current versions of R, <code>{dplyr}</code> and <code>{janitor
 as well. Yes you read that right: you need to have a per-project RStudio
 installation. The reason is that RStudio modifies environment variables and so
 your “locally” installed RStudio would not find the R version installed with
-Nix.</p>
+Nix. This is not the case with other IDEs like VS Code or Emacs. If you
+want to have an environment with another version of R, simply run:</p>
+<pre class="r"><code>rix::rix(r_ver = &quot;4.2.1&quot;,
+         pkgs = c(&quot;dplyr&quot;, &quot;janitor&quot;),
+         ide = &quot;rstudio&quot;,
+         path = &quot;.&quot;)</code></pre>
+<p>and you’ll get an environment with R version 4.2.1. To see which versions are
+available, you can run <code>rix::available_r()</code>. Learn more about <code>{rix}</code> on its
+<a href="https://b-rodrigues.github.io/rix/">website</a>. It’s in very early stages, and
+doesn’t handle packages that have only been released on Github, yet. And the
+interface might change. I’m thinking of making it possible to list the packages
+in a yaml file and then have <code>rix()</code> generate the <code>default.nix</code> file from the
+yaml file. This might be cleaner. There is already something like this called
+<a href="https://github.com/luispedro/nixml/tree/main">Nixml</a>, so maybe I don’t even
+need to rewrite anything!</p>
+<p>But I’ll discuss this is more detail next time, where I’ll explain how you can
+use development environments built with Nix using an IDE.</p>
 </div>
 <div id="references" class="section level2">
 <h2>References</h2>
 <ul>
 <li>The great <a href="https://nix.dev/tutorials/install-nix">Nix.dev</a> tutorials.</li>
+<li>This <a href="https://rgoswami.me/posts/rethinking-r-nix/">blog post: Statistical Rethinking and Nix</a> I referenced in part 1 as well, it helped me install my <code>{housing}</code> package from Github.</li>
+<li><a href="https://github.com/luispedro/nixml/tree/main">Nixml</a>.</li>
 </ul>
 <p>
 Hope you enjoyed! If you found this blog post useful, you might want to follow
