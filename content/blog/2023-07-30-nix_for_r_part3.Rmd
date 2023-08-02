@@ -445,16 +445,18 @@ We are now ready to start the api. Make sure CRON restarts by running:
 root@droplet > service cron reload
 ```
 
-and then run the script using `run-one`:
+and then run the script using `nohup` followed by `run-one`:
 
 ```
-root@droplet > run-one /root/titanic_api/run_api.sh &
+root@droplet > nohup run-one /root/titanic_api/run_api.sh &
 ```
 
 `run-one` will now run the script and will ensure that only one instance of the
 script is running (the `&` character at the end means "run this in the
-background"). If for any reason the process dies, CRON will restart an instance
-of the script. We can now call our api using this `curl` command:
+background" an `nohup`, which stands for "no hang-up", ensures the command will
+continue running even when you close the terminal). If for any reason the
+process dies, CRON will restart an instance of the script. We can now call our
+api using this `curl` command:
 
 ```
 user@local_computer > curl -X GET "http://IP_ADDRESS_OF_YOUR_DROPLET/prediction?sex=female&age=45" -H "accept: */*"
