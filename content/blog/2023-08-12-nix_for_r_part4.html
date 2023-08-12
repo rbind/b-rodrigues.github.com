@@ -1,0 +1,328 @@
+---
+date: 2023-08-12
+title: Reproducible data science with Nix, part 4 -- So long, {renv} and Docker, and thanks for all the fish
+tags: [R]
+menu:
+main:
+  parent: Blog
+  identifier: /blog/nix_for_r_part4.Rmd
+  weight: 1
+editor_options: 
+  markdown: 
+    wrap: 80
+---
+
+
+
+<div style="text-align:center;">
+<p><img src="/img/friendship ended with docker.png" width="100%"/></p>
+</div>
+<p>For this blog post, I also made a youtube video that goes over roughly the same ideas, but the blog post is more detailed as I explain the contents of <code>default.nix</code> files, which I don't do in the video. Watch the video <a href="https://www.youtube.com/watch?v=c1LhgeTTxaI">here</a>.</p>
+<p>This is the fourth post in a series of posts about Nix. <em>Disclaimer:</em> I'm a super beginner with Nix. So this series of blog posts is more akin to notes that I'm taking while learning than a super detailed Nix tutorial. So if you're a Nix expert and read something stupid in here, that's normal. This post is going to focus on R (obviously) but the ideas are applicable to any programming language.</p>
+<p>If you've never heard of Nix, take a look at <a href="https://www.brodrigues.co/blog/2023-07-13-nix_for_r_part1/">part 1</a>.</p>
+<p>In this blog post I will go over many, nitty-gritty details and explain, line by line, what a Nix expression you can use to build an environment for your projects contains. In practice, building such an environment allows you to essentially replace <code>{renv}</code>+Docker, but writing the right expressions to achieve it is not easy. So this blog post will also go over the features of <code>{rix}</code>, an <a href="https://b-rodrigues.github.io/rix/index.html">R package</a> by <a href="https://github.com/philipp-baumann">Philipp Baumann</a> and myself.</p>
+<p>Let me also address the click-bait title directly. Yes, the title is click-bait and I got you. I don't believe that <code>{renv}</code> and Docker are going away any time soon and you should not hesitate to invest the required time to get to know and use these tools (I wrote <a href="https://raps-with-r.dev/">something by the way</a>). But I am more and more convinced that Nix is an amazing alternative that offers many possibilities, albeit with a high entry cost. By writing <code>{rix}</code>, we aimed at decreasing this entry cost as much as possible. However, more documentation, examples, etc., need to be written and more testing is required. This series of blog posts is a first step to get the word out and get people interested in the package and more broadly in Nix. So if you're interested or intrigued, don't hesitate to get in touch!</p>
+<p>This will be a long and boring post. Unless you really want to know how all of this works go watch the Youtube video, which is more practical instead. I needed to write this down, as it will likely serve as documentation. I'm essentially beta testing it with you, so if you do take the time to read, and even better, to try out the code, please let us know how it went! Was it clear, was it simple, was it useful? Many thanks in advance.</p>
+<div id="part-1-starting-a-new-project-with-nix" class="section level2">
+<h2>Part 1: starting a new project with Nix</h2>
+<p>Let's suppose that you don't even have R installed on your computer yet. Maybe you bought a new computer, or changed operating system, whatever. Maybe you even have R already, which you installed from the installer that you can download from the R project website. It doesn't matter, as we are going to install a (somewhat) isolated version of R using Nix for the purposes of this blog post. If you don't know where to start, it's simple: first, use the <a href="https://zero-to-nix.com/start/install">installer from Determinate Systems</a>. This installer will make it easy to install Nix on Linux, macOS or Windows (with WSL2). Once you have Nix installed, you can use it to install R and <code>{rix}</code> to start building reproducible development environments. To help you get started, you can run this line here (as documented in <code>{rix}</code>'s Readme), which will <em>drop you into a Nix shell</em> with R and <code>{rix}</code> available. Run the line inside a terminal (if you're running Windows, run this in a Linux distribution that you installed for WSL2):</p>
+<pre><code>nix-shell --expr &quot;$(curl -sl https://raw.githubusercontent.com/b-rodrigues/rix/master/inst/extdata/default.nix)&quot;</code></pre>
+<p>This will take a bit to run, and then you will be inside an R session. This environment is not suited for development, but is only provided as an easy way for you to start using <code>{rix}</code>. Using <code>{rix}</code>, you can now use it to create a more complex environment suited for a project that you would like to start. Let's start by loading <code>{rix}</code>:</p>
+<pre class="r"><code>library(rix)</code></pre>
+<p>Now you can run the following command to create an environment with the latest version of R and some packages (change the R version and list of packages to suit your needs):</p>
+<pre class="r"><code>path_default_nix &lt;- &quot;path/to/my/project&quot;
+
+rix(r_ver = &quot;current&quot;,
+    r_pkgs = c(&quot;dplyr&quot;, &quot;ggplot2&quot;),
+    other_pkgs = NULL,
+    git_pkgs = list(package_name = &quot;housing&quot;,
+                    repo_url = &quot;https://github.com/rap4all/housing&quot;,
+                    branch_name = &quot;fusen&quot;,
+                    commit = &quot;1c860959310b80e67c41f7bbdc3e84cef00df18e&quot;),
+    ide = &quot;rstudio&quot;,
+    project_path = path_default_nix,
+    overwrite = TRUE)</code></pre>
+<p>Running the code above will create the following <code>default.nix</code> file in <code>path/to/my/project</code>:</p>
+<pre><code># This file was generated by the {rix} R package on Sat Aug 12 22:18:55 2023
+# with following call:
+# &gt;rix(r_ver = &quot;cf73a86c35a84de0e2f3ba494327cf6fb51c0dfd&quot;,
+#  &gt; r_pkgs = c(&quot;dplyr&quot;,
+#  &gt; &quot;ggplot2&quot;),
+#  &gt; other_pkgs = NULL,
+#  &gt; git_pkgs = list(package_name = &quot;housing&quot;,
+#  &gt; repo_url = &quot;https://github.com/rap4all/housing&quot;,
+#  &gt; branch_name = &quot;fusen&quot;,
+#  &gt; commit = &quot;1c860959310b80e67c41f7bbdc3e84cef00df18e&quot;),
+#  &gt; ide = &quot;rstudio&quot;,
+#  &gt; project_path = path_default_nix,
+#  &gt; overwrite = TRUE)
+# It uses nixpkgs&#39; revision cf73a86c35a84de0e2f3ba494327cf6fb51c0dfd for reproducibility purposes
+# which will install R as it was as of nixpkgs revision: cf73a86c35a84de0e2f3ba494327cf6fb51c0dfd
+# Report any issues to https://github.com/b-rodrigues/rix
+{ pkgs ? import (fetchTarball &quot;https://github.com/NixOS/nixpkgs/archive/cf73a86c35a84de0e2f3ba494327cf6fb51c0dfd.tar.gz&quot;) {} }:
+
+with pkgs;
+
+let
+  my-r = rWrapper.override {
+    packages = with rPackages; [
+        dplyr
+        ggplot2
+        (buildRPackage {
+          name = &quot;housing&quot;;
+          src = fetchgit {
+          url = &quot;https://github.com/rap4all/housing&quot;;
+          branchName = &quot;fusen&quot;;
+          rev = &quot;1c860959310b80e67c41f7bbdc3e84cef00df18e&quot;;
+          sha256 = &quot;sha256-s4KGtfKQ7hL0sfDhGb4BpBpspfefBN6hf+XlslqyEn4=&quot;;
+          };
+          propagatedBuildInputs = [
+            dplyr
+            ggplot2
+            janitor
+            purrr
+            readxl
+            rlang
+            rvest
+            stringr
+            tidyr
+            ];
+          })
+        ];
+    };
+  my-rstudio = rstudioWrapper.override {
+    packages = with rPackages; [
+        dplyr
+        ggplot2
+        (buildRPackage {
+          name = &quot;housing&quot;;
+          src = fetchgit {
+          url = &quot;https://github.com/rap4all/housing&quot;;
+          branchName = &quot;fusen&quot;;
+          rev = &quot;1c860959310b80e67c41f7bbdc3e84cef00df18e&quot;;
+          sha256 = &quot;sha256-s4KGtfKQ7hL0sfDhGb4BpBpspfefBN6hf+XlslqyEn4=&quot;;
+          };
+          propagatedBuildInputs = [
+            dplyr
+            ggplot2
+            janitor
+            purrr
+            readxl
+            rlang
+            rvest
+            stringr
+            tidyr
+            ];
+          })
+        ];
+    };
+in
+ mkShell {
+   LOCALE_ARCHIVE = &quot;${glibcLocales}/lib/locale/locale-archive&quot;;
+     buildInputs = [
+        my-r
+        my-rstudio
+      ];
+ }</code></pre>
+<p>Let's go through it. The first thing you will notice is that this file is written in a language that you might not know: this language is called Nix as well! So <em>Nix</em> can both refer to the package manager, but also to the programming language. The Nix programming language was designed for creating and composing <em>derivations</em>. A derivation is Nix jargon for a package (not necessarily an R package; any piece of software that you can install through Nix is a package). To know more about the language itself, you can <a href="https://nixos.org/manual/nix/stable/language/index.html">RTFM</a>.</p>
+<p>Let's go back to our <code>default.nix</code> file. The first lines state the revision of <code>nixpkgs</code> used that is being used in this expression, as well as which version of R gets installed through it. <code>nixpkgs</code> is Nix's repository which contains all the software that we will be installing. This is important to understand: since all the expressions that build all the software available through <code>nixpkgs</code> are versioned on <a href="https://github.com/NixOS/nixpkgs/tree/master/pkgs">Github</a>, it is possible to choose a particular commit, or revision, and use that particular release of <code>nixpkgs</code>. So by judiciously choosing the right commit, it's possible to install any version of R (well any version until 3.0.2). <code>{rix}</code> takes care of this for you: state the version of R that is needed, and the right revision will be returned (the list of R versions and revisions can be found <a href="https://lazamar.co.uk/nix-versions/?channel=nixpkgs-unstable&amp;package=r">here</a>).</p>
+<p>The call that was used to generate the <code>default.nix</code> file is also saved, but if you look at the argument <code>r_ver</code>, the <code>nixpkgs</code> revision is specified instead of <code>&quot;current&quot;</code>. This is because if you re-run this call but keep <code>r_ver = &quot;current&quot;</code>, another, more recent <code>nixpkgs</code> revision will get used instead, which will break reproducibility. To avoid this, the expression gets changed, so if you re-run it, you're sure to find the exact same environment.</p>
+<p>Then comes this line:</p>
+<pre><code>{ pkgs ? import (fetchTarball &quot;https://github.com/NixOS/nixpkgs/archive/cf73a86c35a84de0e2f3ba494327cf6fb51c0dfd.tar.gz&quot;) {} }:</code></pre>
+<p>This actually defines a function with argument <code>pkgs</code> that is optional (hence the <code>?</code>). All that follows, <code>import (fetchTarball ... ) {}</code> is the default value for <code>pkgs</code> if no argument is provided when you run this (which will always be the case). So here, if I call this function without providing any <code>pkgs</code> argument, the release of <code>nixpkgs</code> at that commit will be used. Then comes:</p>
+<pre><code>with pkgs;
+
+let
+  my-pkgs = rWrapper.override {
+    packages = with rPackages; [
+      dplyr
+      ggplot2</code></pre>
+<p>The <code>with pkgs</code> statement makes all the imported packages available in the scope of the function. So I can write <code>quarto</code> if I want to install Quarto (the program that compiles <code>.qmd</code> files, not the <code>{quarto}</code> R package that provides bindings to it) instead of <code>nixpkgs.quarto</code>. Actually, R also has <code>with()</code>, so you can write this:</p>
+<pre class="r"><code>with(mtcars, plot(mpg ~ hp))</code></pre>
+<p><img src="/blog/2023-08-12-nix_for_r_part4_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<p>instead of this:</p>
+<pre class="r"><code>plot(mtcars$mpg ~ mtcars$hp)</code></pre>
+<p>Then follows a <code>let ... in</code>. This is how a variable gets defined locally, for example, this is a valid Nix statement:</p>
+<pre><code>let x = 1; y = 2; in x + y</code></pre>
+<p>which will obviously return <code>3</code>. So here we are defining a series of packages that will ultimately be available in our environment. These packages are named <code>my-pkgs</code> and are a list of R packages. You can see that I use a wrapper called <code>rWrapper</code> which changes certain options to make R installed through Nix work well. This wrapper has a <code>packages</code> attribute which I override using its <code>.override</code> method, and then I redefine <code>packages</code> as a list of R packages. Just like before, I use <code>with rPackages</code> before listing them, which allows me to write <code>dplyr</code> instead of <code>rPackages.dplyr</code> to refer to the <code>{dplyr}</code> packages. R packages that have a <code>.</code> character in their name must be written using <code>_</code>, so if you need <code>{data.table}</code> you'll need to write <code>data_table</code> (but <code>{rix}</code> does this for you as well, so don't worry). Then follows the list of R packages available through <code>nixpkgs</code> (which is the entirety of CRAN:</p>
+<pre><code>packages = with rPackages; [
+          dplyr
+          ggplot2</code></pre>
+<p>Each time you need to add a package, add it here, and rebuild your environment, do not run <code>install.packages(blabla)</code> to install the <code>{blabla}</code> package, because it's likely not going to work anyways, and it's not reproducible. Your projects need to be entirely defined as code. This also means that packages that have helper functions that install something, for example <code>tinytex::install_tinytex()</code>, cannot be used anymore. Instead, you will need to install <code>texlive</code> (by putting it in <code>other_pkgs</code>) and rebuild the expression. We plan to write vignettes documenting all these use-cases. For example, my blog is still built using Hugo (and will likely stay like this forever). I'm using a very old version of Hugo to generate it (I don't want to upgrade and have to deal with potential issues), so I install the right version I need using Nix, instead of using <code>blogdown::install_hugo()</code>.</p>
+<p>Then comes the expression that installs a package from Github:</p>
+<pre><code>(buildRPackage {
+  name = &quot;housing&quot;;
+  src = fetchgit {
+  url = &quot;https://github.com/rap4all/housing&quot;;
+  branchName = &quot;fusen&quot;;
+  rev = &quot;1c860959310b80e67c41f7bbdc3e84cef00df18e&quot;;
+  sha256 = &quot;sha256-s4KGtfKQ7hL0sfDhGb4BpBpspfefBN6hf+XlslqyEn4=&quot;;
+  };
+  propagatedBuildInputs = [
+    dplyr
+    ggplot2
+    janitor
+    purrr
+    readxl
+    rlang
+    rvest
+    stringr
+    tidyr
+    ];
+})</code></pre>
+<p>As you can see it's quite a mouthful, but it was generated from this R code only:</p>
+<pre class="r"><code>git_pkgs = list(package_name = &quot;housing&quot;,
+                repo_url = &quot;https://github.com/rap4all/housing&quot;,
+                branch_name = &quot;fusen&quot;,
+                commit = &quot;1c860959310b80e67c41f7bbdc3e84cef00df18e&quot;),</code></pre>
+<p>If you want to install more than one package, you can also provide a list of lists, for example:</p>
+<pre class="r"><code>git_pkgs = list(
+  list(package_name = &quot;housing&quot;,
+       repo_url = &quot;https://github.com/rap4all/housing/&quot;,
+       branch_name = &quot;fusen&quot;,
+       commit = &quot;1c860959310b80e67c41f7bbdc3e84cef00df18e&quot;),
+  list(package_name = &quot;fusen&quot;,
+       repo_url = &quot;https://github.com/ThinkR-open/fusen&quot;,
+       branch_name = &quot;main&quot;,
+       commit = &quot;d617172447d2947efb20ad6a4463742b8a5d79dc&quot;)
+),
+...</code></pre>
+<p>and the right expressions will be generated. There's actually a lot going on here, so let me explain. The first thing is the <code>sha256</code> field. This field contains a hash that gets generated by Nix, and that must be provided by the user. But users rarely, if ever, know this value, so instead what they do is they try to build the expression without providing it. An error message like this one gets returned:</p>
+<pre><code>error: hash mismatch in fixed-output derivation &#39;/nix/store/449zx4p6x0yijym14q3jslg55kihzw66-housing-1c86095.drv&#39;:
+         specified: sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+            got:    sha256-s4KGtfKQ7hL0sfDhGb4BpBpspfefBN6hf+XlslqyEn4=</code></pre>
+<p>The <code>sha256</code> can now get copy-and-pasted into the expression. This approach is called &quot;Trust On First Use&quot;, or TOFU for short. Because this is quite annoying, <code>{rix}</code> provides a &quot;private&quot; function, called <code>get_sri_hash_deps()</code> that generates this hash for you. The issue is that this hash cannot be computed easily if you don't have Nix installed, and since I don't want to force users to install Nix to use <code>{rix}</code>, what I did is that I set up a server with Nix installed and a <code>{plumber}</code> api. <code>get_sri_hash_deps()</code> makes a call to that api and gets back the <code>sha256</code>, and also a list of packages (more on this later).</p>
+<p>You can try making a call to the api if you have <code>curl</code> installed on your system:</p>
+<pre><code>curl -X GET &quot;http://git2nixsha.dev:1506/hash?repo_url=https://github.com/rap4all/housing/&amp;branchName=fusen&amp;commit=1c860959310b80e67c41f7bbdc3e84cef00df18e&quot; -H &quot;accept: */*&quot;</code></pre>
+<p>This is what you will get back:</p>
+<pre><code>{
+  &quot;sri_hash&quot; : [&quot;sha256-s4KGtfKQ7hL0sfDhGb4BpBpspfefBN6hf+XlslqyEn4=&quot;],
+  &quot;deps&quot;     : [&quot;dplyr ggplot2 janitor purrr readxl rlang rvest stringr tidyr&quot;]
+}</code></pre>
+<p>The reason computing <code>sri_hash</code> is not easy is because it gets computed on the folder containing the source code (after having deleted the <code>.git</code> folder in the case of a Github repo) after it was <em>serialised</em>. You are certainly familiar with serialisations such as the ZIP or TAR serialisation (in other words, zipping a folder is &quot;serialising&quot; it). But these serialisation algorithms come with certain shortcomings that I won't discuss here, but if you're interested check out section <em>5.2. The Nix store</em> from Eelco Dolstra's Phd thesis which you can find <a href="https://archive.is/S9meY">here</a>. Instead, a Nix-specific serialisation algorithm was developed, called NAR. So to compute this hash, I either had to implement this serialisation algorithm in R, or write an api that does that for me by using the implementation that ships with Nix. Since I'm not talented enough to implement such an algorithm in R, I went for the api. But who knows, maybe in the future this could be done. There are implementation of this algorithm in other programming languages like Rust, so maybe packaging the Rust binary could be an option.</p>
+<p>This gets then further processed by <code>rix()</code>. The second thing that gets returned is a list of packages. These get scraped from the <code>Imports</code> and <code>LinkingTo</code> sections of the <code>DESCRIPTION</code> file from the package and are then provided as the <code>propagatedBuildInputs</code> in the Nix expression. These packages are dependencies that must be available to your package at build and run-time.</p>
+<p>You should know that as of today (<code>{rix}</code> commit <code>15cadf7f</code>) GitHub packages that use the <code>Remotes</code> field (so that have dependencies that are also on Github) are not handled by <code>{rix}</code>, but supporting this is planned. What <code>{rix}</code> supports though is installing packages from the CRAN archives, so you can specify a version of a package and have that installed. For example:</p>
+<pre class="r"><code>rix(r_ver = &quot;current&quot;,
+    r_pkgs = c(&quot;dplyr@0.8.0&quot;, &quot;ggplot2@3.1.1&quot;),
+    other_pkgs = NULL,
+    git_pkgs = NULL,
+    ide = &quot;other&quot;,
+    path = path_default_nix,
+    overwrite = TRUE)</code></pre>
+<p>The difference with the <code>default.nix</code> file from before is that these packages get downloaded off the CRAN archives, so <code>fetchzip()</code> is used to download them instead of <code>fetchgit()</code> (both Nix functions). Here is what the generated Nix code looks like:</p>
+<pre><code>(buildRPackage {
+  name = &quot;dplyr&quot;;
+  src = fetchzip {
+  url = &quot;https://cran.r-project.org/src/contrib/Archive/dplyr/dplyr_0.8.0.tar.gz&quot;;
+  sha256 = &quot;sha256-f30raalLd9KoZKZSxeTN71PG6BczXRIiP6g7EZeH09U=&quot;;
+  };
+  propagatedBuildInputs = [
+    assertthat
+    glue
+    magrittr
+    pkgconfig
+    R6
+    Rcpp
+    rlang
+    tibble
+    tidyselect
+    BH
+    plogr
+    Rcpp
+    ];
+})
+(buildRPackage {
+  name = &quot;ggplot2&quot;;
+  src = fetchzip {
+  url = &quot;https://cran.r-project.org/src/contrib/Archive/ggplot2/ggplot2_3.1.1.tar.gz&quot;;
+  sha256 = &quot;sha256-0Qv/5V/XMsFBcGEFy+3IAaBJIscRMTwGong6fiP5Op0=&quot;;
+  };
+  propagatedBuildInputs = [
+    digest
+    gtable
+    lazyeval
+    MASS
+    mgcv
+    plyr
+    reshape2
+    rlang
+    scales
+    tibble
+    viridisLite
+    withr
+    ];
+})</code></pre>
+<p>Here's what this looks like:</p>
+<div style="text-align:center;">
+<p><img src="/img/new_r_old_pkgs.png" width="100%"/></p>
+</div>
+<p>This feature should ideally be used sparingly. If you want to reconstruct an environment as it was around a specific date (for example to run an old project), use the version of R that was current at that time. This will ensure that every package that gets installed is at a version compatible with that version of R, which might not be the case if you need to install a very old version of one particular package. But this feature is quite useful if you want to install a package that is not available on CRAN anymore, but that is archived, like <a href="https://cran.r-project.org/web/packages/ZeligChoice/index.html">{ZeligChoice}</a>.</p>
+<p>Then a second list of packages gets defined, this time using the <code>rstudioWrapper</code> wrapper. This is because I specified that I wanted to use RStudio, but RStudio is a bit peculiar. It redefines many paths and so if you have RStudio installed in your system, it won't be able to &quot;see&quot; the R installed through Nix. So you have to install RStudio through Nix as well (this is not necessary for VS Code nor Emacs, and likely not for other editors as well). However, it is still necessary to provide each package, again, to the <code>rstudioWrapper</code>. This is because the RStudio installed through Nix is also not able to &quot;see&quot; the R installed through Nix as well. But don't worry, this does not take twice the space, since the packages simply get symlinked.</p>
+<p>The last part of the expression uses <code>mkShell</code> which builds a shell with the provided <code>buildInputs</code> (our list of packages). There is also a line to define the location of the locale archive, which should properly configure the locale of the shell (so language, time zone and units):</p>
+<pre><code>in
+ mkShell {
+   LOCALE_ARCHIVE = &quot;${glibcLocales}/lib/locale/locale-archive&quot;;
+     buildInputs = [
+        my-r
+        my-rstudio
+      ];
+ }</code></pre>
+<p>With this file in hand, we can now build the environment and use it.</p>
+</div>
+<div id="part-2-using-your-environment" class="section level2">
+<h2>Part 2: using your environment</h2>
+<p>So let's suppose that you have a <code>default.nix</code> file and you wish to build the environment. To do so, you need to have Nix installed, and, thanks to the contributions of <a href="https://github.com/philipp-baumann">Philipp Baumann</a>, you can use <code>rix::nix_build()</code> to build the environment as well:</p>
+<pre class="r"><code>nix_build(project_path = path_default_nix, exec_mode = &quot;blocking&quot;)</code></pre>
+<p>If you prefer, you can use Nix directly as well; navigate to the project folder containing the <code>default.nix</code> file and run the command line tool <code>nix-build</code> that gets installed with Nix:</p>
+<pre><code>nix-build</code></pre>
+<p>This will take some time to run, depending on whether cached binary packages can be pulled from <a href="https://cache.nixos.org/" class="uri">https://cache.nixos.org/</a> or not. Once the build process is done, you should see a file called <code>result</code> next to the <code>default.nix</code> file. You can now <em>drop</em> into the Nix shell by typing this into your operating system's terminal (after you navigated to the folder containing the <code>default.nix</code> and <code>result</code> files):</p>
+<pre><code>nix-shell</code></pre>
+<p>(this time, you really have to leave your current R session! But Philipp and myself are thinking about how we could also streamline this part as well...).</p>
+<p>The environment that you just built is not an entirely isolated environment: you can still interact with your computer, unlike with Docker. For example, you can still use programs that are installed on your computer. This means that you can run your usual editor as well, but starting it from the Nix shell will make your editor be able to &quot;see&quot; the R installed in that environment. You need to be careful with this, because sometimes this can lead to surprising behavior. For example, if you already have R installed with some packages, these packages could interfere with your Nix environment. There are two ways of dealing with this: you either only use Nix-based environments to work (which would be my primary recommendation, as there can be no interference between different Nix environments), or you call <code>nix-shell --pure</code> instead of just <code>nix-shell</code>. This will ensure that only whatever is available in the environment gets used, but be warned that Nix environments are very, very lean, so you might need to add some tools to have something completely functional.</p>
+<p>We can take advantage of the fact that environments are not completely isolated to use our IDEs. For example, if you use VS Code or Emacs, you can use the one that is installed directly on your system, as explained before. As already explained, but to drive the point home, if you're an RStudio user, you need to specify the <code>ide = &quot;rstudio&quot;</code> argument to <code>rix()</code>, because in the case of RStudio, it needs to be installed by Nix as well (the current available RStudio version installed by Nix is now out of date, but efforts are ongoing to update it). This is because RStudio looks for R runtimes in very specific paths, and these need to be patched to see Nix-provided R versions. Hence the version that gets installed by Nix gets patched so that RStudio is able to find the correct runtimes.</p>
+<p>Once you dropped into the shell, simply type <code>rstudio</code> to launch RStudio in that environment (or <code>code</code> if you use VS Code or <code>other</code> if you use Emacs, or any other editor). On Linux, RStudio may fail to launch with this error message:</p>
+<pre><code>Could not initialize GLX
+Aborted (core dumped)</code></pre>
+<p>change your <code>default.nix</code> file from this:</p>
+<pre><code>mkShell {
+  LOCALE_ARCHIVE = &quot;${glibcLocales}/lib/locale/locale-archive&quot;;
+    buildInputs = [
+       my-r
+       my-rstudio
+     ];
+}</code></pre>
+<p>to this:</p>
+<pre><code>mkShell {
+  LOCALE_ARCHIVE = &quot;${glibcLocales}/lib/locale/locale-archive&quot;;
+    buildInputs = [
+       my-r
+       my-rstudio
+     ];
+  shellHook = &#39;&#39;
+    export QT_XCB_GL_INTEGRATION=none
+  &#39;&#39;;
+}</code></pre>
+<p>which should solve the issue, which is related to hardware acceleration as far as I can tell.</p>
+<p><code>shellHook</code>s are a nice feature which I haven't discussed a lot yet (I did so in part 2 of this series, to run a <code>{targets}</code> pipeline each time I dropped into the shell). Whatever goes into the <code>shellHook</code> gets executed as soon as one drops into the Nix shell. I personally have to add the <code>export QT_XCB_GL_INTEGRATION=none</code> line in on virtual machines and on my desktop computer as well, but I've had problems in the past with my graphics drivers, and I think it's related. I'm planning also to add an option to <code>rix()</code> to add this automatically.</p>
+<p>If you need to add packages, best is to call <code>rix::rix()</code> again, but this time, provide the <code>nixpkgs</code> revision as the argument to <code>r_ver</code>. Copy and paste the call from the generated <code>default.nix</code> to an R console and rerun it:</p>
+<pre class="r"><code>rix(r_ver = &quot;cf73a86c35a84de0e2f3ba494327cf6fb51c0dfd&quot;,
+    r_pkgs = c(&quot;dplyr&quot;, &quot;ggplot2&quot;, &quot;tidyr&quot;, &quot;quarto&quot;),
+    other_pkgs = &quot;quarto&quot;,
+    git_pkgs = list(package_name = &quot;housing&quot;,
+                    repo_url = &quot;https://github.com/rap4all/housing&quot;,
+                    branch_name = &quot;fusen&quot;,
+                    commit = &quot;1c860959310b80e67c41f7bbdc3e84cef00df18e&quot;),
+    ide = &quot;rstudio&quot;,
+    path = path_default_nix,
+    overwrite = TRUE)</code></pre>
+<p>In the call above I've added the <code>{tidyr}</code> and <code>{quarto}</code> packages, as well as the <code>quarto</code> command line utility to generate <code>.qmd</code> files. For <code>r_ver</code> I'm this time using the <code>nixpkgs</code> revision from my original <code>default.nix</code> file. This will ensure that my environment stays the same.</p>
+<p>So if you have read up until this point, let me first thank you, and secondly humbly ask you to test <code>{rix}</code>! I'm looking for testers, especially on Windows and macOS, and would be really grateful if you could provide some feedback on the package. To report anything, simply open issue <a href="https://github.com/b-rodrigues/rix/issues">here</a>.</p>
+<p><em>Thanks to Philipp for proof-reading this post.</em></p>
+<p>
+Hope you enjoyed! If you found this blog post useful, you might want to follow me on <a href="https://fosstodon.org/@brodriguesco">Mastodon</a> or <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and <a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my <a href="https://www.brodrigues.co/about/books/">ebooks</a>. You can also watch my videos on <a href="https://www.youtube.com/c/BrunoRodrigues1988/">youtube</a>. So much content for you to consoom!
+</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p>
+<link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a>
+</p>
+</div>
