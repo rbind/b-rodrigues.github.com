@@ -93,13 +93,13 @@ you're not into mechanical keyboard I guess this doesn't mean anything. Keycaps
 are these:
 
 <div style="text-align:center;">
- <img src="/img/switches.jpg" width="100%">
+ <img src="/img/caps.jpg" width="100%">
 </div>
 
 and switches are these:
 
 <div style="text-align:center;">
- <img src="/img/caps.jpg" width="100%">
+ <img src="/img/switches.jpg" width="100%">
 </div>
 
 And you can change either the caps, the switches or both. The keyboard is
