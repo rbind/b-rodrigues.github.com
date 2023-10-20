@@ -1,0 +1,284 @@
+---
+date: 2023-10-20
+title: Reproducible data science with Nix, part 7 -- Building a Quarto book using Nix on Github Actions
+tags: [R]
+menu:
+main:
+  parent: Blog
+  identifier: /blog/nix_for_r_part7.Rmd
+  weight: 1
+---
+
+
+
+<div style="text-align:center;">
+<p><img src="/img/nix_users_press_both_buttons.png" width="50%"></p>
+</div>
+<p>Back in June I self-published a book on Amazon’s Kindle Direct Publishing
+service and wrote a blog post detailling how you could achieve that using
+Quarto, which you can read
+<a href="https://www.brodrigues.co/blog/2023-06-29-book_quarto/">here</a>. The book is
+about <a href="https://www.brodrigues.co/about/books/">building reproducible analytical pipelines with
+R</a>. For the purposes of this post I made
+a <a href="https://github.com/b-rodrigues/kdp_quarto">template on Github</a> that you could
+fork and use as a starting point to write your own book. The book also gets
+built using Github Actions each time you push new changes: a website gets built,
+an E-book for e-ink devices and a Amazon KDP-ready PDF for print get also built.
+That template used dedicated actions to install the required version of R,
+Quarto, and R packages (using <code>{renv}</code>).</p>
+<p>Let’s take a look at the workflow file:</p>
+<pre><code>on:
+  push:
+    branches: main
+
+name: Render and Publish
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup pandoc
+        uses: r-lib/actions/setup-pandoc@v2
+
+      - name: Setup R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: &#39;4.3.1&#39;
+
+      - name: Setup renv
+        uses: r-lib/actions/setup-renv@v2
+
+      - name: Set up Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          # To install LaTeX to build PDF book 
+          tinytex: true 
+          # uncomment below and fill to pin a version
+          #version: 1.3.353
+
+      - name: Publish to GitHub Pages (and render)
+        uses: quarto-dev/quarto-actions/publish@v2
+        with:
+          target: gh-pages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # this secret is always available for github actions</code></pre>
+<p>As you can see, there are a lot of different moving pieces to get this to work.
+Since then I discovered Nix (if you’ve not been following my adventures, there’s
+6 other parts to this series as of today), and now I wrote another template that
+uses Nix to handle the book’s dependencies instead of dedicated actions and
+<code>{renv}</code>. You can find the repository
+<a href="https://github.com/b-rodrigues/quarto_book_nix">here</a>.</p>
+<p>Here is what the workflow file looks like:</p>
+<pre><code>name: Build book using Nix
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Install Nix
+      uses: DeterminateSystems/nix-installer-action@main
+      with:
+        logger: pretty
+        log-directives: nix_installer=trace
+        backtrace: full
+
+    - name: Nix cache
+      uses: DeterminateSystems/magic-nix-cache-action@main
+
+    - name: Build development environment
+      run: |
+        nix-build
+
+    - name: Publish to GitHub Pages (and render)
+      uses: b-rodrigues/quarto-nix-actions/publish@main
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} </code></pre>
+<p>The first thing you should notice is that this file is much shorter.</p>
+<p>The first step, <code>Checkout Code</code> makes the code available to the rest of the
+steps. I then install Nix on this runner using the Determinate Systems
+<code>nix-installer-action</code> and then I use another action from Determinate Systems,
+the <code>magic-nix-cache-action</code>. This action caches all the packages so that they
+don’t need to get re-built each time a change gets pushed, speeding up the
+process by a lot. The development environment gets then built using <code>nix-build</code>.</p>
+<p>Finally, an action I defined runs, <code>quarto-nix-actions/publish</code>. This is a fork
+of the <code>quarto-actions/publish</code> action which you can find
+<a href="https://github.com/quarto-dev/quarto-actions/blob/main/publish/action.yml">here</a>.
+My fork simply makes sure that the <code>quarto render</code> and <code>quarto publish</code> commands
+run in the <a href="https://github.com/b-rodrigues/quarto-nix-actions/blob/f48f5a7813eb4978a2f557ff45bcc854526fb80b/publish/action.yml#L58">Nix environment defined for the
+project</a>.</p>
+<p>You can see the book website
+<a href="https://b-rodrigues.github.io/quarto_book_nix/">here</a>; read it, it’s explains
+everything in much more details than this blog post! But if you’re busy, read
+continue reading this blog post instead.</p>
+<p>The obvious next question is why bother with this second, Nix-centric, approach?</p>
+<p>There are at least three reasons. The first is that it is possible to define
+so-called <code>default.nix</code> files that the Nix package manager then uses to build a
+fully reproducible development environment. This environment will contain all
+the packages that you require, and will not interfere with any other packages
+installed on your system. This essentially means that you can have
+project-specific <code>default.nix</code> files, each specifying the requirements for
+specific projects. This file can then be used as-is on any other platform to
+re-create your environment. The second reason is that when installing a package
+that requires system-level dependencies, <code>{rJava}</code> for example, all the
+lower-level dependencies get automatically installed as well. Forget about
+reading error messages of <code>install.packages()</code> to find which system development
+library you need to install first. The third reason is that you can pin a
+specific revision of <code>nixpkgs</code> to ensure reproducibility.</p>
+<p>The <code>nixpkgs</code> mono-repository is “just” a Github repository which you can find
+here: <a href="https://github.com/NixOS/nixpkgs">https://github.com/NixOS/nixpkgs</a>. This
+repository contains Nix expressions to build and install more than 80’000
+packages and you can search for installable Nix packages
+<a href="https://search.nixos.org/packages">here</a>.</p>
+<p>Because <code>nixpkgs</code> is a “just” Github repository, it is possible to use a
+specific commit hash to install the packages as they were at a specific point in
+time. For example, if you use this commit, <code>7c9cc5a6e</code>, you’ll get the very
+latest packages as of the 19th of October 2023, but if you used this one
+instead: <code>976fa3369</code>, you’ll get packages from the 19th of August 2023.</p>
+<p>This ability to deal with both underlying system-level dependencies and pin
+package versions at a specific commit is extremely useful on Git(Dev)Ops
+platforms like Github Actions. Debugging installation failures of packages can
+be quite frustrating, especially on Github Actions, and especially if you’re not
+already familiar with how Linux distributions work. Having a tool that handles
+all of that for you is amazing. The difficult part is writing these
+<code>default.nix</code> files that the Nix package manager requires to actually build
+these development environments. But don’t worry, with my co-author <a href="https://github.com/philipp-baumann">Philipp
+Baumann</a>, we developed an R package called
+<code>{rix}</code> which generates these <code>default.nix</code> files for you.</p>
+<p><code>{rix}</code> is an R package that makes it very easy to generate very complex
+<code>default.nix</code> files. These files can in turn be used by the Nix package manager
+to build project-specific environments. The book’s Github repository contains a
+file called <code>define_env.R</code> with the following content:</p>
+<pre class="r"><code>library(rix)
+
+rix(r_ver = &quot;4.3.1&quot;,
+    r_pkgs = c(&quot;quarto&quot;),
+    system_pkgs = &quot;quarto&quot;,
+    tex_pkgs = c(
+      &quot;amsmath&quot;,
+      &quot;framed&quot;,
+      &quot;fvextra&quot;,
+      &quot;environ&quot;,
+      &quot;fontawesome5&quot;,
+      &quot;orcidlink&quot;,
+      &quot;pdfcol&quot;,
+      &quot;tcolorbox&quot;,
+      &quot;tikzfill&quot;
+    ),
+    ide = &quot;other&quot;,
+    shell_hook = &quot;&quot;,
+    project_path = &quot;.&quot;,
+    overwrite = TRUE,
+    print = TRUE)</code></pre>
+<p><code>{rix}</code> ships the <code>rix()</code> function which takes several arguments. These
+arguments allow you to specify an R version, a list of R packages, a list of
+system packages, TeXLive packages and other options that allow you to specify
+your requirements. Running this code generates this <code>default.nix</code> file:</p>
+<pre><code># This file was generated by the {rix} R package v0.4.1 on 2023-10-19
+# with following call:
+# &gt;rix(r_ver = &quot;976fa3369d722e76f37c77493d99829540d43845&quot;,
+#  &gt; r_pkgs = c(&quot;quarto&quot;),
+#  &gt; system_pkgs = &quot;quarto&quot;,
+#  &gt; tex_pkgs = c(&quot;amsmath&quot;,
+#  &gt; &quot;framed&quot;,
+#  &gt; &quot;fvextra&quot;,
+#  &gt; &quot;environ&quot;,
+#  &gt; &quot;fontawesome5&quot;,
+#  &gt; &quot;orcidlink&quot;,
+#  &gt; &quot;pdfcol&quot;,
+#  &gt; &quot;tcolorbox&quot;,
+#  &gt; &quot;tikzfill&quot;),
+#  &gt; ide = &quot;other&quot;,
+#  &gt; project_path = &quot;.&quot;,
+#  &gt; overwrite = TRUE,
+#  &gt; print = TRUE,
+#  &gt; shell_hook = &quot;&quot;)
+# It uses nixpkgs&#39; revision 976fa3369d722e76f37c77493d99829540d43845 for reproducibility purposes
+# which will install R version 4.3.1
+# Report any issues to https://github.com/b-rodrigues/rix
+let
+ pkgs = import (fetchTarball &quot;https://github.com/NixOS/nixpkgs/archive/976fa3369d722e76f37c77493d99829540d43845.tar.gz&quot;) {};
+ rpkgs = builtins.attrValues {
+  inherit (pkgs.rPackages) quarto;
+};
+  tex = (pkgs.texlive.combine {
+  inherit (pkgs.texlive) scheme-small amsmath framed fvextra environ fontawesome5 orcidlink pdfcol tcolorbox tikzfill;
+});
+ system_packages = builtins.attrValues {
+  inherit (pkgs) R glibcLocalesUtf8 quarto;
+};
+  in
+  pkgs.mkShell {
+    LOCALE_ARCHIVE = if pkgs.system == &quot;x86_64-linux&quot; then  &quot;${pkgs.glibcLocalesUtf8}/lib/locale/locale-archive&quot; else &quot;&quot;;
+    LANG = &quot;en_US.UTF-8&quot;;
+    LC_ALL = &quot;en_US.UTF-8&quot;;
+    LC_TIME = &quot;en_US.UTF-8&quot;;
+    LC_MONETARY = &quot;en_US.UTF-8&quot;;
+    LC_PAPER = &quot;en_US.UTF-8&quot;;
+    LC_MEASUREMENT = &quot;en_US.UTF-8&quot;;
+
+    buildInputs = [  rpkgs tex system_packages  ];
+  }</code></pre>
+<p>This file defines the environment that is needed to build your book: be it
+locally on your machine, or on a GitOps platform like Github Actions. All that
+matters is that you have the Nix package manager installed (thankfully, it’s
+available for Windows –through WSL2–, Linux and macOS).</p>
+<p>Being able to work locally on a specific environment, defined through code, and
+use that environment on the cloud as well, is great. It doesn’t matter that the
+code runs on Ubuntu on the Github Actions runner, and if that operating system
+is not the one you use as well. Thanks to Nix, your code will run on exactly the
+same environment. Because of that, you can use <code>ubuntu-latest</code> as your runner,
+because exactly the same packages will always get installed. This is not the
+case with my first template that uses dedicated actions and <code>{renv}</code>: there, the
+runner uses <code>ubuntu-22.04</code>, a fixed version of the Ubuntu operating system. The
+risk here, is that once these runners get decommissioned (Ubuntu 22.04 is a
+<em>long-term support</em> release of Ubuntu, so it’ll stop getting updated sometime in
+2027), my code won’t be able to run anymore. This is because there’s no
+guarantee that the required version of R, Quarto, and all the other packages I
+need will be installable on that new release of Ubuntu. So for example, suppose
+I have the package <code>{foo}</code> at version 1.0 that requires the system-level
+development library <code>bar-dev</code> at version 0.4 to be installed on Ubuntu. This is
+not an issue now, as Ubuntu 22.04 ships version 0.4 of <code>bar-dev</code>. But it is very
+unlikely that the future version of Ubuntu from 2027 will ship that version, and
+there’s no guarantee my package will successfully build and work as expected
+with a more recent version of <code>bar-dev</code>. With Nix, this is not an issue; because
+I pin a specific commit of <code>nixpkgs</code>, not only will <code>{foo}</code> at version 1.0 get
+installed, its dependency <code>bar-dev</code> at version 0.4 will get installed by Nix as
+well, and get used to build <code>{foo}</code>. It doesn’t matter that my underlying
+operating system ships a more recent version of <code>bar-dev</code>. I really insist on
+this point, because this is not something that you can easily deal with, even
+with Docker. This is because when you use Docker, you need to be able to rebuild
+the image as many times as you need (the alternative is to store, forever, the
+built image), and just like for Github Actions runners, the underlying Ubuntu
+image will be decommissioned and stop working one day.</p>
+<p>In other words, if you need long-term reproducibility, you should really
+consider using Nix, and even if you don’t need long-term reproducibility, you
+should really consider using Nix. This is because Nix makes things much easier.
+But there is one point where Nix is at a huge disadvantage when compared to the
+alternatives: the entry cost is quite high, as I’ve discussed in my <a href="https://www.brodrigues.co/blog/2023-10-05-repro_overview/">previous
+blog post</a>. But I’m
+hoping that through my blog posts, this entry cost is getting lowered for R
+users!</p>
+<p>
+Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://fosstodon.org/@brodriguesco">Mastodon</a> or <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my <a href="https://www.brodrigues.co/about/books/">ebooks</a>.
+You can also watch my videos on <a href="https://www.youtube.com/c/BrunoRodrigues1988/">youtube</a>.
+So much content for you to consoom!
+</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p>
+<link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a>
+</p>
