@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<style type=text/css>body{font-family:monospace;}</style>
+	<title>Reproducible data science with Nix, part 6 -- CI/CD has never been easier</title>
+	
+	
+	<link rel="stylesheet" href="/css/style.css">
+	
+	
+</head>
+<body>
+	<header>
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+<pre>
+<a class="nav-link" href="/index.html">Econometrics and Free Software</a> by <a class="nav-link" href="/about/me">Bruno Rodrigues</a>.
+<a href="https://www.brodrigues.co/blog/index.xml">RSS feed for blog post updates</a>.
+Follow me on <a rel="me" href="https://fosstodon.org/@brodriguesco">Mastodon</a>, <a href="https://twitter.com/brodriguesco" rel="nofollow">twitter</a>, or check out my <a href="https://github.com/b-rodrigues">Github</a>.
+Check out my package that adds logging to R functions, <a href="https://b-rodrigues.github.io/chronicler/">{chronicler}</a>.
+Or read my free ebooks, <a href="https://www.brodrigues.co/about/books/">to learn some R and build reproducible analytical pipelines.</a>.
+You can also watch my <a href="https://www.youtube.com/user/cbrunos" rel="nofollow">youtube</a> channel or find the slides to the talks I've given <a href="https://www.brodrigues.co/about/talks/">here</a>.
+<a href="https://www.buymeacoffee.com/brodriguesco" rel="nofollow">Buy me a coffee</a>, my kids don't let me sleep.
+</pre>
+</header>
+
+	
+	<main>
+		<article>
+			<h1>Reproducible data science with Nix, part 6 -- CI/CD has never been easier</h1>
+			<b><time>2023/09/20</time></b>
+		       
+		           <a href="/tags/r">R</a>
+        	       
+
+			<div>
+				<div style="text-align:center;">
+<p><img src="/img/gymnastics.png" width="50%"/></p>
+</div>
+<p><em>Warning: I highly recommend you read this <a href="https://www.brodrigues.co/blog/2023-07-19-nix_for_r_part2/">blog
+post</a> first, which
+will explain how to run a pipeline inside Nix in detail. This blog post will
+assume that you’ve read that one, and it would also help if you’re familiar with
+Github Actions, if not, read this <a href="https://www.brodrigues.co/blog/2022-11-19-raps/">other blog post of mine as
+well</a></em></p>
+<p>This is getting ridiculous. The meme that I’m using as a header for this blog
+post perfectly summaries how I feel.</p>
+<p>This will be a short blog post, because Nix makes things so easy that there’s
+not much to say. I wanted to try how I could use Nix on Github Actions to run a
+reproducible pipeline. This pipeline downloads some data, prepares it, and fits
+a machine learning model. It is code that I had laying around from an old video
+on the now deprecated <code>{drake}</code> package, <code>{targets}</code> predecessor.</p>
+<p>You can find the pipeline
+<a href="https://github.com/b-rodrigues/nix_ml_cicd_demo/tree/main">here</a>
+and you can also take a look at the same pipeline but which uses Docker
+<a href="https://github.com/b-rodrigues/mlops_demo">here</a>
+for comparison purposes.</p>
+<p>What I wanted to achieve was the following: I wanted to set up a reproducible
+environment with Nix on my computer, work on my pipeline locally, and then have
+it run on Github Actions as well. But I wanted my pipeline to run exactly on the
+same environment as the one I was using to develop it. In a world without Nix,
+this means using a mix of <code>{renv}</code> (or <code>{groundhog}</code> or <code>{rang}</code>) and a Docker
+image that ships the right version of R. I would then need to write a Github
+Actions workflow file that builds that Docker image, then runs it and saves the
+outputs as artifacts. Also, in practice that image would not be exactly the same
+as my local environment: I would have the same version of R and R packages, but
+every other system-level dependency would be a different version unless I use
+that Dockerized environment to develop locally, something I suggested you should
+do merely <a href="https://www.brodrigues.co/blog/2023-05-08-dock_dev_env/">4 months
+ago</a> (oooh, how blind
+was I!).</p>
+<p>With Nix, not only can I take care of the version of R and R packages with one
+single tool but also every underlying system-level dependency gets handled by
+Nix. So if I use a package that requires, say, Java, or GDAL, or any other of
+these usual suspects that make installing their R bindings so tricky, Nix will
+handle this for me without any intervention on my part. I can also use this
+environment to develop locally, and then, once I’m done working locally,
+<em>exactly</em> this environment, <em>exactly</em> every bit of that environment, will get
+rebuilt and used to run my code on Github Actions.</p>
+<p>So <a href="https://github.com/b-rodrigues/nix_ml_cicd_demo">this is the repository</a>
+where you can find the code. There’s a <code>{targets}</code> script that defines the
+pipeline and a <code>functions/</code> folder with some code that I wrote for said
+pipeline. What’s unfamiliar to you (unless you’ve been reading my Nix adventures
+since the beginning) is the <code>default.nix</code> file:</p>
+<pre><code>let
+ pkgs = import (fetchTarball &quot;https://github.com/NixOS/nixpkgs/archive/976fa3369d722e76f37c77493d99829540d43845.tar.gz&quot;) {};
+ rpkgs = builtins.attrValues {
+  inherit (pkgs.rPackages) tidymodels vetiver targets xgboost;
+};
+ system_packages = builtins.attrValues {
+  inherit (pkgs) R;
+};
+in
+ pkgs.mkShell {
+  buildInputs = [  rpkgs system_packages  ];
+ }</code></pre>
+<p>This few lines of code define an environment that pulls packages from revision
+<code>976fa3369d722e76f37c77493d99829540d43845</code> of <code>nixpkgs</code>. It installs the
+packages <code>{tidymodels}</code>, <code>{vetiver}</code>, <code>{targets}</code> and <code>{xgboost}</code> (actually, I’m
+not using <code>{vetiver}</code> for this <em>yet</em>, so it could even be removed). Then it also
+installs R. Because we’re using that specific revision of Nix, exactly the same
+packages (and their dependencies) will get installed, regardless of when we
+build this environment. I want to insist that this file is 12 lines long and it
+defines a complete environment. The equivalent <code>Dockerfile</code> is much longer, and
+not even completely reproducible, and I would have needed external tools like
+<code>{renv}</code> (or use the Posit CRAN mirror dated snapshots) as you can check out
+<a href="https://github.com/b-rodrigues/mlops_demo">here</a>.</p>
+<p>Let’s now turn our attention to the workflow file:</p>
+<pre><code>name: train_model
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  targets:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+
+      - uses: actions/checkout@v3
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+        with:
+          logger: pretty
+          log-directives: nix_installer=trace
+          backtrace: full
+
+      - name: Nix cache
+        uses: DeterminateSystems/magic-nix-cache-action@main
+
+      - name: Build development environment
+        run: |
+          nix-build
+
+      - name: Check if previous runs exists
+        id: runs-exist
+        run: git ls-remote --exit-code --heads origin targets-runs
+        continue-on-error: true
+
+      - name: Checkout previous run
+        if: steps.runs-exist.outcome == &#39;success&#39;
+        uses: actions/checkout@v2
+        with:
+          ref: targets-runs
+          fetch-depth: 1
+          path: .targets-runs
+
+      - name: Restore output files from the previous run
+        if: steps.runs-exist.outcome == &#39;success&#39;
+        run: |
+          nix-shell default.nix --run &quot;Rscript -e &#39;for (dest in scan(\&quot;.targets-runs/.targets-files\&quot;, what = character())) {
+            source &lt;- file.path(\&quot;.targets-runs\&quot;, dest)
+            if (!file.exists(dirname(dest))) dir.create(dirname(dest), recursive = TRUE)
+            if (file.exists(source)) file.rename(source, dest)
+          }&#39;&quot;
+
+      - name: Run model
+        run: |
+          nix-shell default.nix --run &quot;Rscript -e &#39;targets::tar_make()&#39;&quot;
+
+      - name: Identify files that the targets pipeline produced
+        run: git ls-files -mo --exclude=renv &gt; .targets-files
+
+      - name: Create the runs branch if it does not already exist
+        if: steps.runs-exist.outcome != &#39;success&#39;
+        run: git checkout --orphan targets-runs
+
+      - name: Put the worktree in the runs branch if the latter already exists
+        if: steps.runs-exist.outcome == &#39;success&#39;
+        run: |
+          rm -r .git
+          mv .targets-runs/.git .
+          rm -r .targets-runs
+
+      - name: Upload latest run
+        run: |
+          git config --local user.name &quot;GitHub Actions&quot;
+          git config --local user.email &quot;actions@github.com&quot;
+          rm -r .gitignore .github/workflows
+          git add --all -- &#39;:!renv&#39;
+          for file in $(git ls-files -mo --exclude=renv)
+          do
+            git add --force $file
+          done
+          git commit -am &quot;Run pipeline&quot;
+          git push origin targets-runs
+
+      - name: Prepare failure artifact
+        if: failure()
+        run: rm -rf .git .github .targets-files .targets-runs
+
+      - name: Post failure artifact
+        if: failure()
+        uses: actions/upload-artifact@main
+        with:
+          name: ${{ runner.os }}-r${{ matrix.config.r }}-results
+          path: .</code></pre>
+<p>The workflow file above is heavily inspired from the one you get when you run
+<code>targets::tar_github_actions()</code>. Running this puts the following
+<a href="https://github.com/ropensci/targets/blob/22103e19584ea15ae44328c07bc9d2699b004a47/inst/templates/github_actions.yaml">file</a>
+on the root of your <code>{targets}</code> project. This file is a Github Actions workflow
+file, which means that each time you push your code on Github, the pipeline will
+run in the cloud. However it needs you to use <code>{renv}</code> with the project so that
+the right packages get installed. You’ll also see a step called <code>Install Linux dependencies</code> which you will have to adapt to your project.</p>
+<p>All of this can be skipped when using Nix. All that must be done is installing
+Nix itself, using the <code>nix-installer-action</code> from Determinate Systems, then
+using the <code>magic-nix-cache-action</code> which caches the downloaded packages so we
+don’t need to wait for the environment to build each time we push (unless we
+changed the environment of course) and that’s about it. We then build the
+environment on Github Actions using <code>nix-build</code> and then run the pipeline using
+<code>nix-shell default.nix --run "Rscript -e 'targets::tar_make()'"</code>. All the other
+steps are copied almost verbatim from the linked file above and make sure that
+the computed targets only get recomputed if I edit anything that impacts them,
+and also that they get pushed into a branch called <code>targets-runs</code>. I say <em>copied
+almost verbatim</em> because some steps must run inside R, so we need to specify
+that we want to use the R that is available through the Nix environment we just
+built.</p>
+<p>Now, each time we push, the following happens:</p>
+<ul>
+<li>if we didn’t change anything to <code>default.nix</code>, the environment gets retrieved from the cache. If we did change something, then environment gets rebuilt (or rather, only the parts that need to be rebuilt, the rest will still get retrieved from the cache)</li>
+<li>if we didn’t change anything to the <code>_targets.R</code> pipeline itself, then every target will get skipped. If not, only the targets that need to get recomputed will get recomputed.</li>
+</ul>
+<p>One last thing that I didn’t mention: on line 9 you’ll see this:</p>
+<pre><code>runs-on: ubuntu-latest</code></pre>
+<p>this means that the Github Actions will run on the latest available version of
+Ubuntu, which is obviously not fixed. When the next LTS gets released in April
+2024, this pipeline will be running on Ubuntu 24.04 instead of the current LTS,
+version 22.04. This is not good practice because we don’t want the underlying
+operating system to be changing, because this could have an impact on the
+reproducibility of our pipeline. But with Nix, this <strong>does not matter</strong>.
+Remember that we are using a specific revision of <code>nixpkgs</code> for our pipeline, so
+the <em>exact</em> same version of not only R and R packages gets installed, but every
+underlying piece of software that needs to be available will be installed as
+well. We could be running this in 50 years on Ubuntu LTS 74.04 and it would
+still install the same stuff and run the same code and produce exactly the same
+results.</p>
+<p>This is really bonkers.</p>
+<p>Nix is an incredibly powerful tool. I’ve been exploring and using it for 3
+months now, but if something impresses me more than how useful it is, is how
+terribly unknown it still is. I hope that this series of blog posts will
+motivate other people to learn it.</p>
+<p>
+Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://fosstodon.org/@brodriguesco">Mastodon</a> or <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my <a href="https://www.brodrigues.co/about/books/">ebooks</a>.
+You can also watch my videos on <a href="https://www.youtube.com/c/BrunoRodrigues1988/">youtube</a>.
+So much content for you to consoom!
+</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p>
+<link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a>
+</p>
+
+			</div>
+		</article>
+	</main>
+<aside>
+	<div>
+		<div>
+			<h3>LATEST POSTS</h3>
+		</div>
+		<div>
+			<ul>
+				
+				<li><a href="/blog/2023-10-20-nix_for_r_part7/">Reproducible data science with Nix, part 7 -- Building a Quarto book using Nix on Github Actions</a></li>
+				
+				<li><a href="/blog/2023-10-05-repro_overview/">An overview of what&#39;s out there for reproducibility with R</a></li>
+				
+				<li><a href="/blog/2023-09-29-voyager/">ZSA Voyager review</a></li>
+				
+				<li><a href="/blog/2023-09-20-nix_for_r_part6/">Reproducible data science with Nix, part 6 -- CI/CD has never been easier</a></li>
+				
+				<li><a href="/blog/2023-09-15-nix_for_r_part5/">Reproducible data science with Nix, part 5 -- Reproducible literate programming with Nix and Quarto</a></li>
+				
+			</ul>
+		</div>
+	</div>
+</aside>
+
+
+	<footer>
+  <div class="row">
+    <div class="col-lg-12">
+      <p>2023, content by Bruno Rodrigues, unless otherwise stated, every content of this blog is licensed under the <a href="http://www.wtfpl.net/txt/copying/" rel="nofollow">WTFPL</a>.</p>
+      <p>The theme this blog uses is a slight variation of the <a href="https://github.com/colorchestra/smol" rel="nofollow">Smol</a> theme.</p>
+      <p><a class="nav-link" href="/index.html">Back to main page.</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,7 +1,7 @@
 ---
 date: 2023-07-19
 title: Reproducible data science with Nix, part 2 -- running {targets} pipelines with Nix
-tags: [R]
+tags: [R, Nix]
 menu:
 main:
   parent: Blog

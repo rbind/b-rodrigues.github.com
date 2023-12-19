@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<style type=text/css>body{font-family:monospace;}</style>
+	<title>An overview of what&#39;s out there for reproducibility with R</title>
+	
+	
+	<link rel="stylesheet" href="/css/style.css">
+	
+	
+</head>
+<body>
+	<header>
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+<pre>
+<a class="nav-link" href="/index.html">Econometrics and Free Software</a> by <a class="nav-link" href="/about/me">Bruno Rodrigues</a>.
+<a href="https://www.brodrigues.co/blog/index.xml">RSS feed for blog post updates</a>.
+Follow me on <a rel="me" href="https://fosstodon.org/@brodriguesco">Mastodon</a>, <a href="https://twitter.com/brodriguesco" rel="nofollow">twitter</a>, or check out my <a href="https://github.com/b-rodrigues">Github</a>.
+Check out my package that adds logging to R functions, <a href="https://b-rodrigues.github.io/chronicler/">{chronicler}</a>.
+Or read my free ebooks, <a href="https://www.brodrigues.co/about/books/">to learn some R and build reproducible analytical pipelines.</a>.
+You can also watch my <a href="https://www.youtube.com/user/cbrunos" rel="nofollow">youtube</a> channel or find the slides to the talks I've given <a href="https://www.brodrigues.co/about/talks/">here</a>.
+<a href="https://www.buymeacoffee.com/brodriguesco" rel="nofollow">Buy me a coffee</a>, my kids don't let me sleep.
+</pre>
+</header>
+
+	
+	<main>
+		<article>
+			<h1>An overview of what&#39;s out there for reproducibility with R</h1>
+			<b><time>2023/10/05</time></b>
+		       
+		           <a href="/tags/r">R</a>
+        	       
+
+			<div>
+				<div style="text-align:center;">
+<p><img src="/img/like_this.jpg" width="100%"/></p>
+</div>
+<p>In this short blog post I’ll be summarizing what I learnt these past years about
+reproducibility with R. I’ll give some high-level explanations about different
+tools and then link to different blog posts of mine.</p>
+<p>I see currently two main approaches with some commonalities, so let’s start with
+the commonalities.</p>
+<div id="commonalities" class="section level2">
+<h2>Commonalities</h2>
+<p>These are aspects that I think will help you build reproducible projects, but
+that are not strictly necessary. These are:</p>
+<ul>
+<li>Git for code versioning;</li>
+<li>unit tests (be it on your code or data);</li>
+<li>literate programming;</li>
+<li>packaging code;</li>
+<li>build automation.</li>
+</ul>
+<p>I think that these aspects are really very important nice-to-haves, but
+depending on the project you might not have to use all these tools or techniques
+(but I would really recommend that you think very hard about these requirements
+and make sure that you actually, really, don’t need them).</p>
+<p>What’s also important is how you organize the work if you’re in a team. Making
+sure that everyone is on the same page and uses the same tools and approaches is
+very important.</p>
+<p>Now that we have the commonalities out of the way, let’s discuss the “two
+approaches”. Let’s start by the most popular one.</p>
+</div>
+<div id="docker-and-something-else" class="section level2">
+<h2>Docker and “something else”</h2>
+<p>Docker is a very popular containerisation solution. The idea is to build an
+<em>image</em> that contains everything needed to run and rebuild your project in a
+single command. You can add a specific version of R with the required packages
+in it, your project files and so on. You could even add the data directly into
+the image or provide the required data at run-time, it’s up to you.</p>
+<p>The “something else” can be several things, but they all deal with the problem
+of providing the right packages for your analysis. You see, if you run an
+analysis today, you’ll be using certain versions of packages. The same versions
+of packages need to be made available inside that Docker image. To do so, a
+popular choice for R users is to use
+<a href="https://rstudio.github.io/renv/index.html">{renv}</a>, but there’s also
+<a href="https://groundhogr.com/">{groundhog}</a> and
+<a href="https://github.com/gesistsa/rang">{rang}</a>. You could also use CRAN snapshots
+from the <a href="https://packagemanager.posit.co/client/#/repos/cran/setup?snapshot=2023-09-25&amp;r_environment=other">Posit Public Package
+Manager</a>.
+Whatever you choose, Docker by itself is not enough: Docker provides a base
+where you can then add these other things on top.</p>
+<p>To know more, read this:</p>
+<ul>
+<li><a href="https://www.brodrigues.co/blog/2022-11-19-raps/">https://www.brodrigues.co/blog/2022-11-19-raps/</a></li>
+<li><a href="https://www.brodrigues.co/blog/2022-11-30-pipelines-as/">https://www.brodrigues.co/blog/2022-11-30-pipelines-as/</a></li>
+<li><a href="https://www.brodrigues.co/blog/2023-05-08-dock_dev_env/">https://www.brodrigues.co/blog/2023-05-08-dock_dev_env/</a></li>
+<li><a href="https://www.brodrigues.co/blog/2023-01-12-repro_r/">https://www.brodrigues.co/blog/2023-01-12-repro_r/</a></li>
+</ul>
+<p>By combining Docker plus any of the other packages listed above (or by using the
+PPPM) you can quite easily build reproducible projects, because what you end up
+doing, is essentially building something like a capsule that contains everything
+needed to run the project (this capsule is what is called an <em>image</em>). Then, you
+don’t run R and the scripts to build the project, you run the image, and within
+that image, R is executed on the provided scripts. This running instance of an
+image is called a <em>container</em>. This approach is by far the most popular and can
+even be used on Github Actions if your project is hosted on Github. On a scale
+from 1 to 10, I would say that the entry cost is about 3 if you already have
+some familiarity with Linux, but can go up to 7 if you’ve never touched Linux.
+What does Linux have to do with all this? Well, the Docker images that you are
+going to build will be based on Linux (most of the time the Ubuntu distribution)
+so familiarity with Linux or Ubuntu is a huge plus. You could use <code>{renv}</code>,
+<code>{rang}</code> or <code>{groundhog}</code> without Docker, directly on your PC, but the issue
+here is that your operating system and the version of R changes through time.
+And both of these can have an impact on the reproducibility of your project.
+Hence, why we use Docker to, in a sense, “freeze” both the underlying operating
+system and version of R inside that image, and then, every container executed
+from that image will have the required versions of software.</p>
+<p>One issue with Docker is that if you build an image today, the underlying Linux
+distribution will get out of date at some point, and you won’t be able to
+rebuild the image. So you either need to build the image and store it forever,
+or you need to maintain your image and port your code to newer base Ubuntu
+images.</p>
+</div>
+<div id="nix" class="section level2">
+<h2>Nix</h2>
+<p>Nix is a package manager for Linux (and Windows through WSL) and macOS, but also
+a programming language that focuses on reproducibility of software builds,
+meaning that using Nix it’s possible to build software in a completely
+reproducible way. Nix is incredibly flexible, so it’s also possible to use it to
+build reproducible development environments, or run reproducible analytical
+pipelines. What Nix doesn’t easily allow, unlike <code>{renv}</code> for example, is to
+install a specific version of one specific package. But I also wrote a package
+called <a href="https://b-rodrigues.github.io/rix/">{rix}</a> (co-authored by Philipp
+Baumann) that makes it easier for R users to get started with Nix and also
+allows to install arbitrary versions of packages easily using the Nix package
+manager. So you can define an environment with any version of R, plus
+corresponding packages, and install specific versions of specific packages if
+needed as well. Packages that are hosted on Github can also get easily installed
+if needed. Let me make this clear: using Nix, you install both R and R packages
+so there’s no need to use <code>install.packages()</code> anymore. Everything is managed by
+Nix.</p>
+<p>Using Nix, we can define our environment and build instructions as code, and
+have the build process always produce exactly the same result. This definition
+of the environment and build instructions are written using the Nix programming
+language inside a simple text file, which then gets used to actually realize the
+build. This means that regardless of “when” or “where” you rebuild your project,
+<em>exactly</em> the same packages (all the way down to the system libraries and
+compilers and all that stuff we typically never think about) will get installed
+to rebuild the project.</p>
+<p>Essentially, using the Nix package manager, you can replace Docker + any of the
+other tools listed above to build reproducible projects. The issue with Nix
+however is that the entry cost is quite high: even if you’re already familiar
+with Linux and package managers, Nix is really an incredible deep tool. So I
+would say that the entry cost is around 9 out of 10…, but to bring this entry
+cost down, I have written 6 blog posts to get you started:</p>
+<ul>
+<li><a href="https://www.brodrigues.co/blog/2023-07-13-nix_for_r_part1/">https://www.brodrigues.co/blog/2023-07-13-nix_for_r_part1/</a></li>
+<li><a href="https://www.brodrigues.co/blog/2023-07-19-nix_for_r_part2/">https://www.brodrigues.co/blog/2023-07-19-nix_for_r_part2/</a></li>
+<li><a href="https://www.brodrigues.co/blog/2023-07-30-nix_for_r_part3/">https://www.brodrigues.co/blog/2023-07-30-nix_for_r_part3/</a></li>
+<li><a href="https://www.brodrigues.co/blog/2023-08-12-nix_for_r_part4/">https://www.brodrigues.co/blog/2023-08-12-nix_for_r_part4/</a></li>
+<li><a href="https://www.brodrigues.co/blog/2023-09-15-nix_for_r_part5/">https://www.brodrigues.co/blog/2023-09-15-nix_for_r_part5/</a></li>
+<li><a href="https://www.brodrigues.co/blog/2023-09-20-nix_for_r_part6/">https://www.brodrigues.co/blog/2023-09-20-nix_for_r_part6/</a></li>
+</ul>
+<p>Also, by the way, it is entirely possible to build a Docker image based on
+Ubuntu, install the Nix package manager on it, and then use Nix inside Docker
+to install the right software to build a reproducible project. This approach
+is extremely flexible, as it uses the best of both worlds in my opinion: we can
+take advantage of the popularity of Docker so that we can run containers
+anywhere, but use Nix to truly have reproducible builds. This also solves the
+issue I discussed before: if you’re using Nix inside Docker, it doesn’t matter
+if the base image gets outdated: simply use a newer base image, and Nix will
+take care of always installing the right versions of the needed pieces of
+software for your project.</p>
+</div>
+<div id="conclusion" class="section level2">
+<h2>Conclusion</h2>
+<p>So which should you learn, Docker or Nix? While Docker is certainly more popular
+these days, I think that Nix is very interesting and not that hard to use
+<strong>once</strong> you learnt the basics (which does take some time). But the entry costs
+for any of these tools is in the end quite high and, very annoyingly, building
+reproducible projects does not get enough recognition, even in science where
+reproducibility is supposedly one of its corner stones. However, I think that
+you should definitely invest time in learning the tools and best practices
+required for building reproducible projects, because by making sure that a
+project is reproducible you end up increasing its quality as well. Furthermore,
+you avoid stressful situations where you get asked “hey, where did that
+graph/result/etc come from?” and you have no idea why the script that supposedly
+built that output does not reproduce the same output again.</p>
+<p>If you read all the blog posts above but still want to learn and know more about
+reproducibility you can get my <a href="https://leanpub.com/raps-with-r/c/blog_reader">ebook at a
+discount</a> or get a physical copy
+on
+<a href="https://www.amazon.com/Building-reproducible-analytical-pipelines-R/dp/B0C87H6MGF/ref=sr_1_1?keywords=building+reproducible+analytical+pipelines&amp;sr=8-1">Amazon</a>
+or you can <a href="https://raps-with-r.dev/">read it for free</a>. That book does not
+discuss Nix, but I will very certainly be writing another book focusing this
+time on Nix during 2024.</p>
+<p>
+Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://fosstodon.org/@brodriguesco">Mastodon</a> or <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my <a href="https://www.brodrigues.co/about/books/">ebooks</a>.
+You can also watch my videos on <a href="https://www.youtube.com/c/BrunoRodrigues1988/">youtube</a>.
+So much content for you to consoom!
+</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p>
+<link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a>
+</p>
+</div>
+
+			</div>
+		</article>
+	</main>
+<aside>
+	<div>
+		<div>
+			<h3>LATEST POSTS</h3>
+		</div>
+		<div>
+			<ul>
+				
+				<li><a href="/blog/2023-10-20-nix_for_r_part7/">Reproducible data science with Nix, part 7 -- Building a Quarto book using Nix on Github Actions</a></li>
+				
+				<li><a href="/blog/2023-10-05-repro_overview/">An overview of what&#39;s out there for reproducibility with R</a></li>
+				
+				<li><a href="/blog/2023-09-29-voyager/">ZSA Voyager review</a></li>
+				
+				<li><a href="/blog/2023-09-20-nix_for_r_part6/">Reproducible data science with Nix, part 6 -- CI/CD has never been easier</a></li>
+				
+				<li><a href="/blog/2023-09-15-nix_for_r_part5/">Reproducible data science with Nix, part 5 -- Reproducible literate programming with Nix and Quarto</a></li>
+				
+			</ul>
+		</div>
+	</div>
+</aside>
+
+
+	<footer>
+  <div class="row">
+    <div class="col-lg-12">
+      <p>2023, content by Bruno Rodrigues, unless otherwise stated, every content of this blog is licensed under the <a href="http://www.wtfpl.net/txt/copying/" rel="nofollow">WTFPL</a>.</p>
+      <p>The theme this blog uses is a slight variation of the <a href="https://github.com/colorchestra/smol" rel="nofollow">Smol</a> theme.</p>
+      <p><a class="nav-link" href="/index.html">Back to main page.</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,7 +1,7 @@
 ---
 date: 2023-09-15
 title: Reproducible data science with Nix, part 5 -- Reproducible literate programming with Nix and Quarto
-tags: [R]
+tags: [R, Nix]
 menu:
 main:
   parent: Blog
