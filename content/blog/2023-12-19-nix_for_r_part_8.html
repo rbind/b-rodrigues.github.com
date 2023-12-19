@@ -1,0 +1,122 @@
+---
+date: 2023-12-19
+title: Reproducible data science with Nix, part 8 -- nixpkgs, a tale of the magic of free and open source software and a call for charity
+tags: [R, Nix]
+menu:
+main:
+  parent: Blog
+  identifier: /blog/nix_for_r_part8.Rmd
+  weight: 1
+editor_options: 
+  markdown: 
+    wrap: 80
+---
+
+
+
+<div style="text-align:center;">
+<p><img src="/img/santa_tux.jpg" width="100%"/></p>
+</div>
+<p><em>This is part 8 of a series of blog posts about Nix. Check out
+the other parts <a href="https://www.brodrigues.co/tags/nix/">here</a>.
+TLDR: free and open source software is one of the most important
+common goods with enormous positive externalities: if you want to
+help funding it, keep reading!</em></p>
+<p>I wanted to quickly discuss about <code>nixpkgs</code>, which is the collection of packages
+that can be installed using Nix. Why is a project like Nix and <code>nixpkgs</code>
+important, even if you don’t use Nix? In actuality, you may not realise it, but
+you very much benefit from projects like Nix even if you don’t use it. Let me
+explain.</p>
+<p><code>nixpkgs</code> is “just” a Github repository containing thousands upon thousands of
+Nix expressions. When installing a package, these expressions get evaluated, and
+the package in question gets installed. What <em>installed</em> means can vary:
+sometimes the package gets built from source, sometimes a pre-compiled binary
+package for your operating system gets downloaded and installed.</p>
+<p>For example,
+<a href="https://github.com/NixOS/nixpkgs/blob/dce218f4f35440622d2056f93ddc335351763bb4/pkgs/development/libraries/quarto/default.nix">here</a>
+is the Nix expression that downloads and installs Quarto. This is an example of
+an expression that downloads the pre-compiled Quarto package from Quarto’s own
+Github repository, and then <em>installs</em> it. The installation process in this case
+is essentially making sure that Quarto is able to find its dependencies, which
+also get installed from Nix, and some R and Python packages to make
+Quarto work well with both languages also get installed.</p>
+<p>Because Nix packages are “nothing but” Nix expressions hosted on Github,
+contributing to Nix is as simple as opening a PR. For example,
+<a href="https://github.com/NixOS/nixpkgs/pull/263108">here</a> is a draft PR I opened to
+prepare for the imminent release of Quarto <code>1.4</code>. My goal when I opened this
+draft PR was to get used to contributing to <code>nixpkgs</code> (this was my second or
+third PR to <code>nixpkgs</code>, and I did some rookie mistakes when opening my first
+ones) and also to make the latest version of Quarto available on Nix as quickly
+as possible. But this PR had an unexpected consequence: through it, we found a
+bug in Quarto, which was then fixed before the actual release of the next
+version!</p>
+<p>You see, how these things work is that when software gets released, operating
+system specific packages get built downstream. In the case of Quarto, this is
+not entirely true though: the developers of Quarto release many pre-compiled
+packages for Windows, macOS and several Linux distribution themselves. But they
+don’t do so for many other operating systems (which is entirely normal: there’s
+just too many! So releasing pre-built binaries for the main operating systems is
+more than enough), so the maintainers of these other operating systems (or
+package managers) have to package the software themselves. In the case of
+scientific software like Quarto, this usually means that it must get packaged
+for the Conda package manager (popular among Python users) and Nix (and there’s
+certainly other package managers out there that provide Quarto for other
+<em>exotic</em> systems) (Note: in the case of Quarto, I think the Quarto devs
+themselves also package it for Conda, though).</p>
+<p>Turns out that when trying to package the pre-releases of Quarto for Nix, we
+discovered a regression in the upstream code that would not only affect
+packaging for Nix, but also for other package managers. We opened an issue on
+<a href="https://github.com/quarto-dev/quarto-cli/issues/7344">Quarto’s issue tracker</a>
+and after some discussion, the bug was identified and adressed in a matter of
+hours. And now everyone gets to enjoy a better version of Quarto!</p>
+<p>This type of thing happens quite a lot in the background of open source
+development. My mind always gets blown when I think about the enormous amount of
+hours that get put by hobbyists and paid developers into open source and how
+well everything works. Truly a Christmas miracle (but one that happens all
+around the year)!</p>
+<p>But it’s not all good and perfect. Some software is more complex to package, and
+requires much more work. For example the RStudio IDE is one of these. It’s a
+complex piece of software with many dependencies, and while it is available on
+Nix, it can only be installed on Windows and Linux. If you’re a Nix user on
+macOS, you won’t be able to install RStudio, unfortunately. And, unfortunately
+also, if you install RStudio using the usual macOS installer, it won’t be able
+to find any version of R and R packages installed with Nix. This is because
+RStudio needs to be patched to make it work nicely with Nix (just like we have
+to patch and prepare Quarto to play well with Nix). And packaging Rstudio for
+Nix on macOS requires some expertise and hardware that we R users/contributers
+to Nix don’t have all have access to.</p>
+<p>This is where I appeal to your generosity: I have contacted a company called
+Numtide which offers a packaging service. You tell them which software you want
+on Nix, they write the expression and open a PR to <code>nixpkgs</code>. But this costs
+money: so I started a Gofundme which you can find
+<a href="https://www.gofundme.com/f/package-rstudio-for-nix-on-macos-platforms">here</a>
+to fund this. The goal is 4500€, which would cover the work, plus Gofundme
+fees and interest rate risk. I stated in the Gofundme that if the goal was not
+reached until the end of the year, I would donate all the money to the R
+foundation, but I might extend it to end of January 2024 instead.</p>
+<p>So here is my ask: if you want to help make free and open source software
+better, consider donating to this Gofundme! As explained above, even if you
+don’t use Nix, everyone can benefit from work that is done by everyone, be it
+upstream or downstream. And if the goal is not met, your donation will go to the
+R foundation anyways!</p>
+<p>The link to the Gofundme is
+<a href="https://www.gofundme.com/f/package-rstudio-for-nix-on-macos-platforms">here</a>.</p>
+<p>I hope you can help out with this and make free and open source available and
+better for everyone.</p>
+<p>Many thanks, merry Christmas and happy new year!</p>
+<p>
+Hope you enjoyed! If you found this blog post useful, you might want to
+follow me on <a href="https://fosstodon.org/@brodriguesco">Mastodon</a> or
+<a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates
+and <a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a>
+or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my
+<a href="https://www.brodrigues.co/about/books/">ebooks</a>. You can also watch
+my videos on
+<a href="https://www.youtube.com/c/BrunoRodrigues1988/">youtube</a>. So much
+content for you to consoom!
+</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p>
+<link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"/><span style="margin-left:5px">Buy
+me an Espresso</span></a>
+</p>
