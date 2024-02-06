@@ -1,7 +1,7 @@
 ---
 date: 2023-07-30
 title: Reproducible data science with Nix, part 3 -- frictionless {plumber} api deployments with Nix
-tags: [R]
+tags: [R, Nix]
 menu:
 main:
   parent: Blog

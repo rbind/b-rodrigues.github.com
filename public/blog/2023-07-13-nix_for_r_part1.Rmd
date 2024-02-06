@@ -1,7 +1,7 @@
 ---
 date: 2023-07-13
 title: Reproducible data science with Nix, part 1 -- what is Nix
-tags: [R]
+tags: [R, Nix]
 menu:
 main:
   parent: Blog

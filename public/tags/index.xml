@@ -6,15 +6,24 @@
     <description>Recent content in Tags on Econometrics and Free Software</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Fri, 20 Oct 2023 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Fri, 02 Feb 2024 00:00:00 +0000</lastBuildDate>
     
         <atom:link href="https://www.brodrigues.co/tags/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
+      <title>Nix</title>
+      <link>https://www.brodrigues.co/tags/nix/</link>
+      <pubDate>Fri, 02 Feb 2024 00:00:00 +0000</pubDate>
+      
+      <guid>https://www.brodrigues.co/tags/nix/</guid>
+      <description></description>
+    </item>
+    
+    <item>
       <title>R</title>
       <link>https://www.brodrigues.co/tags/r/</link>
-      <pubDate>Fri, 20 Oct 2023 00:00:00 +0000</pubDate>
+      <pubDate>Fri, 02 Feb 2024 00:00:00 +0000</pubDate>
       
       <guid>https://www.brodrigues.co/tags/r/</guid>
       <description></description>

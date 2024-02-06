@@ -9,6 +9,10 @@ menu:
 
 ## Talks, presentation, workshops...
 
+- *"rix: An R package for reproducible dev environments with Nix (FOSDEM 2024)"*, a talk I gave at FOSDEM 2024 on the 4th of February 2024 in the Nix and NixOS dev room. Video [here](https://www.youtube.com/watch?v=eWt1oXatxw8).
+
+- *"Building reproducible analytical pipelines"*, Workshop I gave for the ["R User Group Tunis"](https://www.meetup.com/tunis-r-user-group/) on December 9th, 2023. Video [here](https://www.youtube.com/watch?v=1jVJSPsC4Yo). Slides and code [here](https://github.com/b-rodrigues/raps_rug_tunis/tree/master/raps_rug_tunis).
+
 - *"Porquê usar monads (programação funcional)? Uma ilustração com o pacote {chronicler}"* (*Why use monads (functional programming)? An illustration with the {chronicler} package*), Talk I gave (online) at the INE (Instituto Nacional de Estatística), on the 7th of June 2023. [Slides in Portuguese](https://jocular-panda-1e5d6e.netlify.app/#/title-slide).
 
 - *"La reproductibilité avec R, ou pourquoi celle-ci est située sur un continuum"* (*Reproducibility with R, or why it lies on a continuum*). Talk I gave at the *Rencontres R* 2023 in Avignon, France, on the 26th of June 2023. [Slides in French](https://649017259ea33242fbd1a328--courageous-cajeta-2542d9.netlify.app/#/title-slide), [Video with English subtitles.](https://youtu.be/kan7-thkqYk)

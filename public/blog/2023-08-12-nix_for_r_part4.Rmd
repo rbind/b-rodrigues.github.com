@@ -1,7 +1,7 @@
 ---
 date: 2023-08-12
 title: Reproducible data science with Nix, part 4 -- So long, {renv} and Docker, and thanks for all the fish
-tags: [R]
+tags: [R, Nix]
 menu:
 main:
   parent: Blog
