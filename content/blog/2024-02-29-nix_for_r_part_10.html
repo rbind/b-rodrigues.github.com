@@ -1,0 +1,364 @@
+---
+date: 2024-02-29
+title: Reproducible data science with Nix, part 10 -- contributing to nixpkgs
+tags: [R, Nix]
+menu:
+main:
+  parent: Blog
+  identifier: /blog/nix_for_r_part_10.Rmd
+  weight: 1
+---
+
+
+
+<div style="text-align:center;">
+<p><img src="/img/nix_parents.jpg" width="60%"></p>
+</div>
+<p>I’ve very recently started contributing to the <code>nixpkgs</code> repository of packages,
+which contains all the packages you can install from the Nix package manager. My
+contributions are fairly modest: I help fix R packages that need some tweaking
+to make them successfully build for Nix. Most of these fixes are very simple
+one-liners.</p>
+<p>Most users of any free and open source tool rarely contribute to the development
+of this tool: I don’t think it is due to lack of skills and/or time or interest,
+but mostly because starting to contribute to a tool requires some knowledge that
+is rarely written down (even more so for an entire ecosystem). These tools and
+ecosystems grow organically, and if you’re not in the right spot at the right
+time or are not lucky enough to have kind people taking time to explain things
+to you, contributing might feel completely overwhelming.</p>
+<p>Thankfully, I was very lucky to have found the small but very active
+community of R contributors to <code>nixpkgs</code> on
+<a href="https://matrix.to/#/#r:nixos.org">Matrix</a> which very kindly took the time
+to bring me up to speed!</p>
+<p>I wanted to share my experiences in this blog post: but this blog post is not
+just going to be about me contributing to <code>nixpkgs</code> from the perspective of an R
+user (and giving you some pointers on how to start yourself), but also about how
+I built a report (let’s call it like that) to keep track of which R packages got
+fixed. This report is built using R, Nix, Github Actions and lists all the failed
+R package builds from Hydra (more on this later). The report gets updated
+every day automatically at midnight, and is accessible
+<a href="https://raw.githack.com/b-rodrigues/nixpkgs-r-updates-fails/targets-runs/output/r-updates-fails.html">here</a>.
+I also used a very minimalistic approach to build this: no <code>{tidyverse}</code>
+packages, and no Quarto. Why? Mostly just to keep dependencies at a minimum to
+accelerate CI/CD, but also for fun. And honestly, I must admit that base R is
+more than capable on its own and had forgotten that.</p>
+<div id="contributing-to-nixpkgs" class="section level2">
+<h2>Contributing to nixpkgs</h2>
+<p>As explained in
+<a href="https://www.brodrigues.co/blog/2023-12-19-nix_for_r_part_8/">part 8</a>, <code>nixpkgs</code> is
+“nothing but” a huge GitHub repository containing thousands of Nix expressions.
+These expressions are then used to actually build the software that then gets
+installed by Nix. For example, <a href="https://github.com/NixOS/nixpkgs/blob/nixpkgs-unstable/pkgs/development/libraries/quarto/default.nix">this is the expression for
+Quarto</a>.
+As you can see, it starts by downloading the pre-compiled binary, and then
+applying “patches”. Essentially making sure that Quarto installed by Nix is able
+to find the other pieces installed by Nix that Quarto needs (Deno, Pandoc, Typst
+and so on). It then continues by installing Quarto itself (because we’re
+downloading a pre-compiled binary, <em>installation</em> consists in moving files in
+the right spot), finally some tests are executed (<code>quarto check</code>) and then some
+metadata is defined. Not every package is defined like this, with a single Nix
+expression, though. For example, individual R packages are not defined like
+this. Instead, every package from CRAN and Bioconductor gets built using only a
+handful of files that can be found
+<a href="https://github.com/NixOS/nixpkgs/tree/nixpkgs-unstable/pkgs/development/r-modules">here</a>.</p>
+<p>(By the way, you can look for packages and find their associated Nix expressions
+on the <a href="https://search.nixos.org/packages?channel=unstable&amp;from=0&amp;size=50&amp;sort=relevance&amp;type=packages&amp;query=quarto">NixOS package search</a>).</p>
+<p>The way this works, is that periodically the
+<a href="https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/r-modules/generic-builder.nix"><code>generate-r-packages.R</code></a>
+script is run and generates the
+<a href="https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/r-modules/cran-packages.nix"><code>cran-packages.nix</code></a>
+file (and the equivalent Bioconductor files). For each package on CRAN, a line gets written in the script
+with the package’s name, its current version on CRAN, and very importantly its
+dependencies. For example, here is the line for <code>{dplyr}</code>:</p>
+<pre><code>dplyr = derive2 { name=&quot;dplyr&quot;; version=&quot;1.1.4&quot;;
+   sha256=&quot;1jsq8pj12bngy66xms486j8a65wxvyqs944q9rxkiaylsla08wyg&quot;;
+   depends=[cli generics glue lifecycle magrittr pillar R6 rlang tibble tidyselect vctrs]; };</code></pre>
+<p>These dependencies are actually the packages that can be found in the
+<a href="https://github.com/tidyverse/dplyr/blob/main/DESCRIPTION"><code>DESCRIPTION</code></a> file
+under <code>Imports</code>.
+<a href="https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/r-modules/cran-packages.nix"><code>cran-packages.nix</code></a>
+(and the same goes for the Bioconductor equivalents, <code>bioc-packages.nix</code>,
+<code>bioc-annotation-packages.nix</code> and <code>bioc-experiment-packages.nix</code>) get imported
+in the
+<a href="https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/r-modules/default.nix"><code>default.nix</code></a>
+file. In it, another file, <code>generic-builder.nix</code> gets also imported, which
+contains a function that will attempt building the package. Most of the time
+this succeeds, but some packages require further tweaks. Packages that have a
+field <code>NeedsCompilation</code> in their DESCRIPTION files are usually candidates for
+further tweaking: these packages require system-level dependencies, which are
+often listed under <code>SystemRequirements</code> (but not always, which complicates
+matters). For example, the <code>{terra}</code> package has these system requirements
+listed in itself DESCRIPTION file:</p>
+<pre><code>SystemRequirements:	C++17, GDAL (&gt;= 2.2.3), GEOS (&gt;= 3.4.0), PROJ (&gt;= 4.9.3), sqlite3</code></pre>
+<p>so these also need to be added if we want to build them on Nix. But if we look at the
+line for <code>{terra}</code> in <code>cran-packages.nix</code>, this is what we see:</p>
+<pre><code>terra = derive2 { name=&quot;terra&quot;; version=&quot;1.7-65&quot;; 
+  sha256=&quot;0m9s5am8l6il1q0skab614cx0qjsb1i9xcv6nm0sdzj7p9lrzkfl&quot;; 
+  depends=[Rcpp]; };</code></pre>
+<p>Only <code>{Rcpp}</code> is listed, which is a dependency, yes, but an R package
+dependency, not a system-level requirement. System-level requirements need to
+be added in the <code>default.nix</code> file manually. In the <code>default.nix</code>, you’ll find a
+long list of packages called <code>packagesWithNativeBuildInputs</code> and
+<code>packagesWithBuildInputs</code>. <em>NativeBuildInputs</em> and <em>BuildInputs</em> are Nix jargon
+for dependencies the package needs, at compile-time and then at run-time
+specifically. For example, <code>{Rcpp}</code> is a <em>BuildInput</em> of <code>{terra}</code>, while the
+system-level requirements are <em>NativeBuildInputs</em> (in the context of R packages
+though, this rarely matters. If you want more details, refer to <a href="https://gist.github.com/b-rodrigues/c677b59126d05d43347ed9623ddd5b0c">this
+Gist</a> I’ve
+forked).</p>
+<p>For <code>{terra}</code>, this means that we need to add this line to the list
+<code>{packagesWithNativeBuildInputs}</code> (I simplified the syntax here a bit):</p>
+<pre><code>terra = [ gdal proj geos ];</code></pre>
+<p><code>gdal</code>, <code>proj</code> and <code>geos</code> are the system requirements that need to be added for
+<code>{terra}</code> to build successfully on Hydra.</p>
+</div>
+<div id="hydra" class="section level2">
+<h2>Hydra</h2>
+<p><em>Hydra is a tool for continuous integration testing and software release that
+uses a purely functional language to describe build jobs and their dependencies</em>
+(source: <a href="https://hydra.nixos.org/build/248007843/download/1/hydra/#introduction">the Hydra
+Manual</a>)</p>
+<p>If you’re coming from R, think of Hydra as <a href="https://builder.r-hub.io/">R-hub</a>,
+which will check and build your R package before submitting to CRAN. Hydra
+periodically tries to rebuild packages. If that package fails, then the log
+gets hosted. When it comes to R packages, we can check which packages
+built successfully or not on <a href="https://hydra.nixos.org/jobset/nixpkgs/r-updates">here</a>.</p>
+<p>As of writing, the latest evaluation was in mid-January. A new release of R is
+going to get released on the 29th of February (or maybe was already released,
+I’m not sure when this blog post is going to get posted), and this is when new
+evaluations will likely be executed. Evaluations are the processes by which Nix
+expressions get… evaluated and used to actually build packages. So if we look
+into the results of the evaluation of the 17th of January, we see that 757 jobs
+failed:</p>
+<div style="text-align:center;">
+<p><img src="/img/hydra_failing_jobs.jpg" width="80%"></p>
+</div>
+<p>One job doesn’t strictly correspond to one package though: packages get built for different
+architectures, and each architecture gets its build process. If we log into the details
+of the first package whose build failed <code>{AIUQ}</code>, we see this:</p>
+<div style="text-align:center;">
+<p><img src="/img/hydra_failed.jpg" width="80%"></p>
+</div>
+<p>From the log we see that actually what failed one of its dependencies, <code>{SuperGauss}</code>,
+so fixing <code>{SuperGauss}</code> will likely fix <code>{AIUQ}</code> (I say likely because maybe another
+needed dependency also fails). So we could try to fix <code>{SuperGauss}</code> first. Let’s see
+why <code>{SuperGauss}</code>, by clicking on <code>raw</code>:</p>
+<div style="text-align:center;">
+<p><img src="/img/hydra_failed_raw.jpg" width="80%"></p>
+</div>
+<p>Here is what we see:</p>
+<pre><code>Running phase: unpackPhase
+unpacking source archive /nix/store/615bdvjchxrd7wp5m7dhg4g04yv7ncza-SuperGauss_2.0.3.tar.gz
+source root is SuperGauss
+setting SOURCE_DATE_EPOCH to timestamp 1645735202 of file SuperGauss/MD5
+Running phase: patchPhase
+Running phase: updateAutotoolsGnuConfigScriptsPhase
+Running phase: configurePhase
+Running phase: buildPhase
+Running phase: checkPhase
+Running phase: installPhase
+* installing *source* package &#39;SuperGauss&#39; ...
+** package &#39;SuperGauss&#39; successfully unpacked and MD5 sums checked
+** using staged installation
+checking for gcc... /nix/store/xq8920m5mbd83vdlydwli7qsh67gfm5v-gcc-wrapper-13.2.0/bin/cc
+checking whether the C compiler works... yes
+checking for C compiler default output file name... a.out
+checking for suffix of executables... 
+checking whether we are cross compiling... no
+checking for suffix of object files... o
+checking whether we are using the GNU C compiler... yes
+checking whether /nix/store/xq8920m5mbd83vdlydwli7qsh67gfm5v-gcc-wrapper-13.2.0/bin/cc accepts -g... yes
+checking for /nix/store/xq8920m5mbd83vdlydwli7qsh67gfm5v-gcc-wrapper-13.2.0/bin/cc option to accept ISO C89... none needed
+checking for pkg-config... no
+checking for FFTW... configure: error: in `/build/SuperGauss&#39;:
+configure: error: The pkg-config script could not be found or is too old.  Make sure it
+is in your PATH or set the PKG_CONFIG environment variable to the full
+path to pkg-config.
+
+Alternatively, you may set the environment variables FFTW_CFLAGS
+and FFTW_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details.
+
+To get pkg-config, see &lt;http://pkg-config.freedesktop.org/&gt;.
+See `config.log&#39; for more details
+ERROR: configuration failed for package &#39;SuperGauss&#39;
+* removing &#39;/nix/store/jxv5p85x24xmfcnifw2ibvx9jhk9f2w4-r-SuperGauss-2.0.3/library/SuperGauss&#39;</code></pre>
+<p>This is essentially what we would see if we tried to install <code>{SuperGauss}</code> on
+Linux. The error message is quite clear here: a system-level dependency,
+<code>pkg-config</code> is missing. Looks like we found our first package to fix!</p>
+</div>
+<div id="fixing-a-package" class="section level2">
+<h2>Fixing a package</h2>
+<p>The first step is to fork and clone the <code>nixpkgs</code> GitHub repository to your
+computer (be patient, the repository is huge so the download will take some
+time):</p>
+<pre><code>git clone git@github.com:b-rodrigues/nixpkgs.git</code></pre>
+<p>It’s also a good idea to add the original <code>nixpkgs</code> as an <code>upstream</code>:</p>
+<pre><code>git remote add upstream https://github.com/NixOS/nixpkgs</code></pre>
+<p>This way, you can pull changes from the original <code>nixpkgs</code> repository into your
+fork easily with:</p>
+<pre><code>git fetch upstream master
+git merge upstream/master</code></pre>
+<p>These two commands synchronize your local copy of the repository with upstream.
+So now we can create a new branch to try to fix <code>{SuperGauss}</code>:</p>
+<pre><code>git branch -b fix_supergauss</code></pre>
+<p>and then we should try to build <code>{SuperGauss}</code> locally. This is because
+it might have been fixed in the meantime by someone else, so let’s try to
+build it with (run the following command in a terminal at the root of
+your local copy of the <code>nixpkgs</code> repository):</p>
+<pre><code>nix-build -A rPackages.SuperGauss</code></pre>
+<p>but I often prefer to use this instead, because this will build the package
+and drop me into a shell where I can start R, load the package, and try it
+by running some of its examples:</p>
+<pre><code>nix-shell -I nixpkgs=/path/to/my/nixpkgs -p rPackages.SuperGauss R</code></pre>
+<p>If any of the commands above fail with the same error message as on Hydra,
+we know that it hasn’t been fixed yet. So the fix consists in opening the
+<code>pkgs/development/r-modules/default.nix</code> and add the following line:</p>
+<pre><code>SuperGauss = [ pkg-config ];</code></pre>
+<p>in either the lists <code>packagesWithBuildInputs</code> or <code>packagesWithNativeBuildInputs</code>
+(as explained above, it doesn’t really matter). Trying to rebuild <code>SuperGauss</code>
+again will result in a new error message. Another dependecy needs to be added:</p>
+<pre><code>SuperGauss = [ pkg-config fftw.dev ];</code></pre>
+<p>Then, building succeeds! We can now commit, push, and open a pull request.
+Commit messages need to be formatted in a certain way, as per <code>nixpkgs</code>
+<a href="https://github.com/NixOS/nixpkgs/blob/master/CONTRIBUTING.md">contributing
+guide</a>, so:</p>
+<pre><code>git add .
+git commit -m &quot;rPackages.SuperGauss: add dependencies&quot;</code></pre>
+<p>also, there should only be one commit per fix. So if in the process of fixing a
+package you commited several times, you will need to use <code>git rebase</code> to squash
+all the commits into one. Once you open the pull request, a maintainer will get
+pinged, and merge the PR if everything is alright (which is usually the case for
+these one-liners). You can see the PR for <code>{SuperGauss}</code>
+<a href="https://github.com/NixOS/nixpkgs/pull/287209">here</a>.</p>
+<p>The process is relatively simple once you did it once or twice, but there are
+some issues: there is no easy way to find out on which packages we should focus
+on. For example, is <code>{SuperGauss}</code> really that important? The fix was very
+simple, so it’s ok, but if it took more effort, should we spend the limited time
+we have on it, or should we focus on another package? Also, if someone has
+already opened a PR to fix a package, but that PR hasn’t been merged yet, if I
+try to also fix the same package and try to build the package, it would still
+fail. So I might think that no one is taking care of it, and waste time
+duplicating efforts instead of either focusing on another package, or reviewing
+the open PR to accelerate the process of merging.</p>
+<p>Discussing this with other contributors, <a href="https://fosstodon.org/deck/@kupac@functional.cafe">László
+Kupcsik</a> suggested we could
+use <code>{packageRank}</code> to find out which packages are getting a lot of downloads
+from CRAN, and so we could focus on fixing these packages first. This is a great
+idea and it gave me the idea to build some kind of report that would do this
+automatically for us, and also list opened and merged PRs so we wouldn’t risk
+duplicating efforts.</p>
+<p>This report can be found
+<a href="https://raw.githack.com/b-rodrigues/nixpkgs-r-updates-fails/targets-runs/output/r-updates-fails.html">here</a>
+and now I’ll explain how I built it.</p>
+</div>
+<div id="which-packages-to-fix-and-keeping-track-of-prs" class="section level2">
+<h2>Which packages to fix and keeping track of PRs</h2>
+<p>So the main idea was to know on which packages to focus on. So essentially, we
+wanted this table:</p>
+<div style="text-align:center;">
+<p><img src="/img/hydra_failing_jobs.jpg" width="80%"></p>
+</div>
+<p>but with <code>{packageRank}</code> added to it. So the first step was to scrape this
+table, using <code>{rvest}</code>. This is what you can find on lines 11 to 63 of this
+<a href="https://github.com/b-rodrigues/nixpkgs-r-updates-fails/blob/0fe273dd234f0d32e5fae86630173ff42cce2d9f/_targets.R">{targets}
+workflow</a>
+(alongside some basic cleaning). I won’t go too much into detail, but if
+something’s not clear, ping me on <a href="https://twitter.com/brodriguesco">twitter</a> or
+<a href="https://fosstodon.org/@brodriguesco">Mastodon</a> or even open an issue on the
+report’s
+<a href="https://github.com/b-rodrigues/nixpkgs-r-updates-fails/issues">repository</a>.</p>
+<p>Next I also get the reason the package failed building. So in the example from
+before, <code>{AIUQ}</code> failed because <code>{SuperGauss}</code> failed. On Hydra, you should be
+clicking to see this, but here I scrape it as well automatically, and add this
+information in a column called <code>fails_because_of</code>. This is what you can read on
+lines
+<a href="https://github.com/b-rodrigues/nixpkgs-r-updates-fails/blob/0fe273dd234f0d32e5fae86630173ff42cce2d9f/_targets.R#L65">65 to 77</a>.
+I use a function called <code>safe_get_failed_deps()</code>, which you can find in the
+<code>functions.R</code> script <a href="https://github.com/b-rodrigues/nixpkgs-r-updates-fails/blob/0fe273dd234f0d32e5fae86630173ff42cce2d9f/functions.R#L41C1-L68C2">on
+here</a>.
+<code>safe_get_failed_deps()</code> wraps the main function, <code>get_failed_deps()</code>, with
+<code>tryCatch()</code>. This is because if anything goes wrong, I want my function
+to return <code>NULL</code> instead of an error, which would crash the whole pipeline.</p>
+<p>Next, I add the packages’ rank using a function that wraps
+<code>packageRank::packageRank()</code> called <code>safe_packageRank()</code> on <a href="https://github.com/b-rodrigues/nixpkgs-r-updates-fails/blob/0fe273dd234f0d32e5fae86630173ff42cce2d9f/_targets.R#L97">line 97</a>.</p>
+<p><code>safe_packageRank()</code> uses <code>tryCatch()</code> to return <code>NULL</code> in case there’s an error.
+This is needed because <code>packageRank()</code> will only work on CRAN packages, but Hydra
+also tries to build Bioconductor packages: when these packages’ names get passed
+to <code>packageRank()</code>, an error gets returned because these are not CRAN packages:</p>
+<pre class="r"><code>packageRank(&quot;haha&quot;)
+Error: haha: misspelled or not on CRAN/Archive.</code></pre>
+<p>but instead of an error that would stop the pipeline, I prefer it simply returns
+<code>NULL</code>, hence <code>tryCatch()</code>. Also, I compute the rank of the package listed under
+the <code>fails_because_of</code> column and not the <code>package</code> column. If we go back to our
+example from before, <code>{AIUQ}</code> failed because <code>{SuperGauss}</code> failed, I’m actually
+interested in the rank of <code>{SuperGauss}</code>, and not <code>{AIUQ}</code> (which I way I went
+to all the trouble to scrape the failing dependency).</p>
+<p>So, for now, when comparing to the table on Hydra, we have two further columns
+with the dependency that actually fails (or not, if the package fails on its own
+and not because of a dependency), and the rank of either the dependency that
+fails or the package itself.</p>
+<p>Next, I’d like to see if PRs have already been opened and merged. For this, I
+use the <code>gh</code> tool, which is a command line tool to interact with GitHub
+repositories. I wrote the <code>get_prs()</code> wrapper around <code>gh</code> to list the opened or
+the merged PRs of the <code>nixpkgs</code> repository. This is what it looks like (and is
+defined
+<a href="https://github.com/b-rodrigues/nixpkgs-r-updates-fails/blob/0fe273dd234f0d32e5fae86630173ff42cce2d9f/functions.R#L8C1-L21C2">here</a>):</p>
+<pre><code>get_prs &lt;- function(state){
+
+  output_path &lt;- paste0(state, &quot;_prs.json&quot;)
+
+  # Run the command
+  system(paste0(
+    &quot;gh pr list --state=&quot;, state,
+    &quot; --search=rPackages -R NixOS/nixpkgs --json title,updatedAt,url &gt; &quot;,
+    output_path
+  ))
+
+  # Return path for targets
+  output_path
+}</code></pre>
+<p>Because the PRs follow the contributing guidelines, I can easily process the PRs
+titles to get the name of the package (I essentially need to go from the string
+“rPackages.SuperGauss: fixing build” to “SuperGauss”) using regular expressions.
+This is what happens in the <code>clean_prs()</code> function
+<a href="https://github.com/b-rodrigues/nixpkgs-r-updates-fails/blob/0fe273dd234f0d32e5fae86630173ff42cce2d9f/functions.R#L23">here</a>.</p>
+<p>Most of what follows is merging the right data frames and ensuring that I have
+something clean to show. Finally, an <code>.Rmd</code> document gets compiled, which you
+can find
+<a href="https://github.com/b-rodrigues/nixpkgs-r-updates-fails/blob/0fe273dd234f0d32e5fae86630173ff42cce2d9f/r-updates-fails.Rmd">here</a>.
+This will get compiled to an <code>.html</code> file which is what you see when you click
+<a href="https://raw.githack.com/b-rodrigues/nixpkgs-r-updates-fails/targets-runs/output/r-updates-fails.html">here</a>.</p>
+<p>This runs every day at midnight using GitHub actions (<a href="https://github.com/b-rodrigues/nixpkgs-r-updates-fails/blob/0fe273dd234f0d32e5fae86630173ff42cce2d9f/.github/workflows/compile_table.yaml">the workflow is
+here</a>)
+and then I use the <code>raw.githack.com</code> <a href="https://raw.githack.com/">here</a> to serve
+the rendered HTML file. So every time I push, or at midnight, the action runs,
+computes the package rank, checks if new PRs are available or have been merged,
+and the rendered file is immediately available. How’s that for serverless CI/CD?</p>
+<p>If you are interested in using Nix to make your analyses reproducible, check out
+<a href="https://www.brodrigues.co/tags/nix/">the other blog posts in this series</a> and
+join our small but motivated community of R contributors to <code>nixpkgs</code> on
+<a href="https://matrix.to/#/#r:nixos.org">Matrix</a>. If you are interested in the history
+of Nix, checkout this super interesting <a href="https://economicsfromthetopdown.com/2024/02/17/nixing-technological-lock-in/">blog
+post</a>
+by <a href="https://mastodon.online/@blair_fix">Blair Fix</a>.</p>
+<p>If you’re interested into using project-specific, and reproducible development
+environments, give <code>{rix}</code> and Nix a try! Learn more about <code>{rix}</code> on its Github
+repository <a href="https://github.com/b-rodrigues/rix">here</a> or
+<a href="https://b-rodrigues.github.io/rix/">website</a>. We wrote many vignettes that are
+conveniently numbered, so don’t hesitate to <a href="https://b-rodrigues.github.io/rix/articles/a-getting-started.html">get
+started</a>!</p>
+<p><em>Thanks to the colleagues of the Matrix nixpkgs R channel for the fruitful discussions that
+helped shape this blog post and for proof-reading.</em></p>
+<p>
+Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://fosstodon.org/@brodriguesco">Mastodon</a> or <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my <a href="https://www.brodrigues.co/about/books/">ebooks</a>.
+You can also watch my videos on <a href="https://www.youtube.com/c/BrunoRodrigues1988/">youtube</a>.
+So much content for you to consoom!
+</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p>
+<link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a>
+</p>
+</div>
