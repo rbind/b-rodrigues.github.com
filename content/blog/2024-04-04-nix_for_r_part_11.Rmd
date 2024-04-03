@@ -1,0 +1,83 @@
+---
+date: 2024-04-04
+title: Reproducible data science with Nix, part 10 -- build and cache binaries on Github Actions and Cachix
+tags: [R, Nix]
+menu:
+main:
+  parent: Blog
+  identifier: /blog/nix_for_r_part_11.Rmd
+  weight: 1
+---
+
+<div style="text-align:center;">
+ <img src="/img/nix_parents.jpg" width="60%">
+</div>
+
+I have this package on CRAN called `{chronicler}` and last month I got an email
+from CRAN telling me that building the package was failing, and I had two weeks
+to fix it.
+
+I immediately thought that some dependency that my package depends on got
+updated, and somehow broke something. But when I checked the results of the
+build, I was surprised, to say the least:
+
+
+
+How come my package was only failing on Fedora? Now that was really weird. There
+was no way this was right. Also, I couldn't reproduce this bug on my local
+machine... but I could reproduce it on Github Actions, on Ubuntu (but it was ok
+on CRAN's Ubuntu!), but couldn't reproduce it either on Windows! What was going
+on? So I started digging, and my first idea was to look at the list of packages
+that got released on CRAN on that day (March 11th 2024), and saw something that
+caught my eye: a new version of `{tidyselect}` had just been released and even
+though my package doesn't directly depend on it, I knew that this package was
+likely a dependency of some direct dependency of `{chronicler}`. So I looked
+into the release notes, and there it was:
+
+```
+* `eval_select()` out-of-bounds errors now use the verb "select" rather than
+  "subset" in the error message for consistency with `dplyr::select()` (#271).
+```
+
+I knew this was what I was looking for, because the unit test that was failing
+to pass was a test that should error because `dplyr::select()` was being used on
+a column that didn't exist. So the success of that test was defined as *finding
+the following error message in the log*, which contained the word *subset* but
+now it should be *select*.
+
+But why was this failing only on Fedora on CRAN and on Ubuntu on Github Actions
+(but ok on Ubuntu on CRAN)? And why couldn't I reproduce the bug on my OpenSuse
+Linux computer, even though I was building a bleeding edge development
+environment using Nix?
+
+And then it hit me like my older brother used to.
+
+When building packages, CRAN doesn't seem to use pre-compiled binaries on
+Fedora, so packages get built from source. This means that it takes longer to
+test on Fedora, as packages have to be built from source, but it also means that
+only the very latest releases of packages get used. On other platforms,
+pre-compiled binaries get used if available, and because `{tidyselect}` had just
+come out that very day, older binaries of `{tidyselect}` were being used on
+these platforms, but not on Fedora. And because these older binaries didn't
+include this change, the unit test was still passing successfully on there.
+
+On Github Actions, code coverage was computed using `covr::codecov()` which
+installs the package in a temporary directory and seems to pull its dependencies
+directly from CRAN. Because CRAN doesn't offer Ubuntu binaries (use Dirk
+Eddelbuettel's [r2u](https://github.com/eddelbuettel/r2u) if you need that)
+packages got compiled from source, hence why the test was failing there.
+
+And on my local machine, even though I was using the latest commit of `nixpkgs`
+to have the most bleeding edge packages for my environment, I had forgotten
+that the R packages on `nixpkgs` always lag behind the CRAN releases.
+
+This is because R packages on `nixpkgs` tend to get updated alongside a new release of R.
+
+```
+path '/nix/store/0l0iw4hz7xvykvhsjg8nqkvyl31js96l-r-stringr-1.5.1' from 'https://b-rodrigues.cachix.org'...
+copying path '/nix/store/cw3lc7b0zydsricl5155jbmldm1vcyvr-r-tibble-3.2.1' from 'https://b-rodrigues.cachix.org'...
+copying path '/nix/store/y32kpp09l34cdgksnr89cyvz6p5s94z8-r-tidyselect-1.2.1' from 'https://b-rodrigues.cachix.org'...
+copying path '/nix/store/sw24yx1jwy9xzq8ai5m2gzaamvyi5r0h-r-rematch2-2.1.2' from 'https://b-rodrigues.cachix.org'...
+copying path '/nix/store/z6b4vii7hvl9mc53ykxrwks1lkfzgmr4-r-dplyr-1.1.4' from 'https://b-rodrigues.cachix.org'...
+
+```
