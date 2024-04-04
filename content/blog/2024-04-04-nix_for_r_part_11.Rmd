@@ -1,6 +1,6 @@
 ---
 date: 2024-04-04
-title: Reproducible data science with Nix, part 10 -- build and cache binaries with Github Actions and Cachix
+title: Reproducible data science with Nix, part 11 -- build and cache binaries with Github Actions and Cachix
 tags: [R, Nix]
 menu:
 main:
@@ -67,8 +67,8 @@ include this change, the unit test was still passing successfully on there.
 
 On Github Actions, code coverage was computed using `covr::codecov()` which
 installs the package in a temporary directory and seems to pull its dependencies
-directly from CRAN. Because CRAN doesn't offer Ubuntu binaries (use Dirk
-Eddelbuettel's [r2u](https://github.com/eddelbuettel/r2u) if you need that)
+directly from CRAN. Because CRAN doesn't offer Linux binaries (use Dirk
+Eddelbuettel's [r2u](https://github.com/eddelbuettel/r2u if you need binaries for Ubuntu)
 packages got compiled from source, hence why the test was failing there, as 
 the very latest version of `{tidyselect}` was being used.
 
@@ -101,7 +101,7 @@ Before the update, this was the error message I was testing against:
  <img src="/img/cant_subset.png" width="80%">
 </div>
 
-and this was on version 1.2.0 `{tidyselect}`:
+and this was on version 1.2.0 of `{tidyselect}`:
 
 <div style="text-align:center;">
  <img src="/img/tidyselect_120.png" width="80%">
@@ -119,16 +119,16 @@ on version 1.2.1 of `{tidyselect}`:
  <img src="/img/cant_select.png" width="80%">
 </div>
 
-so I found the issue, and update my unit testing accordingly, and pushed the update to CRAN.
+so I found the issue, and updated my unit testing accordingly, and pushed the update to CRAN.
 All is well that ends well, but... this made me think. I needed to have an easy way to have
-bleeding edge packages on hand from Nix at all moments, and this is what I did.
+bleeding edge packages on hand from Nix at all moments, and so I started working on it.
 
 ## Github Actions to the rescue
 
-As described my [previous blog post](https://www.brodrigues.co/blog/2024-02-29-nix_for_r_part_10/)
+As described in my [previous blog post](https://www.brodrigues.co/blog/2024-02-29-nix_for_r_part_10/)
 updating the Nix expressions defining the R packages on `nixpkgs` involves running an R script that
 generates a Nix expression which then builds the R packages when needed. So what I did
-was create a Github Actions that would run this R script every 6 hours, and push the changes to 
+was create a Github actions that would run this R script every 6 hours, and push the changes to 
 a branch of my `nixpkgs` fork. This way, I would always have the possibility to use this branch 
 if I needed bleeding edge packages. Because this can be of interest to others, [Philipp Baumann](https://github.com/philipp-baumann)
 started a Github organisation hosting this fork of `nixpkgs` that gets updated daily which
@@ -136,7 +136,7 @@ you can find [here](https://github.com/rstats-on-nix). Because this action needs
 times a day, it should be on a schedule, but actions on a schedule can only run from master/main.
 But that’s not what we wanted, so instead, we are using another action, on another repository,
 that pushes a random file to the target repository to get the action going. You can find
-this action [here](https://github.com/b-rodrigues/trigger-r-updates) with complete instructions.
+this repository [here](https://github.com/b-rodrigues/trigger-r-updates) with complete instructions.
 So to summarise:
 
 - An action on schedule runs from b-rodrigues/trigger-r-updates and pushes a file to rstats-on-nix/nixpkgs on the `r-daily-source` branch
@@ -154,23 +154,24 @@ And this is where [Cachix](https://www.cachix.org/) comes into play.
 
 ## Setting up your own binary cache on Cachix
 
-Cachix is an amazing tool that makes it incredibly easy to set up your own cache. Simply build the packages once,
+[Cachix](https://www.cachix.org/) is an amazing tool that makes it incredibly easy to set up your own cache. Simply build the packages once,
 and push the binaries to the cache. As long as these packages don’t get updated, they’ll get pulled from the cache
 instead of getting rebuilt.
 
-So now, here is what I do with my packages: I define a `default.nix` file that defines an environment
+So now, here is what I do with my packages: I define a `default.nix` file that defines a development environment
 that uses my fork of `nixpkgs` as the source for packages. For example, [here](https://github.com/b-rodrigues/rix/blob/master/default.nixt)
-is this file that defines the environment for my `{rix}` package. As you can see on line 2, the `rstats-on-nix`
+is this file that defines the environment for my `{rix}` package. I can use this environment to work on my package,
+and make sure that anyone else that wants to contribute, contributes using the same environment. As you can see on line 2, the `rstats-on-nix`
 bleeding edge fork gets used:
 
 ```
  pkgs = import (fetchTarball "https://github.com/rstats-on-nix/nixpkgs/archive/refs/heads/r-daily.tar.gz") {};
 ```
 
-then, I simply define my environment. 
-
-Then, still on `{rix}`’s repository, I defined a new action that builds this environment periodically, but
+Then, still on `{rix}`’s repository, I define a new action that builds this environment periodically, but
 using the binary cache I set up with Cachix. You can find this action [here](https://github.com/b-rodrigues/rix/blob/master/.github/workflows/cachix-dev-env.yml).
+So the `r-daily` branch of our `nixpkgs` fork gets updated every 6 hour and this environment gets updated every 12 hours, 30
+minutes past the hour.
 
 Now, every time I want to work on my package, I simply use `nix-build` on my computer to update the development
 environment. This is what I see:
@@ -184,8 +185,8 @@ copying path '/nix/store/z6b4vii7hvl9mc53ykxrwks1lkfzgmr4-r-dplyr-1.1.4' from 'h
 ```
 
 as you can see, packages get pulled from my cache. Packages that are already available from the usual, public, `cache.nixos.org` don’t
-get rebuilt nor cached in mine; they simply continue getting pulled. This makes using the development environment very easy, and
-guarantees I’m always mirroring the state of packages released on CRAN. The other interesting thing, is that I can use that
+get rebuilt nor cached in mine; they simply continue getting pulled directly from there. This makes using the development environment very easy, and
+guarantees I’m always mirroring the state of packages released on CRAN. The other interesting thing is that I can use that
 cache with other actions. For example, [here](https://github.com/b-rodrigues/rix/blob/master/.github/workflows/tests-r-via-nix.yaml)
 is the action that runs the unit tests included in the package in an environment that has Nix installed on it (some unit tests need Nix
 to be available to run).
@@ -197,6 +198,8 @@ Cachix has a free plan of up to 5Gb which is more than enough to set up several 
 easy to set up, and it works on your computer and on Github Actions, as shown. If you want to use this development environment to contribute to `{rix}`, check out
 the instructions on [Contributing.md](https://github.com/b-rodrigues/rix/blob/master/CONTRIBUTING.md#development-environment) file.
 
+You can use the same approach to always have development environments ready for your different projects, and I will likely add
+the possibility to use this fork of `nixpkgs` with my `{rix}` package.
 
 *Thanks to [Philipp Baumann](https://github.com/philipp-baumann) for nudging me into the direction of using Cachix and showing the way!*
 
