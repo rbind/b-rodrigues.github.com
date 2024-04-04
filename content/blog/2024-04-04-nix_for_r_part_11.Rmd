@@ -189,10 +189,24 @@ get rebuilt nor cached in mine; they simply continue getting pulled directly fro
 guarantees I’m always mirroring the state of packages released on CRAN. The other interesting thing is that I can use that
 cache with other actions. For example, [here](https://github.com/b-rodrigues/rix/blob/master/.github/workflows/tests-r-via-nix.yaml)
 is the action that runs the unit tests included in the package in an environment that has Nix installed on it (some unit tests need Nix
-to be available to run).
+to be available to run). On line 25 you can see that we install Nix and set our fork as the 
+repository to use:
+
+```
+nix_path: nixpkgs=https://github.com/rstats-on-nix/nixpkgs/archive/refs/heads/r-daily.tar.gz
+```
+
+and just below, we set up the cache:
+
+```
+- uses: cachix/cachix-action@v14
+  with:
+    name: b-rodrigues # this is the name of my cache
+```
 
 By using my cache, I make sure that the test runs with the freshest possible packages, and don’t run the risk of having a test
-succeed on an outdated environment. 
+succeed on an outdated environment. And you might have noticed that I am not authenticating to Cachix:
+to simply pull binaries, to authentication is needed!
 
 Cachix has a free plan of up to 5Gb which is more than enough to set up several development environments like this, and is really, really,
 easy to set up, and it works on your computer and on Github Actions, as shown. If you want to use this development environment to contribute to `{rix}`, check out
