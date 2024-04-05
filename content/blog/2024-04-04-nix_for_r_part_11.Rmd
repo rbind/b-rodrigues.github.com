@@ -115,7 +115,7 @@ and this was on version 1.2.0 of `{tidyselect}`:
 but after the update, this was the error message:
 
 <div style="text-align:center;">
- <img src="/img/cant_subset.png" width="80%">
+ <img src="/img/cant_select.png" width="80%">
 </div>
 
 on version 1.2.1 of `{tidyselect}`:
