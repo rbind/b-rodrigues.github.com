@@ -174,7 +174,7 @@ pulled from the cache instead of getting rebuilt.
 So now, here is what I do with my packages: I define a `default.nix` file that
 defines a development environment that uses my fork of `nixpkgs` as the source
 for packages. For example,
-[here](https://github.com/b-rodrigues/rix/blob/master/default.nixt) is this file
+[here](https://github.com/b-rodrigues/rix/blob/master/default.nix) is this file
 that defines the environment for my `{rix}` package. I can use this environment
 to work on my package, and make sure that anyone else that wants to contribute,
 contributes using the same environment. As you can see on line 2, the
