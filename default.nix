@@ -6,6 +6,7 @@ let
     inherit (pkgs) 
       R
       glibcLocales
+      pandoc
       nix;
   };
 

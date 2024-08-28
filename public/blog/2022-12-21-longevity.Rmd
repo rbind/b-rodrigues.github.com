@@ -40,7 +40,9 @@ when Dirk Eddelbuettel suggested this:
 And this is what I did. I wrote a lot of code to achieve this graph here:
 
 <div style="text-align:center;">
- <img src="https://camo.githubusercontent.com/5a87a4afdbac4947b852149496627c317b2bedcece0e4be66a3d60a76026f90d/68747470733a2f2f692e696d6775722e636f6d2f4f414947546a452e706e67" width="70%">
+<a href = "https://github.com/b-rodrigues/code_longevity">
+ <img src="/img/r_longevity.png" width="70%">
+</a>
 </div>
 
 This graph shows the following: for each version of R, starting with R version 0.6.0 (released in

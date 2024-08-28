@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<style type=text/css>body{font-family:monospace;}</style>
+	<title>Reproducible data science with Nix, part 11 -- build and cache binaries with Github Actions and Cachix</title>
+	
+	
+	<link rel="stylesheet" href="/css/style.css">
+	
+	
+</head>
+<body>
+	<header>
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+<pre>
+<a class="nav-link" href="/index.html">Econometrics and Free Software</a> by <a class="nav-link" href="/about/me">Bruno Rodrigues</a>.
+<a href="https://www.brodrigues.co/blog/index.xml">RSS feed for blog post updates</a>.
+Follow me on <a rel="me" href="https://fosstodon.org/@brodriguesco">Mastodon</a>, <a href="https://twitter.com/brodriguesco" rel="nofollow">twitter</a>, or check out my <a href="https://github.com/b-rodrigues">Github</a>.
+Check out my package that adds logging to R functions, <a href="https://b-rodrigues.github.io/chronicler/">{chronicler}</a>.
+Or read my free ebooks, <a href="https://www.brodrigues.co/about/books/">to learn some R and build reproducible analytical pipelines.</a>.
+You can also watch my <a href="https://www.youtube.com/user/cbrunos" rel="nofollow">youtube</a> channel or find the slides to the talks I've given <a href="https://www.brodrigues.co/about/talks/">here</a>.
+<a href="https://www.buymeacoffee.com/brodriguesco" rel="nofollow">Buy me a coffee</a>, my kids don't let me sleep.
+</pre>
+</header>
+
+	
+	<main>
+		<article>
+			<h1>Reproducible data science with Nix, part 11 -- build and cache binaries with Github Actions and Cachix</h1>
+			<b><time>2024/04/04</time></b>
+		       
+		           <a href="/tags/r">R</a>
+        	       
+		           <a href="/tags/nix">Nix</a>
+        	       
+
+			<div>
+				<div style="text-align:center;">
+<p><img src="/img/own_cache.jpg" width="60%"></p>
+</div>
+<div id="intro" class="section level2">
+<h2>Intro</h2>
+<p>I have this package on CRAN called <code>{chronicler}</code> and last month I got an email
+from CRAN telling me that building the package was failing, and I had two weeks
+to fix it.</p>
+<p>I immediately thought that some dependency that my package depends on got
+updated, and somehow broke something. But when I checked the results of the
+build, I was surprised, to say the least:</p>
+<div style="text-align:center;">
+<p><img src="/img/chronicler_check_results.png" width="80%"></p>
+</div>
+<p>How come my package was only failing on Fedora? Now that was really weird. There
+was no way this was right. Also, I couldn’t reproduce this bug on my local
+machine… but I could reproduce it on Github Actions, on Ubuntu (but it was ok
+on CRAN’s Debian which is really close to Ubuntu!), but couldn’t reproduce it
+either on Windows! What was going on? So I started digging, and my first idea
+was to look at the list of packages that got released on CRAN on that day (March
+12th 2024) or just before, and saw something that caught my eye: a new version
+of <code>{tidyselect}</code> had just been released and even though my package doesn’t
+directly depend on it, I knew that this package was likely a dependency of some
+direct dependency of <code>{chronicler}</code>. So I looked into the release notes, and
+there it was:</p>
+<pre><code>* `eval_select()` out-of-bounds errors now use the verb &quot;select&quot; rather than
+  &quot;subset&quot; in the error message for consistency with `dplyr::select()` (#271).</code></pre>
+<p>I knew this was what I was looking for, because the unit test that was failing
+to pass was a test that should error because <code>dplyr::select()</code> was being used on
+a column that didn’t exist. So the success of that test was defined as <em>finding
+the following error message in the log</em>, which contained the word <em>subset</em> but
+now it should be <em>select</em>.</p>
+<p>But why was this failing only on Fedora on CRAN and on Ubuntu on Github Actions
+(but ok on Debian on CRAN)? And why couldn’t I reproduce the bug on my OpenSuse
+Linux computer, even though I was building a bleeding edge development
+environment using Nix?</p>
+<p>And then it hit me like my older brother used to.</p>
+<p>When building packages, CRAN doesn’t seem to use pre-compiled binaries on
+Fedora, so packages get built from source. This means that it takes longer to
+test on Fedora, as packages have to be built from source, but it also means that
+only the very latest releases of packages get used. On other platforms,
+pre-compiled binaries get used if available, and because <code>{tidyselect}</code> had just
+come out that very day, older binaries of <code>{tidyselect}</code> were being used on
+these platforms, but not on Fedora. And because these older binaries didn’t
+include this change, the unit test was still passing successfully on there.</p>
+<p>On Github Actions, code coverage was computed using <code>covr::codecov()</code> which
+installs the package in a temporary directory and seems to pull its dependencies
+directly from CRAN. Because CRAN doesn’t offer Linux binaries packages got
+compiled from source, hence why the test was failing there, as the very latest
+version of <code>{tidyselect}</code> was being used (btw, use Dirk Eddelbuettel’s
+<a href="https://github.com/eddelbuettel/r2u">r2u</a> if you binaries for Ubuntu).</p>
+<p>And on my local machine, even though I was using the latest commit of <code>nixpkgs</code>
+to have the most bleeding edge packages for my environment, I had forgotten that
+the R packages on <code>nixpkgs</code> always lag behind the CRAN releases.</p>
+<p>This is because R packages on <code>nixpkgs</code> tend to get updated alongside a new
+release of R, and the reason is to ensure a certain level of quality. You see,
+the vast majority of CRAN (and Bioconductor) packages are made available through
+<code>nixpkgs</code> in a fully automated way. But some packages do require some manual
+intervention to work on Nix. And we only know this if we try to build these
+packages, but building packages requires quite a lot of resources. I go into
+more detail
+<a href="https://www.brodrigues.co/blog/2024-02-29-nix_for_r_part_10/">here</a>, but in
+summary we can’t build CRAN packages every single day to see if everything works
+well, so we only rebuild the whole tree whenever there’s a new release of R.
+Packages get built on a CI infrastructure called <em>Hydra</em>, and then get cached on
+<code>cache.nixos.org</code> so whenever someone wants to install a package, a pre-built
+binary gets pulled from the cache instead of getting installed from source. For
+packages that don’t need compiling this is not that big of a time save, but for
+packages that do need to get compiled it is huge. Depending on which packages
+you want to install, if you had to build everything from source, it could
+potentially take hours, but if you can install pre-built binaries it’s just a
+matter of how quick your internet connection is.</p>
+<p>Anyways, I went back to my fork of <code>nixpkgs</code> and updated the expression defining
+the CRAN packages myself and installed the latest versions of packages from my
+fork.</p>
+<p>Before the update, this was the error message I was testing against:</p>
+<div style="text-align:center;">
+<p><img src="/img/cant_subset.png" width="80%"></p>
+</div>
+<p>and this was on version 1.2.0 of <code>{tidyselect}</code>:</p>
+<div style="text-align:center;">
+<p><img src="/img/tidyselect_120.png" width="50%"></p>
+</div>
+<p>but after the update, this was the error message:</p>
+<div style="text-align:center;">
+<p><img src="/img/cant_select.png" width="80%"></p>
+</div>
+<p>on version 1.2.1 of <code>{tidyselect}</code>:</p>
+<div style="text-align:center;">
+<p><img src="/img/tidyselect_121.png" width="50%"></p>
+</div>
+<p>so I found the issue, and updated my unit testing accordingly, and pushed the
+update to CRAN. All is well that ends well, but… this made me think. I needed
+to have an easy way to have bleeding edge packages on hand from Nix at all
+moments, and so I started working on it.</p>
+</div>
+<div id="github-actions-to-the-rescue" class="section level2">
+<h2>Github Actions to the rescue</h2>
+<p>As described in my <a href="https://www.brodrigues.co/blog/2024-02-29-nix_for_r_part_10/">previous blog
+post</a> updating the
+Nix expressions defining the R packages on <code>nixpkgs</code> involves running an R
+script that generates a Nix expression which then builds the R packages when
+needed. So what I did was create a Github actions that would run this R script
+every 6 hours, and push the changes to a branch of my <code>nixpkgs</code> fork. This way,
+I would always have the possibility to use this branch if I needed bleeding edge
+packages. Because this can be of interest to others, <a href="https://github.com/philipp-baumann">Philipp
+Baumann</a> started a Github organisation
+hosting this fork of <code>nixpkgs</code> that gets updated daily which you can find
+<a href="https://github.com/rstats-on-nix">here</a>. Because this action needs to run
+several times a day, it should be on a schedule, but actions on a schedule can
+only run from master/main. But that’s not what we wanted, so instead, we are
+using another action, on another repository, that pushes a random file to the
+target repository to get the action going. You can find this repository
+<a href="https://github.com/b-rodrigues/trigger-r-updates">here</a> with complete
+instructions. So to summarise:</p>
+<ul>
+<li>An action on schedule runs from b-rodrigues/trigger-r-updates and pushes a file to rstats-on-nix/nixpkgs on the <code>r-daily-source</code> branch</li>
+<li>This triggers an action that updates all of <code>nixpkgs</code>, including R packages, and pushes all the updates to the <code>r-daily</code> branch (you can find it <a href="https://github.com/rstats-on-nix/nixpkgs/blob/r-daily-source/.github/workflows/r-daily.yml">here</a>)</li>
+<li>We can now use the <code>r-daily</code> branch to get bleeding edge R packages on Nix!</li>
+</ul>
+<p>This happens without any form of testing though, so packages could be in a
+broken state (hey, that’s the definition of bleeding edge, after all!), and
+also, if anyone would like to use this fork to build a development environment,
+they’d have to rebuild a lot of packages from source. Again, this is because
+these packages are defined in a fork of <code>nixpkgs</code> and they don’t get built on
+Hydra to populate the public cache that Nix uses by default. So while this fork
+is interesting because it provides bleeding edges packages, using it on a
+day-to-day basis can be quite tedious.</p>
+<p>And this is where <a href="https://www.cachix.org/">Cachix</a> comes into play.</p>
+</div>
+<div id="setting-up-your-own-binary-cache-on-cachix" class="section level2">
+<h2>Setting up your own binary cache on Cachix</h2>
+<p><a href="https://www.cachix.org/">Cachix</a> is an amazing tool that makes it incredibly
+easy to set up your own cache. Simply build the packages once, and push the
+binaries to the cache. As long as these packages don’t get updated, they’ll get
+pulled from the cache instead of getting rebuilt.</p>
+<p>So now, here is what I do with my packages: I define a <code>default.nix</code> file that
+defines a development environment that uses my fork of <code>nixpkgs</code> as the source
+for packages. For example,
+<a href="https://github.com/b-rodrigues/rix/blob/master/default.nix">here</a> is this file
+that defines the environment for my <code>{rix}</code> package. I can use this environment
+to work on my package, and make sure that anyone else that wants to contribute,
+contributes using the same environment. As you can see on line 2, the
+<code>rstats-on-nix</code> bleeding edge fork gets used:</p>
+<pre><code> pkgs = import (fetchTarball &quot;https://github.com/rstats-on-nix/nixpkgs/archive/refs/heads/r-daily.tar.gz&quot;) {};</code></pre>
+<p>Then, still on <code>{rix}</code>’s repository, I define a new action that builds this
+environment periodically, but using the binary cache I set up with Cachix. You
+can find this action
+<a href="https://github.com/b-rodrigues/rix/blob/master/.github/workflows/cachix-dev-env.yml">here</a>.
+So the <code>r-daily</code> branch of our <code>nixpkgs</code> fork gets updated every 6 hour and this
+environment gets updated every 12 hours, 30 minutes past the hour.</p>
+<p>Now, every time I want to work on my package, I simply use <code>nix-build</code> on my
+computer to update the development environment. This is what I see:</p>
+<pre><code>copying path &#39;/nix/store/0l0iw4hz7xvykvhsjg8nqkvyl31js96l-r-stringr-1.5.1&#39; from &#39;https://b-rodrigues.cachix.org&#39;...
+copying path &#39;/nix/store/cw3lc7b0zydsricl5155jbmldm1vcyvr-r-tibble-3.2.1&#39; from &#39;https://b-rodrigues.cachix.org&#39;...
+copying path &#39;/nix/store/y32kpp09l34cdgksnr89cyvz6p5s94z8-r-tidyselect-1.2.1&#39; from &#39;https://b-rodrigues.cachix.org&#39;...
+copying path &#39;/nix/store/sw24yx1jwy9xzq8ai5m2gzaamvyi5r0h-r-rematch2-2.1.2&#39; from &#39;https://b-rodrigues.cachix.org&#39;...
+copying path &#39;/nix/store/z6b4vii7hvl9mc53ykxrwks1lkfzgmr4-r-dplyr-1.1.4&#39; from &#39;https://b-rodrigues.cachix.org&#39;...</code></pre>
+<p>as you can see, packages get pulled from my cache. Packages that are already
+available from the usual, public, <code>cache.nixos.org</code> don’t get rebuilt nor cached
+in mine; they simply continue getting pulled directly from there. This makes
+using the development environment very easy, and guarantees I’m always mirroring
+the state of packages released on CRAN. The other interesting thing is that I
+can use that cache with other actions. For example,
+<a href="https://github.com/b-rodrigues/rix/blob/master/.github/workflows/tests-r-via-nix.yaml">here</a>
+is the action that runs the unit tests included in the package in an environment
+that has Nix installed on it (some unit tests need Nix to be available to run).
+On line 25 you can see that we install Nix and set our fork as the repository to
+use:</p>
+<pre><code>nix_path: nixpkgs=https://github.com/rstats-on-nix/nixpkgs/archive/refs/heads/r-daily.tar.gz</code></pre>
+<p>and just below, we set up the cache:</p>
+<pre><code>- uses: cachix/cachix-action@v14
+  with:
+    name: b-rodrigues # this is the name of my cache</code></pre>
+<p>By using my cache, I make sure that the test runs with the freshest possible
+packages, and don’t run the risk of having a test succeed on an outdated
+environment. And you might have noticed that I am not authenticating to Cachix:
+to simply pull binaries, to authentication is needed!</p>
+<p>Cachix has a free plan of up to 5Gb which is more than enough to set up several
+development environments like this, and is really, really, easy to set up, and
+it works on your computer and on Github Actions, as shown. If you want to use
+this development environment to contribute to <code>{rix}</code>, check out the
+instructions on
+<a href="https://github.com/b-rodrigues/rix/blob/master/CONTRIBUTING.md#development-environment">Contributing.md</a>
+file.</p>
+<p>You can use the same approach to always have development environments ready for
+your different projects, and I will likely add the possibility to use this fork
+of <code>nixpkgs</code> with my <code>{rix}</code> package.</p>
+<p><em>Thanks to <a href="https://github.com/philipp-baumann">Philipp Baumann</a> for nudging me
+into the direction of using Cachix and showing the way!</em></p>
+<p>
+Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://fosstodon.org/@brodriguesco">Mastodon</a> or <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my <a href="https://www.brodrigues.co/about/books/">ebooks</a>.
+You can also watch my videos on <a href="https://www.youtube.com/c/BrunoRodrigues1988/">youtube</a>.
+So much content for you to consoom!
+</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p>
+<link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a>
+</p>
+</div>
+
+			</div>
+		</article>
+	</main>
+<aside>
+	<div>
+		<div>
+			<h3>LATEST POSTS</h3>
+		</div>
+		<div>
+			<ul>
+				
+				<li><a href="/blog/2024-04-04-nix_for_r_part_11/">Reproducible data science with Nix, part 11 -- build and cache binaries with Github Actions and Cachix</a></li>
+				
+				<li><a href="/blog/2024-02-29-nix_for_r_part_10/">Reproducible data science with Nix, part 10 -- contributing to nixpkgs</a></li>
+				
+				<li><a href="/blog/2024-02-02-nix_for_r_part_9/">Reproducible data science with Nix, part 9 -- rix is looking for testers!</a></li>
+				
+				<li><a href="/blog/2023-12-19-nix_for_r_part_8/">Reproducible data science with Nix, part 8 -- nixpkgs, a tale of the magic of free and open source software and a call for charity</a></li>
+				
+				<li><a href="/blog/2023-10-20-nix_for_r_part7/">Reproducible data science with Nix, part 7 -- Building a Quarto book using Nix on Github Actions</a></li>
+				
+			</ul>
+		</div>
+	</div>
+</aside>
+
+
+	<footer>
+  <div class="row">
+    <div class="col-lg-12">
+      <p>2024, content by Bruno Rodrigues, unless otherwise stated, every content of this blog is licensed under the <a href="http://www.wtfpl.net/txt/copying/" rel="nofollow">WTFPL</a>.</p>
+      <p>The theme this blog uses is a slight variation of the <a href="https://github.com/colorchestra/smol" rel="nofollow">Smol</a> theme.</p>
+      <p><a class="nav-link" href="/index.html">Back to main page.</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

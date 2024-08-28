@@ -6,10 +6,581 @@
     <description>Recent content in R on Econometrics and Free Software</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Fri, 02 Feb 2024 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 04 Apr 2024 00:00:00 +0000</lastBuildDate>
     
         <atom:link href="https://www.brodrigues.co/tags/r/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Reproducible data science with Nix, part 11 -- build and cache binaries with Github Actions and Cachix</title>
+      <link>https://www.brodrigues.co/blog/2024-04-04-nix_for_r_part_11/</link>
+      <pubDate>Thu, 04 Apr 2024 00:00:00 +0000</pubDate>
+      
+      <guid>https://www.brodrigues.co/blog/2024-04-04-nix_for_r_part_11/</guid>
+      <description>&lt;div style=&#34;text-align:center;&#34;&gt;
+&lt;p&gt;&lt;img src=&#34;https://www.brodrigues.co/img/own_cache.jpg&#34; width=&#34;60%&#34;&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;intro&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Intro&lt;/h2&gt;
+&lt;p&gt;I have this package on CRAN called &lt;code&gt;{chronicler}&lt;/code&gt; and last month I got an email
+from CRAN telling me that building the package was failing, and I had two weeks
+to fix it.&lt;/p&gt;
+&lt;p&gt;I immediately thought that some dependency that my package depends on got
+updated, and somehow broke something. But when I checked the results of the
+build, I was surprised, to say the least:&lt;/p&gt;
+&lt;div style=&#34;text-align:center;&#34;&gt;
+&lt;p&gt;&lt;img src=&#34;https://www.brodrigues.co/img/chronicler_check_results.png&#34; width=&#34;80%&#34;&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;p&gt;How come my package was only failing on Fedora? Now that was really weird. There
+was no way this was right. Also, I couldn’t reproduce this bug on my local
+machine… but I could reproduce it on Github Actions, on Ubuntu (but it was ok
+on CRAN’s Debian which is really close to Ubuntu!), but couldn’t reproduce it
+either on Windows! What was going on? So I started digging, and my first idea
+was to look at the list of packages that got released on CRAN on that day (March
+12th 2024) or just before, and saw something that caught my eye: a new version
+of &lt;code&gt;{tidyselect}&lt;/code&gt; had just been released and even though my package doesn’t
+directly depend on it, I knew that this package was likely a dependency of some
+direct dependency of &lt;code&gt;{chronicler}&lt;/code&gt;. So I looked into the release notes, and
+there it was:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;* `eval_select()` out-of-bounds errors now use the verb &amp;quot;select&amp;quot; rather than
+  &amp;quot;subset&amp;quot; in the error message for consistency with `dplyr::select()` (#271).&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;I knew this was what I was looking for, because the unit test that was failing
+to pass was a test that should error because &lt;code&gt;dplyr::select()&lt;/code&gt; was being used on
+a column that didn’t exist. So the success of that test was defined as &lt;em&gt;finding
+the following error message in the log&lt;/em&gt;, which contained the word &lt;em&gt;subset&lt;/em&gt; but
+now it should be &lt;em&gt;select&lt;/em&gt;.&lt;/p&gt;
+&lt;p&gt;But why was this failing only on Fedora on CRAN and on Ubuntu on Github Actions
+(but ok on Debian on CRAN)? And why couldn’t I reproduce the bug on my OpenSuse
+Linux computer, even though I was building a bleeding edge development
+environment using Nix?&lt;/p&gt;
+&lt;p&gt;And then it hit me like my older brother used to.&lt;/p&gt;
+&lt;p&gt;When building packages, CRAN doesn’t seem to use pre-compiled binaries on
+Fedora, so packages get built from source. This means that it takes longer to
+test on Fedora, as packages have to be built from source, but it also means that
+only the very latest releases of packages get used. On other platforms,
+pre-compiled binaries get used if available, and because &lt;code&gt;{tidyselect}&lt;/code&gt; had just
+come out that very day, older binaries of &lt;code&gt;{tidyselect}&lt;/code&gt; were being used on
+these platforms, but not on Fedora. And because these older binaries didn’t
+include this change, the unit test was still passing successfully on there.&lt;/p&gt;
+&lt;p&gt;On Github Actions, code coverage was computed using &lt;code&gt;covr::codecov()&lt;/code&gt; which
+installs the package in a temporary directory and seems to pull its dependencies
+directly from CRAN. Because CRAN doesn’t offer Linux binaries packages got
+compiled from source, hence why the test was failing there, as the very latest
+version of &lt;code&gt;{tidyselect}&lt;/code&gt; was being used (btw, use Dirk Eddelbuettel’s
+&lt;a href=&#34;https://github.com/eddelbuettel/r2u&#34;&gt;r2u&lt;/a&gt; if you binaries for Ubuntu).&lt;/p&gt;
+&lt;p&gt;And on my local machine, even though I was using the latest commit of &lt;code&gt;nixpkgs&lt;/code&gt;
+to have the most bleeding edge packages for my environment, I had forgotten that
+the R packages on &lt;code&gt;nixpkgs&lt;/code&gt; always lag behind the CRAN releases.&lt;/p&gt;
+&lt;p&gt;This is because R packages on &lt;code&gt;nixpkgs&lt;/code&gt; tend to get updated alongside a new
+release of R, and the reason is to ensure a certain level of quality. You see,
+the vast majority of CRAN (and Bioconductor) packages are made available through
+&lt;code&gt;nixpkgs&lt;/code&gt; in a fully automated way. But some packages do require some manual
+intervention to work on Nix. And we only know this if we try to build these
+packages, but building packages requires quite a lot of resources. I go into
+more detail
+&lt;a href=&#34;https://www.brodrigues.co/blog/2024-02-29-nix_for_r_part_10/&#34;&gt;here&lt;/a&gt;, but in
+summary we can’t build CRAN packages every single day to see if everything works
+well, so we only rebuild the whole tree whenever there’s a new release of R.
+Packages get built on a CI infrastructure called &lt;em&gt;Hydra&lt;/em&gt;, and then get cached on
+&lt;code&gt;cache.nixos.org&lt;/code&gt; so whenever someone wants to install a package, a pre-built
+binary gets pulled from the cache instead of getting installed from source. For
+packages that don’t need compiling this is not that big of a time save, but for
+packages that do need to get compiled it is huge. Depending on which packages
+you want to install, if you had to build everything from source, it could
+potentially take hours, but if you can install pre-built binaries it’s just a
+matter of how quick your internet connection is.&lt;/p&gt;
+&lt;p&gt;Anyways, I went back to my fork of &lt;code&gt;nixpkgs&lt;/code&gt; and updated the expression defining
+the CRAN packages myself and installed the latest versions of packages from my
+fork.&lt;/p&gt;
+&lt;p&gt;Before the update, this was the error message I was testing against:&lt;/p&gt;
+&lt;div style=&#34;text-align:center;&#34;&gt;
+&lt;p&gt;&lt;img src=&#34;https://www.brodrigues.co/img/cant_subset.png&#34; width=&#34;80%&#34;&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;p&gt;and this was on version 1.2.0 of &lt;code&gt;{tidyselect}&lt;/code&gt;:&lt;/p&gt;
+&lt;div style=&#34;text-align:center;&#34;&gt;
+&lt;p&gt;&lt;img src=&#34;https://www.brodrigues.co/img/tidyselect_120.png&#34; width=&#34;50%&#34;&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;p&gt;but after the update, this was the error message:&lt;/p&gt;
+&lt;div style=&#34;text-align:center;&#34;&gt;
+&lt;p&gt;&lt;img src=&#34;https://www.brodrigues.co/img/cant_select.png&#34; width=&#34;80%&#34;&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;p&gt;on version 1.2.1 of &lt;code&gt;{tidyselect}&lt;/code&gt;:&lt;/p&gt;
+&lt;div style=&#34;text-align:center;&#34;&gt;
+&lt;p&gt;&lt;img src=&#34;https://www.brodrigues.co/img/tidyselect_121.png&#34; width=&#34;50%&#34;&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;p&gt;so I found the issue, and updated my unit testing accordingly, and pushed the
+update to CRAN. All is well that ends well, but… this made me think. I needed
+to have an easy way to have bleeding edge packages on hand from Nix at all
+moments, and so I started working on it.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;github-actions-to-the-rescue&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Github Actions to the rescue&lt;/h2&gt;
+&lt;p&gt;As described in my &lt;a href=&#34;https://www.brodrigues.co/blog/2024-02-29-nix_for_r_part_10/&#34;&gt;previous blog
+post&lt;/a&gt; updating the
+Nix expressions defining the R packages on &lt;code&gt;nixpkgs&lt;/code&gt; involves running an R
+script that generates a Nix expression which then builds the R packages when
+needed. So what I did was create a Github actions that would run this R script
+every 6 hours, and push the changes to a branch of my &lt;code&gt;nixpkgs&lt;/code&gt; fork. This way,
+I would always have the possibility to use this branch if I needed bleeding edge
+packages. Because this can be of interest to others, &lt;a href=&#34;https://github.com/philipp-baumann&#34;&gt;Philipp
+Baumann&lt;/a&gt; started a Github organisation
+hosting this fork of &lt;code&gt;nixpkgs&lt;/code&gt; that gets updated daily which you can find
+&lt;a href=&#34;https://github.com/rstats-on-nix&#34;&gt;here&lt;/a&gt;. Because this action needs to run
+several times a day, it should be on a schedule, but actions on a schedule can
+only run from master/main. But that’s not what we wanted, so instead, we are
+using another action, on another repository, that pushes a random file to the
+target repository to get the action going. You can find this repository
+&lt;a href=&#34;https://github.com/b-rodrigues/trigger-r-updates&#34;&gt;here&lt;/a&gt; with complete
+instructions. So to summarise:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;An action on schedule runs from b-rodrigues/trigger-r-updates and pushes a file to rstats-on-nix/nixpkgs on the &lt;code&gt;r-daily-source&lt;/code&gt; branch&lt;/li&gt;
+&lt;li&gt;This triggers an action that updates all of &lt;code&gt;nixpkgs&lt;/code&gt;, including R packages, and pushes all the updates to the &lt;code&gt;r-daily&lt;/code&gt; branch (you can find it &lt;a href=&#34;https://github.com/rstats-on-nix/nixpkgs/blob/r-daily-source/.github/workflows/r-daily.yml&#34;&gt;here&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;We can now use the &lt;code&gt;r-daily&lt;/code&gt; branch to get bleeding edge R packages on Nix!&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;This happens without any form of testing though, so packages could be in a
+broken state (hey, that’s the definition of bleeding edge, after all!), and
+also, if anyone would like to use this fork to build a development environment,
+they’d have to rebuild a lot of packages from source. Again, this is because
+these packages are defined in a fork of &lt;code&gt;nixpkgs&lt;/code&gt; and they don’t get built on
+Hydra to populate the public cache that Nix uses by default. So while this fork
+is interesting because it provides bleeding edges packages, using it on a
+day-to-day basis can be quite tedious.&lt;/p&gt;
+&lt;p&gt;And this is where &lt;a href=&#34;https://www.cachix.org/&#34;&gt;Cachix&lt;/a&gt; comes into play.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;setting-up-your-own-binary-cache-on-cachix&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Setting up your own binary cache on Cachix&lt;/h2&gt;
+&lt;p&gt;&lt;a href=&#34;https://www.cachix.org/&#34;&gt;Cachix&lt;/a&gt; is an amazing tool that makes it incredibly
+easy to set up your own cache. Simply build the packages once, and push the
+binaries to the cache. As long as these packages don’t get updated, they’ll get
+pulled from the cache instead of getting rebuilt.&lt;/p&gt;
+&lt;p&gt;So now, here is what I do with my packages: I define a &lt;code&gt;default.nix&lt;/code&gt; file that
+defines a development environment that uses my fork of &lt;code&gt;nixpkgs&lt;/code&gt; as the source
+for packages. For example,
+&lt;a href=&#34;https://github.com/b-rodrigues/rix/blob/master/default.nix&#34;&gt;here&lt;/a&gt; is this file
+that defines the environment for my &lt;code&gt;{rix}&lt;/code&gt; package. I can use this environment
+to work on my package, and make sure that anyone else that wants to contribute,
+contributes using the same environment. As you can see on line 2, the
+&lt;code&gt;rstats-on-nix&lt;/code&gt; bleeding edge fork gets used:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt; pkgs = import (fetchTarball &amp;quot;https://github.com/rstats-on-nix/nixpkgs/archive/refs/heads/r-daily.tar.gz&amp;quot;) {};&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Then, still on &lt;code&gt;{rix}&lt;/code&gt;’s repository, I define a new action that builds this
+environment periodically, but using the binary cache I set up with Cachix. You
+can find this action
+&lt;a href=&#34;https://github.com/b-rodrigues/rix/blob/master/.github/workflows/cachix-dev-env.yml&#34;&gt;here&lt;/a&gt;.
+So the &lt;code&gt;r-daily&lt;/code&gt; branch of our &lt;code&gt;nixpkgs&lt;/code&gt; fork gets updated every 6 hour and this
+environment gets updated every 12 hours, 30 minutes past the hour.&lt;/p&gt;
+&lt;p&gt;Now, every time I want to work on my package, I simply use &lt;code&gt;nix-build&lt;/code&gt; on my
+computer to update the development environment. This is what I see:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;copying path &amp;#39;/nix/store/0l0iw4hz7xvykvhsjg8nqkvyl31js96l-r-stringr-1.5.1&amp;#39; from &amp;#39;https://b-rodrigues.cachix.org&amp;#39;...
+copying path &amp;#39;/nix/store/cw3lc7b0zydsricl5155jbmldm1vcyvr-r-tibble-3.2.1&amp;#39; from &amp;#39;https://b-rodrigues.cachix.org&amp;#39;...
+copying path &amp;#39;/nix/store/y32kpp09l34cdgksnr89cyvz6p5s94z8-r-tidyselect-1.2.1&amp;#39; from &amp;#39;https://b-rodrigues.cachix.org&amp;#39;...
+copying path &amp;#39;/nix/store/sw24yx1jwy9xzq8ai5m2gzaamvyi5r0h-r-rematch2-2.1.2&amp;#39; from &amp;#39;https://b-rodrigues.cachix.org&amp;#39;...
+copying path &amp;#39;/nix/store/z6b4vii7hvl9mc53ykxrwks1lkfzgmr4-r-dplyr-1.1.4&amp;#39; from &amp;#39;https://b-rodrigues.cachix.org&amp;#39;...&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;as you can see, packages get pulled from my cache. Packages that are already
+available from the usual, public, &lt;code&gt;cache.nixos.org&lt;/code&gt; don’t get rebuilt nor cached
+in mine; they simply continue getting pulled directly from there. This makes
+using the development environment very easy, and guarantees I’m always mirroring
+the state of packages released on CRAN. The other interesting thing is that I
+can use that cache with other actions. For example,
+&lt;a href=&#34;https://github.com/b-rodrigues/rix/blob/master/.github/workflows/tests-r-via-nix.yaml&#34;&gt;here&lt;/a&gt;
+is the action that runs the unit tests included in the package in an environment
+that has Nix installed on it (some unit tests need Nix to be available to run).
+On line 25 you can see that we install Nix and set our fork as the repository to
+use:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;nix_path: nixpkgs=https://github.com/rstats-on-nix/nixpkgs/archive/refs/heads/r-daily.tar.gz&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;and just below, we set up the cache:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;- uses: cachix/cachix-action@v14
+  with:
+    name: b-rodrigues # this is the name of my cache&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;By using my cache, I make sure that the test runs with the freshest possible
+packages, and don’t run the risk of having a test succeed on an outdated
+environment. And you might have noticed that I am not authenticating to Cachix:
+to simply pull binaries, to authentication is needed!&lt;/p&gt;
+&lt;p&gt;Cachix has a free plan of up to 5Gb which is more than enough to set up several
+development environments like this, and is really, really, easy to set up, and
+it works on your computer and on Github Actions, as shown. If you want to use
+this development environment to contribute to &lt;code&gt;{rix}&lt;/code&gt;, check out the
+instructions on
+&lt;a href=&#34;https://github.com/b-rodrigues/rix/blob/master/CONTRIBUTING.md#development-environment&#34;&gt;Contributing.md&lt;/a&gt;
+file.&lt;/p&gt;
+&lt;p&gt;You can use the same approach to always have development environments ready for
+your different projects, and I will likely add the possibility to use this fork
+of &lt;code&gt;nixpkgs&lt;/code&gt; with my &lt;code&gt;{rix}&lt;/code&gt; package.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;Thanks to &lt;a href=&#34;https://github.com/philipp-baumann&#34;&gt;Philipp Baumann&lt;/a&gt; for nudging me
+into the direction of using Cachix and showing the way!&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;
+Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on &lt;a href=&#34;https://fosstodon.org/@brodriguesco&#34;&gt;Mastodon&lt;/a&gt; or &lt;a href=&#34;https://www.twitter.com/brodriguesco&#34;&gt;twitter&lt;/a&gt; for blog post updates and
+&lt;a href=&#34;https://www.buymeacoffee.com/brodriguesco&#34;&gt;buy me an espresso&lt;/a&gt; or &lt;a href=&#34;https://www.paypal.me/brodriguesco&#34;&gt;paypal.me&lt;/a&gt;, or buy my &lt;a href=&#34;https://www.brodrigues.co/about/books/&#34;&gt;ebooks&lt;/a&gt;.
+You can also watch my videos on &lt;a href=&#34;https://www.youtube.com/c/BrunoRodrigues1988/&#34;&gt;youtube&lt;/a&gt;.
+So much content for you to consoom!
+&lt;/p&gt;
+&lt;style&gt;.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:&#39;Cookie&#39;, cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}&lt;/style&gt;
+&lt;p&gt;
+&lt;link href=&#34;https://fonts.googleapis.com/css?family=Cookie&#34; rel=&#34;stylesheet&#34;&gt;&lt;a class=&#34;bmc-button&#34; target=&#34;_blank&#34; href=&#34;https://www.buymeacoffee.com/brodriguesco&#34;&gt;&lt;img src=&#34;https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg&#34; alt=&#34;Buy me an Espresso&#34;&gt;&lt;span style=&#34;margin-left:5px&#34;&gt;Buy me an Espresso&lt;/span&gt;&lt;/a&gt;
+&lt;/p&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Reproducible data science with Nix, part 10 -- contributing to nixpkgs</title>
+      <link>https://www.brodrigues.co/blog/2024-02-29-nix_for_r_part_10/</link>
+      <pubDate>Thu, 29 Feb 2024 00:00:00 +0000</pubDate>
+      
+      <guid>https://www.brodrigues.co/blog/2024-02-29-nix_for_r_part_10/</guid>
+      <description>&lt;div style=&#34;text-align:center;&#34;&gt;
+&lt;p&gt;&lt;img src=&#34;https://www.brodrigues.co/img/nix_parents.jpg&#34; width=&#34;60%&#34;&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;p&gt;I’ve very recently started contributing to the &lt;code&gt;nixpkgs&lt;/code&gt; repository of packages,
+which contains all the packages you can install from the Nix package manager. My
+contributions are fairly modest: I help fix R packages that need some tweaking
+to make them successfully build for Nix. Most of these fixes are very simple
+one-liners.&lt;/p&gt;
+&lt;p&gt;Most users of any free and open source tool rarely contribute to the development
+of this tool: I don’t think it is due to lack of skills and/or time or interest,
+but mostly because starting to contribute to a tool requires some knowledge that
+is rarely written down (even more so for an entire ecosystem). These tools and
+ecosystems grow organically, and if you’re not in the right spot at the right
+time or are not lucky enough to have kind people taking time to explain things
+to you, contributing might feel completely overwhelming.&lt;/p&gt;
+&lt;p&gt;Thankfully, I was very lucky to have found the small but very active
+community of R contributors to &lt;code&gt;nixpkgs&lt;/code&gt; on
+&lt;a href=&#34;https://matrix.to/#/#r:nixos.org&#34;&gt;Matrix&lt;/a&gt; which very kindly took the time
+to bring me up to speed!&lt;/p&gt;
+&lt;p&gt;I wanted to share my experiences in this blog post: but this blog post is not
+just going to be about me contributing to &lt;code&gt;nixpkgs&lt;/code&gt; from the perspective of an R
+user (and giving you some pointers on how to start yourself), but also about how
+I built a report (let’s call it like that) to keep track of which R packages got
+fixed. This report is built using R, Nix, Github Actions and lists all the failed
+R package builds from Hydra (more on this later). The report gets updated
+every day automatically at midnight, and is accessible
+&lt;a href=&#34;https://raw.githack.com/b-rodrigues/nixpkgs-r-updates-fails/targets-runs/output/r-updates-fails.html&#34;&gt;here&lt;/a&gt;.
+I also used a very minimalistic approach to build this: no &lt;code&gt;{tidyverse}&lt;/code&gt;
+packages, and no Quarto. Why? Mostly just to keep dependencies at a minimum to
+accelerate CI/CD, but also for fun. And honestly, I must admit that base R is
+more than capable on its own and had forgotten that.&lt;/p&gt;
+&lt;div id=&#34;contributing-to-nixpkgs&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Contributing to nixpkgs&lt;/h2&gt;
+&lt;p&gt;As explained in
+&lt;a href=&#34;https://www.brodrigues.co/blog/2023-12-19-nix_for_r_part_8/&#34;&gt;part 8&lt;/a&gt;, &lt;code&gt;nixpkgs&lt;/code&gt; is
+“nothing but” a huge GitHub repository containing thousands of Nix expressions.
+These expressions are then used to actually build the software that then gets
+installed by Nix. For example, &lt;a href=&#34;https://github.com/NixOS/nixpkgs/blob/nixpkgs-unstable/pkgs/development/libraries/quarto/default.nix&#34;&gt;this is the expression for
+Quarto&lt;/a&gt;.
+As you can see, it starts by downloading the pre-compiled binary, and then
+applying “patches”. Essentially making sure that Quarto installed by Nix is able
+to find the other pieces installed by Nix that Quarto needs (Deno, Pandoc, Typst
+and so on). It then continues by installing Quarto itself (because we’re
+downloading a pre-compiled binary, &lt;em&gt;installation&lt;/em&gt; consists in moving files in
+the right spot), finally some tests are executed (&lt;code&gt;quarto check&lt;/code&gt;) and then some
+metadata is defined. Not every package is defined like this, with a single Nix
+expression, though. For example, individual R packages are not defined like
+this. Instead, every package from CRAN and Bioconductor gets built using only a
+handful of files that can be found
+&lt;a href=&#34;https://github.com/NixOS/nixpkgs/tree/nixpkgs-unstable/pkgs/development/r-modules&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;(By the way, you can look for packages and find their associated Nix expressions
+on the &lt;a href=&#34;https://search.nixos.org/packages?channel=unstable&amp;amp;from=0&amp;amp;size=50&amp;amp;sort=relevance&amp;amp;type=packages&amp;amp;query=quarto&#34;&gt;NixOS package search&lt;/a&gt;).&lt;/p&gt;
+&lt;p&gt;The way this works, is that periodically the
+&lt;a href=&#34;https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/r-modules/generic-builder.nix&#34;&gt;&lt;code&gt;generate-r-packages.R&lt;/code&gt;&lt;/a&gt;
+script is run and generates the
+&lt;a href=&#34;https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/r-modules/cran-packages.nix&#34;&gt;&lt;code&gt;cran-packages.nix&lt;/code&gt;&lt;/a&gt;
+file (and the equivalent Bioconductor files). For each package on CRAN, a line gets written in the script
+with the package’s name, its current version on CRAN, and very importantly its
+dependencies. For example, here is the line for &lt;code&gt;{dplyr}&lt;/code&gt;:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;dplyr = derive2 { name=&amp;quot;dplyr&amp;quot;; version=&amp;quot;1.1.4&amp;quot;;
+   sha256=&amp;quot;1jsq8pj12bngy66xms486j8a65wxvyqs944q9rxkiaylsla08wyg&amp;quot;;
+   depends=[cli generics glue lifecycle magrittr pillar R6 rlang tibble tidyselect vctrs]; };&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;These dependencies are actually the packages that can be found in the
+&lt;a href=&#34;https://github.com/tidyverse/dplyr/blob/main/DESCRIPTION&#34;&gt;&lt;code&gt;DESCRIPTION&lt;/code&gt;&lt;/a&gt; file
+under &lt;code&gt;Imports&lt;/code&gt;.
+&lt;a href=&#34;https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/r-modules/cran-packages.nix&#34;&gt;&lt;code&gt;cran-packages.nix&lt;/code&gt;&lt;/a&gt;
+(and the same goes for the Bioconductor equivalents, &lt;code&gt;bioc-packages.nix&lt;/code&gt;,
+&lt;code&gt;bioc-annotation-packages.nix&lt;/code&gt; and &lt;code&gt;bioc-experiment-packages.nix&lt;/code&gt;) get imported
+in the
+&lt;a href=&#34;https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/r-modules/default.nix&#34;&gt;&lt;code&gt;default.nix&lt;/code&gt;&lt;/a&gt;
+file. In it, another file, &lt;code&gt;generic-builder.nix&lt;/code&gt; gets also imported, which
+contains a function that will attempt building the package. Most of the time
+this succeeds, but some packages require further tweaks. Packages that have a
+field &lt;code&gt;NeedsCompilation&lt;/code&gt; in their DESCRIPTION files are usually candidates for
+further tweaking: these packages require system-level dependencies, which are
+often listed under &lt;code&gt;SystemRequirements&lt;/code&gt; (but not always, which complicates
+matters). For example, the &lt;code&gt;{terra}&lt;/code&gt; package has these system requirements
+listed in itself DESCRIPTION file:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;SystemRequirements:	C++17, GDAL (&amp;gt;= 2.2.3), GEOS (&amp;gt;= 3.4.0), PROJ (&amp;gt;= 4.9.3), sqlite3&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;so these also need to be added if we want to build them on Nix. But if we look at the
+line for &lt;code&gt;{terra}&lt;/code&gt; in &lt;code&gt;cran-packages.nix&lt;/code&gt;, this is what we see:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;terra = derive2 { name=&amp;quot;terra&amp;quot;; version=&amp;quot;1.7-65&amp;quot;; 
+  sha256=&amp;quot;0m9s5am8l6il1q0skab614cx0qjsb1i9xcv6nm0sdzj7p9lrzkfl&amp;quot;; 
+  depends=[Rcpp]; };&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Only &lt;code&gt;{Rcpp}&lt;/code&gt; is listed, which is a dependency, yes, but an R package
+dependency, not a system-level requirement. System-level requirements need to
+be added in the &lt;code&gt;default.nix&lt;/code&gt; file manually. In the &lt;code&gt;default.nix&lt;/code&gt;, you’ll find a
+long list of packages called &lt;code&gt;packagesWithNativeBuildInputs&lt;/code&gt; and
+&lt;code&gt;packagesWithBuildInputs&lt;/code&gt;. &lt;em&gt;NativeBuildInputs&lt;/em&gt; and &lt;em&gt;BuildInputs&lt;/em&gt; are Nix jargon
+for dependencies the package needs, at compile-time and then at run-time
+specifically. For example, &lt;code&gt;{Rcpp}&lt;/code&gt; is a &lt;em&gt;BuildInput&lt;/em&gt; of &lt;code&gt;{terra}&lt;/code&gt;, while the
+system-level requirements are &lt;em&gt;NativeBuildInputs&lt;/em&gt; (in the context of R packages
+though, this rarely matters. If you want more details, refer to &lt;a href=&#34;https://gist.github.com/b-rodrigues/c677b59126d05d43347ed9623ddd5b0c&#34;&gt;this
+Gist&lt;/a&gt; I’ve
+forked).&lt;/p&gt;
+&lt;p&gt;For &lt;code&gt;{terra}&lt;/code&gt;, this means that we need to add this line to the list
+&lt;code&gt;{packagesWithNativeBuildInputs}&lt;/code&gt; (I simplified the syntax here a bit):&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;terra = [ gdal proj geos ];&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;code&gt;gdal&lt;/code&gt;, &lt;code&gt;proj&lt;/code&gt; and &lt;code&gt;geos&lt;/code&gt; are the system requirements that need to be added for
+&lt;code&gt;{terra}&lt;/code&gt; to build successfully on Hydra.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;hydra&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Hydra&lt;/h2&gt;
+&lt;p&gt;&lt;em&gt;Hydra is a tool for continuous integration testing and software release that
+uses a purely functional language to describe build jobs and their dependencies&lt;/em&gt;
+(source: &lt;a href=&#34;https://hydra.nixos.org/build/248007843/download/1/hydra/#introduction&#34;&gt;the Hydra
+Manual&lt;/a&gt;)&lt;/p&gt;
+&lt;p&gt;If you’re coming from R, think of Hydra as &lt;a href=&#34;https://builder.r-hub.io/&#34;&gt;R-hub&lt;/a&gt;,
+which will check and build your R package before submitting to CRAN. Hydra
+periodically tries to rebuild packages. If that package fails, then the log
+gets hosted. When it comes to R packages, we can check which packages
+built successfully or not on &lt;a href=&#34;https://hydra.nixos.org/jobset/nixpkgs/r-updates&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;As of writing, the latest evaluation was in mid-January. A new release of R is
+going to get released on the 29th of February (or maybe was already released,
+I’m not sure when this blog post is going to get posted), and this is when new
+evaluations will likely be executed. Evaluations are the processes by which Nix
+expressions get… evaluated and used to actually build packages. So if we look
+into the results of the evaluation of the 17th of January, we see that 757 jobs
+failed:&lt;/p&gt;
+&lt;div style=&#34;text-align:center;&#34;&gt;
+&lt;p&gt;&lt;img src=&#34;https://www.brodrigues.co/img/hydra_failing_jobs.jpg&#34; width=&#34;80%&#34;&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;p&gt;One job doesn’t strictly correspond to one package though: packages get built for different
+architectures, and each architecture gets its build process. If we log into the details
+of the first package whose build failed &lt;code&gt;{AIUQ}&lt;/code&gt;, we see this:&lt;/p&gt;
+&lt;div style=&#34;text-align:center;&#34;&gt;
+&lt;p&gt;&lt;img src=&#34;https://www.brodrigues.co/img/hydra_failed.jpg&#34; width=&#34;80%&#34;&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;p&gt;From the log we see that actually what failed one of its dependencies, &lt;code&gt;{SuperGauss}&lt;/code&gt;,
+so fixing &lt;code&gt;{SuperGauss}&lt;/code&gt; will likely fix &lt;code&gt;{AIUQ}&lt;/code&gt; (I say likely because maybe another
+needed dependency also fails). So we could try to fix &lt;code&gt;{SuperGauss}&lt;/code&gt; first. Let’s see
+why &lt;code&gt;{SuperGauss}&lt;/code&gt;, by clicking on &lt;code&gt;raw&lt;/code&gt;:&lt;/p&gt;
+&lt;div style=&#34;text-align:center;&#34;&gt;
+&lt;p&gt;&lt;img src=&#34;https://www.brodrigues.co/img/hydra_failed_raw.jpg&#34; width=&#34;80%&#34;&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;p&gt;Here is what we see:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;Running phase: unpackPhase
+unpacking source archive /nix/store/615bdvjchxrd7wp5m7dhg4g04yv7ncza-SuperGauss_2.0.3.tar.gz
+source root is SuperGauss
+setting SOURCE_DATE_EPOCH to timestamp 1645735202 of file SuperGauss/MD5
+Running phase: patchPhase
+Running phase: updateAutotoolsGnuConfigScriptsPhase
+Running phase: configurePhase
+Running phase: buildPhase
+Running phase: checkPhase
+Running phase: installPhase
+* installing *source* package &amp;#39;SuperGauss&amp;#39; ...
+** package &amp;#39;SuperGauss&amp;#39; successfully unpacked and MD5 sums checked
+** using staged installation
+checking for gcc... /nix/store/xq8920m5mbd83vdlydwli7qsh67gfm5v-gcc-wrapper-13.2.0/bin/cc
+checking whether the C compiler works... yes
+checking for C compiler default output file name... a.out
+checking for suffix of executables... 
+checking whether we are cross compiling... no
+checking for suffix of object files... o
+checking whether we are using the GNU C compiler... yes
+checking whether /nix/store/xq8920m5mbd83vdlydwli7qsh67gfm5v-gcc-wrapper-13.2.0/bin/cc accepts -g... yes
+checking for /nix/store/xq8920m5mbd83vdlydwli7qsh67gfm5v-gcc-wrapper-13.2.0/bin/cc option to accept ISO C89... none needed
+checking for pkg-config... no
+checking for FFTW... configure: error: in `/build/SuperGauss&amp;#39;:
+configure: error: The pkg-config script could not be found or is too old.  Make sure it
+is in your PATH or set the PKG_CONFIG environment variable to the full
+path to pkg-config.
+
+Alternatively, you may set the environment variables FFTW_CFLAGS
+and FFTW_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details.
+
+To get pkg-config, see &amp;lt;http://pkg-config.freedesktop.org/&amp;gt;.
+See `config.log&amp;#39; for more details
+ERROR: configuration failed for package &amp;#39;SuperGauss&amp;#39;
+* removing &amp;#39;/nix/store/jxv5p85x24xmfcnifw2ibvx9jhk9f2w4-r-SuperGauss-2.0.3/library/SuperGauss&amp;#39;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This is essentially what we would see if we tried to install &lt;code&gt;{SuperGauss}&lt;/code&gt; on
+Linux. The error message is quite clear here: a system-level dependency,
+&lt;code&gt;pkg-config&lt;/code&gt; is missing. Looks like we found our first package to fix!&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;fixing-a-package&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Fixing a package&lt;/h2&gt;
+&lt;p&gt;The first step is to fork and clone the &lt;code&gt;nixpkgs&lt;/code&gt; GitHub repository to your
+computer (be patient, the repository is huge so the download will take some
+time):&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;git clone git@github.com:b-rodrigues/nixpkgs.git&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;It’s also a good idea to add the original &lt;code&gt;nixpkgs&lt;/code&gt; as an &lt;code&gt;upstream&lt;/code&gt;:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;git remote add upstream https://github.com/NixOS/nixpkgs&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This way, you can pull changes from the original &lt;code&gt;nixpkgs&lt;/code&gt; repository into your
+fork easily with:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;git fetch upstream master
+git merge upstream/master&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;These two commands synchronize your local copy of the repository with upstream.
+So now we can create a new branch to try to fix &lt;code&gt;{SuperGauss}&lt;/code&gt;:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;git branch -b fix_supergauss&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;and then we should try to build &lt;code&gt;{SuperGauss}&lt;/code&gt; locally. This is because
+it might have been fixed in the meantime by someone else, so let’s try to
+build it with (run the following command in a terminal at the root of
+your local copy of the &lt;code&gt;nixpkgs&lt;/code&gt; repository):&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;nix-build -A rPackages.SuperGauss&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;but I often prefer to use this instead, because this will build the package
+and drop me into a shell where I can start R, load the package, and try it
+by running some of its examples:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;nix-shell -I nixpkgs=/path/to/my/nixpkgs -p rPackages.SuperGauss R&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;If any of the commands above fail with the same error message as on Hydra,
+we know that it hasn’t been fixed yet. So the fix consists in opening the
+&lt;code&gt;pkgs/development/r-modules/default.nix&lt;/code&gt; and add the following line:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;SuperGauss = [ pkg-config ];&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;in either the lists &lt;code&gt;packagesWithBuildInputs&lt;/code&gt; or &lt;code&gt;packagesWithNativeBuildInputs&lt;/code&gt;
+(as explained above, it doesn’t really matter). Trying to rebuild &lt;code&gt;SuperGauss&lt;/code&gt;
+again will result in a new error message. Another dependecy needs to be added:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;SuperGauss = [ pkg-config fftw.dev ];&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Then, building succeeds! We can now commit, push, and open a pull request.
+Commit messages need to be formatted in a certain way, as per &lt;code&gt;nixpkgs&lt;/code&gt;
+&lt;a href=&#34;https://github.com/NixOS/nixpkgs/blob/master/CONTRIBUTING.md&#34;&gt;contributing
+guide&lt;/a&gt;, so:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;git add .
+git commit -m &amp;quot;rPackages.SuperGauss: add dependencies&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;also, there should only be one commit per fix. So if in the process of fixing a
+package you commited several times, you will need to use &lt;code&gt;git rebase&lt;/code&gt; to squash
+all the commits into one. Once you open the pull request, a maintainer will get
+pinged, and merge the PR if everything is alright (which is usually the case for
+these one-liners). You can see the PR for &lt;code&gt;{SuperGauss}&lt;/code&gt;
+&lt;a href=&#34;https://github.com/NixOS/nixpkgs/pull/287209&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;The process is relatively simple once you did it once or twice, but there are
+some issues: there is no easy way to find out on which packages we should focus
+on. For example, is &lt;code&gt;{SuperGauss}&lt;/code&gt; really that important? The fix was very
+simple, so it’s ok, but if it took more effort, should we spend the limited time
+we have on it, or should we focus on another package? Also, if someone has
+already opened a PR to fix a package, but that PR hasn’t been merged yet, if I
+try to also fix the same package and try to build the package, it would still
+fail. So I might think that no one is taking care of it, and waste time
+duplicating efforts instead of either focusing on another package, or reviewing
+the open PR to accelerate the process of merging.&lt;/p&gt;
+&lt;p&gt;Discussing this with other contributors, &lt;a href=&#34;https://fosstodon.org/deck/@kupac@functional.cafe&#34;&gt;László
+Kupcsik&lt;/a&gt; suggested we could
+use &lt;code&gt;{packageRank}&lt;/code&gt; to find out which packages are getting a lot of downloads
+from CRAN, and so we could focus on fixing these packages first. This is a great
+idea and it gave me the idea to build some kind of report that would do this
+automatically for us, and also list opened and merged PRs so we wouldn’t risk
+duplicating efforts.&lt;/p&gt;
+&lt;p&gt;This report can be found
+&lt;a href=&#34;https://raw.githack.com/b-rodrigues/nixpkgs-r-updates-fails/targets-runs/output/r-updates-fails.html&#34;&gt;here&lt;/a&gt;
+and now I’ll explain how I built it.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;which-packages-to-fix-and-keeping-track-of-prs&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Which packages to fix and keeping track of PRs&lt;/h2&gt;
+&lt;p&gt;So the main idea was to know on which packages to focus on. So essentially, we
+wanted this table:&lt;/p&gt;
+&lt;div style=&#34;text-align:center;&#34;&gt;
+&lt;p&gt;&lt;img src=&#34;https://www.brodrigues.co/img/hydra_failing_jobs.jpg&#34; width=&#34;80%&#34;&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;p&gt;but with &lt;code&gt;{packageRank}&lt;/code&gt; added to it. So the first step was to scrape this
+table, using &lt;code&gt;{rvest}&lt;/code&gt;. This is what you can find on lines 11 to 63 of this
+&lt;a href=&#34;https://github.com/b-rodrigues/nixpkgs-r-updates-fails/blob/0fe273dd234f0d32e5fae86630173ff42cce2d9f/_targets.R&#34;&gt;{targets}
+workflow&lt;/a&gt;
+(alongside some basic cleaning). I won’t go too much into detail, but if
+something’s not clear, ping me on &lt;a href=&#34;https://twitter.com/brodriguesco&#34;&gt;twitter&lt;/a&gt; or
+&lt;a href=&#34;https://fosstodon.org/@brodriguesco&#34;&gt;Mastodon&lt;/a&gt; or even open an issue on the
+report’s
+&lt;a href=&#34;https://github.com/b-rodrigues/nixpkgs-r-updates-fails/issues&#34;&gt;repository&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Next I also get the reason the package failed building. So in the example from
+before, &lt;code&gt;{AIUQ}&lt;/code&gt; failed because &lt;code&gt;{SuperGauss}&lt;/code&gt; failed. On Hydra, you should be
+clicking to see this, but here I scrape it as well automatically, and add this
+information in a column called &lt;code&gt;fails_because_of&lt;/code&gt;. This is what you can read on
+lines
+&lt;a href=&#34;https://github.com/b-rodrigues/nixpkgs-r-updates-fails/blob/0fe273dd234f0d32e5fae86630173ff42cce2d9f/_targets.R#L65&#34;&gt;65 to 77&lt;/a&gt;.
+I use a function called &lt;code&gt;safe_get_failed_deps()&lt;/code&gt;, which you can find in the
+&lt;code&gt;functions.R&lt;/code&gt; script &lt;a href=&#34;https://github.com/b-rodrigues/nixpkgs-r-updates-fails/blob/0fe273dd234f0d32e5fae86630173ff42cce2d9f/functions.R#L41C1-L68C2&#34;&gt;on
+here&lt;/a&gt;.
+&lt;code&gt;safe_get_failed_deps()&lt;/code&gt; wraps the main function, &lt;code&gt;get_failed_deps()&lt;/code&gt;, with
+&lt;code&gt;tryCatch()&lt;/code&gt;. This is because if anything goes wrong, I want my function
+to return &lt;code&gt;NULL&lt;/code&gt; instead of an error, which would crash the whole pipeline.&lt;/p&gt;
+&lt;p&gt;Next, I add the packages’ rank using a function that wraps
+&lt;code&gt;packageRank::packageRank()&lt;/code&gt; called &lt;code&gt;safe_packageRank()&lt;/code&gt; on &lt;a href=&#34;https://github.com/b-rodrigues/nixpkgs-r-updates-fails/blob/0fe273dd234f0d32e5fae86630173ff42cce2d9f/_targets.R#L97&#34;&gt;line 97&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;safe_packageRank()&lt;/code&gt; uses &lt;code&gt;tryCatch()&lt;/code&gt; to return &lt;code&gt;NULL&lt;/code&gt; in case there’s an error.
+This is needed because &lt;code&gt;packageRank()&lt;/code&gt; will only work on CRAN packages, but Hydra
+also tries to build Bioconductor packages: when these packages’ names get passed
+to &lt;code&gt;packageRank()&lt;/code&gt;, an error gets returned because these are not CRAN packages:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;packageRank(&amp;quot;haha&amp;quot;)
+Error: haha: misspelled or not on CRAN/Archive.&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;but instead of an error that would stop the pipeline, I prefer it simply returns
+&lt;code&gt;NULL&lt;/code&gt;, hence &lt;code&gt;tryCatch()&lt;/code&gt;. Also, I compute the rank of the package listed under
+the &lt;code&gt;fails_because_of&lt;/code&gt; column and not the &lt;code&gt;package&lt;/code&gt; column. If we go back to our
+example from before, &lt;code&gt;{AIUQ}&lt;/code&gt; failed because &lt;code&gt;{SuperGauss}&lt;/code&gt; failed, I’m actually
+interested in the rank of &lt;code&gt;{SuperGauss}&lt;/code&gt;, and not &lt;code&gt;{AIUQ}&lt;/code&gt; (which I way I went
+to all the trouble to scrape the failing dependency).&lt;/p&gt;
+&lt;p&gt;So, for now, when comparing to the table on Hydra, we have two further columns
+with the dependency that actually fails (or not, if the package fails on its own
+and not because of a dependency), and the rank of either the dependency that
+fails or the package itself.&lt;/p&gt;
+&lt;p&gt;Next, I’d like to see if PRs have already been opened and merged. For this, I
+use the &lt;code&gt;gh&lt;/code&gt; tool, which is a command line tool to interact with GitHub
+repositories. I wrote the &lt;code&gt;get_prs()&lt;/code&gt; wrapper around &lt;code&gt;gh&lt;/code&gt; to list the opened or
+the merged PRs of the &lt;code&gt;nixpkgs&lt;/code&gt; repository. This is what it looks like (and is
+defined
+&lt;a href=&#34;https://github.com/b-rodrigues/nixpkgs-r-updates-fails/blob/0fe273dd234f0d32e5fae86630173ff42cce2d9f/functions.R#L8C1-L21C2&#34;&gt;here&lt;/a&gt;):&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;get_prs &amp;lt;- function(state){
+
+  output_path &amp;lt;- paste0(state, &amp;quot;_prs.json&amp;quot;)
+
+  # Run the command
+  system(paste0(
+    &amp;quot;gh pr list --state=&amp;quot;, state,
+    &amp;quot; --search=rPackages -R NixOS/nixpkgs --json title,updatedAt,url &amp;gt; &amp;quot;,
+    output_path
+  ))
+
+  # Return path for targets
+  output_path
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Because the PRs follow the contributing guidelines, I can easily process the PRs
+titles to get the name of the package (I essentially need to go from the string
+“rPackages.SuperGauss: fixing build” to “SuperGauss”) using regular expressions.
+This is what happens in the &lt;code&gt;clean_prs()&lt;/code&gt; function
+&lt;a href=&#34;https://github.com/b-rodrigues/nixpkgs-r-updates-fails/blob/0fe273dd234f0d32e5fae86630173ff42cce2d9f/functions.R#L23&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Most of what follows is merging the right data frames and ensuring that I have
+something clean to show. Finally, an &lt;code&gt;.Rmd&lt;/code&gt; document gets compiled, which you
+can find
+&lt;a href=&#34;https://github.com/b-rodrigues/nixpkgs-r-updates-fails/blob/0fe273dd234f0d32e5fae86630173ff42cce2d9f/r-updates-fails.Rmd&#34;&gt;here&lt;/a&gt;.
+This will get compiled to an &lt;code&gt;.html&lt;/code&gt; file which is what you see when you click
+&lt;a href=&#34;https://raw.githack.com/b-rodrigues/nixpkgs-r-updates-fails/targets-runs/output/r-updates-fails.html&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;This runs every day at midnight using GitHub actions (&lt;a href=&#34;https://github.com/b-rodrigues/nixpkgs-r-updates-fails/blob/0fe273dd234f0d32e5fae86630173ff42cce2d9f/.github/workflows/compile_table.yaml&#34;&gt;the workflow is
+here&lt;/a&gt;)
+and then I use the &lt;code&gt;raw.githack.com&lt;/code&gt; &lt;a href=&#34;https://raw.githack.com/&#34;&gt;here&lt;/a&gt; to serve
+the rendered HTML file. So every time I push, or at midnight, the action runs,
+computes the package rank, checks if new PRs are available or have been merged,
+and the rendered file is immediately available. How’s that for serverless CI/CD?&lt;/p&gt;
+&lt;p&gt;If you are interested in using Nix to make your analyses reproducible, check out
+&lt;a href=&#34;https://www.brodrigues.co/tags/nix/&#34;&gt;the other blog posts in this series&lt;/a&gt; and
+join our small but motivated community of R contributors to &lt;code&gt;nixpkgs&lt;/code&gt; on
+&lt;a href=&#34;https://matrix.to/#/#r:nixos.org&#34;&gt;Matrix&lt;/a&gt;. If you are interested in the history
+of Nix, checkout this super interesting &lt;a href=&#34;https://economicsfromthetopdown.com/2024/02/17/nixing-technological-lock-in/&#34;&gt;blog
+post&lt;/a&gt;
+by &lt;a href=&#34;https://mastodon.online/@blair_fix&#34;&gt;Blair Fix&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;If you’re interested into using project-specific, and reproducible development
+environments, give &lt;code&gt;{rix}&lt;/code&gt; and Nix a try! Learn more about &lt;code&gt;{rix}&lt;/code&gt; on its Github
+repository &lt;a href=&#34;https://github.com/b-rodrigues/rix&#34;&gt;here&lt;/a&gt; or
+&lt;a href=&#34;https://b-rodrigues.github.io/rix/&#34;&gt;website&lt;/a&gt;. We wrote many vignettes that are
+conveniently numbered, so don’t hesitate to &lt;a href=&#34;https://b-rodrigues.github.io/rix/articles/a-getting-started.html&#34;&gt;get
+started&lt;/a&gt;!&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;Thanks to the colleagues of the Matrix nixpkgs R channel for the fruitful discussions that
+helped shape this blog post and for proof-reading.&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;
+Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on &lt;a href=&#34;https://fosstodon.org/@brodriguesco&#34;&gt;Mastodon&lt;/a&gt; or &lt;a href=&#34;https://www.twitter.com/brodriguesco&#34;&gt;twitter&lt;/a&gt; for blog post updates and
+&lt;a href=&#34;https://www.buymeacoffee.com/brodriguesco&#34;&gt;buy me an espresso&lt;/a&gt; or &lt;a href=&#34;https://www.paypal.me/brodriguesco&#34;&gt;paypal.me&lt;/a&gt;, or buy my &lt;a href=&#34;https://www.brodrigues.co/about/books/&#34;&gt;ebooks&lt;/a&gt;.
+You can also watch my videos on &lt;a href=&#34;https://www.youtube.com/c/BrunoRodrigues1988/&#34;&gt;youtube&lt;/a&gt;.
+So much content for you to consoom!
+&lt;/p&gt;
+&lt;style&gt;.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:&#39;Cookie&#39;, cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}&lt;/style&gt;
+&lt;p&gt;
+&lt;link href=&#34;https://fonts.googleapis.com/css?family=Cookie&#34; rel=&#34;stylesheet&#34;&gt;&lt;a class=&#34;bmc-button&#34; target=&#34;_blank&#34; href=&#34;https://www.buymeacoffee.com/brodriguesco&#34;&gt;&lt;img src=&#34;https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg&#34; alt=&#34;Buy me an Espresso&#34;&gt;&lt;span style=&#34;margin-left:5px&#34;&gt;Buy me an Espresso&lt;/span&gt;&lt;/a&gt;
+&lt;/p&gt;
+&lt;/div&gt;
+</description>
+    </item>
     
     <item>
       <title>Reproducible data science with Nix, part 9 -- rix is looking for testers!</title>
@@ -5421,7 +5992,9 @@ when Dirk Eddelbuettel suggested this:&lt;/p&gt;
 &lt;/div&gt;
 &lt;p&gt;And this is what I did. I wrote a lot of code to achieve this graph here:&lt;/p&gt;
 &lt;div style=&#34;text-align:center;&#34;&gt;
-&lt;p&gt;&lt;img src=&#34;https://camo.githubusercontent.com/5a87a4afdbac4947b852149496627c317b2bedcece0e4be66a3d60a76026f90d/68747470733a2f2f692e696d6775722e636f6d2f4f414947546a452e706e67&#34; width=&#34;70%&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href = &#34;https://github.com/b-rodrigues/code_longevity&#34;&gt;
+&lt;img src=&#34;https://www.brodrigues.co/img/r_longevity.png&#34; width=&#34;70%&#34;&gt;
+&lt;/a&gt;&lt;/p&gt;
 &lt;/div&gt;
 &lt;p&gt;This graph shows the following: for each version of R, starting with R version 0.6.0 (released in
 1997), how well the examples that came with a standard installation of R run on the current version
@@ -22536,10 +23109,9 @@ me on &lt;a href=&#34;https://www.twitter.com/brodriguesco&#34;&gt;twitter&lt;/a
 &lt;a href=&#34;https://www.brodrigues.co/blog/2019-01-31-newspapers_shiny_app/&#34;&gt;3&lt;/a&gt; and
 &lt;a href=&#34;https://www.brodrigues.co/blog/2019-02-04-newspapers_shiny_app_tutorial/&#34;&gt;4&lt;/a&gt;) blog posts, but
 there’s still a lot to explore. This blog post uses a new batch of data announced on twitter:&lt;/p&gt;
-&lt;blockquote class=&#34;twitter-tweet&#34;&gt;&lt;p lang=&#34;en&#34; dir=&#34;ltr&#34;&gt;For all who love to analyse text, the BnL released half a million of processed newspaper articles. Historical news from 1841-1878. They directly contain the full text as well as other metadata. It’s really easy to work with! &lt;a href=&#34;https://twitter.com/hashtag/digitsation?src=hash&amp;amp;ref_src=twsrc%5Etfw&#34;&gt;#digitsation&lt;/a&gt; &lt;a href=&#34;https://twitter.com/hashtag/historicalnews?src=hash&amp;amp;ref_src=twsrc%5Etfw&#34;&gt;#historicalnews&lt;/a&gt; &lt;a href=&#34;https://t.co/f5mv4bigQ2&#34;&gt;https://t.co/f5mv4bigQ2&lt;/a&gt; &lt;a href=&#34;https://t.co/cykjx9vstX&#34;&gt;pic.twitter.com/cykjx9vstX&lt;/a&gt;&lt;/p&gt;&amp;mdash; Ralph Marschall (@RalphMarschall) &lt;a href=&#34;https://twitter.com/RalphMarschall/status/1101432342214782981?ref_src=twsrc%5Etfw&#34;&gt;March 1, 2019&lt;/a&gt;&lt;/blockquote&gt;
-&lt;script async src=&#34;https://platform.twitter.com/widgets.js&#34; charset=&#34;utf-8&#34;&gt;&lt;/script&gt;
-
-
+&lt;div style=&#34;text-align:center&#34;;&gt;
+&lt;p&gt;&lt;img src=&#34;https://www.brodrigues.co/img/ralph_marschall_tweet.png&#34; style=&#34;width:80%;&#34;&gt;&lt;/p&gt;
+&lt;/div&gt;
 &lt;p&gt;and this data could not have arrived at a better moment, since something else got announced via Twitter
 recently:&lt;/p&gt;
 &lt;blockquote class=&#34;twitter-tweet&#34;&gt;&lt;p lang=&#34;en&#34; dir=&#34;ltr&#34;&gt;RVowpalWabbit 0.0.13: Keeping CRAN happy&lt;br&gt;R Interface to the &amp;#39;Vowpal Wabbit&amp;#39; fast out-of-core learner&lt;a href=&#34;https://t.co/XXXbfMqrgT&#34;&gt;https://t.co/XXXbfMqrgT&lt;/a&gt;&lt;a href=&#34;https://twitter.com/hashtag/rstats?src=hash&amp;amp;ref_src=twsrc%5Etfw&#34;&gt;#rstats&lt;/a&gt; &lt;a href=&#34;https://twitter.com/hashtag/rcpp?src=hash&amp;amp;ref_src=twsrc%5Etfw&#34;&gt;#rcpp&lt;/a&gt; &lt;a href=&#34;https://t.co/XQwNdpK2dc&#34;&gt;pic.twitter.com/XQwNdpK2dc&lt;/a&gt;&lt;/p&gt;&amp;mdash; Dirk Eddelbuettel (@eddelbuettel) &lt;a href=&#34;https://twitter.com/eddelbuettel/status/1098941963527700480?ref_src=twsrc%5Etfw&#34;&gt;February 22, 2019&lt;/a&gt;&lt;/blockquote&gt;

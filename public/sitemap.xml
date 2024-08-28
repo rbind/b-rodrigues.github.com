@@ -3,6 +3,16 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
+    <loc>https://www.brodrigues.co/blog/2024-04-04-nix_for_r_part_11/</loc>
+    <lastmod>2024-04-04T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://www.brodrigues.co/blog/2024-02-29-nix_for_r_part_10/</loc>
+    <lastmod>2024-02-29T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
     <loc>https://www.brodrigues.co/blog/2024-02-02-nix_for_r_part_9/</loc>
     <lastmod>2024-02-02T00:00:00+00:00</lastmod>
   </url>
@@ -784,7 +794,7 @@
   
   <url>
     <loc>https://www.brodrigues.co/blog/</loc>
-    <lastmod>2024-02-02T00:00:00+00:00</lastmod>
+    <lastmod>2024-04-04T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -799,25 +809,25 @@
   
   <url>
     <loc>https://www.brodrigues.co/</loc>
-    <lastmod>2024-02-02T00:00:00+00:00</lastmod>
+    <lastmod>2024-04-04T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://www.brodrigues.co/tags/nix/</loc>
-    <lastmod>2024-02-02T00:00:00+00:00</lastmod>
+    <lastmod>2024-04-04T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://www.brodrigues.co/tags/r/</loc>
-    <lastmod>2024-02-02T00:00:00+00:00</lastmod>
+    <lastmod>2024-04-04T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://www.brodrigues.co/tags/</loc>
-    <lastmod>2024-02-02T00:00:00+00:00</lastmod>
+    <lastmod>2024-04-04T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
