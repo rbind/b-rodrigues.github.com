@@ -1,0 +1,149 @@
+---
+date: 2024-08-28
+title: Reproducible data science with Nix, part 13 -- {rix} is on CRAN!
+tags: [R, Nix]
+menu:
+main:
+  parent: Blog
+  identifier: /blog/nix_for_r_part_12.Rmd
+  weight: 1
+---
+
+
+
+<div align="center">
+<p><a href = "https://docs.ropensci.org/rix">
+<img src="/img/rix-logo.png" width="50%"/>
+</a></p>
+</div>
+<p><em>Simplifies the creation of reproducible data science environments using the
+‘Nix’ package manager, as described in Dolstra (2006) <a href="https://dspace.library.uu.nl/handle/1874/7540">&lt;ISBN
+90-393-4130-3&gt;</a>. The included
+‘rix()’ function generates a complete description of the environment as a
+‘default.nix’ file, which can then be built using ‘Nix’. This results in project
+specific software environments with pinned versions of R, packages, linked
+system dependencies, and other tools. Additional helpers make it easy to run R
+code in ‘Nix’ software environments for testing and production.</em></p>
+<p>After 15 months of coding, 1364 commits, 143 closed issues, 175 closed PRs, an
+rOpenSci pre-review, an rOpenSci review, <code>{rix}</code> is finally on <a href="https://cran.r-project.org/web/packages/rix/index.html">CRAN</a>!</p>
+<p>You can now install <code>{rix}</code> using good old <code>install.packages()</code>. Soon, <code>{rix}</code>
+will also be included into the <code>nixpkgs</code> collection of packages, meaning that
+you will be able to install <code>{rix}</code> with Nix.</p>
+<p>If you want to watch a 5-Minute video introduction:</p>
+<div align="center">
+<iframe width="560" height="315" src="https://www.youtube.com/embed/OOu6gjQ310c?si=tQ-s9ZgEBxak8k8G" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen>
+</iframe>
+</div>
+<p>Btw, here is what <a href="https://github.com/boyter/scc">scc</a> has to say about the estimated cost of the project:</p>
+<p><code>scc --format=html-table --avg-wage 100000 .</code></p>
+<div align="center">
+<table>
+<colgroup>
+<col width="15%" />
+<col width="11%" />
+<col width="11%" />
+<col width="11%" />
+<col width="13%" />
+<col width="10%" />
+<col width="16%" />
+<col width="11%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>Language</strong></th>
+<th align="right"><strong>Files</strong></th>
+<th align="right"><strong>Lines</strong></th>
+<th align="right"><strong>Blank</strong></th>
+<th align="right"><strong>Comment</strong></th>
+<th align="right"><strong>Code</strong></th>
+<th align="right"><strong>Complexity</strong></th>
+<th align="right"><strong>Bytes</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>YAML</td>
+<td align="right">61</td>
+<td align="right">2798</td>
+<td align="right">320</td>
+<td align="right">174</td>
+<td align="right">2304</td>
+<td align="right">0</td>
+<td align="right">69187</td>
+</tr>
+<tr class="even">
+<td>R</td>
+<td align="right">33</td>
+<td align="right">4515</td>
+<td align="right">483</td>
+<td align="right">1225</td>
+<td align="right">2807</td>
+<td align="right">389</td>
+<td align="right">153288</td>
+</tr>
+<tr class="odd">
+<td>Nix</td>
+<td align="right">10</td>
+<td align="right">781</td>
+<td align="right">95</td>
+<td align="right">0</td>
+<td align="right">686</td>
+<td align="right">32</td>
+<td align="right">18644</td>
+</tr>
+<tr class="even">
+<td>Markdown</td>
+<td align="right">5</td>
+<td align="right">1371</td>
+<td align="right">339</td>
+<td align="right">0</td>
+<td align="right">1032</td>
+<td align="right">0</td>
+<td align="right">63758</td>
+</tr>
+<tr class="odd">
+<td>JSON</td>
+<td align="right">1</td>
+<td align="right">147</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">147</td>
+<td align="right">0</td>
+<td align="right">4637</td>
+</tr>
+<tr class="even">
+<td>Plain Text</td>
+<td align="right">1</td>
+<td align="right">41</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">41</td>
+<td align="right">0</td>
+<td align="right">2269</td>
+</tr>
+<tr class="odd">
+<td><strong>Total</strong></td>
+<td align="right"><strong>111</strong></td>
+<td align="right"><strong>9653</strong></td>
+<td align="right"><strong>1237</strong></td>
+<td align="right"><strong>1399</strong></td>
+<td align="right"><strong>7017</strong></td>
+<td align="right"><strong>421</strong></td>
+<td align="right"><strong>311783</strong></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Estimated Cost to Develop (organic) $371,264 - Estimated Schedule Effort (organic) 7.59 months - Estimated People Required (organic) 2.45</p>
+<p>Don’t hesitate to give <code>{rix}</code> a try and let us know how it goes!</p>
+<p>
+Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://fosstodon.org/@brodriguesco">Mastodon</a> or <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my <a href="https://www.brodrigues.co/about/books/">ebooks</a>.
+You can also watch my videos on <a href="https://www.youtube.com/c/BrunoRodrigues1988/">youtube</a>.
+So much content for you to consoom!
+</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p>
+<link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a>
+</p>

@@ -1,0 +1,71 @@
+---
+date: 2024-08-28
+title: Reproducible data science with Nix, part 13 -- {rix} is on CRAN!
+tags: [R, Nix]
+menu:
+main:
+  parent: Blog
+  identifier: /blog/nix_for_r_part_12.Rmd
+  weight: 1
+---
+
+
+<div align="center">
+ <a href = "https://docs.ropensci.org/rix">
+   <img src="/img/rix-logo.png" width="50%"/>
+ </a>
+</div>
+
+*Simplifies the creation of reproducible data science environments using the
+'Nix' package manager, as described in Dolstra (2006) [<ISBN
+90-393-4130-3>](https://dspace.library.uu.nl/handle/1874/7540). The included
+'rix()' function generates a complete description of the environment as a
+'default.nix' file, which can then be built using 'Nix'. This results in project
+specific software environments with pinned versions of R, packages, linked
+system dependencies, and other tools. Additional helpers make it easy to run R
+code in 'Nix' software environments for testing and production.*
+
+After 15 months of coding, 1364 commits, 143 closed issues, 175 closed PRs, an
+rOpenSci pre-review, an rOpenSci review, `{rix}` is finally on [CRAN](https://cran.r-project.org/web/packages/rix/index.html)!
+
+You can now install `{rix}` using good old `install.packages()`. Soon, `{rix}`
+will also be included into the `nixpkgs` collection of packages, meaning that
+you will be able to install `{rix}` with Nix.
+
+If you want to watch a 5-Minute video introduction:
+
+
+<div align="center">
+<iframe width="560" height="315" src="https://www.youtube.com/embed/OOu6gjQ310c?si=tQ-s9ZgEBxak8k8G" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+</div>
+
+Btw, here is what [scc](https://github.com/boyter/scc) has to say about the estimated cost of the project:
+
+`scc --format=html-table --avg-wage 100000 .`
+
+<div align="center">
+
+| **Language**  | **Files** | **Lines** | **Blank** | **Comment** | **Code** | **Complexity** | **Bytes** |
+|---------------|----------:|----------:|----------:|------------:|---------:|---------------:|----------:|
+| YAML          | 61       | 2798     | 320      | 174        | 2304    | 0             | 69187    |
+| R             | 33       | 4515     | 483      | 1225       | 2807    | 389           | 153288   |
+| Nix           | 10       | 781      | 95       | 0          | 686     | 32            | 18644    |
+| Markdown      | 5        | 1371     | 339      | 0          | 1032    | 0             | 63758    |
+| JSON          | 1        | 147      | 0        | 0          | 147     | 0             | 4637     |
+| Plain Text    | 1        | 41       | 0        | 0          | 41      | 0             | 2269     |
+| **Total**     | **111**  | **9653** | **1237** | **1399**   | **7017**| **421**       | **311783**|
+
+</div>
+
+Estimated Cost to Develop (organic) $371,264 - Estimated Schedule Effort (organic) 7.59 months - Estimated People Required (organic) 2.45
+
+Don't hesitate to give `{rix}` a try and let us know how it goes!
+
+
+<p>Hope you enjoyed! If you found this blog post useful, you might want to follow
+me on <a href="https://fosstodon.org/@brodriguesco">Mastodon</a> or <a href="https://www.twitter.com/brodriguesco">twitter</a> for blog post updates and
+<a href="https://www.buymeacoffee.com/brodriguesco">buy me an espresso</a> or <a href="https://www.paypal.me/brodriguesco">paypal.me</a>, or buy my <a href="https://www.brodrigues.co/about/books/">ebooks</a>.
+You can also watch my videos on <a href="https://www.youtube.com/c/BrunoRodrigues1988/">youtube</a>.
+So much content for you to consoom!</p>
+<style>.bmc-button img{width: 27px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{line-height: 36px !important;height:37px !important;text-decoration: none !important;display:inline-flex !important;color:#ffffff !important;background-color:#272b30 !important;border-radius: 3px !important;border: 1px solid transparent !important;padding: 1px 9px !important;font-size: 22px !important;letter-spacing:0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#82518c !important;}</style>
+<p><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/brodriguesco"><img src="https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg" alt="Buy me an Espresso"><span style="margin-left:5px">Buy me an Espresso</span></a></p>
