@@ -29,6 +29,13 @@ rOpenSci pre-review, an rOpenSci review, <code>{rix}</code> is finally on <a hre
 <p>You can now install <code>{rix}</code> using good old <code>install.packages()</code>. Soon, <code>{rix}</code>
 will also be included into the <code>nixpkgs</code> collection of packages, meaning that
 you will be able to install <code>{rix}</code> with Nix.</p>
+<p>Important sidenote: as it so happened, there is currently a bug in the released
+CRAN version that we thought we had solved, which we did, but only partially.
+When running <code>rix::rix()</code> two files should be generated: a <code>default.nix</code> and an
+<code>.Rprofile</code> for your project. It turns out that this file can be empty. If it
+is, run <code>rix::rix_init(rprofile_action = "overwrite")</code> to generate a proper
+<code>.Rprofile</code>. This is important, especially on Mac or if you have a system-wide
+library of packages! We will submit a fix asap.</p>
 <p>If you want to watch a 5-Minute video introduction:</p>
 <div align="center">
 <iframe width="560" height="315" src="https://www.youtube.com/embed/OOu6gjQ310c?si=tQ-s9ZgEBxak8k8G" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen>
